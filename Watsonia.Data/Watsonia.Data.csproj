@@ -1,0 +1,445 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{61036BC9-9528-4E43-9D4C-0304E6492E7C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Watsonia.Data</RootNamespace>
+    <AssemblyName>Watsonia.Data</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\Watsonia.Web.Site\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>Watsonia.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CascadeAttribute.cs" />
+    <Compile Include="DataAccessProviders.cs" />
+    <Compile Include="DatabaseQuery.cs" />
+    <Compile Include="DatabaseUpdater.cs" />
+    <Compile Include="DefaultDateTimeValueAttribute.cs" />
+    <Compile Include="EventArgs.cs" />
+    <Compile Include="IQToolkit.Data\Common\ExecutionBuilder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Expressions\Aggregator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Expressions\DbExpressionComparer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Expressions\DbExpressionExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Expressions\DbExpressionReplacer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Expressions\DbExpressions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Expressions\DbExpressionVisitor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Expressions\DbExpressionWriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\FieldReader.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Language\QueryLanguage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Language\QueryTypeSystem.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Language\SqlFormatter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Mapping\AdvancedMapping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Mapping\BasicMapping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Mapping\QueryMapping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\QueryCommand.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\QueryExecutor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\QueryPolicy.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\QueryTranslator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\AggregateChecker.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\AggregateRewriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\ClientJoinedProjectionRewriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\ColumnMapper.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\ColumnProjector.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\ComparisonRewriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\CrossApplyRewriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\CrossJoinIsolator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\CrossJoinRewriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\DeclaredAliasGatherer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\NamedValueGatherer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\OrderByRewriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\Parameterizer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\QueryBinder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\QueryDuplicator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\RedundantColumnRemover.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\RedundantJoinRemover.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\RedundantSubqueryRemover.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\ReferencedAliasGatherer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\ReferencedColumnGatherer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\RelationshipBinder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\RelationshipIncluder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\SelectGatherer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\SingletonProjectionRewriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\SkipToNestedOrderByRewriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\SkipToRowNumberRewriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\SubqueryRemover.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Common\Translation\UnusedColumnRemover.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\DbEntityProvider.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\DbTypeSystem.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\EntityPolicy.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\EntityProvider.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\EntitySession.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Mapping\AttributeMapping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Mapping\ImplicitMapping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit.Data\Mapping\XmlMapping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\AsyncQueryable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\AsyncUpdatable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\CompoundKey.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\DeferredList.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\DeferredValue.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\EnumerateOnce.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\ExpressionComparer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\ExpressionEvaluator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\ExpressionExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\ExpressionReplacer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\ExpressionVisitor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\ExpressionWriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\Grouping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\IAsyncQueryProvider.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\IEntityProvider.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\IEntitySession.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\MostRecentlyUsedCache.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\Parameterizer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\PartialEvaluator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\Query.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\QueryCache.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\QueryCompiler.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\QueryProvider.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\ReadOnlyExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\ReflectionExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\ScopedDictionary.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\StrongDelegate.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\TopologicalSort.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\TypedSubtreeFinder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\TypeHelper.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IQToolkit\Updatable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Linq\EntityMapper.cs" />
+    <Compile Include="Linq\EntityMappingEntity.cs" />
+    <Compile Include="MappedColumn.cs" />
+    <Compile Include="Linq\DynamicEntityProvider.cs" />
+    <Compile Include="Linq\DynamicExecutionBuilder.cs" />
+    <Compile Include="Linq\DynamicQueryExecutor.cs" />
+    <Compile Include="Linq\DynamicQueryPolice.cs" />
+    <Compile Include="Linq\EntityMapping.cs" />
+    <Compile Include="Linq\FluentSqlLinguist.cs" />
+    <Compile Include="MappedRelationship.cs" />
+    <Compile Include="DynamicProxyStateTracker.cs" />
+    <Compile Include="DynamicProxyTypeMembers.cs" />
+    <Compile Include="Database.cs" />
+    <Compile Include="DatabaseConfiguration.cs" />
+    <Compile Include="DynamicProxyFactory.cs" />
+    <Compile Include="Linq\QueryBlock.cs" />
+    <Compile Include="Linq\DynamicQueryPolicy.cs" />
+    <Compile Include="Linq\QueryBlockGatherer.cs" />
+    <Compile Include="Sql\CoalesceFunction.cs" />
+    <Compile Include="Sql\ConditionCollection.cs" />
+    <Compile Include="Sql\ConvertFunction.cs" />
+    <Compile Include="Sql\DateAddFunction.cs" />
+    <Compile Include="Sql\Field.cs" />
+    <Compile Include="Sql\NumberPowerFunction.cs" />
+    <Compile Include="Sql\NumberNegateFunction.cs" />
+    <Compile Include="Sql\NumberAbsoluteFunction.cs" />
+    <Compile Include="Sql\StatementPartType.cs" />
+    <Compile Include="Sql\Statement.cs" />
+    <Compile Include="Linq\StatementCreator.cs" />
+    <Compile Include="Linq\FluentSqlLanguage.cs" />
+    <Compile Include="TypeHelper.cs" />
+    <Compile Include="IDynamicProxy.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="IDataAccessProvider.cs" />
+    <Compile Include="Sql\Aggregate.cs" />
+    <Compile Include="Sql\AggregateType.cs" />
+    <Compile Include="Sql\BinaryOperation.cs" />
+    <Compile Include="Sql\BinaryOperator.cs" />
+    <Compile Include="Sql\Column.cs" />
+    <Compile Include="Sql\Condition.cs" />
+    <Compile Include="Sql\ConditionalCase.cs" />
+    <Compile Include="Sql\ConditionPredicate.cs" />
+    <Compile Include="Sql\ConditionRelationship.cs" />
+    <Compile Include="Sql\ConstantPart.cs" />
+    <Compile Include="Sql\DateDifferenceFunction.cs" />
+    <Compile Include="Sql\DateNewFunction.cs" />
+    <Compile Include="Sql\DatePart.cs" />
+    <Compile Include="Sql\DatePartFunction.cs" />
+    <Compile Include="Sql\NumberCeilingFunction.cs" />
+    <Compile Include="Sql\NumberFloorFunction.cs" />
+    <Compile Include="Sql\NumberRoundFunction.cs" />
+    <Compile Include="Sql\NumberTruncateFunction.cs" />
+    <Compile Include="Sql\Delete.cs" />
+    <Compile Include="Sql\Exists.cs" />
+    <Compile Include="Sql\Insert.cs" />
+    <Compile Include="Sql\Join.cs" />
+    <Compile Include="Sql\JoinType.cs" />
+    <Compile Include="Sql\LiteralPart.cs" />
+    <Compile Include="Sql\OrderByField.cs" />
+    <Compile Include="Sql\OrderDirection.cs" />
+    <Compile Include="Sql\Parameter.cs" />
+    <Compile Include="Sql\StatementPart.cs" />
+    <Compile Include="Sql\RowNumber.cs" />
+    <Compile Include="Sql\Select.cs" />
+    <Compile Include="Sql\SetValue.cs" />
+    <Compile Include="Sql\SourceExpression.cs" />
+    <Compile Include="Sql\SqlOperator.cs" />
+    <Compile Include="Sql\StringIndexFunction.cs" />
+    <Compile Include="Sql\StringConcatenateFunction.cs" />
+    <Compile Include="Sql\StringLengthFunction.cs" />
+    <Compile Include="Sql\StringRemoveFunction.cs" />
+    <Compile Include="Sql\StringReplaceFunction.cs" />
+    <Compile Include="Sql\StringToLowerFunction.cs" />
+    <Compile Include="Sql\StringToUpperFunction.cs" />
+    <Compile Include="Sql\StringTrimFunction.cs" />
+    <Compile Include="Sql\SubstringFunction.cs" />
+    <Compile Include="Sql\Table.cs" />
+    <Compile Include="Sql\UnaryOperation.cs" />
+    <Compile Include="Sql\UnaryOperator.cs" />
+    <Compile Include="Sql\Update.cs" />
+    <Compile Include="MappedTable.cs" />
+    <Compile Include="ValidationError.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+    <None Include="Watsonia.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="IQToolkit\License.txt" />
+    <Content Include="_Notes.txt" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
