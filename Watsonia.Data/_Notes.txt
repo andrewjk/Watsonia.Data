@@ -1,0 +1,13 @@
+﻿http://www.infoq.com/news/2012/01/ef-feature-requests
+https://github.com/loresoft/EntityFramework.Extended
+Batch loading (i.e. EF Include())
+http://msdn.microsoft.com/en-us/data/jj574232.aspx
+http://yobriefca.se/blog/2011/06/21/microorms-for-dotnet-inserts-updates-deletes/
+
+Empty object constructor should throw an exception saying "use db.create"
+
+https://code.google.com/p/fluent-nhibernate-test/source/browse/trunk/FluentNHibernate/Automapping/DefaultAutomappingConfiguration.cs?spec=svn2&r=2
+
+Implement IValidatableObject
+
+I think there is a bug where you set a related item (e.g. WebUser.Customer) to a new item, save the item and the item's ID (e.g. WebUser.CustomerID) is not updated.  I think we need to listen to IDChanged :(
