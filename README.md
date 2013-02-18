@@ -1,4 +1,4 @@
-# Watsonia.Data: A .NET Object-Relational Mapper #
+# Watsonia.Data - an ORM #
 
 Watsonia.Data is a simple object-relational mapper designed to be dropped into a project and work with your entity classes with a minimum of fuss.  It provides the following functionality:
 
@@ -23,7 +23,7 @@ Watsonia.Data is in a very, very beta stage and does just what I need it to for 
 
 So you've added a reference to Watsonia.Data to your assembly?  And you have some entity classes you'd like to map to a database?  Great!  The first step is to ensure that the properties you want to map to database columns are virtual and settable.  For example, in the following entity class, the FirstName, LastName and Rating properties will be loaded from the database and FullName will be ignored:  
 
-```C#
+`
 public class Author
 {
 	public virtual string FirstName
@@ -52,13 +52,13 @@ public class Author
 		set;
 	}
 }
-```
+`
 
 Entities are loaded and saved via the Database class.  The quickest way to get up and running with this is by creating a new instance of Database and passing in the connection string and the namespace in which your entities reside:  
 
-```C#
+`
 var db = new Watsonia.Data.Database([ConnectionString], [EntityNamespace]);
-```
+`
 
 If you want to get a bit more fancy (e.g. if you want to determine which entities to map based on something other than namespace or you want to map entities to tables with different names) you can create a new instance of Database and pass in a DatabaseConfiguration parameter.  See the Database Mapping section below for more information.  
 
@@ -66,7 +66,7 @@ If you want to get a bit more fancy (e.g. if you want to determine which entitie
 
 Entities can be loaded with LINQ, a fluent SQL API or SQL strings.  Using LINQ to select all of the authors with last names that start with "P" looks like this:
 
-```C#
+`
 var query = from a in db.Query<Author>()
 			where a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase)
 			select a;
@@ -74,76 +74,76 @@ foreach (Author a in query)
 {
 	Console.WriteLine(a.FullName);
 }
-```
+`
 
 Using the fluent SQL API to do the same looks like this:
 
-```C#
+`
 var query = Select.From("Author").Where("LastName", SqlOperator.StartsWith, "P");
 foreach (Author a in db.LoadCollection<Author>(query))
 {
 	Console.WriteLine(a.FullName);
 }
-```
+`
 
 The fluent SQL API includes support for most standard SQL operations including joins, grouping and paging.  
 
 Using SQL to do the same looks like this (for an SQL Server database):
 
-```C#
+`
 var query = "SELECT * FROM Author WHERE LastName LIKE '%' + {0} + '%'";
 foreach (Author a in db.LoadCollection<Author>(query, "P"))
 {
 	Console.WriteLine(a.FullName);
 }
-```
+`
 
 You can also load a scalar value using LINQ or fluent SQL:
 
-```C#
+`
 var query = Select.From("Author").Count("*").Where("LastName", SqlOperator.StartsWith, "P");
 int count = (int)db.LoadValue(query);
-```
+`
 
 Or load a single entity with its primary key value:
 
-```C#
+`
 var author = db.Load<Author>([AuthorID]);
-```
+`
 
 ## Saving Entities ##
 
 After you've loaded your entities you can make changes to their properties and save them back to the database:
 
-```C#
+`
 var author = db.Load<Author>([AuthorID]);
 author.Rating = 80;
 db.Save(author);
-```
+`
 
 To create an entity you must use the Database.Create method to obtain a proxy object that Watsonia.Data can track and save.  If you try to save a non-proxy object an exception will be raised.  The following code will successfully create a new author:
 
-```C#
+`
 var newAuthor = db.Create<Author>();
 newAuthor.FirstName = "Eric";
 newAuthor.LastName = "Blair";
 db.Save(newAuthor);
-```
+`
 
 As will the following, slightly more concise version:
 
-```C#
+`
 var newAuthor = db.Insert(new Author() { FirstName = "Eric", LastName = "Blair" });
-```
+`
 
 The following code will raise an exception though:
 
-```C#
+`
 var author = new Author();
 author.FirstName = "Eric";
 author.LastName = "Blair";
 db.Save(author);
-```
+`
 
 Sorry :(
 
@@ -151,27 +151,29 @@ Sorry :(
 
 You can update entities in bulk using TODO: LINQ, fluent SQL or SQL:
 
-```C#
+`
 var update = Update.Table("Author").Set("Rating", 95).Where("LastName", SqlOperator.StartsWith, "P");
 db.Execute(update);
-```
+`
 
-```C#
+`
 var update2 = "UPDATE Author SET Rating = 95 WHERE LastName LIKE {0} + '%'";
 db.Execute(update, "P");
-```
+`
 
 You can also delete entities in bulk using TODO: LINQ, fluent SQL or SQL:
 
-```C#
+`
+// Delete using fluent SQL
 var delete = Delete.From("Author").Where("Rating", SqlOperator.IsLessThan, 80);
 db.Execute(delete);
-```
+`
 
-```C#
+`
+// Delete using an SQL string
 var delete = "DELETE FROM Author WHERE Rating < {0}";
 db.Execute(delete, 80);
-```
+`
 
 ## Database Mapping ##
 
@@ -187,7 +189,7 @@ Out of the box, Watsonia.Data uses these conventions when mapping entities to th
 
 Any of these conventions may be overridden by creating a new class that inherits from Watsonia.Data.Configuration and passing it into the constructor to Database, e.g.:
 
-```C#
+`
 public class MyConfiguration : DatabaseConfiguration
 {
 	public override string GetTableName(Type type)
@@ -197,34 +199,34 @@ public class MyConfiguration : DatabaseConfiguration
 
 	...
 }
-```
+`
 
-```C#
+`
 var config = new MyConfiguration();
 var db = new Watsonia.Data.Database(config);
-```
+`
 
 ## Lazy and Eager Loading ##
 
-TODO:
+
 
 ## Cascading Save and Delete Operations ##
 
-TODO:
+
 
 ## Updating the Database Schema ##
 
 You can update the database by calling the database's UpdateDatabase method:
 
-```C#
+`
 db.UpdateDatabase();
-```
+`
 
 If you just want to see what will be updated you can call GetUpdateScript instead:
 
-```C#
+`
 string script = db.GetUpdateScript();
-```
+`
 
 When updating the database:
 
@@ -259,7 +261,7 @@ TODO: Other stuff it implements e.g. equality
 
 Consider the Author class and FirstName property introduced above.  We can expand on this property in the following way:
 
-```C#
+`
 public class Author
 {
 	public virtual string FirstName
@@ -278,7 +280,7 @@ public class Author
 
 	...
 }
-```
+`
 
 When the FirstName property is changed in the proxy object, it will do the following:
 
@@ -302,7 +304,7 @@ IsNew, HasChanges etc
 
 Sometimes you may want to run a bunch of operations against the database and undo your changes if any of the operations fail.  The following code will attempt to change each Author's rating and only commit the operation to the database if every save completes successfully:
 
-```C#
+`
 using (DbConnection connection = this.DB.OpenConnection())
 using (DbTransaction transaction = connection.BeginTransaction())
 {
@@ -322,4 +324,4 @@ using (DbTransaction transaction = connection.BeginTransaction())
 		throw;
 	}
 }
-```
+`
