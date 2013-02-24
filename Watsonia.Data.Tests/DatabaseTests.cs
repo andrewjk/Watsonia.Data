@@ -166,8 +166,8 @@ namespace Watsonia.Data.Tests
 					.Value("LicenseCount", 5);
 
 			DatabaseConfiguration dummyConfig = new DatabaseConfiguration("", "");
-			IDataAccessProvider provider = new SqlServerDataAccessProvider(dummyConfig);
-			DbCommand command = provider.BuildCommand(insert);
+			IDataAccessProvider provider = new SqlServerDataAccessProvider();
+			DbCommand command = provider.BuildCommand(insert, dummyConfig);
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
@@ -190,8 +190,8 @@ namespace Watsonia.Data.Tests
 				.OrderBy("Name");
 
 			DatabaseConfiguration dummyConfig = new DatabaseConfiguration("", "");
-			IDataAccessProvider provider = new SqlServerDataAccessProvider(dummyConfig);
-			DbCommand command = provider.BuildCommand(select);
+			IDataAccessProvider provider = new SqlServerDataAccessProvider();
+			DbCommand command = provider.BuildCommand(select, dummyConfig);
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
@@ -215,8 +215,8 @@ namespace Watsonia.Data.Tests
 					.And("ABN", SqlOperator.Equals, "123 456 789");
 
 			DatabaseConfiguration dummyConfig = new DatabaseConfiguration("", "");
-			IDataAccessProvider provider = new SqlServerDataAccessProvider(dummyConfig);
-			DbCommand command = provider.BuildCommand(update);
+			IDataAccessProvider provider = new SqlServerDataAccessProvider();
+			DbCommand command = provider.BuildCommand(update, dummyConfig);
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
@@ -237,8 +237,8 @@ namespace Watsonia.Data.Tests
 					.And("LicenseCount", SqlOperator.Equals, 10);
 
 			DatabaseConfiguration dummyConfig = new DatabaseConfiguration("", "");
-			IDataAccessProvider provider = new SqlServerDataAccessProvider(dummyConfig);
-			DbCommand command = provider.BuildCommand(delete);
+			IDataAccessProvider provider = new SqlServerDataAccessProvider();
+			DbCommand command = provider.BuildCommand(delete, dummyConfig);
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(

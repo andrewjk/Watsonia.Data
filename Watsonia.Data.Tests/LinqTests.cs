@@ -2219,7 +2219,8 @@ namespace Watsonia.Data.Tests
 #if DEBUG
 			string expected = TrimExtraWhiteSpace(baselines[baseline]);
 			Select[] selects = db.Compile(query);
-			var commands = selects.Select(c => db.Configuration.DataAccessProvider.BuildCommand(c).CommandText).ToArray();
+			DatabaseConfiguration dummyConfig = new DatabaseConfiguration("", "");
+			var commands = selects.Select(c => db.Configuration.DataAccessProvider.BuildCommand(c, dummyConfig).CommandText).ToArray();
 			string actual = TrimExtraWhiteSpace(string.Join("\n\n", commands));
 			//string actual = TrimExtraWhiteSpace(_provider.GetQueryText(query));
 #else
