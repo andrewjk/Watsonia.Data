@@ -14,13 +14,13 @@ namespace Watsonia.Data
 		public void UpdateDatabase(DatabaseConfiguration configuration)
 		{
 			var tables = GetMappedTables(configuration);
-			configuration.DataAccessProvider.UpdateDatabase(tables);
+			configuration.DataAccessProvider.UpdateDatabase(tables, configuration);
 		}
 
 		public string GetUpdateScript(DatabaseConfiguration configuration)
 		{
 			var tables = GetMappedTables(configuration);
-			return configuration.DataAccessProvider.GetUpdateScript(tables);
+			return configuration.DataAccessProvider.GetUpdateScript(tables, configuration);
 		}
 
 		private IEnumerable<MappedTable> GetMappedTables(DatabaseConfiguration configuration)

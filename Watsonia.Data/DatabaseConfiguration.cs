@@ -56,8 +56,6 @@ namespace Watsonia.Data
 					{
 						throw new InvalidOperationException("No data access provider found");
 					}
-
-					_dataAccessProvider.Configuration = this;
 				}
 				return _dataAccessProvider;
 			}

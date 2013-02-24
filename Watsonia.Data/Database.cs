@@ -96,7 +96,7 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public DbConnection OpenConnection()
 		{
-			return this.Configuration.DataAccessProvider.OpenConnection();
+			return this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
 		}
 
 		/// <summary>
@@ -212,8 +212,8 @@ namespace Watsonia.Data
 				Select.From(tableName)
 					  .Where(primaryKeyColumnName, SqlOperator.Equals, id);
 
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection())
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select))
+			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
@@ -284,8 +284,8 @@ namespace Watsonia.Data
 
 			var result = new ObservableCollection<T>();
 
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection())
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query))
+			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
@@ -321,8 +321,8 @@ namespace Watsonia.Data
 		{
 			var result = new ObservableCollection<T>();
 
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection())
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, parameters))
+			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration, parameters))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
@@ -387,8 +387,8 @@ namespace Watsonia.Data
 			var result = new ObservableCollection<IDynamicProxy>();
 
 			// Load items from the database
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection())
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query))
+			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
@@ -448,8 +448,8 @@ namespace Watsonia.Data
 
 			object value;
 
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection())
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query))
+			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
@@ -472,8 +472,8 @@ namespace Watsonia.Data
 		{
 			object value;
 
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection())
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, parameters))
+			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration, parameters))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
@@ -505,7 +505,7 @@ namespace Watsonia.Data
 
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
-			DbConnection connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection();
+			DbConnection connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
 			DbTransaction transactionToUse = transaction ?? connectionToUse.BeginTransaction();
 			try
 			{
@@ -666,7 +666,7 @@ namespace Watsonia.Data
 
 			// TODO: This probably isn't going to deal too well with concurrency, should there be a transaction?
 			//	Or wack it on the end of the build(insert)?
-			using (DbCommand getPrimaryKeyValueCommand = this.Configuration.DataAccessProvider.BuildInsertedIDCommand())
+			using (DbCommand getPrimaryKeyValueCommand = this.Configuration.DataAccessProvider.BuildInsertedIDCommand(this.Configuration))
 			{
 				getPrimaryKeyValueCommand.Connection = connection;
 				getPrimaryKeyValueCommand.Transaction = transaction;
@@ -795,7 +795,7 @@ namespace Watsonia.Data
 
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
-			DbConnection connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection();
+			DbConnection connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
 			DbTransaction transactionToUse = transaction ?? connectionToUse.BeginTransaction();
 			try
 			{
@@ -884,10 +884,10 @@ namespace Watsonia.Data
 
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
-			DbConnection connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection();
+			DbConnection connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
 			try
 			{
-				using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(statement))
+				using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(statement, this.Configuration))
 				{
 					command.Connection = connectionToUse;
 					command.Transaction = transaction;
@@ -940,10 +940,10 @@ namespace Watsonia.Data
 		{
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
-			DbConnection connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection();
+			DbConnection connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
 			try
 			{
-				using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(statement, parameters))
+				using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(statement, this.Configuration, parameters))
 				{
 					command.Connection = connectionToUse;
 					command.Transaction = transaction;

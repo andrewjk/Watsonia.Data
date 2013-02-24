@@ -425,7 +425,6 @@
     <Compile Include="ValidationError.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="README.md" />
     <None Include="Watsonia.snk" />
   </ItemGroup>
   <ItemGroup>

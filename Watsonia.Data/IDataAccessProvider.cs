@@ -20,52 +20,59 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
-		/// Gets the database configuration, which tells us how to access the database and how to map entities to database objects.
-		/// </summary>
-		DatabaseConfiguration Configuration
-		{
-			get;
-			set;
-		}
-
-		/// <summary>
 		/// Opens and returns a database connection.
 		/// </summary>
-		/// <returns>An open database connection.</returns>
-		DbConnection OpenConnection();
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		/// <returns>
+		/// An open database connection.
+		/// </returns>
+		DbConnection OpenConnection(DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Updates the database with any changes that have been made to tables and columns.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
-		void UpdateDatabase(IEnumerable<MappedTable> tables);
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		void UpdateDatabase(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Gets the update script for any changes that have been made to tables and columns.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
-		/// <returns>A string containing the update script.</returns>
-		string GetUpdateScript(IEnumerable<MappedTable> tables);
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		/// <returns>
+		/// A string containing the update script.
+		/// </returns>
+		string GetUpdateScript(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Builds a command to return the ID of the last inserted item.
 		/// </summary>
-		/// <returns>A database command that will return the ID of the last inserted item when executed.</returns>
-		DbCommand BuildInsertedIDCommand();
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		/// <returns>
+		/// A database command that will return the ID of the last inserted item when executed.
+		/// </returns>
+		DbCommand BuildInsertedIDCommand(DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Builds a command from a statement to execute against the database.
 		/// </summary>
 		/// <param name="statement">The statement.</param>
-		/// <returns>A database command that can be used to execute the provided statement.</returns>
-		DbCommand BuildCommand(Statement statement);
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		/// <returns>
+		/// A database command that can be used to execute the provided statement.
+		/// </returns>
+		DbCommand BuildCommand(Statement statement, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Builds a command from a string and parameters to execute against the database.
 		/// </summary>
 		/// <param name="statement">The statement.</param>
+		/// <param name="configuration">The configuration.</param>
 		/// <param name="parameters">The parameters.</param>
-		/// <returns>A database command that can be used to execute the provided statement.</returns>
-		DbCommand BuildCommand(string statement, params object[] parameters);
+		/// <returns>
+		/// A database command that can be used to execute the provided statement.
+		/// </returns>
+		DbCommand BuildCommand(string statement, DatabaseConfiguration configuration, params object[] parameters);
 	}
 }
