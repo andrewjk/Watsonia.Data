@@ -11,10 +11,12 @@ namespace Watsonia.Data.SqlServerCe
 	internal sealed class SqlServerCeDatabaseUpdater
 	{
 		private IDataAccessProvider _dataAccessProvider;
+		private DatabaseConfiguration _configuration;
 
-		public SqlServerCeDatabaseUpdater(IDataAccessProvider dataAccessProvider)
+		public SqlServerCeDatabaseUpdater(IDataAccessProvider dataAccessProvider, DatabaseConfiguration configuration)
 		{
 			_dataAccessProvider = dataAccessProvider;
+			_configuration = configuration;
 		}
 
 		public void UpdateDatabase(IEnumerable<MappedTable> tables)
@@ -31,7 +33,7 @@ namespace Watsonia.Data.SqlServerCe
 
 		private void UpdateDatabase(IEnumerable<MappedTable> tables, bool doUpdate, StringBuilder script = null)
 		{
-			using (var connection = _dataAccessProvider.OpenConnection())
+			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
 			{
 				// Load the existing tables and columns
 				var existingTables = LoadExistingTables(connection);
@@ -527,7 +529,7 @@ namespace Watsonia.Data.SqlServerCe
 
 			// Load the existing table data
 			var selectExistingTableData = Select.From(table.Name).Columns(table.PrimaryKeyColumnName);
-			using (var existingTableDataCommand = _dataAccessProvider.BuildCommand(selectExistingTableData))
+			using (var existingTableDataCommand = _dataAccessProvider.BuildCommand(selectExistingTableData, _configuration))
 			{
 				existingTableDataCommand.Connection = connection;
 				using (var reader = existingTableDataCommand.ExecuteReader())
@@ -556,7 +558,7 @@ namespace Watsonia.Data.SqlServerCe
 						{
 							insertData = insertData.Value(key, data[key]);
 						}
-						using (DbCommand command = _dataAccessProvider.BuildCommand(insertData))
+						using (DbCommand command = _dataAccessProvider.BuildCommand(insertData, _configuration))
 						{
 							command.Connection = connection;
 							ExecuteSql(command, doUpdate, script);

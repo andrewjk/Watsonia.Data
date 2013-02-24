@@ -29,54 +29,22 @@ namespace Watsonia.Data.SqlServerCe
 		}
 
 		/// <summary>
-		/// Gets or sets the configuration options used for mapping to and accessing the database.
-		/// </summary>
-		/// <value>
-		/// The configuration.
-		/// </value>
-		public DatabaseConfiguration Configuration
-		{
-			get;
-			set;
-		}
-
-		/// <summary>
 		/// Initializes a new instance of the <see cref="SqlServerCeDataAccessProvider" /> class.
 		/// </summary>
 		public SqlServerCeDataAccessProvider()
 		{
-			// This constructor is required for MEF
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="SqlServerCeDataAccessProvider" /> class.
-		/// </summary>
-		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		public SqlServerCeDataAccessProvider(DatabaseConfiguration configuration)
-		{
-			this.Configuration = configuration;
 		}
 
 		/// <summary>
 		/// Opens and returns a database connection.
 		/// </summary>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// An open database connection.
 		/// </returns>
-		/// <exception cref="System.InvalidOperationException">Configuration not initialized</exception>
-		public DbConnection OpenConnection()
+		public DbConnection OpenConnection(DatabaseConfiguration configuration)
 		{
-			if (this.Configuration == null)
-			{
-				throw new InvalidOperationException("Configuration not initialized");
-			}
-
-			if (string.IsNullOrEmpty(this.Configuration.ConnectionString))
-			{
-				throw new InvalidOperationException("Connection string not initialized");
-			}
-
-			var connection = new SqlCeConnection(this.Configuration.ConnectionString);
+			var connection = new SqlCeConnection(configuration.ConnectionString);
 			connection.Open();
 			return connection;
 		}
@@ -85,9 +53,10 @@ namespace Watsonia.Data.SqlServerCe
 		/// Updates the database with any changes that have been made to tables and columns.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
-		public void UpdateDatabase(IEnumerable<MappedTable> tables)
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		public void UpdateDatabase(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration)
 		{
-			var updater = new SqlServerCeDatabaseUpdater(this);
+			var updater = new SqlServerCeDatabaseUpdater(this, configuration);
 			updater.UpdateDatabase(tables);
 		}
 
@@ -95,22 +64,24 @@ namespace Watsonia.Data.SqlServerCe
 		/// Gets the update script for any changes that have been made to tables and columns.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		public string GetUpdateScript(IEnumerable<MappedTable> tables)
+		public string GetUpdateScript(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration)
 		{
-			var updater = new SqlServerCeDatabaseUpdater(this);
+			var updater = new SqlServerCeDatabaseUpdater(this, configuration);
 			return updater.GetUpdateScript(tables);
 		}
 
 		/// <summary>
 		/// Builds a command to return the ID of the last inserted item.
 		/// </summary>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A database command that will return the ID of the last inserted item when executed.
 		/// </returns>
-		public DbCommand BuildInsertedIDCommand()
+		public DbCommand BuildInsertedIDCommand(DatabaseConfiguration configuration)
 		{
 			var command = new SqlCeCommand();
 			command.CommandText = "SELECT @@IDENTITY";
@@ -121,10 +92,11 @@ namespace Watsonia.Data.SqlServerCe
 		/// Builds a command from a statement to execute against the database.
 		/// </summary>
 		/// <param name="statement">The statement.</param>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A database command that can be used to execute the provided statement.
 		/// </returns>
-		public DbCommand BuildCommand(Statement statement)
+		public DbCommand BuildCommand(Statement statement, DatabaseConfiguration configuration)
 		{
 			var builder = new SqlServerCeCommandBuilder();
 			return builder.BuildCommand(statement);
@@ -134,11 +106,12 @@ namespace Watsonia.Data.SqlServerCe
 		/// Builds a command from a string and parameters to execute against the database.
 		/// </summary>
 		/// <param name="statement">The statement.</param>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <param name="parameters">The parameters.</param>
 		/// <returns>
 		/// A database command that can be used to execute the provided statement.
 		/// </returns>
-		public DbCommand BuildCommand(string statement, params object[] parameters)
+		public DbCommand BuildCommand(string statement, DatabaseConfiguration configuration, params object[] parameters)
 		{
 			var builder = new SqlServerCeCommandBuilder();
 			return builder.BuildCommand(statement, parameters);
