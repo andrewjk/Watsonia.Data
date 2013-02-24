@@ -757,8 +757,9 @@ namespace Watsonia.Data.Linq
 					this.Visit(m.Arguments[1]);
 					condition.Values.Add(this.Stack.Pop());
 				}
-				else if (!m.Method.IsStatic && m.Arguments.Count == 1 && m.Arguments[0].Type == m.Object.Type)
+				else if (!m.Method.IsStatic && m.Arguments.Count > 1 && m.Arguments[0].Type == m.Object.Type)
 				{
+					// TODO: Get the other arguments, most importantly StringComparison
 					this.Visit(m.Object);
 					condition.Field = this.Stack.Pop();
 					this.Visit(m.Arguments[0]);
