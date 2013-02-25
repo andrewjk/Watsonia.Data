@@ -323,3 +323,7 @@ using (DbTransaction transaction = connection.BeginTransaction())
 	}
 }
 ```
+
+## License ##
+
+Watsonia.Data is released under the terms of the [MIT License](http://opensource.org/licenses/MIT).  Watsonia.Data contains substantial code from the [LINQ IQueryable Toolkit](http://iqtoolkit.codeplex.com) which is licensed under the terms of the [Microsoft Public License](http://opensource.org/licenses/MS-PL).
