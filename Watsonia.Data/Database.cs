@@ -554,6 +554,7 @@ namespace Watsonia.Data
 			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(tableType);
 
 			// Insert or update all of the related items that should be saved with this item
+			List<IDynamicProxy> newRelatedItems = new List<IDynamicProxy>();
 			foreach (string propertyName in proxy.StateTracker.LoadedItems)
 			{
 				PropertyInfo property = tableType.GetProperty(propertyName);
@@ -568,6 +569,10 @@ namespace Watsonia.Data
 						string relatedItemIDPropertyName = this.Configuration.GetForeignKeyColumnName(property);
 						PropertyInfo relatedItemIDProperty = proxy.GetType().GetProperty(relatedItemIDPropertyName);
 						relatedItemIDProperty.SetValue(proxy, relatedItem.PrimaryKeyValue, null);
+
+						// Add the related item to a list so that we can check whether it needs to be
+						// re-saved as part of a related collection
+						newRelatedItems.Add(relatedItem);
 					}
 					else if (relatedItem.IsNew)
 					{
@@ -604,7 +609,7 @@ namespace Watsonia.Data
 					// We can't just set a property value here because it won't exist unless each item in the collection
 					// has a property pointing back to the parent item.  Luckily the only time we will need to set the parent
 					// IDs is when the item is new (as they will never change)
-					if (cascadeItem.IsNew)
+					if (cascadeItem.IsNew || newRelatedItems.Contains(cascadeItem))
 					{
 						string parentIDPropertyName = this.Configuration.GetForeignKeyColumnName(cascadeItem.GetType().BaseType, tableType);
 						SetValue setParentID = new SetValue(parentIDPropertyName, proxy.PrimaryKeyValue);
