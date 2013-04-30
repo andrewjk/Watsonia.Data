@@ -60,6 +60,9 @@ namespace Watsonia.Data
 							{
 								column.MaxLength = 255;
 							}
+
+							// And its default value is the empty string
+							column.DefaultValue = "";
 						}
 						else if (property.PropertyType.IsEnum)
 						{
@@ -89,6 +92,18 @@ namespace Watsonia.Data
 								configuration.GetForeignKeyConstraintName(property),
 								enumTableName,
 								enumPrimaryKeyColumnName);
+
+							// And its default value is the default value for the enum
+							object[] enumDefaultValueAttributes = property.PropertyType.GetCustomAttributes(typeof(DefaultValueAttribute), false);
+							if (enumDefaultValueAttributes.Length > 0)
+							{
+								DefaultValueAttribute attribute = (DefaultValueAttribute)enumDefaultValueAttributes[0];
+								column.DefaultValue = (int)attribute.Value;
+							}
+							else
+							{
+								column.DefaultValue = (int)Enum.GetValues(property.PropertyType).GetValue(0);
+							}
 						}
 						else if (configuration.IsRelatedItem(property))
 						{
