@@ -125,7 +125,13 @@ namespace Watsonia.Data
 				Type.EmptyTypes);
 
 			MethodInfo stateTrackerIsLoadingMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"set_IsLoading", new Type[]{ typeof(Boolean) });
+				"set_IsLoading", new Type[] { typeof(bool) });
+
+			MethodInfo stateTrackerChangedFieldsMethod = typeof(DynamicProxyStateTracker).GetMethod(
+				"get_ChangedFields", Type.EmptyTypes);
+
+			MethodInfo stringListContainsMethod = typeof(List<>).MakeGenericType(typeof(string)).GetMethod(
+				"Contains", new Type[] { typeof(string) });
 
 			ILGenerator gen = constructor.GetILGenerator();
 
@@ -142,6 +148,16 @@ namespace Watsonia.Data
 			// Set the default values
 			foreach (string propertyName in members.DefaultValues.Keys)
 			{
+				Label endIfShouldSetDefaultValueLabel = gen.DefineLabel();
+
+				// if (!this.StateTracker.ChangedFields.Contains("Property"))
+				gen.Emit(OpCodes.Ldarg_0);
+				gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
+				gen.Emit(OpCodes.Callvirt, stateTrackerChangedFieldsMethod);
+				gen.Emit(OpCodes.Ldstr, propertyName);
+				gen.Emit(OpCodes.Callvirt, stringListContainsMethod);
+				gen.Emit(OpCodes.Brtrue_S, endIfShouldSetDefaultValueLabel);
+
 				object value = members.DefaultValues[propertyName];
 				bool isNullable = false;
 				Type propertyType = members.GetPropertyMethods[propertyName].ReturnType;
@@ -293,6 +309,8 @@ namespace Watsonia.Data
 					// to get things to work
 					System.Diagnostics.Trace.WriteLine(string.Format("Unsupported default value type for {0}: {1}", propertyName, propertyType));
 				}
+
+				gen.MarkLabel(endIfShouldSetDefaultValueLabel);
 			}
 
 			// this.StateTracker.IsLoading = false;
