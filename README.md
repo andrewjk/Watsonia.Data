@@ -91,7 +91,7 @@ The fluent SQL API includes support for most standard SQL operations including j
 Using SQL to do the same looks like this (for an SQL Server database):
 
 ```C#
-var query = "SELECT * FROM Author WHERE LastName LIKE '%' + {0} + '%'";
+var query = "SELECT * FROM Author WHERE LastName LIKE '%' + @0 + '%'";
 foreach (Author a in db.LoadCollection<Author>(query, "P"))
 {
 	Console.WriteLine(a.FullName);
@@ -157,7 +157,7 @@ db.Execute(update);
 ```
 
 ```C#
-var update2 = "UPDATE Author SET Rating = 95 WHERE LastName LIKE {0} + '%'";
+var update2 = "UPDATE Author SET Rating = 95 WHERE LastName LIKE @0 + '%'";
 db.Execute(update, "P");
 ```
 
@@ -169,7 +169,7 @@ db.Execute(delete);
 ```
 
 ```C#
-var delete = "DELETE FROM Author WHERE Rating < {0}";
+var delete = "DELETE FROM Author WHERE Rating < @0";
 db.Execute(delete, 80);
 ```
 
