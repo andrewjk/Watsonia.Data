@@ -359,6 +359,7 @@
     <Compile Include="Linq\QueryBlock.cs" />
     <Compile Include="Linq\DynamicQueryPolicy.cs" />
     <Compile Include="Linq\QueryBlockGatherer.cs" />
+    <Compile Include="Pluralizer.cs" />
     <Compile Include="Sql\CoalesceFunction.cs" />
     <Compile Include="Sql\ConditionCollection.cs" />
     <Compile Include="Sql\ConvertFunction.cs" />
@@ -371,6 +372,7 @@
     <Compile Include="Sql\Statement.cs" />
     <Compile Include="Linq\StatementCreator.cs" />
     <Compile Include="Linq\FluentSqlLanguage.cs" />
+    <Compile Include="TitleCaser.cs" />
     <Compile Include="TypeHelper.cs" />
     <Compile Include="IDynamicProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

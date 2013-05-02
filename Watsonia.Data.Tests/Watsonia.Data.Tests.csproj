@@ -81,7 +81,9 @@
     <Compile Include="Northwind\Order.cs" />
     <Compile Include="Northwind\OrderDetail.cs" />
     <Compile Include="Northwind\Product.cs" />
+    <Compile Include="PluralizeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TitleCaseTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Watsonia.Data.SqlServerCe\Watsonia.Data.SqlServerCe.csproj">
