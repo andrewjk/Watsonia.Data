@@ -73,6 +73,8 @@
     <Compile Include="SqlServerCommandBuilder.cs" />
     <Compile Include="SqlServerDataAccessProvider.cs" />
     <Compile Include="SqlServerDatabaseUpdater.cs" />
+    <Compile Include="TSqlCommandBuilder.cs" />
+    <Compile Include="TSqlDatabaseUpdater.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Watsonia.Data\Watsonia.Data.csproj">

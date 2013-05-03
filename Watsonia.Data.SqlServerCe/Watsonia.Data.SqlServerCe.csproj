@@ -62,6 +62,10 @@
     <None Include="Watsonia.snk" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Watsonia.Data.SqlServer\Watsonia.Data.SqlServer.csproj">
+      <Project>{c77957fd-41c5-4784-b2c7-bd324dfa5327}</Project>
+      <Name>Watsonia.Data.SqlServer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Watsonia.Data\Watsonia.Data.csproj">
       <Project>{61036bc9-9528-4e43-9d4c-0304e6492e7c}</Project>
       <Name>Watsonia.Data</Name>
