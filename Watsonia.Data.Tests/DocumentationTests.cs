@@ -68,25 +68,16 @@ namespace Watsonia.Data.Tests
 				{
 					existingAuthorID = ((IDynamicProxy)a).PrimaryKeyValue;
 				}
-				Console.WriteLine(a.FullName);
 			}
 			Assert.AreEqual(2, query.ToList().Count);
 
 			// Test a fluent SQL query
 			var query2 = Select.From("Author").Where("LastName", SqlOperator.StartsWith, "P");
-			foreach (Author a in db.LoadCollection<Author>(query2))
-			{
-				Console.WriteLine(a.FullName);
-			}
 			Assert.AreEqual(2, db.LoadCollection<Author>(query2).Count);
 
 			// Test an SQL string
-			var query3 = "SELECT * FROM Author WHERE LastName LIKE {0} + '%'";
-			foreach (Author a in db.LoadCollection<Author>(query3, "P"))
-			{
-				Console.WriteLine(a.FullName);
-			}
-			Assert.AreEqual(2, db.LoadCollection<Author>(query3, "P").Count);
+			var query3 = "SELECT * FROM Author WHERE LastName LIKE @0";
+			Assert.AreEqual(2, db.LoadCollection<Author>(query3, "P%").Count);
 
 			// Test loading a scalar value
 			var query4 = Select.From("Author").Count("*").Where("LastName", SqlOperator.StartsWith, "P");
@@ -130,15 +121,15 @@ namespace Watsonia.Data.Tests
 			db.Execute(update);
 
 			// Update using an SQL string
-			var update2 = "UPDATE Author SET Rating = 95 WHERE LastName LIKE {0} + '%'";
-			db.Execute(update2, "P");
+			var update2 = "UPDATE Author SET Rating = 95 WHERE LastName LIKE @0";
+			db.Execute(update2, "P%");
 
 			// Delete using fluent SQL
 			var delete = Delete.From("Author").Where("Rating", SqlOperator.IsLessThan, 80);
 			db.Execute(delete);
 
 			// Delete using an SQL string
-			var delete2 = "DELETE FROM Author WHERE Rating < {0}";
+			var delete2 = "DELETE FROM Author WHERE Rating < @0";
 			db.Execute(delete2, 80);
 		}
 

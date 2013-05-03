@@ -171,12 +171,12 @@ namespace Watsonia.Data.Tests
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
-				"INSERT INTO [Customer] ([Code], [Description], [ABN], [LicenseCount]) VALUES (@p0, @p1, @p2, 5)",
+				"INSERT INTO [Customer] ([Code], [Description], [ABN], [LicenseCount]) VALUES (@0, @1, @2, 5)",
 				TrimExtraWhiteSpace(command.CommandText));
 
 			// Make sure the parameters are correct
 			Assert.AreEqual(3, command.Parameters.Count);
-			Assert.AreEqual("HI123", command.Parameters["@p0"].Value);
+			Assert.AreEqual("HI123", command.Parameters["@0"].Value);
 		}
 
 		[TestMethod]
@@ -195,12 +195,12 @@ namespace Watsonia.Data.Tests
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
-				"SELECT [Name], [Code], [LicenseCount] FROM [Customer] WHERE [Code] = @p0 AND [ABN] = @p1 ORDER BY [Name]",
+				"SELECT [Name], [Code], [LicenseCount] FROM [Customer] WHERE [Code] = @0 AND [ABN] = @1 ORDER BY [Name]",
 				TrimExtraWhiteSpace(command.CommandText));
 
 			// Make sure the parameters are correct
 			Assert.AreEqual(2, command.Parameters.Count);
-			Assert.AreEqual("HI123", command.Parameters["@p0"].Value);
+			Assert.AreEqual("HI123", command.Parameters["@0"].Value);
 		}
 
 		[TestMethod]
@@ -220,12 +220,12 @@ namespace Watsonia.Data.Tests
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
-				"UPDATE [Customer] SET [Code] = @p0, [Description] = @p1, [LicenseCount] = 10 WHERE [Code] = @p2 AND [ABN] = @p3",
+				"UPDATE [Customer] SET [Code] = @0, [Description] = @1, [LicenseCount] = 10 WHERE [Code] = @2 AND [ABN] = @3",
 				TrimExtraWhiteSpace(command.CommandText));
 
 			// Make sure the parameters are correct
 			Assert.AreEqual(4, command.Parameters.Count);
-			Assert.AreEqual("HI456", command.Parameters["@p0"].Value);
+			Assert.AreEqual("HI456", command.Parameters["@0"].Value);
 		}
 
 		[TestMethod]
@@ -242,12 +242,12 @@ namespace Watsonia.Data.Tests
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
-				"DELETE FROM [Customer] WHERE [Code] = @p0 AND [LicenseCount] = 10",
+				"DELETE FROM [Customer] WHERE [Code] = @0 AND [LicenseCount] = 10",
 				TrimExtraWhiteSpace(command.CommandText));
 
 			// Make sure the parameters are correct
 			Assert.AreEqual(1, command.Parameters.Count);
-			Assert.AreEqual("HI123", command.Parameters["@p0"].Value);
+			Assert.AreEqual("HI123", command.Parameters["@0"].Value);
 		}
 
 		private string TrimExtraWhiteSpace(string s)

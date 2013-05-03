@@ -96,7 +96,7 @@ namespace IQToolkit.Data.Common
                 NamedValueExpression nv;
                 TypeAndValue tv = new TypeAndValue(c.Type, c.Value);
                 if (!this.map.TryGetValue(tv, out nv)) { // re-use same name-value if same type & value
-                    string name = "p" + (iParam++);
+                    string name = (iParam++).ToString();
                     nv = new NamedValueExpression(name, this.language.TypeSystem.GetColumnType(c.Type), c);
                     this.map.Add(tv, nv);
                 }
@@ -128,7 +128,7 @@ namespace IQToolkit.Data.Common
             HashedExpression he = new HashedExpression(e);
             if (!this.pmap.TryGetValue(he, out nv))
             {
-                string name = "p" + (iParam++);
+                string name = (iParam++).ToString();
                 nv = new NamedValueExpression(name, this.language.TypeSystem.GetColumnType(e.Type), e);
                 this.pmap.Add(he, nv);
             }

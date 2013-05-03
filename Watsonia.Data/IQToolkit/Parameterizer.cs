@@ -39,7 +39,7 @@ namespace IQToolkit
             if (!isQueryRoot && !this.fnCanBeParameter(c))
                 return c;
 
-            var p = Expression.Parameter(c.Type, "p" + parameters.Count);
+            var p = Expression.Parameter(c.Type, parameters.Count.ToString());
             parameters.Add(p);
             values.Add(c.Value);
 

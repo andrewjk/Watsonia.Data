@@ -28,62 +28,62 @@
 	<baseline key="TestStringCompareToLT">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] &lt; @p0
+		WHERE [t0].[City] &lt; @0
 	</baseline>
 	<baseline key="TestStringCompareToLE">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] &lt;= @p0
+		WHERE [t0].[City] &lt;= @0
 	</baseline>
 	<baseline key="TestStringCompareToGT">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] &gt; @p0
+		WHERE [t0].[City] &gt; @0
 	</baseline>
 	<baseline key="TestStringCompareToGE">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] &gt;= @p0
+		WHERE [t0].[City] &gt;= @0
 	</baseline>
 	<baseline key="TestStringCompareToEQ">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 	</baseline>
 	<baseline key="TestStringCompareToNE">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] &lt;&gt; @p0
+		WHERE [t0].[City] &lt;&gt; @0
 	</baseline>
 	<baseline key="TestStringCompareLT">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] &lt; @p0
+		WHERE [t0].[City] &lt; @0
 	</baseline>
 	<baseline key="TestStringCompareLE">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] &lt;= @p0
+		WHERE [t0].[City] &lt;= @0
 	</baseline>
 	<baseline key="TestStringCompareGT">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] &gt; @p0
+		WHERE [t0].[City] &gt; @0
 	</baseline>
 	<baseline key="TestStringCompareGE">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] &gt;= @p0
+		WHERE [t0].[City] &gt;= @0
 	</baseline>
 	<baseline key="TestStringCompareEQ">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 	</baseline>
 	<baseline key="TestStringCompareNE">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] &lt;&gt; @p0
+		WHERE [t0].[City] &lt;&gt; @0
 	</baseline>
 	<baseline key="TestIntCompareTo">
 		SELECT [t0].[CustomerID], [t0].[OrderDate], [t0].[OrderID]
@@ -273,12 +273,12 @@
 	<baseline key="TestConditional">
 		SELECT [t0].[CustomerID], [t0].[OrderDate], [t0].[OrderID]
 		FROM [Orders] AS [t0]
-		WHERE (CASE WHEN [t0].[CustomerID] = @p0 THEN 1000 ELSE 0 END) = 1000
+		WHERE (CASE WHEN [t0].[CustomerID] = @0 THEN 1000 ELSE 0 END) = 1000
 	</baseline>
 	<baseline key="TestConditional2">
 		SELECT [t0].[CustomerID], [t0].[OrderDate], [t0].[OrderID]
 		FROM [Orders] AS [t0]
-		WHERE (CASE WHEN [t0].[CustomerID] = @p0 THEN 1000 WHEN [t0].[CustomerID] = @p1 THEN 2000 ELSE 0 END) = 1000
+		WHERE (CASE WHEN [t0].[CustomerID] = @0 THEN 1000 WHEN [t0].[CustomerID] = @1 THEN 2000 ELSE 0 END) = 1000
 	</baseline>
 	<baseline key="TestConditionalTestIsValue">
 		SELECT [t0].[CustomerID], [t0].[OrderDate], [t0].[OrderID]
@@ -288,7 +288,7 @@
 	<baseline key="TestConditionalResultsArePredicates">
 		SELECT [t0].[CustomerID], [t0].[OrderDate], [t0].[OrderID]
 		FROM [Orders] AS [t0]
-		WHERE (CASE WHEN [t0].[CustomerID] = @p0 THEN (CASE WHEN [t0].[OrderID] &lt; 10 THEN 1 ELSE 0 END) ELSE (CASE WHEN [t0].[OrderID] &gt; 10 THEN 1 ELSE 0 END) END) &lt;&gt; 0
+		WHERE (CASE WHEN [t0].[CustomerID] = @0 THEN (CASE WHEN [t0].[OrderID] &lt; 10 THEN 1 ELSE 0 END) ELSE (CASE WHEN [t0].[OrderID] &gt; 10 THEN 1 ELSE 0 END) END) &lt;&gt; 0
 	</baseline>
 	<baseline key="TestSelectManyJoined">
 		SELECT [t0].[ContactName], [t1].[OrderDate]
@@ -307,21 +307,21 @@
 		FROM [Orders] AS [t0]
 		LEFT OUTER JOIN [Customers] AS [t1]
 		ON [t1].[CustomerID] = [t0].[CustomerID]
-		WHERE [t1].[City] = @p0
+		WHERE [t1].[City] = @0
 	</baseline>
 	<baseline key="TestSelectWhereAssociations">
 		SELECT [t0].[CustomerID], [t0].[OrderDate], [t0].[OrderID]
 		FROM [Orders] AS [t0]
 		LEFT OUTER JOIN [Customers] AS [t1]
 		ON [t1].[CustomerID] = [t0].[CustomerID]
-		WHERE [t1].[City] = @p0 AND [t1].[Phone] &lt;&gt; @p1
+		WHERE [t1].[City] = @0 AND [t1].[Phone] &lt;&gt; @1
 	</baseline>
 	<baseline key="TestSelectWhereAssociationTwice">
 		SELECT [t0].[CustomerID], [t0].[OrderDate], [t0].[OrderID]
 		FROM [Orders] AS [t0]
 		LEFT OUTER JOIN [Customers] AS [t1]
 		ON [t1].[CustomerID] = [t0].[CustomerID]
-		WHERE [t1].[City] = @p0 AND [t1].[Phone] &lt;&gt; @p1
+		WHERE [t1].[City] = @0 AND [t1].[Phone] &lt;&gt; @1
 	</baseline>
 	<baseline key="TestSelectAssociation">
 		SELECT [t1].[CustomerID] AS [CustomerID1], [t1].[City], [t1].[CompanyName], [t1].[ContactName], [t1].[Country], [t1].[Phone]
@@ -340,7 +340,7 @@
 		FROM [Orders] AS [t0]
 		LEFT OUTER JOIN [Customers] AS [t1]
 		ON [t1].[CustomerID] = [t0].[CustomerID]
-		WHERE [t1].[City] = @p0 AND [t1].[Phone] &lt;&gt; @p1
+		WHERE [t1].[City] = @0 AND [t1].[Phone] &lt;&gt; @1
 	</baseline>
 	<baseline key="TestCustomersIncludeOrders">
 		SELECT [t1].[CustomerID], [t1].[OrderDate], [t1].[OrderID]
@@ -373,11 +373,11 @@
 		FROM [Customers] AS [t0]
 		LEFT OUTER JOIN [Orders] AS [t1]
 		ON [t1].[CustomerID] = [t0].[CustomerID]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 	</baseline>
 	<baseline key="TestCustomersIncludeOrdersAndDetails">
 		SELECT [t2].[OrderID], [t2].[ProductID]
@@ -402,17 +402,17 @@
 		ON [t1].[CustomerID] = [t0].[CustomerID]
 		LEFT OUTER JOIN [Order Details] AS [t2]
 		ON [t2].[OrderID] = [t1].[OrderID]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 
 		SELECT [t1].[CustomerID], [t1].[OrderDate], [t1].[OrderID]
 		FROM [Customers] AS [t0]
 		LEFT OUTER JOIN [Orders] AS [t1]
 		ON [t1].[CustomerID] = [t0].[CustomerID]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 	</baseline>
 	<baseline key="TestInterfaceElementTypeAsGenericConstraint">
 		SELECT [t0].[Discontinued], [t0].[ProductId], [t0].[ProductName]
@@ -422,19 +422,19 @@
 	<baseline key="TestXmlMappingSelectCustomers">
 		SELECT [t0].[ContactName]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 	</baseline>
 	<baseline key="TestSingletonAssociationWithMemberAccess">
 		SELECT [t1].[City], [t1].[CompanyName], [t1].[ContactName], [t1].[Country], [t1].[CustomerID] AS [CustomerID1], [t1].[Phone]
 		FROM [Orders] AS [t0]
 		LEFT OUTER JOIN [Customers] AS [t1]
 		ON [t1].[CustomerID] = [t0].[CustomerID]
-		WHERE [t1].[City] = @p0 AND [t1].[Phone] &lt;&gt; @p1
+		WHERE [t1].[City] = @0 AND [t1].[Phone] &lt;&gt; @1
 	</baseline>
 	<baseline key="TestCompareDateTimesWithDifferentNullability">
 		SELECT [t0].[CustomerID], [t0].[OrderDate], [t0].[OrderID]
 		FROM [Orders] AS [t0]
-		WHERE [t0].[OrderDate] &lt; @p0 AND [t0].[OrderDate] &lt; @p1
+		WHERE [t0].[OrderDate] &lt; @0 AND [t0].[OrderDate] &lt; @1
 	</baseline>
 	<baseline key="TestContainsWithEmptyLocalList">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
@@ -447,7 +447,7 @@
 		WHERE [t0].[CustomerID] IN (
 		SELECT [t1].[CustomerID]
 		FROM [Customers] AS [t1]
-		WHERE [t1].[City] = @p0
+		WHERE [t1].[City] = @0
 		)
 	</baseline>
 	<baseline key="TestCombineQueriesDeepNesting">
@@ -459,7 +459,7 @@
 		WHERE EXISTS (
 		SELECT *
 		FROM [Customers] AS [t2]
-		WHERE [t2].[ContactName] LIKE @p0 + '%' AND [t2].[CustomerID] = [t1].[CustomerID]
+		WHERE [t2].[ContactName] LIKE @0 + '%' AND [t2].[CustomerID] = [t1].[CustomerID]
 		) AND [t1].[OrderID] = [t0].[OrderID]
 		)
 	</baseline>
@@ -505,13 +505,13 @@
 	<baseline key="TestFirstPredicate">
 		SELECT TOP (1) [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 		ORDER BY [t0].[ContactName]
 	</baseline>
 	<baseline key="TestWhereFirst">
 		SELECT TOP (1) [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 		ORDER BY [t0].[ContactName]
 	</baseline>
 	<baseline key="TestFirstOrDefault">
@@ -522,13 +522,13 @@
 	<baseline key="TestFirstOrDefaultPredicate">
 		SELECT TOP (1) [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 		ORDER BY [t0].[ContactName]
 	</baseline>
 	<baseline key="TestWhereFirstOrDefault">
 		SELECT TOP (1) [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 		ORDER BY [t0].[ContactName]
 	</baseline>
 	<baseline key="TestReverse">
@@ -544,7 +544,7 @@
 	<baseline key="TestReverseWhereReverse">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 		ORDER BY [t0].[ContactName]
 	</baseline>
 	<baseline key="TestReverseTakeReverse">
@@ -561,7 +561,7 @@
 		FROM (
 		SELECT TOP (5) [t1].[City], [t1].[CompanyName], [t1].[ContactName], [t1].[Country], [t1].[CustomerID], [t1].[Phone]
 		FROM [Customers] AS [t1]
-		WHERE [t1].[City] = @p0
+		WHERE [t1].[City] = @0
 		ORDER BY [t1].[ContactName] DESC
 		) AS [t0]
 		ORDER BY [t0].[ContactName]
@@ -574,13 +574,13 @@
 	<baseline key="TestLastPredicate">
 		SELECT TOP (1) [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 		ORDER BY [t0].[ContactName] DESC
 	</baseline>
 	<baseline key="TestWhereLast">
 		SELECT TOP (1) [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 		ORDER BY [t0].[ContactName] DESC
 	</baseline>
 	<baseline key="TestLastOrDefault">
@@ -591,13 +591,13 @@
 	<baseline key="TestLastOrDefaultPredicate">
 		SELECT TOP (1) [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 		ORDER BY [t0].[ContactName] DESC
 	</baseline>
 	<baseline key="TestWhereLastOrDefault">
 		SELECT TOP (1) [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 		ORDER BY [t0].[ContactName] DESC
 	</baseline>
 	<baseline key="TestSingle">
@@ -607,12 +607,12 @@
 	<baseline key="TestSinglePredicate">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[CustomerID] = @p0
+		WHERE [t0].[CustomerID] = @0
 	</baseline>
 	<baseline key="TestWhereSingle">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[CustomerID] = @p0
+		WHERE [t0].[CustomerID] = @0
 	</baseline>
 	<baseline key="TestSingleOrDefault">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
@@ -621,12 +621,12 @@
 	<baseline key="TestSingleOrDefaultPredicate">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[CustomerID] = @p0
+		WHERE [t0].[CustomerID] = @0
 	</baseline>
 	<baseline key="TestWhereSingleOrDefault">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[CustomerID] = @p0
+		WHERE [t0].[CustomerID] = @0
 	</baseline>
 	<baseline key="TestAnyWithSubquery">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
@@ -649,7 +649,7 @@
 	<baseline key="TestAnyWithLocalCollection">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE ([t0].[CustomerID] = @p0 OR [t0].[CustomerID] = @p1)
+		WHERE ([t0].[CustomerID] = @0 OR [t0].[CustomerID] = @1)
 	</baseline>
 	<baseline key="TestAnyTopLevel">
 		SELECT (CASE WHEN EXISTS (
@@ -669,13 +669,13 @@
 	<baseline key="TestAllWithLocalCollection">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE ([t0].[ContactName] LIKE '%' + @p0 + '%' AND [t0].[ContactName] LIKE '%' + @p1 + '%')
+		WHERE ([t0].[ContactName] LIKE '%' + @0 + '%' AND [t0].[ContactName] LIKE '%' + @1 + '%')
 	</baseline>
 	<baseline key="TestAllTopLevel">
 		SELECT (CASE WHEN NOT EXISTS (
 		SELECT *
 		FROM [Customers] AS [t0]
-		WHERE NOT [t0].[ContactName] LIKE @p0 + '%'
+		WHERE NOT [t0].[ContactName] LIKE @0 + '%'
 		) THEN 1 ELSE 0 END) AS [value]
 	</baseline>
 	<baseline key="TestContainsWithSubquery">
@@ -689,10 +689,10 @@
 	<baseline key="TestContainsWithLocalCollection">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[CustomerID] IN (@p0, @p1)
+		WHERE [t0].[CustomerID] IN (@0, @1)
 	</baseline>
 	<baseline key="TestContainsTopLevel">
-		SELECT (CASE WHEN @p0 IN (
+		SELECT (CASE WHEN @0 IN (
 		SELECT [t0].[CustomerID]
 		FROM [Customers] AS [t0]
 		) THEN 1 ELSE 0 END) AS [value]
@@ -700,12 +700,12 @@
 	<baseline key="TestCoalesce">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE COALESCE([t0].[City], @p0) = @p0
+		WHERE COALESCE([t0].[City], @0) = @0
 	</baseline>
 	<baseline key="TestCoalesce2">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE COALESCE([t0].[City], [t0].[Country], @p0) = @p0
+		WHERE COALESCE([t0].[City], [t0].[Country], @0) = @0
 	</baseline>
 	<baseline key="TestStringLength">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
@@ -715,7 +715,7 @@
 	<baseline key="TestStringStartsWithLiteral">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[ContactName] LIKE @p0 + '%'
+		WHERE [t0].[ContactName] LIKE @0 + '%'
 	</baseline>
 	<baseline key="TestStringStartsWithColumn">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
@@ -725,7 +725,7 @@
 	<baseline key="TestStringEndsWithLiteral">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[ContactName] LIKE '%' + @p0
+		WHERE [t0].[ContactName] LIKE '%' + @0
 	</baseline>
 	<baseline key="TestStringEndsWithColumn">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
@@ -735,7 +735,7 @@
 	<baseline key="TestStringContainsLiteral">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[ContactName] LIKE '%' + @p0 + '%'
+		WHERE [t0].[ContactName] LIKE '%' + @0 + '%'
 	</baseline>
 	<baseline key="TestStringContainsColumn">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
@@ -745,22 +745,22 @@
 	<baseline key="TestStringConcatImplicit2Args">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[ContactName] + @p0 = @p0
+		WHERE [t0].[ContactName] + @0 = @0
 	</baseline>
 	<baseline key="TestStringConcatExplicit2Args">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[ContactName] + @p0 = @p0
+		WHERE [t0].[ContactName] + @0 = @0
 	</baseline>
 	<baseline key="TestStringConcatExplicit3Args">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[ContactName] + @p0 + [t0].[Country] = @p0
+		WHERE [t0].[ContactName] + @0 + [t0].[Country] = @0
 	</baseline>
 	<baseline key="TestStringConcatExplicitNArgs">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[ContactName] + @p0 + [t0].[Country] = @p0
+		WHERE [t0].[ContactName] + @0 + [t0].[Country] = @0
 	</baseline>
 	<baseline key="TestStringIsNullOrEmpty">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
@@ -770,62 +770,62 @@
 	<baseline key="TestStringToUpper">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE UPPER([t0].[City]) = @p0
+		WHERE UPPER([t0].[City]) = @0
 	</baseline>
 	<baseline key="TestStringToLower">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE LOWER([t0].[City]) = @p0
+		WHERE LOWER([t0].[City]) = @0
 	</baseline>
 	<baseline key="TestStringSubstring">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE SUBSTRING([t0].[City], 0 + 1, 4) = @p0
+		WHERE SUBSTRING([t0].[City], 0 + 1, 4) = @0
 	</baseline>
 	<baseline key="TestStringSubstringNoLength">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE SUBSTRING([t0].[City], 4 + 1, 8000) = @p0
+		WHERE SUBSTRING([t0].[City], 4 + 1, 8000) = @0
 	</baseline>
 	<baseline key="TestStringIndexOf">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE (CHARINDEX(@p0, [t0].[City]) - 1) = 4
+		WHERE (CHARINDEX(@0, [t0].[City]) - 1) = 4
 	</baseline>
 	<baseline key="TestStringIndexOfChar">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE (CHARINDEX(@p0, [t0].[City]) - 1) = 4
+		WHERE (CHARINDEX(@0, [t0].[City]) - 1) = 4
 	</baseline>
 	<baseline key="TestStringTrim">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE RTRIM(LTRIM([t0].[City])) = @p0
+		WHERE RTRIM(LTRIM([t0].[City])) = @0
 	</baseline>
 	<baseline key="TestStringToString">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 	</baseline>
 	<baseline key="TestStringReplace">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE REPLACE([t0].[City], @p0, @p1) = @p2
+		WHERE REPLACE([t0].[City], @0, @1) = @2
 	</baseline>
 	<baseline key="TestStringReplaceChars">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE REPLACE([t0].[City], @p0, @p1) = @p2
+		WHERE REPLACE([t0].[City], @0, @1) = @2
 	</baseline>
 	<baseline key="TestStringRemove">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE STUFF([t0].[City], 1 + 1, 2, '') = @p0
+		WHERE STUFF([t0].[City], 1 + 1, 2, '') = @0
 	</baseline>
 	<baseline key="TestStringRemoveNoCount">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE STUFF([t0].[City], 4 + 1, 8000, '') = @p0
+		WHERE STUFF([t0].[City], 4 + 1, 8000, '') = @0
 	</baseline>
 	<baseline key="TestDateTimeConstructYmd">
 		SELECT [t0].[CustomerID], [t0].[OrderDate], [t0].[OrderID]
@@ -950,7 +950,7 @@
 	<baseline key="TestWhere">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 	</baseline>
 	<baseline key="TestWhereTrue">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
@@ -965,32 +965,32 @@
 	<baseline key="TestCompareEntityEqual">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[CustomerID] = @p0
+		WHERE [t0].[CustomerID] = @0
 	</baseline>
 	<baseline key="TestCompareEntityNotEqual">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE NOT ([t0].[CustomerID] = @p0)
+		WHERE NOT ([t0].[CustomerID] = @0)
 	</baseline>
 	<baseline key="TestCompareConstructedEqual">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 	</baseline>
 	<baseline key="TestCompareConstructedMultiValueEqual">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE ([t0].[City] = @p0 AND [t0].[Country] = @p1)
+		WHERE ([t0].[City] = @0 AND [t0].[Country] = @1)
 	</baseline>
 	<baseline key="TestCompareConstructedMultiValueNotEqual">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE NOT (([t0].[City] = @p0) AND ([t0].[Country] = @p1))
+		WHERE NOT (([t0].[City] = @0) AND ([t0].[Country] = @1))
 	</baseline>
 	<baseline key="TestCompareConstructed">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 	</baseline>
 	<baseline key="TestSelectScalar">
 		SELECT [t0].[City]
@@ -1047,7 +1047,7 @@
 	<baseline key="TestSelectNestedCollection">
 		SELECT [t0].[CustomerID]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[City] = @p0
+		WHERE [t0].[City] = @0
 
 		SELECT [t0].[OrderID]
 		FROM [Orders] AS [t0]
@@ -1058,11 +1058,11 @@
 		FROM [Customers] AS [t0]
 		LEFT OUTER JOIN [Orders] AS [t1]
 		ON [t1].[CustomerID] = [t0].[CustomerID] AND YEAR([t1].[OrderDate]) = 1997
-		WHERE [t0].[CustomerID] = @p0
+		WHERE [t0].[CustomerID] = @0
 
 		SELECT [t0].[CustomerID]
 		FROM [Customers] AS [t0]
-		WHERE [t0].[CustomerID] = @p0
+		WHERE [t0].[CustomerID] = @0
 	</baseline>
 	<baseline key="TestJoinCustomerOrders">
 		SELECT [t0].[ContactName], [t1].[OrderID]
@@ -1112,7 +1112,7 @@
 		ON [t1].[CustomerID] = [t0].[CustomerID]
 		INNER JOIN [Order Details] AS [t2]
 		ON [t1].[OrderID] = [t2].[OrderID]
-		WHERE [t0].[CustomerID] = @p0
+		WHERE [t0].[CustomerID] = @0
 	</baseline>
 	<baseline key="TestMultipleJoinsWithMissingJoinCondition">
 		SELECT [t2].[ProductID]
@@ -1120,7 +1120,7 @@
 		INNER JOIN [Orders] AS [t1]
 		ON [t1].[CustomerID] = [t0].[CustomerID]
 		CROSS JOIN [Order Details] AS [t2]
-		WHERE [t0].[CustomerID] = @p0
+		WHERE [t0].[CustomerID] = @0
 	</baseline>
 	<baseline key="TestOrderBy">
 		SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
@@ -1275,7 +1275,7 @@
 	<baseline key="TestCountWithPredicate">
 		SELECT COUNT(*)
 		FROM [Orders] AS [t0]
-		WHERE [t0].[CustomerID] = @p0
+		WHERE [t0].[CustomerID] = @0
 	</baseline>
 	<baseline key="TestDistinct">
 		SELECT DISTINCT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
@@ -1344,7 +1344,7 @@
 		FROM (
 		SELECT DISTINCT [t1].[City], [t1].[CompanyName], [t1].[ContactName], [t1].[Country], [t1].[CustomerID], [t1].[Phone]
 		FROM [Customers] AS [t1]
-		WHERE [t1].[CustomerID] = @p0
+		WHERE [t1].[CustomerID] = @0
 		) AS [t0]
 	</baseline>
 	<baseline key="TestDistinctSumWithArg">
