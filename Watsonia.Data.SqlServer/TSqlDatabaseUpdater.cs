@@ -70,25 +70,19 @@ namespace Watsonia.Data.SqlServer
 				// Second pass - fill table data
 				foreach (MappedTable table in tables.Where(t => t.Values.Count > 0))
 				{
-					if (existingTables.ContainsKey(table.Name.ToUpperInvariant()))
-					{
-						UpdateTableData(table, connection, doUpdate, script);
-					}
+					UpdateTableData(table, connection, doUpdate, script);
 				}
 
 				// Third pass - create relationship constraints
 				var existingForeignKeys = LoadExistingForeignKeys(connection);
 				foreach (MappedTable table in tables)
 				{
-					if (existingTables.ContainsKey(table.Name.ToUpperInvariant()))
+					foreach (MappedColumn column in table.Columns.Where(c => c.Relationship != null))
 					{
-						foreach (MappedColumn column in table.Columns.Where(c => c.Relationship != null))
+						if (!existingForeignKeys.Contains(column.Relationship.ConstraintName))
 						{
-							if (!existingForeignKeys.Contains(column.Relationship.ConstraintName))
-							{
-								CreateForeignKey(table, column, connection, doUpdate, script);
-								existingForeignKeys.Add(column.Relationship.ConstraintName);
-							}
+							CreateForeignKey(table, column, connection, doUpdate, script);
+							existingForeignKeys.Add(column.Relationship.ConstraintName);
 						}
 					}
 				}
@@ -135,7 +129,7 @@ namespace Watsonia.Data.SqlServer
 							defaultValue = null;
 						}
 						string dataTypeName = reader.GetString(reader.GetOrdinal("DATA_TYPE"));
-			
+
 						Type columnType = FrameworkTypeFromDatabase(dataTypeName, allowNulls);
 						int maxLength = 0;
 						if (columnType == typeof(string))
@@ -419,7 +413,7 @@ namespace Watsonia.Data.SqlServer
 						command.Connection = connection;
 						ExecuteSql(command, doUpdate, script);
 					}
-					
+
 					// Update the column
 					command.CommandText = string.Format("ALTER TABLE [{0}] ALTER COLUMN {1}", table.Name, ColumnText(table, column, false, false));
 					ExecuteSql(command, doUpdate, script);
