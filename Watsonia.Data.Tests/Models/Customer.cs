@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Watsonia.Data.Tests.Models
 {
-	public class Customer
+	public class Customer : Entity
 	{
 		public event EventHandler NameChanging;
 		public event EventHandler NameChanged;

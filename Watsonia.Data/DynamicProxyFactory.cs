@@ -91,6 +91,12 @@ namespace Watsonia.Data
 			CreateGetHashCodeMethod(type, members);
 			CreateEqualsMethod(type, members);
 
+			// You'd think it would be easy to override the == and != operators by defining static op_Equality
+			// and op_Inequality methods but you'd be wrong.  Apparently C# resolves operator calls at compile
+			// time, so overrides added at runtime will never be called
+			//CreateEqualityOperator(type, parent, members);
+			//CreateInequalityOperator(type, parent, members);
+
 			// Implement IDataErrorInfo
 			CreateErrorProperty(type, members);
 			CreateErrorItemProperty(type, members);

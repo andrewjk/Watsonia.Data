@@ -45,18 +45,22 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestEquality()
 		{
-			IDynamicProxy customerProxy = (IDynamicProxy)DynamicProxyFactory.GetDynamicProxy<Customer>(db);
-			customerProxy.PrimaryKeyValue = 5;
-			IDynamicProxy customerProxy2 = (IDynamicProxy)DynamicProxyFactory.GetDynamicProxy<Customer>(db);
-			customerProxy2.PrimaryKeyValue = 5;
-			Assert.AreEqual(true, customerProxy.Equals(customerProxy2));
-			// NOTE: This doesn't work too well with an equals operator overload on the interface
-			//Assert.AreEqual(true, customerProxy == customerProxy2);
-			Assert.AreNotEqual("", customerProxy.GetHashCode());
+			Customer a = DynamicProxyFactory.GetDynamicProxy<Customer>(db);
+			Customer b = DynamicProxyFactory.GetDynamicProxy<Customer>(db);
 
-			IDynamicProxy orderProxy = (IDynamicProxy)DynamicProxyFactory.GetDynamicProxy<Order>(db);
-			orderProxy.PrimaryKeyValue = 5;
-			Assert.AreEqual(false, customerProxy.Equals(orderProxy));
+			((IDynamicProxy)a).PrimaryKeyValue = 5;
+			((IDynamicProxy)b).PrimaryKeyValue = 5;
+	
+			Assert.AreEqual(true, a.Equals(b), "Using Equals failed");
+			Assert.AreNotEqual("", a.GetHashCode(), "GetHashCode failed");
+
+			// We can't add operator overloads at run-time but we can test whether adding them in a base class will work
+			Assert.AreEqual(true, a == b, "Using == failed");
+			Assert.AreEqual(false, a != b, "Using != failed");
+
+			Order c = DynamicProxyFactory.GetDynamicProxy<Order>(db);
+			((IDynamicProxy)c).PrimaryKeyValue = 5;
+			Assert.AreEqual(false, a.Equals(c), "Comparing different types failed");
 		}
 
 		[TestMethod]

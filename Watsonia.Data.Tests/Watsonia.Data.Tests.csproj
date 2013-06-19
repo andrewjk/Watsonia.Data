@@ -69,6 +69,7 @@
     <Compile Include="Models\Crud.cs" />
     <Compile Include="Models\Agg.cs" />
     <Compile Include="Models\Def.cs" />
+    <Compile Include="Models\Entity.cs" />
     <Compile Include="Models\Link.cs" />
     <Compile Include="Models\Order.cs" />
     <Compile Include="Models\Customer.cs" />
