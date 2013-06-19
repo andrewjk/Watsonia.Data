@@ -86,6 +86,9 @@ namespace Watsonia.Data.Tests
 			Assert.AreEqual("Read markdown_rules.txt to Find Out How _Underscores Around Words_ Will Be Interpreted", TitleCaser.ToTitleCase("Read markdown_rules.txt to find out how _underscores around words_ will be interpreted"));
 			Assert.AreEqual("Read markdown_rules.txt to Find Out How *Asterisks Around Words* Will Be Interpreted", TitleCaser.ToTitleCase("Read markdown_rules.txt to find out how *asterisks around words* will be interpreted"));
 			Assert.AreEqual("Notes and Observations Regarding Apple’s Announcements From ‘The Beat Goes On’ Special Event", TitleCaser.ToTitleCase("Notes and observations regarding Apple’s announcements from ‘The Beat Goes On’ special event"));
+
+			// Test passing in a phrase that should be cased specifically
+			Assert.AreEqual("Using the Save As Dialog Box", TitleCaser.ToTitleCase("using the save as dialog box", new string[] { "Save As" }));
 		}
 	}
 }

@@ -48,8 +48,9 @@ namespace Watsonia.Data
 		///	</list>
 		///	</remarks>
 		/// <param name="text">The string to convert to title case.</param>
+		/// <param name="extraCases">Extra words or phrases with their intended case.</param>
 		/// <returns>A string that consists of the text converted to title case.</returns>
-		public static string ToTitleCase(string text)
+		public static string ToTitleCase(string text, string[] extraCases = null)
 		{
 			if (text == null)
 			{
@@ -73,6 +74,15 @@ namespace Watsonia.Data
 
 			// Re-join the title with spaces
 			string result = string.Join(" ", b.ToArray());
+
+			// Update the case of any extra phrases that were passed in
+			if (extraCases != null)
+			{
+				foreach (string term in extraCases)
+				{
+					result = Regex.Replace(result, term, term, RegexOptions.IgnoreCase);
+				}
+			}
 
 			return result;
 		}
