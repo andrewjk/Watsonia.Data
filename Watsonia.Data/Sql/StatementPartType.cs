@@ -41,7 +41,9 @@ namespace Watsonia.Data.Sql
 		NumberRoundFunction,
 		NumberTruncateFunction,
 		NumberPowerFunction,
+		NumberTrigFunction,
 		StringIndexFunction,
+		StringCompareFunction,
 		StringConcatenateFunction,
 		StringLengthFunction,
 		StringRemoveFunction,
@@ -53,8 +55,11 @@ namespace Watsonia.Data.Sql
 		ConditionPredicate,
 		Parameter,
 		ConvertFunction,
+		ConditionExpression,
 		Condition,
+		ConditionCollection,
 		RowNumber,
 		LiteralPart,
+		SelectField,
 	}
 }

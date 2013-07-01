@@ -1,5 +1,4 @@
-﻿//using IQToolkit;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,7 +10,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using Watsonia.Data.Linq;
+using Watsonia.Data.Query;
 using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
@@ -165,32 +164,28 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public DatabaseQuery<T> Query<T>()
 		{
-			var provider = new DynamicEntityProvider(this);
+			// We need to tell the query that we want types to be dynamic proxies so that it will get
+			// their generated properties correctly
 			Type proxyTableType = DynamicProxyFactory.GetDynamicProxyType(typeof(T), this);
 
-			EntityMappingEntity entityMappingEntity = (EntityMappingEntity)provider.Mapping.GetEntity(proxyTableType);
-			IQueryable<T> entityTable = (IQueryable<T>)provider.GetTable(entityMappingEntity);
-
-			return new DatabaseQuery<T>(entityTable, entityMappingEntity);
-
-			// TODO: Re-evaluate re-linq
-			//var queryParser = Remotion.Linq.Parsing.Structure.QueryParser.CreateDefault();
-			//return new DatabaseQuery<T>(queryParser, new DatabaseQueryExecutor(this));
+			// TODO: DatabaseQuery should probably just set this up in its constructor?
+			var provider = new QueryProvider(this);
+			return new DatabaseQuery<T>(provider, proxyTableType);
 		}
 
-		internal Select[] Compile(Expression expression)
+		public Select[] Compile(Expression expression)
 		{
 			// For testing
-			var provider = new DynamicEntityProvider(this);
+			var provider = new QueryProvider(this);
 			Expression plan = provider.GetExecutionPlan(expression);
-			Expression[] blocks = QueryBlockGatherer.Gather(plan).Select(c => c.Expression).ToArray();
+			Expression[] blocks = QueryCommandGatherer.Gather(plan).Select(c => c.Expression).ToArray();
 			return Array.ConvertAll<Expression, Select>(blocks, b => StatementCreator.Compile(b));
 		}
 
-		internal object Execute(Expression expression)
+		public object Execute(Expression expression)
 		{
 			// For testing
-			var provider = new DynamicEntityProvider(this);
+			var provider = new QueryProvider(this);
 			return provider.Execute(expression);
 		}
 

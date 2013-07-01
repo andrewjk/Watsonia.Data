@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 
 namespace Watsonia.Data.Sql
 {
@@ -97,17 +98,19 @@ namespace Watsonia.Data.Sql
 		/// </returns>
 		public override string ToString()
 		{
-			string result = "";
+			StringBuilder b = new StringBuilder();
 			if (this.Table != null)
 			{
-				result += this.Table.ToString() + ".";
+				b.Append(this.Table.ToString());
+				b.Append(".");
 			}
-			result += this.Name;
+			b.Append(this.Name);
 			if (!string.IsNullOrEmpty(this.Alias))
 			{
-				result += " As " + this.Alias;
+				b.Append(" As ");
+				b.Append(this.Alias);
 			}
-			return result;
+			return b.ToString();
 		}
 	}
 }

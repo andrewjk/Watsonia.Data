@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Watsonia.Data.Sql
 {
 	/// <summary>
 	/// A statement part containing a constant value.
 	/// </summary>
-	public sealed class ConstantPart : StatementPart
+	public sealed class ConstantPart : SourceExpression
 	{
 		/// <summary>
 		/// Gets the type of the statement part.
@@ -51,7 +54,45 @@ namespace Watsonia.Data.Sql
 		/// </returns>
 		public override string ToString()
 		{
-			return (this.Value != null) ? this.Value.ToString() : "Null";
+			StringBuilder b = new StringBuilder();
+			if (this.Value == null)
+			{
+				b.Append("Null");
+			}
+			else if (this.Value is string || this.Value is char)
+			{
+				b.Append("'");
+				b.Append(this.Value.ToString());
+				b.Append("'");
+			}
+			else if (this.Value is IEnumerable)
+			{
+				b.Append("{ ");
+				List<string> values = new List<string>();
+				foreach (object o in (IEnumerable)this.Value)
+				{
+					if (o == null)
+					{
+						values.Add("Null");
+					}
+					else
+					{
+						values.Add(o.ToString());
+					}
+				}
+				b.Append(string.Join(", ", values));
+				b.Append(" }");
+			}
+			else
+			{
+				b.Append(this.Value.ToString());
+			}
+			if (!string.IsNullOrEmpty(this.Alias))
+			{
+				b.Append(" As ");
+				b.Append(this.Alias);
+			}
+			return b.ToString();
 		}
 	}
 }

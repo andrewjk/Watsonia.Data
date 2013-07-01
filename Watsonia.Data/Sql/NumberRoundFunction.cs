@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Watsonia.Data.Sql
 {
-	public sealed class NumberRoundFunction : StatementPart
+	public sealed class NumberRoundFunction : Field
 	{
 		public override StatementPartType PartType
 		{
@@ -23,6 +23,11 @@ namespace Watsonia.Data.Sql
 		{
 			get;
 			set;
+		}
+
+		public override string ToString()
+		{
+			return "Round(" + this.Argument.ToString() + ", " + this.Precision + ")";
 		}
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 
 namespace Watsonia.Data.Sql
 {
@@ -85,7 +86,28 @@ namespace Watsonia.Data.Sql
 		/// </returns>
 		public override string ToString()
 		{
-			return (this.IsDistinct ? "Distinct " : "") + this.AggregateType.ToString() + " " + this.Field.ToString();
+			StringBuilder b = new StringBuilder();
+			b.Append(this.AggregateType.ToString());
+			b.Append("(");
+			if (this.IsDistinct)
+			{
+				b.Append("Distinct ");
+			}
+			if (this.Field != null)
+			{
+				b.Append(this.Field.ToString());
+			}
+			else
+			{
+				b.Append("All");
+			}
+			b.Append(")");
+			if (!string.IsNullOrEmpty(this.Alias))
+			{
+				b.Append(" As ");
+				b.Append(this.Alias);
+			}
+			return b.ToString();
 		}
 	}
 }

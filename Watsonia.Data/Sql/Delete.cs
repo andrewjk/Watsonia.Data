@@ -7,7 +7,7 @@ namespace Watsonia.Data
 {
 	public sealed class Delete : Statement
 	{
-		private readonly List<Condition> _conditions = new List<Condition>();
+		private readonly List<ConditionExpression> _conditions = new List<ConditionExpression>();
 
 		public override StatementPartType PartType
 		{
@@ -23,7 +23,7 @@ namespace Watsonia.Data
 			set;
 		}
 
-		public IList<Condition> Conditions
+		public IList<ConditionExpression> Conditions
 		{
 			get
 			{
@@ -47,33 +47,33 @@ namespace Watsonia.Data
 			{
 				Condition newCondition = new Condition();
 				newCondition.Field = new ConstantPart(true);
-				newCondition.Values.Add(new ConstantPart(true));
+				newCondition.Value = new ConstantPart(true);
 				this.Conditions.Add(newCondition);
 			}
 			return this;
 		}
 
-		public Delete Where(string columnName, SqlOperator op, params object[] values)
+		public Delete Where(string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, values));
+			this.Conditions.Add(new Condition(columnName, op, value));
 			return this;
 		}
 
-		public Delete WhereNot(string columnName, SqlOperator op, params object[] values)
+		public Delete WhereNot(string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, values) { Not = true });
+			this.Conditions.Add(new Condition(columnName, op, value) { Not = true });
 			return this;
 		}
 
-		public Delete And(string columnName, SqlOperator op, params object[] values)
+		public Delete And(string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, values) { Relationship = ConditionRelationship.And });
+			this.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.And });
 			return this;
 		}
 
-		public Delete Or(string columnName, SqlOperator op, params object[] values)
+		public Delete Or(string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, values) { Relationship = ConditionRelationship.Or });
+			this.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.Or });
 			return this;
 		}
 	}

@@ -8,7 +8,7 @@ namespace Watsonia.Data
 	public sealed class Update : Statement
 	{
 		private readonly List<SetValue> _setValues = new List<SetValue>();
-		private readonly List<Condition> _conditions = new List<Condition>();
+		private readonly List<ConditionExpression> _conditions = new List<ConditionExpression>();
 
 		public override StatementPartType PartType
 		{
@@ -32,7 +32,7 @@ namespace Watsonia.Data
 			}
 		}
 
-		public List<Condition> Conditions
+		public List<ConditionExpression> Conditions
 		{
 			get
 			{
@@ -62,33 +62,33 @@ namespace Watsonia.Data
 			{
 				Condition newCondition = new Condition();
 				newCondition.Field = new ConstantPart(true);
-				newCondition.Values.Add(new ConstantPart(true));
+				newCondition.Value = new ConstantPart(true);
 				this.Conditions.Add(newCondition);
 			}
 			return this;
 		}
 
-		public Update Where(string columnName, SqlOperator op, params object[] values)
+		public Update Where(string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, values));
+			this.Conditions.Add(new Condition(columnName, op, value));
 			return this;
 		}
 
-		public Update WhereNot(string columnName, SqlOperator op, params object[] values)
+		public Update WhereNot(string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, values) { Not = true });
+			this.Conditions.Add(new Condition(columnName, op, value) { Not = true });
 			return this;
 		}
 
-		public Update And(string columnName, SqlOperator op, params object[] values)
+		public Update And(string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, values) { Relationship = ConditionRelationship.And });
+			this.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.And });
 			return this;
 		}
 
-		public Update Or(string columnName, SqlOperator op, params object[] values)
+		public Update Or(string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, values) { Relationship = ConditionRelationship.Or });
+			this.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.Or });
 			return this;
 		}
 	}

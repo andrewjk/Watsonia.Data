@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Watsonia.Data.Sql
 {
-	public sealed class Exists : Condition
+	public sealed class Exists : ConditionExpression
 	{
 		public override StatementPartType PartType
 		{
@@ -17,6 +17,18 @@ namespace Watsonia.Data.Sql
 		{
 			get;
 			set;
+		}
+
+		public override string ToString()
+		{
+			if (this.Not)
+			{
+				return "Not Exists " + this.Select.ToString();
+			}
+			else
+			{
+				return "Exists " + this.Select.ToString();
+			}
 		}
 	}
 }

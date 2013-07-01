@@ -229,6 +229,7 @@ namespace Watsonia.Data
 			}
 		}
 
+		// TODO: Pass in T1, T2 for the type of the id?
 		/// <summary>
 		/// Loads the related item.
 		/// </summary>
@@ -240,6 +241,26 @@ namespace Watsonia.Data
 		{
 			AddLoadedItem(propertyName);
 			if (id == Convert.ToInt64(this.Database.Configuration.GetPrimaryKeyNewItemValue(typeof(T))))
+			{
+				return this.Database.Create<T>();
+			}
+			else
+			{
+				return this.Database.Load<T>(id);
+			}
+		}
+
+		/// <summary>
+		/// Loads the related item.
+		/// </summary>
+		/// <typeparam name="T">The type of item.</typeparam>
+		/// <param name="id">The id of the item.</param>
+		/// <param name="propertyName">The name of the property containing the item.</param>
+		/// <returns>The loaded item.</returns>
+		public T LoadItem<T>(string id, string propertyName)
+		{
+			AddLoadedItem(propertyName);
+			if (id != null && id.Equals(this.Database.Configuration.GetPrimaryKeyNewItemValue(typeof(T))))
 			{
 				return this.Database.Create<T>();
 			}

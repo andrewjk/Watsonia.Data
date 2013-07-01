@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Watsonia.Data.Sql
 {
-	public sealed class RowNumber : StatementPart
+	public sealed class RowNumber : SourceExpression
 	{
 		private readonly List<OrderByExpression> _orderByFields = new List<OrderByExpression>();
 

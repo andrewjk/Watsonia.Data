@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Watsonia.Data.Sql
 {
-	public sealed class StringReplaceFunction : StatementPart
+	public sealed class StringReplaceFunction : Field
 	{
 		public override StatementPartType PartType
 		{
@@ -29,6 +29,11 @@ namespace Watsonia.Data.Sql
 		{
 			get;
 			set;
+		}
+
+		public override string ToString()
+		{
+			return "Replace(" + this.Argument.ToString() + ", " + this.OldValue.ToString() + ", " + this.NewValue.ToString() + ")";
 		}
 	}
 }

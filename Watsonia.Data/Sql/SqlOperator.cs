@@ -11,7 +11,6 @@ namespace Watsonia.Data
 		IsLessThanOrEqualTo,
 		IsGreaterThan,
 		IsGreaterThanOrEqualTo,
-		IsBetween,
 		IsIn,
 		Contains,
 		StartsWith,

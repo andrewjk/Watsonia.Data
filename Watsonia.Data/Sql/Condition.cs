@@ -6,11 +6,8 @@ using System.Text;
 
 namespace Watsonia.Data
 {
-	public class Condition : StatementPart
+	public class Condition : ConditionExpression
 	{
-		private readonly List<StatementPart> _values = new List<StatementPart>();
-		private readonly ConditionCollection _subConditions = new ConditionCollection();
-
 		public override StatementPartType PartType
 		{
 			get
@@ -19,16 +16,17 @@ namespace Watsonia.Data
 			}
 		}
 
-		public ConditionRelationship Relationship
-		{
-			get;
-			set;
-		}
-
+		private StatementPart _field;
 		public StatementPart Field
 		{
-			get;
-			set;
+			get
+			{
+				return _field;
+			}
+			set
+			{
+				_field = value;
+			}
 		}
 
 		public SqlOperator Operator
@@ -37,26 +35,10 @@ namespace Watsonia.Data
 			set;
 		}
 
-		public List<StatementPart> Values
-		{
-			get
-			{
-				return _values;
-			}
-		}
-
-		public bool Not
+		public StatementPart Value
 		{
 			get;
 			set;
-		}
-
-		public List<Condition> SubConditions
-		{
-			get
-			{
-				return _subConditions;
-			}
 		}
 
 		internal Condition()
@@ -64,125 +46,112 @@ namespace Watsonia.Data
 		}
 
 		// TODO: Make these static i.e. public static Condition Where(...) ??
-		public Condition(string fieldName, SqlOperator op, params object[] values)
+		public Condition(string fieldName, SqlOperator op, object value)
 		{
 			this.Field = new Column(fieldName);
 			this.Operator = op;
-			AddValues(values);
+			AddValue(value);
 		}
 
-		public Condition(string tableName, string fieldName, SqlOperator op, params object[] values)
+		public Condition(string tableName, string fieldName, SqlOperator op, object value)
 		{
 			this.Field = new Column(tableName, fieldName);
 			this.Operator = op;
-			AddValues(values);
+			AddValue(value);
 		}
 
-		public Condition(Column column, SqlOperator op, params object[] values)
+		public Condition(Column column, SqlOperator op, object value)
 		{
 			this.Field = column;
 			this.Operator = op;
-			AddValues(values);
+			AddValue(value);
 		}
 
-		public Condition(params Condition[] subConditions)
+		public static Condition Where(string fieldName, SqlOperator op, object value)
 		{
-			this.SubConditions.AddRange(subConditions);
+			return new Condition(fieldName, op, value);
 		}
 
-		public static Condition Where(string fieldName, SqlOperator op, params object[] values)
+		public static Condition Where(string tableName, string fieldName, SqlOperator op, object value)
 		{
-			return new Condition(fieldName, op, values);
+			return new Condition(tableName, fieldName, op, value);
 		}
 
-		public static Condition Where(string tableName, string fieldName, SqlOperator op, params object[] values)
+		public static Condition Or(string fieldName, SqlOperator op, object value)
 		{
-			return new Condition(tableName, fieldName, op, values);
+			return new Condition(fieldName, op, value) { Relationship = ConditionRelationship.Or };
 		}
 
-		public static Condition Where(params Condition[] subConditions)
+		public static Condition Or(string tableName, string fieldName, SqlOperator op, object value)
 		{
-			return new Condition(subConditions);
+			return new Condition(tableName, fieldName, op, value) { Relationship = ConditionRelationship.Or };
 		}
 
-		public static Condition Or(string fieldName, SqlOperator op, params object[] values)
+		public static Condition And(string fieldName, SqlOperator op, object value)
 		{
-			return new Condition(fieldName, op, values) { Relationship = ConditionRelationship.Or };
+			return new Condition(fieldName, op, value) { Relationship = ConditionRelationship.And };
 		}
 
-		public static Condition Or(string tableName, string fieldName, SqlOperator op, params object[] values)
+		public static Condition And(string tableName, string fieldName, SqlOperator op, object value)
 		{
-			return new Condition(tableName, fieldName, op, values) { Relationship = ConditionRelationship.Or };
+			return new Condition(tableName, fieldName, op, value) { Relationship = ConditionRelationship.And };
 		}
 
-		public static Condition Or(params Condition[] subConditions)
+		private void AddValue(object value)
 		{
-			return new Condition(subConditions) { Relationship = ConditionRelationship.Or };
-		}
-
-		public static Condition And(string fieldName, SqlOperator op, params object[] values)
-		{
-			return new Condition(fieldName, op, values) { Relationship = ConditionRelationship.And };
-		}
-
-		public static Condition And(string tableName, string fieldName, SqlOperator op, params object[] values)
-		{
-			return new Condition(tableName, fieldName, op, values) { Relationship = ConditionRelationship.And };
-		}
-
-		public static Condition And(params Condition[] subConditions)
-		{
-			return new Condition(subConditions) { Relationship = ConditionRelationship.And };
-		}
-
-		private void AddValues(params object[] values)
-		{
-			if (values == null)
+			if (value == null)
 			{
-				this.Values.Add(new ConstantPart(null));
+				this.Value = new ConstantPart(null);
 				return;
 			}
 
-			foreach (object val in values)
+			//if (value is IEnumerable && !(value is string))
+			//{
+			//	foreach (object subval in (IEnumerable)value)
+			//	{
+			//		if (subval is StatementPart)
+			//		{
+			//			this.Value.Add((StatementPart)subval);
+			//		}
+			//		else
+			//		{
+			//			this.Value.Add(new ConstantPart(subval));
+			//		}
+			//	}
+			//}
+			//else
+			//{
+			if (value is StatementPart)
 			{
-				if (val is IEnumerable && !(val is string))
-				{
-					foreach (object subval in (IEnumerable)val)
-					{
-						if (subval is StatementPart)
-						{
-							this.Values.Add((StatementPart)subval);
-						}
-						else
-						{
-							this.Values.Add(new ConstantPart(subval));
-						}
-					}
-				}
-				else
-				{
-					if (val is StatementPart)
-					{
-						this.Values.Add((StatementPart)val);
-					}
-					else
-					{
-						this.Values.Add(new ConstantPart(val));
-					}
-				}
+				this.Value = (StatementPart)value;
 			}
+			else
+			{
+				this.Value = new ConstantPart(value);
+			}
+			//}
 		}
 
 		public override string ToString()
 		{
-			if (this.SubConditions.Count > 0)
+			StringBuilder b = new StringBuilder();
+			if (this.Not)
 			{
-				return this.SubConditions.ToString();
+				b.Append("Not ");
+			}
+			b.Append(this.Field.ToString());
+			b.Append(" ");
+			b.Append(this.Operator.ToString());
+			b.Append(" ");
+			if (this.Value == null)
+			{
+				b.Append("Null");
 			}
 			else
 			{
-				return string.Format("{0} {1} {2}", this.Field, this.Operator, string.Join(", ", this.Values));
+				b.Append(this.Value.ToString());
 			}
+			return b.ToString();
 		}
 	}
 }

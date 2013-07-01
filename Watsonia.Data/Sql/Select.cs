@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Watsonia.Data.Sql;
+using System.Linq;
 using System.Text;
+using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
 {
@@ -67,7 +68,7 @@ namespace Watsonia.Data
 			set;
 		}
 
-		public int SelectStart
+		public int SelectStartIndex
 		{
 			get;
 			set;
@@ -79,7 +80,7 @@ namespace Watsonia.Data
 			set;
 		}
 
-		public List<Condition> Conditions
+		public ConditionCollection Conditions
 		{
 			get
 			{
@@ -137,7 +138,8 @@ namespace Watsonia.Data
 
 		public Select Columns(params string[] columnNames)
 		{
-			return Columns(Array.ConvertAll(columnNames, name => new Column(name)));
+			this.SourceFields.AddRange(columnNames.Select(cn => new Column(cn)));
+			return this;
 		}
 
 		public Select Columns(params Column[] columns)
@@ -148,7 +150,8 @@ namespace Watsonia.Data
 
 		public Select ColumnsFrom(params string[] tableNames)
 		{
-			return ColumnsFrom(Array.ConvertAll(tableNames, name => new Table(name)));
+			this.SourceFieldsFrom.AddRange(tableNames.Select(tn => new Table(tn)));
+			return this;
 		}
 
 		public Select ColumnsFrom(params Table[] tables)
@@ -159,31 +162,31 @@ namespace Watsonia.Data
 
 		public Select Count(params string[] columnNames)
 		{
-			this.SourceFields.AddRange(Array.ConvertAll(columnNames, cn => new Aggregate(AggregateType.Count, new Column(cn))));
+			this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Count, new Column(cn))));
 			return this;
 		}
 
 		public Select Sum(params string[] columnNames)
 		{
-			this.SourceFields.AddRange(Array.ConvertAll(columnNames, cn => new Aggregate(AggregateType.Sum, new Column(cn))));
+			this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Sum, new Column(cn))));
 			return this;
 		}
 
 		public Select Min(params string[] columnNames)
 		{
-			this.SourceFields.AddRange(Array.ConvertAll(columnNames, cn => new Aggregate(AggregateType.Min, new Column(cn))));
+			this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Min, new Column(cn))));
 			return this;
 		}
 
 		public Select Max(params string[] columnNames)
 		{
-			this.SourceFields.AddRange(Array.ConvertAll(columnNames, cn => new Aggregate(AggregateType.Max, new Column(cn))));
+			this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Max, new Column(cn))));
 			return this;
 		}
 
 		public Select Average(params string[] columnNames)
 		{
-			this.SourceFields.AddRange(Array.ConvertAll(columnNames, cn => new Aggregate(AggregateType.Average, new Column(cn))));
+			this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Average, new Column(cn))));
 			return this;
 		}
 
@@ -195,7 +198,7 @@ namespace Watsonia.Data
 
 		public Select Start(int startIndex)
 		{
-			this.SelectStart = startIndex;
+			this.SelectStartIndex = startIndex;
 			return this;
 		}
 
@@ -205,51 +208,66 @@ namespace Watsonia.Data
 			return this;
 		}
 
-		public Select Where(string columnName, SqlOperator op, params object[] values)
+		public Select Where(string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, values));
+			this.Conditions.Add(new Condition(columnName, op, value));
 			return this;
 		}
 
-		public Select WhereNot(string columnName, SqlOperator op, params object[] values)
+		public Select WhereNot(string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, values) { Not = true });
+			this.Conditions.Add(new Condition(columnName, op, value) { Not = true });
 			return this;
 		}
 
-		public Select Where(params Condition[] subConditions)
+		public Select Where(params Condition[] conditions)
 		{
-			this.Conditions.Add(new Condition(subConditions));
+			this.Conditions.AddRange(conditions);
 			return this;
 		}
 
-		public Select And(string columnName, SqlOperator op, params object[] values)
+		public Select And(string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, values) { Relationship = ConditionRelationship.And });
+			this.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.And });
 			return this;
 		}
 
-		public Select And(params Condition[] subConditions)
+		public Select And(Condition condition)
 		{
-			this.Conditions.Add(new Condition(subConditions) { Relationship = ConditionRelationship.And });
+			condition.Relationship = ConditionRelationship.And;
+			this.Conditions.Add(condition);
 			return this;
 		}
 
-		public Select Or(string columnName, SqlOperator op, params object[] values)
+		public Select And(params Condition[] conditions)
 		{
-			this.Conditions.Add(new Condition(columnName, op, values) { Relationship = ConditionRelationship.Or });
+			this.Conditions.Add(new ConditionCollection(conditions) { Relationship = ConditionRelationship.And });
 			return this;
 		}
 
-		public Select Or(params Condition[] subConditions)
+		public Select Or(string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(subConditions) { Relationship = ConditionRelationship.Or });
+			this.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.Or });
+			return this;
+		}
+
+		public Select Or(Condition condition)
+		{
+			condition.Relationship = ConditionRelationship.Or;
+			this.Conditions.Add(condition);
+			return this;
+		}
+
+		public Select Or(params Condition[] conditions)
+		{
+			this.Conditions.Add(new ConditionCollection(conditions) { Relationship = ConditionRelationship.Or });
 			return this;
 		}
 
 		public Select OrderBy(params string[] columnNames)
 		{
-			return OrderBy(Array.ConvertAll(columnNames, c => new OrderByExpression(c)));
+			this.OrderByFields.AddRange(columnNames.Select(cn => new OrderByExpression(cn)));
+			return this;
 		}
 
 		public Select OrderBy(params OrderByExpression[] columns)
@@ -260,13 +278,13 @@ namespace Watsonia.Data
 
 		public Select OrderByDescending(params string[] columnNames)
 		{
-			this.OrderByFields.AddRange(Array.ConvertAll(columnNames, c => new OrderByExpression(c, OrderDirection.Descending)));
+			this.OrderByFields.AddRange(columnNames.Select(c => new OrderByExpression(c, OrderDirection.Descending)));
 			return this;
 		}
 
 		public Select GroupBy(params string[] columnNames)
 		{
-			this.GroupByFields.AddRange(Array.ConvertAll(columnNames, c => new Column(c)));
+			this.GroupByFields.AddRange(columnNames.Select(c => new Column(c)));
 			return this;
 		}
 
@@ -279,8 +297,33 @@ namespace Watsonia.Data
 		public override string ToString()
 		{
 			StringBuilder b = new StringBuilder();
-			b.Append("{ ");
+			b.Append("(");
 			b.Append("Select ");
+			if (this.IsDistinct)
+			{
+				b.Append("Distinct ");
+			}
+			if (this.SelectLimit == 1)
+			{
+				b.Append("(Row ");
+				b.Append(this.SelectStartIndex);
+				b.Append(") ");
+			}
+			else if (this.SelectStartIndex != 0 || this.SelectLimit != 0)
+			{
+				b.Append("(Rows ");
+				b.Append(this.SelectStartIndex);
+				if (this.SelectLimit == 0)
+				{
+					b.Append("+");
+				}
+				else
+				{
+					b.Append("-");
+					b.Append(this.SelectStartIndex + this.SelectLimit);
+				}
+				b.Append(") ");
+			}
 			if (this.SourceFields.Count > 0)
 			{
 				b.Append(string.Join(", ", Array.ConvertAll(this.SourceFields.ToArray(), f => f.ToString())));
@@ -290,43 +333,60 @@ namespace Watsonia.Data
 				b.Append("All ");
 			}
 			b.AppendLine(" ");
-			b.Append("From ");
-			b.Append(this.Source.ToString());
-			b.AppendLine(" ");
+			if (this.Source != null)
+			{
+				b.Append("From ");
+				b.Append(this.Source.ToString());
+				b.AppendLine(" ");
+			}
+			// TODO: Do these ever get used?
 			if (this.SourceJoins.Count > 0)
 			{
 				b.Append("Join ");
 				b.Append(string.Join(" And ", Array.ConvertAll(this.SourceJoins.ToArray(), j => j.ToString())));
 				b.AppendLine(" ");
 			}
-			b.Append("Where ");
-			b.Append(this.Conditions.ToString());
-			b.AppendLine(" ");
+			if (this.Conditions.Count > 0)
+			{
+				b.Append("Where ");
+				b.Append(this.Conditions.ToString());
+				b.AppendLine(" ");
+			}
+			if (this.GroupByFields.Count > 0)
+			{
+				b.Append("Group By ");
+				b.Append(string.Join(", ", Array.ConvertAll(this.GroupByFields.ToArray(), f => f.ToString())));
+			}
 			if (this.OrderByFields.Count > 0)
 			{
 				b.Append("Order By ");
 				b.Append(string.Join(", ", Array.ConvertAll(this.OrderByFields.ToArray(), f => f.ToString())));
 			}
-			b.Append(" }");
+			b.Append(")");
+			if (!string.IsNullOrEmpty(this.Alias))
+			{
+				b.Append(" As ");
+				b.Append(this.Alias);
+			}
 			return b.ToString();
 		}
 
-		public Select Clone()
-		{
-			var clone = new Select();
+		//public Select Clone()
+		//{
+		//	var clone = new Select();
 
-			clone.Source = this.Source;
-			////clone.IncludePaths.AddRange(this.IncludePaths);
-			clone.SourceFields.AddRange(this.SourceFields);
-			clone.IsDistinct = this.IsDistinct;
-			clone.SelectStart = this.SelectStart;
-			clone.SelectLimit = this.SelectLimit;
-			clone.Conditions.AddRange(this.Conditions);
-			clone.OrderByFields.AddRange(this.OrderByFields);
-			clone.GroupByFields.AddRange(this.GroupByFields);
-			clone.Alias = this.Alias;
+		//	clone.Source = this.Source;
+		//	////clone.IncludePaths.AddRange(this.IncludePaths);
+		//	clone.SourceFields.AddRange(this.SourceFields);
+		//	clone.IsDistinct = this.IsDistinct;
+		//	clone.SelectStart = this.SelectStart;
+		//	clone.SelectLimit = this.SelectLimit;
+		//	clone.Conditions.AddRange(this.Conditions);
+		//	clone.OrderByFields.AddRange(this.OrderByFields);
+		//	clone.GroupByFields.AddRange(this.GroupByFields);
+		//	clone.Alias = this.Alias;
 
-			return clone;
-		}
+		//	return clone;
+		//}
 	}
 }

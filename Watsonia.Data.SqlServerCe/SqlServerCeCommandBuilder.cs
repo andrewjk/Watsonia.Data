@@ -57,6 +57,10 @@ namespace Watsonia.Data.SqlServerCe
 						"LIKE " + parameter.ParameterName);
 					parameter.Value = "%" + parameter.Value.ToString();
 				}
+				if (parameter.Value is char)
+				{
+					parameter.Size = 1;
+				}
 				command.Parameters.Add(parameter);
 			}
 		}

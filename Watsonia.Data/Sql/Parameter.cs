@@ -4,7 +4,7 @@ using System.Linq;
 namespace Watsonia.Data.Sql
 {
 	// TODO: Use this?!
-	public sealed class Parameter : StatementPart
+	public sealed class Parameter : SourceExpression
 	{
 		public override StatementPartType PartType
 		{
@@ -34,7 +34,19 @@ namespace Watsonia.Data.Sql
 
 		public override string ToString()
 		{
-			return string.Format("{0} ({1})", this.Name, this.Value);
+			if (this.Name.StartsWith("@n"))
+			{
+				// It's a named value expression, and inscrutable to the user
+				return this.Name;
+			}
+			else if (this.Value is string || this.Value is char)
+			{
+				return string.Format("{0} ('{1}')", this.Name, this.Value);
+			}
+			else
+			{
+				return string.Format("{0} ({1})", this.Name, this.Value);
+			}
 		}
 	}
 }

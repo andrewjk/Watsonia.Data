@@ -40,5 +40,21 @@ namespace Watsonia.Data.Sql
 		/// Perform a right shift operation on the expressions.
 		/// </summary>
 		RightShift,
+		/// <summary>
+		/// Perform a bitwise AND operation on the expressions.
+		/// </summary>
+		BitwiseAnd,
+		/// <summary>
+		/// Perform a bitwise OR operation on the expressions.
+		/// </summary>
+		BitwiseOr,
+		/// <summary>
+		/// Perform a bitwise exclusive OR operation on the expressions.
+		/// </summary>
+		BitwiseExclusiveOr,
+		/// <summary>
+		/// Perform a bitwise NOT operation on the expressions.
+		/// </summary>
+		BitwiseNot,
 	}
 }

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 
 namespace Watsonia.Data.Sql
 {
 	public sealed class Join : StatementPart
 	{
+		private ConditionCollection _conditions = new ConditionCollection();
+
 		public override StatementPartType PartType
 		{
 			get
@@ -31,23 +34,24 @@ namespace Watsonia.Data.Sql
 			internal set;
 		}
 
-		// TODO: List<Condition>
-		public Condition Condition
+		public ConditionCollection Conditions
 		{
-			get;
-			internal set;
+			get
+			{
+				return _conditions;
+			}
 		}
 
 		internal Join()
 		{
 		}
 
-		public Join(JoinType joinType, StatementPart left, StatementPart right, Condition condition)
+		public Join(JoinType joinType, StatementPart left, StatementPart right, ConditionExpression condition)
 		{
 			this.JoinType = joinType;
 			this.Left = left;
 			this.Right = right;
-			this.Condition = condition;
+			this.Conditions.Add(condition);
 		}
 
 		public Join(string tableName, string leftTableName, string leftColumnName, string rightTableName, string rightColumnName)
@@ -57,19 +61,30 @@ namespace Watsonia.Data.Sql
 			// TODO: Change field => column in all the SQL stuff?  Column if it's a column, field if it's a statement part
 			//this.Left = new Table(leftTableName);
 			this.Right = new Table(tableName);
-			this.Condition = new Condition(leftTableName, leftColumnName, SqlOperator.Equals, new Column(rightTableName, rightColumnName));
+			this.Conditions.Add(new Condition(leftTableName, leftColumnName, SqlOperator.Equals, new Column(rightTableName, rightColumnName)));
 		}
 
 		public Join(Table table, Column leftColumn, Column rightColumn)
 		{
-			this.JoinType = Data.JoinType.Inner;
+			this.JoinType = JoinType.Inner;
 			this.Right = table;
-			this.Condition = new Condition(leftColumn, SqlOperator.Equals, rightColumn);
+			this.Conditions.Add(new Condition(leftColumn, SqlOperator.Equals, rightColumn));
 		}
 
 		public override string ToString()
 		{
-			return string.Format("{0}, {1}, {2}, {3},", this.JoinType, this.Left, this.Condition, this.Right);
+			StringBuilder b = new StringBuilder();
+			b.Append(this.Left.ToString());
+			b.Append(" ");
+			b.Append(this.JoinType.ToString());
+			b.Append(" Join ");
+			b.Append(this.Right.ToString());
+			if (this.Conditions.Count > 0)
+			{
+				b.Append(" On ");
+				b.Append(this.Conditions.ToString());
+			}
+			return b.ToString();
 		}
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 
 namespace Watsonia.Data.Sql
 {
@@ -18,6 +19,20 @@ namespace Watsonia.Data.Sql
 		{
 			get;
 			set;
+		}
+
+		public override string ToString()
+		{
+			StringBuilder b = new StringBuilder();
+			b.Append("(Case When ");
+			b.Append(this.Predicate.ToString());
+			b.Append(" Then True Else False)");
+			if (!string.IsNullOrEmpty(this.Alias))
+			{
+				b.Append(" As ");
+				b.Append(this.Alias);
+			}
+			return b.ToString();
 		}
 	}
 }

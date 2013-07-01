@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Watsonia.Data.Sql
 {
-	public sealed class StringRemoveFunction : StatementPart
+	public sealed class StringRemoveFunction : Field
 	{
 		public override StatementPartType PartType
 		{
@@ -29,6 +29,11 @@ namespace Watsonia.Data.Sql
 		{
 			get;
 			set;
+		}
+
+		public override string ToString()
+		{
+			return "Remove(" + this.Argument.ToString() + ", " + this.StartIndex.ToString() + ", " + this.Length.ToString() + ")";
 		}
 	}
 }

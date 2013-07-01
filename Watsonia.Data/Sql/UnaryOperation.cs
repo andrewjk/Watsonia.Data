@@ -63,5 +63,10 @@ namespace Watsonia.Data.Sql
 			this.Operator = op;
 			this.Expression = expression;
 		}
+
+		public override string ToString()
+		{
+			return this.Operator.ToString() + " " + this.Expression.ToString();
+		}
 	}
 }

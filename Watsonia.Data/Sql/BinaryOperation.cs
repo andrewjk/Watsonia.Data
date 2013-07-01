@@ -5,7 +5,7 @@ namespace Watsonia.Data.Sql
 	/// <summary>
 	/// An operation with a binary operator e.g. 1 + 2.
 	/// </summary>
-	public sealed class BinaryOperation : StatementPart
+	public sealed class BinaryOperation : Field
 	{
 		/// <summary>
 		/// Gets the type of the statement part.
@@ -43,6 +43,64 @@ namespace Watsonia.Data.Sql
 		{
 			get;
 			internal set;
+		}
+
+		private string OperatorString
+		{
+			get
+			{
+				switch (this.Operator)
+				{
+					case BinaryOperator.Add:
+					{
+						return "+";
+					}
+					case BinaryOperator.Subtract:
+					{
+						return "-";
+					}
+					case BinaryOperator.Multiply:
+					{
+						return "*";
+					}
+					case BinaryOperator.Divide:
+					{
+						return "/";
+					}
+					case BinaryOperator.Remainder:
+					{
+						return "%";
+					}
+					case BinaryOperator.ExclusiveOr:
+					{
+						return "^";
+					}
+					case BinaryOperator.LeftShift:
+					{
+						return "<<";
+					}
+					case BinaryOperator.RightShift:
+					{
+						return ">>";
+					}
+					case BinaryOperator.BitwiseAnd:
+					{
+						return "&";
+					}
+					case BinaryOperator.BitwiseOr:
+					{
+						return "|";
+					}
+					case BinaryOperator.BitwiseExclusiveOr:
+					{
+						return "^";
+					}
+					default:
+					{
+						throw new InvalidOperationException("Invalid Operator: " + this.Operator);
+					}
+				}
+			}
 		}
 
 		/// <summary>
@@ -85,7 +143,7 @@ namespace Watsonia.Data.Sql
 		/// </returns>
 		public override string ToString()
 		{
-			return this.LeftExpression.ToString() + " " + this.Operator.ToString() + " " + this.RightExpression.ToString();
+			return "(" + this.LeftExpression.ToString() + " " + this.OperatorString + " " + this.RightExpression.ToString() + ")";
 		}
 	}
 }

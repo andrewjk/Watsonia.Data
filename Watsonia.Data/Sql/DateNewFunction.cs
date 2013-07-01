@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Watsonia.Data.Sql
 {
-	public sealed class DateNewFunction : StatementPart
+	public sealed class DateNewFunction : Field
 	{
 		public override StatementPartType PartType
 		{
@@ -47,6 +47,22 @@ namespace Watsonia.Data.Sql
 		{
 			get;
 			set;
+		}
+
+		public DateNewFunction()
+		{
+		}
+
+		public override string ToString()
+		{
+			if (this.Hour != null || this.Minute != null || this.Second != null)
+			{
+				return "DateNew(" + this.Year.ToString() + ", " + this.Month.ToString() + ", " + this.Day.ToString() + ", " + this.Hour.ToString() + ", " + this.Minute.ToString() + ", " + this.Second.ToString() + ")";
+			}
+			else
+			{
+				return "DateNew(" + this.Year.ToString() + ", " + this.Month.ToString() + ", " + this.Day.ToString() + ")";
+			}
 		}
 	}
 }

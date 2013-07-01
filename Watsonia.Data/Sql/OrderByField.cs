@@ -101,7 +101,14 @@ namespace Watsonia.Data.Sql
 		/// </returns>
 		public override string ToString()
 		{
-			return this.Expression.ToString() + " " + this.Direction.ToString();
+			if (this.Direction == OrderDirection.Ascending)
+			{
+				return this.Expression.ToString();
+			}
+			else
+			{
+				return this.Expression.ToString() + " " + this.Direction.ToString();
+			}
 		}
 	}
 }

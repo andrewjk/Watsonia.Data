@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
@@ -63,7 +64,7 @@ namespace Watsonia.Data
 
 		public Insert Columns(params string[] columnNames)
 		{
-			this.TargetFields.AddRange(Array.ConvertAll(columnNames, name => new Column(name)));
+			this.TargetFields.AddRange(columnNames.Select(cn => new Column(cn)));
 			return this;
 		}
 

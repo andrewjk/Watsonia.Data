@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Watsonia.Data.Sql
 {
-	public sealed class NumberFloorFunction : StatementPart
+	public sealed class NumberFloorFunction : Field
 	{
 		public override StatementPartType PartType
 		{
@@ -17,6 +17,11 @@ namespace Watsonia.Data.Sql
 		{
 			get;
 			set;
+		}
+
+		public override string ToString()
+		{
+			return "Floor(" + this.Argument.ToString() + ")";
 		}
 	}
 }

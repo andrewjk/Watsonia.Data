@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Watsonia.Data.Sql
 {
-	public sealed class StringConcatenateFunction : StatementPart
+	public sealed class StringConcatenateFunction : Field
 	{
 		private readonly List<StatementPart> _arguments = new List<StatementPart>();
 
@@ -22,6 +22,11 @@ namespace Watsonia.Data.Sql
 			{
 				return _arguments;
 			}
+		}
+
+		public override string ToString()
+		{
+			return "Concat(" + string.Join(", ", this.Arguments.Select(a => a.ToString())) + ")";
 		}
 	}
 }

@@ -30,5 +30,10 @@ namespace Watsonia.Data.Sql
 			get;
 			set;
 		}
+
+		public override string ToString()
+		{
+			return "Substring(" + this.Argument.ToString() + ", " + this.StartIndex.ToString() + ", " + this.Length.ToString() + ")";
+		}
 	}
 }

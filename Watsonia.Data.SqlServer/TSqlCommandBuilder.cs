@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -83,39 +84,57 @@ namespace Watsonia.Data.SqlServer
 
 		private void VisitConstant(ConstantPart constant)
 		{
-			if (constant.Value == null)
+			VisitObject(constant.Value);
+		}
+
+		private void VisitObject(object value)
+		{
+			if (value == null)
 			{
 				this.CommandText.Append("NULL");
 			}
-			else if (constant.Value.GetType().IsEnum)
+			else if (value.GetType().IsEnum)
 			{
-				this.CommandText.Append(Convert.ToInt64(constant.Value));
+				this.CommandText.Append(Convert.ToInt64(value));
 			}
-			else if (constant.Value.GetType() == typeof(bool))
+			else if (value.GetType() == typeof(bool))
 			{
-				this.CommandText.Append(((bool)constant.Value) ? "1" : "0");
+				this.CommandText.Append(((bool)value) ? "1" : "0");
 			}
-			else if (constant.Value.GetType() == typeof(string) && constant.Value.ToString() == "")
+			else if (value.GetType() == typeof(string) && value.ToString() == "")
 			{
 				this.CommandText.Append("''");
 			}
-			else if (TypeHelper.IsNumericDecimal(constant.Value.GetType()))
+			else if (TypeHelper.IsNumericDecimal(value.GetType()))
 			{
-				string value = constant.Value.ToString();
-				if (!value.Contains('.'))
+				string stringValue = value.ToString();
+				if (!stringValue.Contains('.'))
 				{
-					value += ".0";
+					stringValue += ".0";
 				}
+				this.CommandText.Append(stringValue);
+			}
+			else if (TypeHelper.IsNumeric(value.GetType()))
+			{
 				this.CommandText.Append(value);
 			}
-			else if (TypeHelper.IsNumeric(constant.Value.GetType()))
+			else if (value is IEnumerable && !(value is string))
 			{
-				this.CommandText.Append(constant.Value);
+				bool firstValue = true;
+				foreach (object innerValue in (IEnumerable)value)
+				{
+					if (!firstValue)
+					{
+						this.CommandText.Append(", ");
+					}
+					firstValue = false;
+					this.VisitObject(innerValue);
+				}
 			}
 			else
 			{
 				// TODO: Is there any point having a parameter query part and a paremeterizer?
-				int index = this.ParameterValues.IndexOf(constant.Value);
+				int index = this.ParameterValues.IndexOf(value);
 				if (index != -1)
 				{
 					this.CommandText.Append("@");
@@ -125,7 +144,7 @@ namespace Watsonia.Data.SqlServer
 				{
 					this.CommandText.Append("@");
 					this.CommandText.Append(this.ParameterValues.Count);
-					this.ParameterValues.Add(constant.Value);
+					this.ParameterValues.Add(value);
 				}
 			}
 		}
@@ -139,15 +158,17 @@ namespace Watsonia.Data.SqlServer
 				index = this.ParameterValues.Count - 1;
 			}
 
-			if (!string.IsNullOrEmpty(parameter.Name))
-			{
-				this.CommandText.Append(parameter.Name);
-			}
-			else
-			{
-				this.CommandText.Append("@");
-				this.CommandText.Append(index);
-			}
+			// NOTE: We never want to use the parameter name, because later on we set the command parameters
+			// (names and values) from this.ParameterValues.  This is probably indicative of a problem somewhere
+			//if (!string.IsNullOrEmpty(parameter.Name))
+			//{
+			//	this.CommandText.Append(parameter.Name);
+			//}
+			//else
+			//{
+			this.CommandText.Append("@");
+			this.CommandText.Append(index);
+			//}
 		}
 
 		private void VisitSelect(Select select)
@@ -532,6 +553,11 @@ namespace Watsonia.Data.SqlServer
 					this.VisitStringTrimFunction((StringTrimFunction)field);
 					break;
 				}
+				case StatementPartType.StringCompareFunction:
+				{
+					this.VisitStringCompareFunction((StringCompareFunction)field);
+					break;
+				}
 				case StatementPartType.StringConcatenateFunction:
 				{
 					this.VisitStringConcatenateFunction((StringConcatenateFunction)field);
@@ -590,7 +616,12 @@ namespace Watsonia.Data.SqlServer
 				case StatementPartType.NumberPowerFunction:
 				{
 					this.VisitNumberPowerFunction((NumberPowerFunction)field);
-					break; ;
+					break;
+				}
+				case StatementPartType.NumberTrigFunction:
+				{
+					this.VisitNumberTrigFunction((NumberTrigFunction)field);
+					break;
 				}
 				case StatementPartType.BinaryOperation:
 				{
@@ -807,14 +838,14 @@ namespace Watsonia.Data.SqlServer
 				}
 			}
 			this.VisitSource(join.Right);
-			if (join.Condition != null)
+			if (join.Conditions.Count > 0)
 			{
 				this.CommandText.Append(" ON ");
-				this.VisitCondition(join.Condition);
+				this.VisitConditionCollection(join.Conditions);
 			}
 		}
 
-		private void VisitCondition(Condition condition)
+		private void VisitCondition(ConditionExpression condition)
 		{
 			// TODO: Should all types of conditions be a class?  Not exposed to the user, because that
 			// interface would be gross
@@ -829,156 +860,159 @@ namespace Watsonia.Data.SqlServer
 				this.CommandText.Append("NOT ");
 			}
 
-			if (condition.SubConditions.Count > 0)
+			if (condition is Condition)
 			{
-				this.CommandText.Append("(");
-				for (int i = 0; i < condition.SubConditions.Count; i++)
+				VisitCondition((Condition)condition);
+			}
+			else if (condition is ConditionCollection)
+			{
+				VisitConditionCollection((ConditionCollection)condition);
+			}
+		}
+
+		private void VisitCondition(Condition condition)
+		{
+			// Check for null comparisons first
+			bool fieldIsNull = (condition.Field is ConstantPart && ((ConstantPart)condition.Field).Value == null);
+			bool valueIsNull = (condition.Value is ConstantPart && ((ConstantPart)condition.Value).Value == null);
+			if ((condition.Operator == SqlOperator.Equals || condition.Operator == SqlOperator.NotEquals) &&
+				(fieldIsNull || valueIsNull))
+			{
+				if (fieldIsNull)
 				{
-					if (i > 0)
-					{
-						// TODO: make this a visitrelationship method
-						this.AppendNewLine(Indentation.Same);
-						switch (condition.SubConditions[i].Relationship)
-						{
-							case ConditionRelationship.And:
-							{
-								this.CommandText.Append(" AND ");
-								break;
-							}
-							case ConditionRelationship.Or:
-							{
-								this.CommandText.Append(" OR ");
-								break;
-							}
-							default:
-							{
-								throw new InvalidOperationException();
-							}
-						}
-					}
-					this.VisitCondition(condition.SubConditions[i]);
+					this.VisitField(condition.Value);
 				}
-				this.CommandText.Append(")");
+				else if (valueIsNull)
+				{
+					this.VisitField(condition.Field);
+				}
+				if (condition.Operator == SqlOperator.Equals)
+				{
+					this.CommandText.Append(" IS NULL");
+				}
+				else if (condition.Operator == SqlOperator.NotEquals)
+				{
+					this.CommandText.Append(" IS NOT NULL");
+				}
 			}
 			else
 			{
-				// Check for null comparisons first
-				bool fieldIsNull = (condition.Field is ConstantPart && ((ConstantPart)condition.Field).Value == null);
-				bool valueIsNull = (condition.Values[0] is ConstantPart && ((ConstantPart)condition.Values[0]).Value == null);
-				if ((condition.Operator == SqlOperator.Equals || condition.Operator == SqlOperator.NotEquals) &&
-					(fieldIsNull || valueIsNull))
+				this.VisitField(condition.Field);
+
+				switch (condition.Operator)
 				{
-					if (fieldIsNull)
+					case SqlOperator.Equals:
 					{
-						this.VisitField(condition.Values[0]);
+						this.CommandText.Append(" = ");
+						this.VisitField(condition.Value);
+						break;
 					}
-					else if (valueIsNull)
+					case SqlOperator.NotEquals:
 					{
-						this.VisitField(condition.Field);
+						this.CommandText.Append(" <> ");
+						this.VisitField(condition.Value);
+						break;
 					}
-					if (condition.Operator == SqlOperator.Equals)
+					case SqlOperator.IsLessThan:
 					{
-						this.CommandText.Append(" IS NULL");
+						this.CommandText.Append(" < ");
+						this.VisitField(condition.Value);
+						break;
 					}
-					else if (condition.Operator == SqlOperator.NotEquals)
+					case SqlOperator.IsLessThanOrEqualTo:
 					{
-						this.CommandText.Append(" IS NOT NULL");
+						this.CommandText.Append(" <= ");
+						this.VisitField(condition.Value);
+						break;
+					}
+					case SqlOperator.IsGreaterThan:
+					{
+						this.CommandText.Append(" > ");
+						this.VisitField(condition.Value);
+						break;
+					}
+					case SqlOperator.IsGreaterThanOrEqualTo:
+					{
+						this.CommandText.Append(" >= ");
+						this.VisitField(condition.Value);
+						break;
+					}
+					////case SqlOperator.IsBetween:
+					////{
+					////	this.CommandText.Append(" BETWEEN ");
+					////	this.VisitField(condition.Value);
+					////	this.CommandText.Append(" AND ");
+					////	this.VisitField(condition.Values[1]);
+					////	break;
+					////}
+					case SqlOperator.IsIn:
+					{
+						this.CommandText.Append(" IN (");
+						this.AppendNewLine(Indentation.Inner);
+						this.VisitField(condition.Value);
+						this.AppendNewLine(Indentation.Same);
+						this.CommandText.Append(")");
+						this.AppendNewLine(Indentation.Outer);
+						break;
+					}
+					case SqlOperator.Contains:
+					{
+						this.CommandText.Append(" LIKE '%' + ");
+						this.VisitField(condition.Value);
+						this.CommandText.Append(" + '%'");
+						break;
+					}
+					case SqlOperator.StartsWith:
+					{
+						this.CommandText.Append(" LIKE ");
+						this.VisitField(condition.Value);
+						this.CommandText.Append(" + '%'");
+						break;
+					}
+					case SqlOperator.EndsWith:
+					{
+						this.CommandText.Append(" LIKE '%' + ");
+						this.VisitField(condition.Value);
+						break;
+					}
+					default:
+					{
+						throw new InvalidOperationException("Invalid operator: " + condition.Operator);
 					}
 				}
-				else
-				{
-					this.VisitField(condition.Field);
+			}
+		}
 
-					switch (condition.Operator)
+		private void VisitConditionCollection(ConditionCollection collection)
+		{
+			this.CommandText.Append("(");
+			for (int i = 0; i < collection.Count; i++)
+			{
+				if (i > 0)
+				{
+					// TODO: make this a visitrelationship method
+					this.AppendNewLine(Indentation.Same);
+					switch (collection[i].Relationship)
 					{
-						case SqlOperator.Equals:
+						case ConditionRelationship.And:
 						{
-							this.CommandText.Append(" = ");
-							this.VisitField(condition.Values[0]);
-							break;
-						}
-						case SqlOperator.NotEquals:
-						{
-							this.CommandText.Append(" <> ");
-							this.VisitField(condition.Values[0]);
-							break;
-						}
-						case SqlOperator.IsLessThan:
-						{
-							this.CommandText.Append(" < ");
-							this.VisitField(condition.Values[0]);
-							break;
-						}
-						case SqlOperator.IsLessThanOrEqualTo:
-						{
-							this.CommandText.Append(" <= ");
-							this.VisitField(condition.Values[0]);
-							break;
-						}
-						case SqlOperator.IsGreaterThan:
-						{
-							this.CommandText.Append(" > ");
-							this.VisitField(condition.Values[0]);
-							break;
-						}
-						case SqlOperator.IsGreaterThanOrEqualTo:
-						{
-							this.CommandText.Append(" >= ");
-							this.VisitField(condition.Values[0]);
-							break;
-						}
-						case SqlOperator.IsBetween:
-						{
-							this.CommandText.Append(" BETWEEN ");
-							this.VisitField(condition.Values[0]);
 							this.CommandText.Append(" AND ");
-							this.VisitField(condition.Values[1]);
 							break;
 						}
-						case SqlOperator.IsIn:
+						case ConditionRelationship.Or:
 						{
-							this.CommandText.Append(" IN (");
-							this.AppendNewLine(Indentation.Inner);
-							for (int i = 0; i < condition.Values.Count; i++)
-							{
-								if (i > 0)
-								{
-									this.CommandText.Append(", ");
-								}
-								this.VisitField(condition.Values[i]);
-							}
-							this.AppendNewLine(Indentation.Same);
-							this.CommandText.Append(")");
-							this.AppendNewLine(Indentation.Outer);
-							break;
-						}
-						case SqlOperator.Contains:
-						{
-							this.CommandText.Append(" LIKE '%' + ");
-							this.VisitField(condition.Values[0]);
-							this.CommandText.Append(" + '%'");
-							break;
-						}
-						case SqlOperator.StartsWith:
-						{
-							this.CommandText.Append(" LIKE ");
-							this.VisitField(condition.Values[0]);
-							this.CommandText.Append(" + '%'");
-							break;
-						}
-						case SqlOperator.EndsWith:
-						{
-							this.CommandText.Append(" LIKE '%' + ");
-							this.VisitField(condition.Values[0]);
+							this.CommandText.Append(" OR ");
 							break;
 						}
 						default:
 						{
-							throw new InvalidOperationException("Invalid operator: " + condition.Operator);
+							throw new InvalidOperationException();
 						}
 					}
 				}
+				this.VisitCondition(collection[i]);
 			}
+			this.CommandText.Append(")");
 		}
 
 		private void VisitConditionalCase(ConditionalCase conditional)
@@ -1120,21 +1154,22 @@ namespace Watsonia.Data.SqlServer
 
 		private void VisitCoalesceFunction(CoalesceFunction coalesce)
 		{
-			StatementPart first = coalesce.First;
-			StatementPart second = coalesce.Second;
+			// TODO:
+			////StatementPart first = coalesce.First;
+			////StatementPart second = coalesce.Second;
 
-			this.CommandText.Append("COALESCE(");
-			this.VisitField(first);
-			this.CommandText.Append(", ");
-			while (second.PartType == StatementPartType.CoalesceFunction)
-			{
-				CoalesceFunction secondCoalesce = (CoalesceFunction)second;
-				this.VisitField(secondCoalesce.First);
-				this.CommandText.Append(", ");
-				second = secondCoalesce.Second;
-			}
-			this.VisitField(second);
-			this.CommandText.Append(")");
+			////this.CommandText.Append("COALESCE(");
+			////this.VisitField(first);
+			////this.CommandText.Append(", ");
+			////while (second.PartType == StatementPartType.CoalesceFunction)
+			////{
+			////	CoalesceFunction secondCoalesce = (CoalesceFunction)second;
+			////	this.VisitField(secondCoalesce.First);
+			////	this.CommandText.Append(", ");
+			////	second = secondCoalesce.Second;
+			////}
+			////this.VisitField(second);
+			////this.CommandText.Append(")");
 		}
 
 		private void VisitFunction(string name, params StatementPart[] arguments)
@@ -1221,6 +1256,19 @@ namespace Watsonia.Data.SqlServer
 			this.CommandText.Append("RTRIM(LTRIM(");
 			this.VisitField(function.Argument);
 			this.CommandText.Append("))");
+		}
+
+		private void VisitStringCompareFunction(StringCompareFunction function)
+		{
+			this.CommandText.Append("(CASE WHEN ");
+			this.VisitField(function.Argument);
+			this.CommandText.Append(" = ");
+			this.VisitField(function.Other);
+			this.CommandText.Append(" THEN 0 WHEN ");
+			this.VisitField(function.Argument);
+			this.CommandText.Append(" < ");
+			this.VisitField(function.Other);
+			this.CommandText.Append(" THEN -1 ELSE 1 END)");
 		}
 
 		private void VisitStringConcatenateFunction(StringConcatenateFunction function)
@@ -1416,6 +1464,11 @@ namespace Watsonia.Data.SqlServer
 		private void VisitNumberPowerFunction(NumberPowerFunction function)
 		{
 			this.VisitFunction("POWER", function.Argument, function.Power);
+		}
+
+		private void VisitNumberTrigFunction(NumberTrigFunction function)
+		{
+			this.VisitFunction(function.Function.ToString().ToUpperInvariant(), function.Argument);
 		}
 
 		private void VisitBinaryOperation(BinaryOperation operation)

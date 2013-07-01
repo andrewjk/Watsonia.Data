@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,8 +9,82 @@ namespace Watsonia.Data.Sql
 	/// <summary>
 	/// A collection of conditions.
 	/// </summary>
-	public sealed class ConditionCollection : List<Condition>
+	public sealed class ConditionCollection : ConditionExpression
 	{
+		private List<ConditionExpression> _conditions = new List<ConditionExpression>();
+
+		/// <summary>
+		/// Gets the type of the statement part.
+		/// </summary>
+		/// <value>
+		/// The type of the part.
+		/// </value>
+		public override StatementPartType PartType
+		{
+			get
+			{
+				return StatementPartType.ConditionCollection;
+			}
+		}
+
+		///// <summary>
+		///// Gets the conditions.
+		///// </summary>
+		///// <value>
+		///// The conditions.
+		///// </value>
+		//public List<ConditionExpression> Conditions
+		//{
+		//	get
+		//	{
+		//		return _conditions;
+		//	}
+		//}
+
+		public int Count
+		{
+			get
+			{
+				return _conditions.Count;
+			}
+		}
+
+		public ConditionExpression this[int index]
+		{
+			get
+			{
+				return _conditions[index];
+			}
+			set
+			{
+				_conditions[index] = value;
+			}
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ConditionCollection"/> class.
+		/// </summary>
+		/// <param name="conditions">The conditions.</param>
+		public ConditionCollection(params Condition[] conditions)
+		{
+			_conditions.AddRange(conditions);
+		}
+
+		public void Add(ConditionExpression item)
+		{
+			_conditions.Add(item);
+		}
+
+		public void Insert(int index, ConditionExpression item)
+		{
+			_conditions.Insert(index, item);
+		}
+
+		public void AddRange(IEnumerable<ConditionExpression> collection)
+		{
+			_conditions.AddRange(collection);
+		}
+
 		/// <summary>
 		/// Returns a <see cref="System.String" /> that represents this instance.
 		/// </summary>
@@ -19,7 +94,14 @@ namespace Watsonia.Data.Sql
 		public override string ToString()
 		{
 			StringBuilder b = new StringBuilder();
-			b.Append("(");
+			if (this.Not)
+			{
+				b.Append("Not ");
+			}
+			if (this.Count > 1)
+			{
+				b.Append("(");
+			}
 			for (int i = 0; i < this.Count; i++)
 			{
 				if (i > 0)
@@ -30,7 +112,10 @@ namespace Watsonia.Data.Sql
 				}
 				b.Append(this[i].ToString());
 			}
-			b.Append(")");
+			if (this.Count > 1)
+			{
+				b.Append(")");
+			}
 			return b.ToString();
 		}
 	}

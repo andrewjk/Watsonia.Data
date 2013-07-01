@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Watsonia.Data.Sql
 {
-	public sealed class DatePartFunction : StatementPart
+	public sealed class DatePartFunction : Field
 	{
 		public override StatementPartType PartType
 		{

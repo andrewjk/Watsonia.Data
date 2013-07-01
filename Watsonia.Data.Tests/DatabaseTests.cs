@@ -76,11 +76,11 @@ namespace Watsonia.Data.Tests
 			var deleteColls = Delete.From("Coll").Where(true);
 			db.Execute(deleteColls);
 
-			db.Insert(new Coll() { Description = "One" });
-			db.Insert(new Coll() { Description = "Two" });
-			db.Insert(new Coll() { Description = "Three" });
-			db.Insert(new Coll() { Description = "Four" });
-			db.Insert(new Coll() { Description = "Five" });
+			db.Insert(new Coll() { Value = 1, Description = "One" });
+			db.Insert(new Coll() { Value = 2, Description = "Two" });
+			db.Insert(new Coll() { Value = 3, Description = "Three" });
+			db.Insert(new Coll() { Value = 4, Description = "Four" });
+			db.Insert(new Coll() { Value = 5, Description = "Five" });
 
 			// TODO:
 			// Add a test par
@@ -92,11 +92,17 @@ namespace Watsonia.Data.Tests
 			//newPar.Colls.Add(_database.Create(new Coll() { Description = "Five" }));
 			//_database.Save(newPar);
 
-			// Select the colls
+			// Load all of the colls except for one
 			var select = Select.From("Coll").Where("Description", SqlOperator.NotEquals, "Four").OrderBy("Description");
 			var collection = db.LoadCollection<Coll>(select);
 			Assert.AreEqual(4, collection.Count);
 			Assert.AreEqual("Two", collection[3].Description);
+
+			// Load all of the colls except for one with an IN statement
+			var select2 = Select.From("Coll").Where("Value", SqlOperator.IsIn, new int[] { 1, 2, 3, 5, 6}).OrderBy("Description");
+			var collection2 = db.LoadCollection<Coll>(select2);
+			Assert.AreEqual(4, collection2.Count);
+			Assert.AreEqual("Two", collection2[3].Description);
 
 			// Test lazy loading
 		}
@@ -134,13 +140,6 @@ namespace Watsonia.Data.Tests
 			// Test maximum
 			var selectMax = Select.From("Agg").Max("Value");
 			Assert.AreEqual(11d, db.LoadValue(selectMax));
-		}
-
-		[TestMethod]
-		public void TestLoad()
-		{
-			//Customer c = _database.Load<Customer>(1);
-			//Assert.AreEqual(c.Name, "ABC Supplies");
 		}
 
 		private void ExecuteNonQuery(string sql)
