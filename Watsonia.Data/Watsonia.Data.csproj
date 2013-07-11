@@ -140,11 +140,16 @@
     <Compile Include="Sql\ConditionCollection.cs" />
     <Compile Include="Sql\ConditionExpression.cs" />
     <Compile Include="Sql\ConvertFunction.cs" />
+    <Compile Include="Sql\NumberExponentialFunction.cs" />
     <Compile Include="Sql\DateAddFunction.cs" />
     <Compile Include="Sql\Field.cs" />
+    <Compile Include="Sql\NumberLog10Function.cs" />
+    <Compile Include="Sql\NumberLogFunction.cs" />
     <Compile Include="Sql\NumberPowerFunction.cs" />
     <Compile Include="Sql\NumberNegateFunction.cs" />
     <Compile Include="Sql\NumberAbsoluteFunction.cs" />
+    <Compile Include="Sql\NumberRootFunction.cs" />
+    <Compile Include="Sql\NumberSignFunction.cs" />
     <Compile Include="Sql\NumberTrigFunction.cs" />
     <Compile Include="Sql\ScalarField.cs" />
     <Compile Include="Sql\StatementPartType.cs" />

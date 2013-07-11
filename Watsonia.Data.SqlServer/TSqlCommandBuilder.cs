@@ -237,10 +237,6 @@ namespace Watsonia.Data.SqlServer
 				for (int i = 0; i < select.SourceJoins.Count; i++)
 				{
 					this.AppendNewLine(Indentation.Same);
-					if (i > 0)
-					{
-						this.CommandText.Append("AND ");
-					}
 					this.VisitJoin(select.SourceJoins[i]);
 				}
 			}
@@ -613,9 +609,34 @@ namespace Watsonia.Data.SqlServer
 					this.VisitNumberTruncateFunction((NumberTruncateFunction)field);
 					break;
 				}
+				case StatementPartType.NumberSignFunction:
+				{
+					this.VisitNumberSignFunction((NumberSignFunction)field);
+					break;
+				}
 				case StatementPartType.NumberPowerFunction:
 				{
 					this.VisitNumberPowerFunction((NumberPowerFunction)field);
+					break;
+				}
+				case StatementPartType.NumberRootFunction:
+				{
+					this.VisitNumberRootFunction((NumberRootFunction)field);
+					break;
+				}
+				case StatementPartType.NumberExponentialFunction:
+				{
+					this.VisitNumberExponentialFunction((NumberExponentialFunction)field);
+					break;
+				}
+				case StatementPartType.NumberLogFunction:
+				{
+					this.VisitNumberLogFunction((NumberLogFunction)field);
+					break;
+				}
+				case StatementPartType.NumberLog10Function:
+				{
+					this.VisitNumberLog10Function((NumberLog10Function)field);
 					break;
 				}
 				case StatementPartType.NumberTrigFunction:
@@ -807,8 +828,11 @@ namespace Watsonia.Data.SqlServer
 		private void VisitJoin(Join join)
 		{
 			// TODO: Why would you have a left??
-			this.VisitSource(join.Left);
-			this.AppendNewLine(Indentation.Same);
+			if (join.Left != null)
+			{
+				this.VisitSource(join.Left);
+				this.AppendNewLine(Indentation.Same);
+			}
 			switch (join.JoinType)
 			{
 				case JoinType.Inner:
@@ -1285,48 +1309,21 @@ namespace Watsonia.Data.SqlServer
 
 		private void VisitDatePartFunction(DatePartFunction function)
 		{
-			// TODO: Make them all consistent
 			switch (function.DatePart)
 			{
 				case DatePart.Millisecond:
-				{
-					this.VisitFunction("DATEPART", new StatementPart[]
-					{
-						new LiteralPart("millisecond"),
-						function.Argument
-					});
-					break;
-				}
 				case DatePart.Second:
-				{
-					this.VisitFunction("DATEPART", new StatementPart[]
-					{
-						new LiteralPart("second"),
-						function.Argument
-					});
-					break;
-				}
 				case DatePart.Minute:
-				{
-					this.VisitFunction("DATEPART", new StatementPart[]
-					{
-						new LiteralPart("minute"),
-						function.Argument
-					});
-					break;
-				}
 				case DatePart.Hour:
+				case DatePart.Day:
+				case DatePart.Month:
+				case DatePart.Year:
 				{
 					this.VisitFunction("DATEPART", new StatementPart[]
 					{
-						new LiteralPart("hour"),
+						new LiteralPart(function.DatePart.ToString().ToLowerInvariant()),
 						function.Argument
 					});
-					break;
-				}
-				case DatePart.Day:
-				{
-					this.VisitFunction("DAY", function.Argument);
 					break;
 				}
 				case DatePart.DayOfWeek:
@@ -1349,16 +1346,6 @@ namespace Watsonia.Data.SqlServer
 						function.Argument
 					});
 					this.CommandText.Append(" - 1)");
-					break;
-				}
-				case DatePart.Month:
-				{
-					this.VisitFunction("MONTH", function.Argument);
-					break;
-				}
-				case DatePart.Year:
-				{
-					this.VisitFunction("YEAR", function.Argument);
 					break;
 				}
 				case DatePart.Date:
@@ -1461,9 +1448,35 @@ namespace Watsonia.Data.SqlServer
 			this.VisitFunction("ROUND", function.Argument, new ConstantPart(0), new ConstantPart(1));
 		}
 
+		private void VisitNumberSignFunction(NumberSignFunction function)
+		{
+			this.VisitFunction("SIGN", function.Argument);
+		}
+
 		private void VisitNumberPowerFunction(NumberPowerFunction function)
 		{
 			this.VisitFunction("POWER", function.Argument, function.Power);
+		}
+
+		private void VisitNumberRootFunction(NumberRootFunction function)
+		{
+			// TODO: I'm being lazy, if root > 3 then we should to convert it to POW(argument, 1 / root)
+			this.VisitFunction("SQRT", function.Argument);
+		}
+
+		private void VisitNumberExponentialFunction(NumberExponentialFunction function)
+		{
+			this.VisitFunction("EXP", function.Argument);
+		}
+
+		private void VisitNumberLogFunction(NumberLogFunction function)
+		{
+			this.VisitFunction("LOG", function.Argument);
+		}
+
+		private void VisitNumberLog10Function(NumberLog10Function function)
+		{
+			this.VisitFunction("LOG10", function.Argument);
 		}
 
 		private void VisitNumberTrigFunction(NumberTrigFunction function)

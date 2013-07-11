@@ -652,11 +652,47 @@ namespace Watsonia.Data.Query
 			{
 				switch (m.Method.Name)
 				{
-					//case "Exp":
-					//case "Log":
-					//case "Log10":
-					//case "Sqrt":
-					//case "Sign":
+					case "Log":
+					{
+						NumberLogFunction newFunction = new NumberLogFunction();
+						this.Visit(m.Arguments[0]);
+						newFunction.Argument = this.Stack.Pop();
+						this.Stack.Push(newFunction);
+						return m;
+					}
+					case "Log10":
+					{
+						NumberLog10Function newFunction = new NumberLog10Function();
+						this.Visit(m.Arguments[0]);
+						newFunction.Argument = this.Stack.Pop();
+						this.Stack.Push(newFunction);
+						return m;
+					}
+					case "Sign":
+					{
+						NumberSignFunction newFunction = new NumberSignFunction();
+						this.Visit(m.Arguments[0]);
+						newFunction.Argument = this.Stack.Pop();
+						this.Stack.Push(newFunction);
+						return m;
+					}
+					case "Exp":
+					{
+						NumberExponentialFunction newFunction = new NumberExponentialFunction();
+						this.Visit(m.Arguments[0]);
+						newFunction.Argument = this.Stack.Pop();
+						this.Stack.Push(newFunction);
+						return m;
+					}
+					case "Sqrt":
+					{
+						NumberRootFunction newFunction = new NumberRootFunction();
+						this.Visit(m.Arguments[0]);
+						newFunction.Argument = this.Stack.Pop();
+						newFunction.Root = new ConstantPart(2);
+						this.Stack.Push(newFunction);
+						return m;
+					}
 					case "Pow":
 					{
 						NumberPowerFunction newFunction = new NumberPowerFunction();

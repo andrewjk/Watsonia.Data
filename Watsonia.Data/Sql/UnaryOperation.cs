@@ -6,7 +6,7 @@ namespace Watsonia.Data.Sql
 	/// <summary>
 	/// An operation with a single operator e.g. negative 1.
 	/// </summary>
-	public sealed class UnaryOperation : StatementPart
+	public sealed class UnaryOperation : Field
 	{
 		/// <summary>
 		/// Gets the type of the statement part.

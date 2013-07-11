@@ -220,7 +220,7 @@ namespace Watsonia.Data
 			return this;
 		}
 
-		public Select Where(params Condition[] conditions)
+		public Select Where(params ConditionExpression[] conditions)
 		{
 			this.Conditions.AddRange(conditions);
 			return this;

@@ -3,7 +3,7 @@
   <baseline key="TestMathLog10">
     Select t0.CustomerID, t0.OrderDate, t0.OrderID
     From Orders As t0
-    Where LOG10(t0.OrderID) Equals 0
+    Where Log10(t0.OrderID) Equals 0
   </baseline>
   <baseline key="TestMathCeiling">
     Select t0.CustomerID, t0.OrderDate, t0.OrderID
@@ -886,7 +886,7 @@
   <baseline key="TestMathExp">
     Select t0.CustomerID, t0.OrderDate, t0.OrderID
     From Orders As t0
-    Where EXP((Case When t0.OrderID IsLessThan 1000 Then 1 Else 2)) Equals 0
+    Where Exponential(t0.OrderID) Equals 0
   </baseline>
   <baseline key="TestMathLog">
     Select t0.CustomerID, t0.OrderDate, t0.OrderID
@@ -896,7 +896,7 @@
   <baseline key="TestMathSqrt">
     Select t0.CustomerID, t0.OrderDate, t0.OrderID
     From Orders As t0
-    Where SquareRoot(t0.OrderID) Equals 0
+    Where Root(t0.OrderID, 2) Equals 0
   </baseline>
   <baseline key="TestMathPow">
     Select t0.CustomerID, t0.OrderDate, t0.OrderID

@@ -840,17 +840,17 @@
   <baseline key="TestDateTimeDay">
     SELECT t0.[CustomerCode], t0.[OrderDate], t0.[OrderID]
     FROM [Orders] AS t0
-    WHERE (DAY(t0.[OrderDate]) = 5)
+    WHERE (DATEPART(day, t0.[OrderDate]) = 5)
   </baseline>
   <baseline key="TestDateTimeMonth">
     SELECT t0.[CustomerCode], t0.[OrderDate], t0.[OrderID]
     FROM [Orders] AS t0
-    WHERE (MONTH(t0.[OrderDate]) = 12)
+    WHERE (DATEPART(month, t0.[OrderDate]) = 12)
   </baseline>
   <baseline key="TestDateTimeYear">
     SELECT t0.[CustomerCode], t0.[OrderDate], t0.[OrderID]
     FROM [Orders] AS t0
-    WHERE (YEAR(t0.[OrderDate]) = 1997)
+    WHERE (DATEPART(year, t0.[OrderDate]) = 1997)
   </baseline>
   <baseline key="TestDateTimeHour">
     SELECT t0.[CustomerCode], t0.[OrderDate], t0.[OrderID]
