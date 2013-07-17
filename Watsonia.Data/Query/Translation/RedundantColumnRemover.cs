@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query.Translation
     /// <summary>
     /// Removes duplicate column declarations that refer to the same underlying column
     /// </summary>
-    public class RedundantColumnRemover : DbExpressionVisitor
+    internal sealed class RedundantColumnRemover : DbExpressionVisitor
     {
         Dictionary<ColumnExpression, ColumnExpression> map;
 

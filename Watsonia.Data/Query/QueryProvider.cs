@@ -55,13 +55,6 @@ namespace Watsonia.Data.Query
 			_database = database;
 		}
 
-		protected QueryTranslator CreateTranslator()
-		{
-			// TODO: Move the stuff from mapping into DatabaseConfig
-			var mapping = new QueryMapping(_database);
-			return new QueryTranslator(mapping);
-		}
-
 		protected QueryExecutor CreateExecutor()
 		{
 			return new QueryExecutor(_database);
@@ -114,16 +107,18 @@ namespace Watsonia.Data.Query
 		/// <returns></returns>
 		public Expression GetExecutionPlan(Expression expression)
 		{
-			// strip off lambda for now
+			// Strip off lambda for now
 			LambdaExpression lambda = expression as LambdaExpression;
 			if (lambda != null)
 			{
 				expression = lambda.Body;
 			}
 
-			QueryTranslator translator = CreateTranslator();
+			// TODO: Move the stuff from mapping into DatabaseConfig
+			var mapping = new QueryMapping(_database);
+			var translator = new QueryTranslator(mapping);
 
-			// translate query into client & server parts
+			// Translate the query into client and server parts
 			Expression translation = translator.Translate(_database, expression);
 
 			var parameters = lambda != null ? lambda.Parameters : null;

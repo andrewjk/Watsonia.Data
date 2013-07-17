@@ -14,7 +14,7 @@ namespace Watsonia.Data.Query
 	/// <summary>
 	/// Creates a reusable, parameterized representation of a query that caches the execution plan
 	/// </summary>
-	public static class QueryCompiler
+	internal static class QueryCompiler
 	{
 		public static Delegate Compile(LambdaExpression query)
 		{

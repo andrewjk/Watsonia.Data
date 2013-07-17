@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace Watsonia.Data.Query
 {
-    public class EnumerateOnce<T> : IEnumerable<T>, IEnumerable
+    internal sealed class EnumerateOnce<T> : IEnumerable<T>, IEnumerable
     {
         private IEnumerable<T> _enumerable;
 

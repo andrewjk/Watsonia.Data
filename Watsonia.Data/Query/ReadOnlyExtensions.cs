@@ -10,7 +10,7 @@ using System.Text;
 
 namespace Watsonia.Data.Query
 {
-	public static class ReadOnlyExtensions
+	internal static class ReadOnlyExtensions
 	{
 		public static ReadOnlyCollection<T> ToReadOnly<T>(this IEnumerable<T> collection)
 		{

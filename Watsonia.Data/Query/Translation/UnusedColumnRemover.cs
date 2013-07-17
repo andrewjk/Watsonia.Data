@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query.Translation
     /// <summary>
     /// Removes column declarations in SelectExpressions that are not referenced.
     /// </summary>
-    public class UnusedColumnRemover : DbExpressionVisitor
+    internal sealed class UnusedColumnRemover : DbExpressionVisitor
     {
         Dictionary<TableAlias, HashSet<string>> allColumnsUsed;
         bool retainAllColumns;

@@ -14,7 +14,7 @@ namespace Watsonia.Data.Query.Translation
 	/// <summary>
 	/// Rewrites queries with skip & take to use the nested queries with inverted ordering technique
 	/// </summary>
-	public class SkipToNestedOrderByRewriter : DbExpressionVisitor
+	internal sealed class SkipToNestedOrderByRewriter : DbExpressionVisitor
 	{
 		private SkipToNestedOrderByRewriter()
 		{

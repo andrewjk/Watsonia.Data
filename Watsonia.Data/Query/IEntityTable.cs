@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Watsonia.Data.Query
 {
-	public interface IEntityTable : IQueryable/*, IUpdatable*/
+	internal interface IEntityTable : IQueryable/*, IUpdatable*/
 	{
 		new QueryProvider Provider { get; }
 		string TableId { get; }
@@ -17,7 +17,7 @@ namespace Watsonia.Data.Query
 		int InsertOrUpdate(object instance);
 	}
 
-	public interface IEntityTable<T> : IQueryable<T>, IEntityTable/*, IUpdatable<T>*/
+	internal interface IEntityTable<T> : IQueryable<T>, IEntityTable/*, IUpdatable<T>*/
 	{
 		new T GetById(object id);
 		int Insert(T instance);

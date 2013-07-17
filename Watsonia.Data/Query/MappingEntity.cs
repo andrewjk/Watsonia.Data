@@ -8,6 +8,16 @@ namespace Watsonia.Data.Query
 {
 	public class MappingEntity
 	{
+		private List<string> _includePaths = new List<string>();
+
+		public List<string> IncludePaths
+		{
+			get
+			{
+				return _includePaths;
+			}
+		}
+
 		public Type EntityType
 		{
 			get;

@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query.Translation
 	/// <summary>
 	/// Moves order-bys to the outermost select if possible
 	/// </summary>
-	public class OrderByRewriter : DbExpressionVisitor
+	internal sealed class OrderByRewriter : DbExpressionVisitor
 	{
 		IList<OrderExpression> gatheredOrderings;
 		bool isOuterMostSelect;
@@ -145,7 +145,7 @@ namespace Watsonia.Data.Query.Translation
 		/// to give precedence to the new expressions over any previous expressions
 		/// </summary>
 		/// <param name="newOrderings"></param>
-		protected void PrependOrderings(IList<OrderExpression> newOrderings)
+		private void PrependOrderings(IList<OrderExpression> newOrderings)
 		{
 			if (newOrderings != null)
 			{
@@ -181,7 +181,7 @@ namespace Watsonia.Data.Query.Translation
 			}
 		}
 
-		protected void ReverseOrderings()
+		private void ReverseOrderings()
 		{
 			if (this.gatheredOrderings != null)
 			{
@@ -197,7 +197,7 @@ namespace Watsonia.Data.Query.Translation
 			}
 		}
 
-		protected class BindResult
+		private class BindResult
 		{
 			ReadOnlyCollection<ColumnDeclaration> columns;
 			ReadOnlyCollection<OrderExpression> orderings;
@@ -227,7 +227,7 @@ namespace Watsonia.Data.Query.Translation
 		/// <summary>
 		/// Rebind order expressions to reference a new alias and add to column declarations if necessary
 		/// </summary>
-		protected virtual BindResult RebindOrderings(IEnumerable<OrderExpression> orderings, TableAlias alias, HashSet<TableAlias> existingAliases, IEnumerable<ColumnDeclaration> existingColumns)
+		private BindResult RebindOrderings(IEnumerable<OrderExpression> orderings, TableAlias alias, HashSet<TableAlias> existingAliases, IEnumerable<ColumnDeclaration> existingColumns)
 		{
 			List<ColumnDeclaration> newColumns = null;
 			List<OrderExpression> newOrderings = new List<OrderExpression>();

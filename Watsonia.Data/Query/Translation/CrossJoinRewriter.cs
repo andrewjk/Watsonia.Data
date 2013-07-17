@@ -13,7 +13,7 @@ namespace Watsonia.Data.Query.Translation
     /// <summary>
     /// Attempt to rewrite cross joins as inner joins
     /// </summary>
-    public class CrossJoinRewriter : DbExpressionVisitor
+    internal sealed class CrossJoinRewriter : DbExpressionVisitor
     {
         private Expression currentWhere;
 

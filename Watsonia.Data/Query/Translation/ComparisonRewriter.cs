@@ -13,7 +13,7 @@ using Watsonia.Data.Query.Expressions;
 
 namespace Watsonia.Data.Query.Translation
 {
-    public class ComparisonRewriter : DbExpressionVisitor
+    internal sealed class ComparisonRewriter : DbExpressionVisitor
     {
         QueryMapping mapping;
 
@@ -48,7 +48,7 @@ namespace Watsonia.Data.Query.Translation
             }
         }
 
-        protected Expression SkipConvert(Expression expression)
+        private Expression SkipConvert(Expression expression)
         {
             while (expression.NodeType == ExpressionType.Convert)
             {
@@ -57,7 +57,7 @@ namespace Watsonia.Data.Query.Translation
             return expression;
         }
 
-        protected Expression Compare(BinaryExpression bop)
+        private Expression Compare(BinaryExpression bop)
         {
             var e1 = this.SkipConvert(bop.Left);
             var e2 = this.SkipConvert(bop.Right);
@@ -115,7 +115,7 @@ namespace Watsonia.Data.Query.Translation
             throw new InvalidOperationException("Cannot compare two constructed types with different sets of members assigned.");
         }
 
-        protected Expression MakePredicate(Expression e1, Expression e2, IEnumerable<MemberInfo> members, bool negate)
+        private Expression MakePredicate(Expression e1, Expression e2, IEnumerable<MemberInfo> members, bool negate)
         {
             var pred = members.Select(m =>
                 QueryBinder.BindMember(e1, m).Equal(QueryBinder.BindMember(e2, m))

@@ -10,7 +10,7 @@ using Watsonia.Data.Query.Translation;
 
 namespace Watsonia.Data.Query
 {
-	public class QueryMapper
+	internal sealed class QueryMapper
 	{
 		public QueryMapping Mapping
 		{
@@ -89,7 +89,7 @@ namespace Watsonia.Data.Query
 		/// <param name="assignments">The assignments.</param>
 		/// <returns></returns>
 		/// <exception cref="System.InvalidOperationException"></exception>
-		protected Expression BuildEntityExpression(MappingEntity entity, IList<EntityAssignment> assignments)
+		private Expression BuildEntityExpression(MappingEntity entity, IList<EntityAssignment> assignments)
 		{
 			NewExpression newExpression;
 
@@ -143,7 +143,7 @@ namespace Watsonia.Data.Query
 			}
 		}
 
-		protected ConstructorBindResult BindConstructor(ConstructorInfo cons, IList<EntityAssignment> assignments)
+		private ConstructorBindResult BindConstructor(ConstructorInfo cons, IList<EntityAssignment> assignments)
 		{
 			var ps = cons.GetParameters();
 			var args = new Expression[ps.Length];
@@ -276,7 +276,7 @@ namespace Watsonia.Data.Query
 			}
 		}
 
-		protected Expression GetInsertResult(MappingEntity entity, Expression instance, LambdaExpression selector, Dictionary<MemberInfo, Expression> map)
+		private Expression GetInsertResult(MappingEntity entity, Expression instance, LambdaExpression selector, Dictionary<MemberInfo, Expression> map)
 		{
 			var tableAlias = new TableAlias();
 			var tex = new TableExpression(tableAlias, entity, this.Mapping.GetTableName(entity));
@@ -342,7 +342,7 @@ namespace Watsonia.Data.Query
 			return pe;
 		}
 
-		protected DeclarationCommand GetGeneratedIdCommand(MappingEntity entity, List<MemberInfo> members, Dictionary<MemberInfo, Expression> map)
+		private DeclarationCommand GetGeneratedIdCommand(MappingEntity entity, List<MemberInfo> members, Dictionary<MemberInfo, Expression> map)
 		{
 			var columns = new List<ColumnDeclaration>();
 			var decls = new List<VariableDeclaration>();
@@ -370,7 +370,7 @@ namespace Watsonia.Data.Query
 			throw new NotImplementedException();
 		}
 
-		protected Expression GetIdentityCheck(Expression root, MappingEntity entity, Expression instance)
+		private Expression GetIdentityCheck(Expression root, MappingEntity entity, Expression instance)
 		{
 			return this.Mapping.GetMappedMembers(entity)
 			.Where(m => this.Mapping.IsPrimaryKey(entity, m))
@@ -378,14 +378,14 @@ namespace Watsonia.Data.Query
 			.Aggregate((x, y) => x.And(y));
 		}
 
-		protected Expression GetEntityExistsTest(MappingEntity entity, Expression instance)
+		private Expression GetEntityExistsTest(MappingEntity entity, Expression instance)
 		{
 			ProjectionExpression tq = this.GetQueryExpression(entity);
 			Expression where = this.GetIdentityCheck(tq.SelectExpression, entity, instance);
 			return new ExistsExpression(new SelectExpression(new TableAlias(), null, tq.SelectExpression, where));
 		}
 
-		protected Expression GetEntityStateTest(MappingEntity entity, Expression instance, LambdaExpression updateCheck)
+		private Expression GetEntityStateTest(MappingEntity entity, Expression instance, LambdaExpression updateCheck)
 		{
 			ProjectionExpression tq = this.GetQueryExpression(entity);
 			Expression where = this.GetIdentityCheck(tq.SelectExpression, entity, instance);
@@ -450,7 +450,7 @@ namespace Watsonia.Data.Query
 			return new FunctionExpression(typeof(int), "@@ROWCOUNT", null);
 		}
 
-		protected Expression GetUpdateResult(MappingEntity entity, Expression instance, LambdaExpression selector)
+		private Expression GetUpdateResult(MappingEntity entity, Expression instance, LambdaExpression selector)
 		{
 			var tq = this.GetQueryExpression(entity);
 			Expression where = this.GetIdentityCheck(tq.SelectExpression, entity, instance);
@@ -589,25 +589,12 @@ namespace Watsonia.Data.Query
 		}
 
 		/// <summary>
-		/// Apply mapping to a sub query expression
-		/// </summary>
-		/// <param name="expression"></param>
-		/// <returns></returns>
-		public Expression ApplyMapping(Expression expression)
-		{
-			return QueryBinder.Bind(this, expression);
-		}
-
-		/// <summary>
 		/// Apply mapping translations to this expression
 		/// </summary>
 		/// <param name="expression"></param>
 		/// <returns></returns>
 		public Expression Translate(Database database, Expression expression)
 		{
-			//// Replace types with dynamic proxies so that they contain all of the necessary fields for joining etc
-			//expression = QueryTypeReplacer.Replace(database, expression);
-	
 			// Convert references to LINQ operators into query specific nodes
 			expression = QueryBinder.Bind(this, expression);
 

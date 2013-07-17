@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query.Translation
     /// <summary>
     /// Rewrite all column references to one or more aliases to a new single alias
     /// </summary>
-    public class ColumnMapper : DbExpressionVisitor
+    internal sealed class ColumnMapper : DbExpressionVisitor
     {
         HashSet<TableAlias> oldAliases;
         TableAlias newAlias;

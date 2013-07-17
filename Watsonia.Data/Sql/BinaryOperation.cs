@@ -27,7 +27,7 @@ namespace Watsonia.Data.Sql
 		/// <value>
 		/// The left expression.
 		/// </value>
-		public SourceExpression LeftExpression
+		public SourceExpression Left
 		{
 			get;
 			internal set;
@@ -109,7 +109,7 @@ namespace Watsonia.Data.Sql
 		/// <value>
 		/// The right expression.
 		/// </value>
-		public SourceExpression RightExpression
+		public SourceExpression Right
 		{
 			get;
 			internal set;
@@ -125,14 +125,14 @@ namespace Watsonia.Data.Sql
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BinaryOperation" /> class.
 		/// </summary>
-		/// <param name="leftExpression">The expression on the left of the operator.</param>
+		/// <param name="left">The expression on the left of the operator.</param>
 		/// <param name="op">The operator.</param>
-		/// <param name="rightExpression">The expression on the right of the operator.</param>
-		public BinaryOperation(SourceExpression leftExpression, BinaryOperator op, SourceExpression rightExpression)
+		/// <param name="right">The expression on the right of the operator.</param>
+		public BinaryOperation(SourceExpression left, BinaryOperator op, SourceExpression right)
 		{
-			this.LeftExpression = leftExpression;
+			this.Left = left;
 			this.Operator = op;
-			this.RightExpression = rightExpression;
+			this.Right = right;
 		}
 
 		/// <summary>
@@ -143,7 +143,7 @@ namespace Watsonia.Data.Sql
 		/// </returns>
 		public override string ToString()
 		{
-			return "(" + this.LeftExpression.ToString() + " " + this.OperatorString + " " + this.RightExpression.ToString() + ")";
+			return "(" + this.Left.ToString() + " " + this.OperatorString + " " + this.Right.ToString() + ")";
 		}
 	}
 }

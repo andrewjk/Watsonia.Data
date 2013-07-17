@@ -22,6 +22,7 @@ namespace Watsonia.Data.Sql
 		////	internal set;
 		////}
 
+		// TODO: Should this just be a string?
 		public string Alias
 		{
 			get;

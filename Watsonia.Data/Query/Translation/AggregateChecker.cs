@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query.Translation
     /// <summary>
     /// Determines if a SelectExpression contains any aggregate expressions
     /// </summary>
-    class AggregateChecker : DbExpressionVisitor
+    internal sealed class AggregateChecker : DbExpressionVisitor
     {
         bool hasAggregate = false;
         private AggregateChecker()

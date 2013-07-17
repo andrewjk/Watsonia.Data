@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Watsonia.Data.Query
 {
-    public class CompoundKey : IEquatable<CompoundKey>, IEnumerable<object>, IEnumerable
+    internal sealed class CompoundKey : IEquatable<CompoundKey>, IEnumerable<object>, IEnumerable
     {
         private object[] _values;
         private int _hc;

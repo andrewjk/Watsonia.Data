@@ -13,7 +13,7 @@ using Watsonia.Data.Query;
 
 namespace Watsonia.Data.Query.Expressions
 {
-    public static class Aggregator
+    internal static class Aggregator
     {
         /// <summary>
         /// Get a function that coerces a sequence of one type into another type.

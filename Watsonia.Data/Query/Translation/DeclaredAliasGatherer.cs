@@ -13,7 +13,7 @@ namespace Watsonia.Data.Query.Translation
     /// <summary>
     ///  returns the set of all aliases produced by a query source
     /// </summary>
-    public class DeclaredAliasGatherer : DbExpressionVisitor
+    internal sealed class DeclaredAliasGatherer : DbExpressionVisitor
     {
         HashSet<TableAlias> aliases;
 

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Watsonia.Data.Query
 {
-	public class CompiledQuery
+	internal sealed class CompiledQuery
 	{
 		LambdaExpression query;
 		Delegate fnQuery;

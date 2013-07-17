@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query.Expressions
 	/// <summary>
 	/// Writes out an expression tree in a C#-ish syntax.
 	/// </summary>
-	public class ExpressionWriter : Watsonia.Data.Query.ExpressionVisitor
+	internal class ExpressionWriter : Watsonia.Data.Query.ExpressionVisitor
 	{
 		TextWriter writer;
 		int indent = 2;

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Watsonia.Data.Query
 {
-	public class EntityInfo
+	internal sealed class EntityInfo
 	{
 		public object Instance
 		{

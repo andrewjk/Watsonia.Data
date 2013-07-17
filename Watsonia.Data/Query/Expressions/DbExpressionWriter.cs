@@ -17,7 +17,7 @@ namespace Watsonia.Data.Query.Expressions
 	/// <summary>
 	/// Writes out an expression tree (including DbExpression nodes) in a C#-ish syntax.
 	/// </summary>
-	public class DbExpressionWriter : ExpressionWriter
+	internal class DbExpressionWriter : ExpressionWriter
 	{
 		Dictionary<TableAlias, int> aliasMap = new Dictionary<TableAlias, int>();
 

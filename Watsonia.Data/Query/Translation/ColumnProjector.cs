@@ -15,7 +15,7 @@ namespace Watsonia.Data.Query.Translation
 	/// <summary>
 	/// Result from calling ColumnProjector.ProjectColumns
 	/// </summary>
-	public sealed class ProjectedColumns
+	internal sealed class ProjectedColumns
 	{
 		Expression projector;
 		ReadOnlyCollection<ColumnDeclaration> columns;
@@ -42,7 +42,7 @@ namespace Watsonia.Data.Query.Translation
 	///   1) a list of column declarations for sub-expressions that must be evaluated on the server
 	///   2) a expression that describes how to combine/project the columns back together into the correct result
 	/// </summary>
-	public class ColumnProjector : DbExpressionVisitor
+	internal sealed class ColumnProjector : DbExpressionVisitor
 	{
 		Dictionary<ColumnExpression, ColumnExpression> map;
 		List<ColumnDeclaration> columns;

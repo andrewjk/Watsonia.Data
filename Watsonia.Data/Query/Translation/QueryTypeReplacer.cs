@@ -8,7 +8,7 @@ using Watsonia.Data.Query.Expressions;
 
 namespace Watsonia.Data.Query.Translation
 {
-	public class QueryTypeReplacer : DbExpressionVisitor
+	internal sealed class QueryTypeReplacer : DbExpressionVisitor
 	{
 		private Database _database;
 

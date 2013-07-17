@@ -23,6 +23,7 @@ namespace Watsonia.Data.Sql
 		//Between,
 		//RowCount,
 		//NamedValue,
+		// TODO: Rename that!
 		ConstantPart,
 		SourceExpression,
 		OrderByField,
@@ -66,5 +67,17 @@ namespace Watsonia.Data.Sql
 		RowNumber,
 		LiteralPart,
 		SelectField,
+
+		//Projection,
+		//Scalar,
+		//NamedValue,
+		//BetweenCondition,
+		//IsNullCondition,
+		//InCondition,
+		//EqualsCondition,
+		//NotEqualsCondition,
+		//ClientJoin,
+		//Lambda,
+		//AggregateSubquery,
 	}
 }

@@ -18,7 +18,7 @@ namespace Watsonia.Data.Query.Translation
     /// <summary>
     /// Removes joins expressions that are identical to joins that already exist
     /// </summary>
-    public class RedundantJoinRemover : DbExpressionVisitor
+    internal sealed class RedundantJoinRemover : DbExpressionVisitor
     {
         Dictionary<TableAlias, TableAlias> map;
 

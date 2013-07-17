@@ -189,6 +189,29 @@ namespace Watsonia.Data
 			return Type.GetTypeCode(type) == TypeCode.Boolean;
 		}
 
+		public static bool IsInteger(Type type)
+		{
+			Type nnType = GetNonNullableType(type);
+			switch (Type.GetTypeCode(type))
+			{
+				case TypeCode.SByte:
+				case TypeCode.Int16:
+				case TypeCode.Int32:
+				case TypeCode.Int64:
+				case TypeCode.Byte:
+				case TypeCode.UInt16:
+				case TypeCode.UInt32:
+				case TypeCode.UInt64:
+				{
+					return true;
+				}
+				default:
+				{
+					return false;
+				}
+			}
+		}
+
 		/// <summary>
 		/// Determines whether the specified type is numeric.
 		/// </summary>

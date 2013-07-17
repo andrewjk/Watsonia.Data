@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Watsonia.Data.Query
 {
-	public class EntityAssignment
+	internal sealed class EntityAssignment
 	{
 		public MemberInfo Member
 		{

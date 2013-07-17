@@ -14,7 +14,7 @@
 //	/// <summary>
 //	/// Rewrites take & skip expressions into uses of TSQL row_number function
 //	/// </summary>
-//	public class SkipToRowNumberRewriter : DbExpressionVisitor
+//	internal sealed class SkipToRowNumberRewriter : DbExpressionVisitor
 //	{
 //		private readonly QueryLanguage language;
 //		private readonly string columnName;

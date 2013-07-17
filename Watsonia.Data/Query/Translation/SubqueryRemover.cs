@@ -18,7 +18,7 @@ namespace Watsonia.Data.Query.Translation
     /// their from clause expressions and rewriting any column expressions that may have referenced them to now
     /// reference the underlying data directly.
     /// </summary>
-    public class SubqueryRemover : DbExpressionVisitor
+    internal sealed class SubqueryRemover : DbExpressionVisitor
     {
         HashSet<SelectExpression> selectsToRemove;
         Dictionary<TableAlias, Dictionary<string, Expression>> map;

@@ -14,7 +14,7 @@ namespace Watsonia.Data.Query.Translation
     /// <summary>
     /// returns the list of SelectExpressions accessible from the source expression
     /// </summary>
-    public class SelectGatherer : DbExpressionVisitor
+    internal sealed class SelectGatherer : DbExpressionVisitor
     {
         List<SelectExpression> selects = new List<SelectExpression>();
 

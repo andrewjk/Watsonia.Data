@@ -13,7 +13,7 @@ namespace Watsonia.Data.Query
 	/// <summary>
 	/// Replaces references to one specific instance of an expression node with another node
 	/// </summary>
-	public class ExpressionReplacer : ExpressionVisitor
+	internal sealed class ExpressionReplacer : ExpressionVisitor
 	{
 		Expression searchFor;
 		Expression replaceWith;

@@ -14,7 +14,7 @@ namespace Watsonia.Data.Query.Translation
     /// <summary>
     /// Gathers all columns referenced by the given expression
     /// </summary>
-    public class ReferencedColumnGatherer : DbExpressionVisitor
+    internal sealed class ReferencedColumnGatherer : DbExpressionVisitor
     {
         HashSet<ColumnExpression> columns = new HashSet<ColumnExpression>();
         bool first = true;

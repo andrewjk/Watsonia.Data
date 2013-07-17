@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Watsonia.Data.Query
 {
-	public static class ReflectionExtensions
+	internal static class ReflectionExtensions
 	{
 		public static object GetValue(this MemberInfo member, object instance)
 		{

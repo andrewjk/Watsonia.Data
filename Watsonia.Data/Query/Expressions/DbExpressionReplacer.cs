@@ -14,7 +14,7 @@ namespace Watsonia.Data.Query.Expressions
     /// Replaces references to one specific instance of an expression node with another node.
     /// Supports DbExpression nodes
     /// </summary>
-    public class DbExpressionReplacer : DbExpressionVisitor
+    internal sealed class DbExpressionReplacer : DbExpressionVisitor
     {
         Expression searchFor;
         Expression replaceWith;

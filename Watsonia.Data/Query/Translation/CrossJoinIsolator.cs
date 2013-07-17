@@ -13,7 +13,7 @@ namespace Watsonia.Data.Query.Translation
     /// <summary>
     /// Isolates cross joins from other types of joins using nested sub queries
     /// </summary>
-    public class CrossJoinIsolator : DbExpressionVisitor
+    internal sealed class CrossJoinIsolator : DbExpressionVisitor
     {
         ILookup<TableAlias, ColumnExpression> columns;
         Dictionary<ColumnExpression, ColumnExpression> map = new Dictionary<ColumnExpression,ColumnExpression>();

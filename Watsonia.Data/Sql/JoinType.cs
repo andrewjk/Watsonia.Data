@@ -9,6 +9,7 @@ namespace Watsonia.Data
 		Left,
 		Right,
 		Cross,
-		CrossApply
+		CrossApply,
+		OuterApply
 	}
 }

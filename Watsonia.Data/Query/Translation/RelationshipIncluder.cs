@@ -17,7 +17,7 @@ namespace Watsonia.Data.Query.Translation
     /// <summary>
     /// Adds relationship to query results depending on policy
     /// </summary>
-    public class RelationshipIncluder : DbExpressionVisitor
+    internal sealed class RelationshipIncluder : DbExpressionVisitor
     {
         QueryMapper mapper;
         ScopedDictionary<MemberInfo, bool> includeScope = new ScopedDictionary<MemberInfo, bool>(null);

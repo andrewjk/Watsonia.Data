@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query
 	/// Make a strongly-typed delegate to a weakly typed method (one that takes single object[] argument)
 	/// (up to 8 arguments)
 	/// </summary>
-	public class StrongDelegate
+	internal sealed class StrongDelegate
 	{
 		Func<object[], object> fn;
 

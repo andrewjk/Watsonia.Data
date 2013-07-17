@@ -18,7 +18,7 @@ namespace Watsonia.Data.Query
 	/// <summary>
 	/// Builds an execution plan for a query expression
 	/// </summary>
-	public class ExecutionBuilder : DbExpressionVisitor
+	internal sealed class ExecutionBuilder : DbExpressionVisitor
 	{
 		private Expression executor;
 		private Scope scope;
@@ -206,7 +206,7 @@ namespace Watsonia.Data.Query
 			}
 		}
 
-		protected virtual Expression Parameterize(Expression expression)
+		private Expression Parameterize(Expression expression)
 		{
 			if (this.variableMap.Count > 0)
 			{
@@ -280,7 +280,7 @@ namespace Watsonia.Data.Query
 			}
 		}
 
-		protected virtual Expression BuildExecuteBatch(BatchExpression batch)
+		private Expression BuildExecuteBatch(BatchExpression batch)
 		{
 			// parameterize query
 			Expression operation = this.Parameterize(batch.Operation.Body);
@@ -342,7 +342,7 @@ namespace Watsonia.Data.Query
 			}
 		}
 
-		protected virtual bool IsMultipleCommands(CommandExpression command)
+		private bool IsMultipleCommands(CommandExpression command)
 		{
 			if (command == null)
 				return false;
@@ -467,7 +467,7 @@ namespace Watsonia.Data.Query
 			throw new InvalidOperationException("Declaration query not allowed for this langauge");
 		}
 
-		protected virtual Expression BuildExecuteCommand(CommandExpression command)
+		private Expression BuildExecuteCommand(CommandExpression command)
 		{
 			// parameterize query
 			var expression = this.Parameterize(command);

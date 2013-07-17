@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query
 	/// <summary>
 	/// Defines query execution & materialization policies. 
 	/// </summary>
-	public class QueryTranslator
+	internal sealed class QueryTranslator
 	{
 		public QueryMapper Mapper
 		{
@@ -26,14 +26,11 @@ namespace Watsonia.Data.Query
 
 		public QueryTranslator(QueryMapping mapping)
 		{
-			this.Mapper = mapping.CreateMapper(this);
+			this.Mapper = new QueryMapper(mapping, this);
 		}
 
-		public virtual Expression Translate(Database database, Expression expression)
+		public Expression Translate(Database database, Expression expression)
 		{
-			//// Replace types with dynamic proxies so that they contain all of the necessary fields for joining etc
-			//expression = QueryTypeReplacer.Replace(database, expression);
-
 			// Pre-evaluate local sub-trees
 			expression = PartialEvaluator.Eval(expression, this.Mapper.Mapping.CanBeEvaluatedLocally);
 

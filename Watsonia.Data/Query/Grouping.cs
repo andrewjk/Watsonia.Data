@@ -13,7 +13,7 @@ namespace Watsonia.Data.Query
 	/// </summary>
 	/// <typeparam name="TKey"></typeparam>
 	/// <typeparam name="TElement"></typeparam>
-	public class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
+	internal sealed class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
 	{
 		private IEnumerable<TElement> _group;
 

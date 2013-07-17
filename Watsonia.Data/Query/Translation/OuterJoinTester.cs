@@ -9,7 +9,7 @@ using Watsonia.Data.Query.Expressions;
 namespace Watsonia.Data.Query.Translation
 {
 	// TODO: This was copied from QueryLanguage, is it needed?
-	internal class OuterJoinTester
+	internal sealed class OuterJoinTester
 	{
 		public static Expression GetOuterJoinTest(SelectExpression select)
 		{

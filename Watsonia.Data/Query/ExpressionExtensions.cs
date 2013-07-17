@@ -12,7 +12,7 @@ using System.Text;
 
 namespace Watsonia.Data.Query
 {
-	public static class ExpressionExtensions
+	internal static class ExpressionExtensions
 	{
 		public static Expression Equal(this Expression expression1, Expression expression2)
 		{

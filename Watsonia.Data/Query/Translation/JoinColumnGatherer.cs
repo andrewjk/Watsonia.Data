@@ -8,7 +8,7 @@ using Watsonia.Data.Query.Expressions;
 
 namespace Watsonia.Data.Query.Translation
 {
-	internal class JoinColumnGatherer
+	internal sealed class JoinColumnGatherer
 	{
 		HashSet<TableAlias> aliases;
 		HashSet<ColumnExpression> columns = new HashSet<ColumnExpression>();

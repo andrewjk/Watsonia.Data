@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Watsonia.Data.Query
 {
-	public class QueryType
+	internal sealed class QueryType
 	{
 		public DbType DbType
 		{

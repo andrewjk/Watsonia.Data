@@ -10,7 +10,7 @@ namespace Watsonia.Data.Query
 	/// <summary>
 	/// Formats a query expression into common SQL language syntax
 	/// </summary>
-	internal class StatementCreator : DbExpressionVisitor
+	internal sealed class StatementCreator : DbExpressionVisitor
 	{
 		private readonly Stack<StatementPart> _stack = new Stack<StatementPart>();
 		private readonly Dictionary<TableAlias, string> _aliases = new Dictionary<TableAlias, string>();
@@ -23,13 +23,13 @@ namespace Watsonia.Data.Query
 			}
 		}
 
-		protected bool HideColumnAliases
+		private bool HideColumnAliases
 		{
 			get;
 			set;
 		}
 
-		protected bool HideTableAliases
+		private bool HideTableAliases
 		{
 			get;
 			set;
@@ -58,7 +58,7 @@ namespace Watsonia.Data.Query
 			return creator.SelectExpression;
 		}
 
-		protected virtual string GetAliasName(TableAlias alias)
+		private string GetAliasName(TableAlias alias)
 		{
 			string name;
 			if (!_aliases.TryGetValue(alias, out name))
@@ -69,7 +69,7 @@ namespace Watsonia.Data.Query
 			return name;
 		}
 
-		protected void AddAlias(TableAlias alias)
+		private void AddAlias(TableAlias alias)
 		{
 			string name;
 			if (!_aliases.TryGetValue(alias, out name))
@@ -79,7 +79,7 @@ namespace Watsonia.Data.Query
 			}
 		}
 
-		protected virtual void AddAliases(Expression expr)
+		private void AddAliases(Expression expr)
 		{
 			AliasedExpression ax = expr as AliasedExpression;
 			if (ax != null)
@@ -575,10 +575,10 @@ namespace Watsonia.Data.Query
 					{
 						BinaryOperation newOperation = new BinaryOperation();
 						this.VisitValue(m.Arguments[0]);
-						newOperation.LeftExpression = (SourceExpression)this.Stack.Pop();
+						newOperation.Left = (SourceExpression)this.Stack.Pop();
 						newOperation.Operator = (BinaryOperator)Enum.Parse(typeof(BinaryOperator), m.Method.Name);
 						this.VisitValue(m.Arguments[1]);
-						newOperation.RightExpression = (SourceExpression)this.Stack.Pop();
+						newOperation.Right = (SourceExpression)this.Stack.Pop();
 						this.Stack.Push(newOperation);
 						return m;
 					}
@@ -1010,10 +1010,10 @@ namespace Watsonia.Data.Query
 					{
 						BinaryOperation newOperation = new BinaryOperation();
 						this.VisitValue(left);
-						newOperation.LeftExpression = (SourceExpression)this.Stack.Pop();
+						newOperation.Left = (SourceExpression)this.Stack.Pop();
 						newOperation.Operator = GetBinaryOperator(b);
 						this.VisitValue(right);
-						newOperation.RightExpression = (SourceExpression)this.Stack.Pop();
+						newOperation.Right = (SourceExpression)this.Stack.Pop();
 						this.Stack.Push(newOperation);
 						break;
 					}
@@ -1111,10 +1111,10 @@ namespace Watsonia.Data.Query
 				{
 					BinaryOperation newOperation = new BinaryOperation();
 					this.VisitValue(left);
-					newOperation.LeftExpression = (SourceExpression)this.Stack.Pop();
+					newOperation.Left = (SourceExpression)this.Stack.Pop();
 					newOperation.Operator = GetBinaryOperator(b);
 					this.VisitValue(right);
-					newOperation.RightExpression = (SourceExpression)this.Stack.Pop();
+					newOperation.Right = (SourceExpression)this.Stack.Pop();
 					this.Stack.Push(newOperation);
 					break;
 				}
@@ -1255,12 +1255,12 @@ namespace Watsonia.Data.Query
 			}
 		}
 
-		protected virtual bool IsBoolean(Type type)
+		private bool IsBoolean(Type type)
 		{
 			return type == typeof(bool) || type == typeof(bool?);
 		}
 
-		protected virtual bool IsPredicate(Expression expr)
+		private bool IsPredicate(Expression expr)
 		{
 			switch (expr.NodeType)
 			{
@@ -1299,7 +1299,7 @@ namespace Watsonia.Data.Query
 			}
 		}
 
-		protected virtual Expression VisitPredicate(Expression expr)
+		private Expression VisitPredicate(Expression expr)
 		{
 			this.Visit(expr);
 			if (!IsPredicate(expr))
@@ -1313,7 +1313,7 @@ namespace Watsonia.Data.Query
 			return expr;
 		}
 
-		protected virtual Expression VisitValue(Expression expr)
+		private Expression VisitValue(Expression expr)
 		{
 			if (IsPredicate(expr))
 			{
@@ -2012,7 +2012,7 @@ namespace Watsonia.Data.Query
 		//    return vex;
 		//}
 
-		//protected virtual void VisitStatement(Expression expression)
+		//private void VisitStatement(Expression expression)
 		//{
 		//    var p = expression as ProjectionExpression;
 		//    if (p != null)

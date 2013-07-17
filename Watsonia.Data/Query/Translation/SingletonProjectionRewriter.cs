@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query.Translation
 	/// <summary>
 	/// Rewrites nested singleton projection into server-side joins
 	/// </summary>
-	public class SingletonProjectionRewriter : DbExpressionVisitor
+	internal sealed class SingletonProjectionRewriter : DbExpressionVisitor
 	{
 		bool isTopLevel = true;
 		SelectExpression currentSelect;

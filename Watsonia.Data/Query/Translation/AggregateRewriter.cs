@@ -13,7 +13,7 @@ namespace Watsonia.Data.Query.Translation
 	/// <summary>
 	/// Rewrite aggregate expressions, moving them into same select expression that has the group-by clause
 	/// </summary>
-	public class AggregateRewriter : DbExpressionVisitor
+	internal sealed class AggregateRewriter : DbExpressionVisitor
 	{
 		ILookup<TableAlias, AggregateSubqueryExpression> lookup;
 		Dictionary<AggregateSubqueryExpression, Expression> map;

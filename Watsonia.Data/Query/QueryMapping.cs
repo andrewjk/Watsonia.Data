@@ -11,9 +11,9 @@ using Watsonia.Data;
 namespace Watsonia.Data.Query
 {
 	/// <summary>
-	/// Defines mapping information & rules for the query provider
+	/// Defines mapping information and rules for the query provider.
 	/// </summary>
-	public class QueryMapping
+	internal class QueryMapping
 	{
 		/// <summary>
 		/// Gets or sets the database to use for configuration and creating dynamic proxies.
@@ -604,11 +604,6 @@ namespace Watsonia.Data.Query
 					}
 				}
 			}
-		}
-
-		public QueryMapper CreateMapper(QueryTranslator translator)
-		{
-			return new QueryMapper(this, translator);
 		}
 	}
 }

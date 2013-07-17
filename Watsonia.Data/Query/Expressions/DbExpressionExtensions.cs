@@ -13,7 +13,7 @@ using Watsonia.Data.Query.Translation;
 
 namespace Watsonia.Data.Query.Expressions
 {
-	public static class DbExpressionExtensions
+	internal static class DbExpressionExtensions
 	{
 		public static bool IsDbExpression(ExpressionType nodeType)
 		{

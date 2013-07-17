@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query
     /// <summary>
     /// Finds the first sub-expression that is of a specified type
     /// </summary>
-    public class TypedSubtreeFinder : ExpressionVisitor
+    internal sealed class TypedSubtreeFinder : ExpressionVisitor
     {
         private Expression root;
         private Type type;

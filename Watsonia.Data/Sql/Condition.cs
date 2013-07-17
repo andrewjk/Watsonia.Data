@@ -16,17 +16,10 @@ namespace Watsonia.Data
 			}
 		}
 
-		private StatementPart _field;
 		public StatementPart Field
 		{
-			get
-			{
-				return _field;
-			}
-			set
-			{
-				_field = value;
-			}
+			get;
+			set;
 		}
 
 		public SqlOperator Operator

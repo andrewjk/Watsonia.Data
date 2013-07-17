@@ -11,7 +11,7 @@ using Watsonia.Data.Query.Expressions;
 
 namespace Watsonia.Data.Query.Translation
 {
-    public class NamedValueGatherer : DbExpressionVisitor
+    internal sealed class NamedValueGatherer : DbExpressionVisitor
     {
         HashSet<NamedValueExpression> namedValues = new HashSet<NamedValueExpression>(new NamedValueComparer());
 

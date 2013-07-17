@@ -17,7 +17,7 @@ namespace Watsonia.Data.Query.Translation
 	/// <summary>
 	/// Translates accesses to relationship members into projections or joins
 	/// </summary>
-	public class RelationshipBinder : DbExpressionVisitor
+	internal sealed class RelationshipBinder : DbExpressionVisitor
 	{
 		QueryMapper mapper;
 		QueryMapping mapping;

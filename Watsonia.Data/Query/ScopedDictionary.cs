@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Watsonia.Data.Query
 {
-	public class ScopedDictionary<TKey, TValue>
+	internal sealed class ScopedDictionary<TKey, TValue>
 	{
 		private readonly ScopedDictionary<TKey, TValue> _previous;
 		private readonly Dictionary<TKey, TValue> _map;

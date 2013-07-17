@@ -10,17 +10,17 @@ namespace Watsonia.Data.Query
 	/// <summary>
 	/// Common interface for controlling defer-loadable types
 	/// </summary>
-	public interface IDeferLoadable
+	internal interface IDeferLoadable
 	{
 		bool IsLoaded { get; }
 		void Load();
 	}
 
-	public interface IDeferredList : IList, IDeferLoadable
+	internal interface IDeferredList : IList, IDeferLoadable
 	{
 	}
 
-	public interface IDeferredList<T> : IList<T>, IDeferredList
+	internal interface IDeferredList<T> : IList<T>, IDeferredList
 	{
 	}
 
@@ -28,7 +28,7 @@ namespace Watsonia.Data.Query
 	/// A list implementation that is loaded the first time the contents are examined
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class DeferredList<T> : IDeferredList<T>, ICollection<T>, IEnumerable<T>, IList, ICollection, IEnumerable, IDeferLoadable
+	internal sealed class DeferredList<T> : IDeferredList<T>, ICollection<T>, IEnumerable<T>, IList, ICollection, IEnumerable, IDeferLoadable
 	{
 		IEnumerable<T> source;
 		List<T> values;

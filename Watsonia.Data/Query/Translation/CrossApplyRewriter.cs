@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query.Translation
 	/// <summary>
 	/// Attempts to rewrite cross-apply and outer-apply joins as inner and left-outer joins
 	/// </summary>
-	public class CrossApplyRewriter : DbExpressionVisitor
+	internal sealed class CrossApplyRewriter : DbExpressionVisitor
 	{
 		private CrossApplyRewriter()
 		{

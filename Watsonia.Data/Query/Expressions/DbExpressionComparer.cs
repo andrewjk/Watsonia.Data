@@ -17,7 +17,7 @@ namespace Watsonia.Data.Query.Expressions
     /// <summary>
     /// Determines if two expressions are equivalent. Supports DbExpression nodes.
     /// </summary>
-    public class DbExpressionComparer : ExpressionComparer
+    internal class DbExpressionComparer : ExpressionComparer
     {
         ScopedDictionary<TableAlias, TableAlias> aliasScope;
 

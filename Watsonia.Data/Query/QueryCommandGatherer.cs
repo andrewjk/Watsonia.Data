@@ -9,7 +9,7 @@ using Watsonia.Data.Query.Expressions;
 
 namespace Watsonia.Data.Query
 {
-	internal class QueryCommandGatherer : DbExpressionVisitor
+	internal sealed class QueryCommandGatherer : DbExpressionVisitor
 	{
 		private readonly List<QueryCommand> _commands = new List<QueryCommand>();
 

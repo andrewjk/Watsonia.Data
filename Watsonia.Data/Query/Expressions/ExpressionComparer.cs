@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query.Expressions
 	/// <summary>
 	/// Compare two expressions to determine if they are equivalent
 	/// </summary>
-	public class ExpressionComparer
+	internal class ExpressionComparer
 	{
 		ScopedDictionary<ParameterExpression, ParameterExpression> parameterScope;
 		Func<object, object, bool> fnCompare;

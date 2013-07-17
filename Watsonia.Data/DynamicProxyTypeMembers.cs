@@ -9,7 +9,7 @@ namespace Watsonia.Data
 	/// <summary>
 	/// A small class to keep track of properties and methods that we've added to a dynamic proxy.
 	/// </summary>
-	internal class DynamicProxyTypeMembers
+	internal sealed class DynamicProxyTypeMembers
 	{
 		private readonly List<PropertyInfo> _baseItemProperties = new List<PropertyInfo>();
 		private readonly Dictionary<string, MethodBuilder> _getPropertyMethods = new Dictionary<string, MethodBuilder>();

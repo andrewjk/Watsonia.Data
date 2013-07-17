@@ -13,7 +13,7 @@ using System.Text;
 
 namespace Watsonia.Data.Query
 {
-	public class QueryTypeSystem
+	internal sealed class QueryTypeSystem
 	{
 		public int StringDefaultSize
 		{

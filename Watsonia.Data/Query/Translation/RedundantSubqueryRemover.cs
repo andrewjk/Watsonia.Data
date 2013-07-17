@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query.Translation
     /// <summary>
     /// Removes select expressions that don't add any additional semantic value
     /// </summary>
-    public class RedundantSubqueryRemover : DbExpressionVisitor
+    internal sealed class RedundantSubqueryRemover : DbExpressionVisitor
     {
         private RedundantSubqueryRemover() 
         {

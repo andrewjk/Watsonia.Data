@@ -17,7 +17,7 @@ namespace Watsonia.Data.Query.Translation
 	/// <summary>
 	/// Converts LINQ query operators to into custom DbExpressions.
 	/// </summary>
-	public class QueryBinder : DbExpressionVisitor
+	internal class QueryBinder : DbExpressionVisitor
 	{
 		private QueryMapper mapper;
 		private Dictionary<ParameterExpression, Expression> map;
@@ -25,7 +25,7 @@ namespace Watsonia.Data.Query.Translation
 		private Expression root;
 		private IEntityTable batchUpd;
 
-		protected QueryBinder(QueryMapper mapper, Expression root)
+		private QueryBinder(QueryMapper mapper, Expression root)
 		{
 			this.mapper = mapper;
 			this.map = new Dictionary<ParameterExpression, Expression>();
@@ -428,7 +428,7 @@ namespace Watsonia.Data.Query.Translation
 				);
 		}
 
-		protected virtual Expression BindSelectMany(Type resultType, Expression source, LambdaExpression collectionSelector, LambdaExpression resultSelector)
+		private Expression BindSelectMany(Type resultType, Expression source, LambdaExpression collectionSelector, LambdaExpression resultSelector)
 		{
 			ProjectionExpression projection = this.VisitSequence(source);
 			this.map[collectionSelector.Parameters[0]] = projection.Projector;
@@ -473,7 +473,7 @@ namespace Watsonia.Data.Query.Translation
 				);
 		}
 
-		protected virtual Expression BindJoin(Type resultType, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)
+		private Expression BindJoin(Type resultType, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)
 		{
 			ProjectionExpression outerProjection = this.VisitSequence(outerSource);
 			ProjectionExpression innerProjection = this.VisitSequence(innerSource);
@@ -493,7 +493,7 @@ namespace Watsonia.Data.Query.Translation
 				);
 		}
 
-		protected virtual Expression BindIntersect(Expression outerSource, Expression innerSource, bool negate)
+		private Expression BindIntersect(Expression outerSource, Expression innerSource, bool negate)
 		{
 			// SELECT * FROM outer WHERE EXISTS(SELECT * FROM inner WHERE inner = outer))
 			ProjectionExpression outerProjection = this.VisitSequence(outerSource);
@@ -512,7 +512,7 @@ namespace Watsonia.Data.Query.Translation
 				);
 		}
 
-		protected virtual Expression BindGroupJoin(MethodInfo groupJoinMethod, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)
+		private Expression BindGroupJoin(MethodInfo groupJoinMethod, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)
 		{
 			// A database will treat this no differently than a SelectMany w/ result selector, so just use that translation instead
 			Type[] args = groupJoinMethod.GetGenericArguments();
@@ -538,7 +538,7 @@ namespace Watsonia.Data.Query.Translation
 
 		List<OrderExpression> thenBys;
 
-		protected virtual Expression BindOrderBy(Type resultType, Expression source, LambdaExpression orderSelector, OrderType orderType)
+		private Expression BindOrderBy(Type resultType, Expression source, LambdaExpression orderSelector, OrderType orderType)
 		{
 			List<OrderExpression> myThenBys = this.thenBys;
 			this.thenBys = null;
@@ -567,7 +567,7 @@ namespace Watsonia.Data.Query.Translation
 				);
 		}
 
-		protected virtual Expression BindThenBy(Expression source, LambdaExpression orderSelector, OrderType orderType)
+		private Expression BindThenBy(Expression source, LambdaExpression orderSelector, OrderType orderType)
 		{
 			if (this.thenBys == null)
 			{
@@ -577,7 +577,7 @@ namespace Watsonia.Data.Query.Translation
 			return this.Visit(source);
 		}
 
-		protected virtual Expression BindGroupBy(Expression source, LambdaExpression keySelector, LambdaExpression elementSelector, LambdaExpression resultSelector)
+		private Expression BindGroupBy(Expression source, LambdaExpression keySelector, LambdaExpression elementSelector, LambdaExpression resultSelector)
 		{
 			ProjectionExpression projection = this.VisitSequence(source);
 
@@ -1060,6 +1060,13 @@ namespace Watsonia.Data.Query.Translation
 				{
 					// assume this is also a table via some other implementation of IQueryable
 					MappingEntity entity = this.mapper.Mapping.GetEntity(q.ElementType);
+
+					IDatabaseQuery dq = q as IDatabaseQuery;
+					if (dq != null)
+					{
+						entity.IncludePaths.AddRange(dq.IncludePaths);
+					}
+
 					return this.VisitSequence(this.mapper.GetQueryExpression(entity));
 				}
 				else

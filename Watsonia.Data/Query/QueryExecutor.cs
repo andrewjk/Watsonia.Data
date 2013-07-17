@@ -18,6 +18,10 @@ namespace Watsonia.Data.Query
 		public IEnumerable<T> Execute<T>(QueryCommand command, Func<FieldReader, T> fnProjector, MappingEntity entity, object[] paramValues)
 		{
 			Select select = StatementCreator.Compile(command.Expression);
+			if (entity != null)
+			{
+				select.IncludePaths.AddRange(entity.IncludePaths);
+			}
 			return _database.LoadCollection<T>(select);
 		}
 	}

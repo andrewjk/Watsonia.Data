@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace Watsonia.Data.Query
 {
-	public abstract class ExpressionVisitor
+	internal abstract class ExpressionVisitor
 	{
 		protected ExpressionVisitor()
 		{

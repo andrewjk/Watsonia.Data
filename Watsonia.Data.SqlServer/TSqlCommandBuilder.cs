@@ -409,7 +409,7 @@ namespace Watsonia.Data.SqlServer
 			}
 			else
 			{
-				throw new InvalidOperationException();
+				this.CommandText.Append(" DEFAULT VALUES");
 			}
 		}
 
@@ -1489,27 +1489,27 @@ namespace Watsonia.Data.SqlServer
 			if (operation.Operator == BinaryOperator.LeftShift)
 			{
 				this.CommandText.Append("(");
-				this.VisitField(operation.LeftExpression);
+				this.VisitField(operation.Left);
 				this.CommandText.Append(" * POWER(2, ");
-				this.VisitField(operation.RightExpression);
+				this.VisitField(operation.Right);
 				this.CommandText.Append("))");
 			}
 			else if (operation.Operator == BinaryOperator.RightShift)
 			{
 				this.CommandText.Append("(");
-				this.VisitField(operation.LeftExpression);
+				this.VisitField(operation.Left);
 				this.CommandText.Append(" / POWER(2, ");
-				this.VisitField(operation.RightExpression);
+				this.VisitField(operation.Right);
 				this.CommandText.Append("))");
 			}
 			else
 			{
 				this.CommandText.Append("(");
-				this.VisitField(operation.LeftExpression);
+				this.VisitField(operation.Left);
 				this.CommandText.Append(" ");
 				this.CommandText.Append(GetOperatorName(operation.Operator));
 				this.CommandText.Append(" ");
-				this.VisitField(operation.RightExpression);
+				this.VisitField(operation.Right);
 				this.CommandText.Append(")");
 			}
 		}
@@ -1566,7 +1566,7 @@ namespace Watsonia.Data.SqlServer
 			{
 				case UnaryOperator.Not:
 				{
-					// TODO: return IsBoolean(unary.Operand.Type) ? "NOT" : "~";
+					// TODO: return IsBoolean(unary.Expression.Type) ? "NOT" : "~";
 					return "NOT ";
 				}
 				case UnaryOperator.Negate:

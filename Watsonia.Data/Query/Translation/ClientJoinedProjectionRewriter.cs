@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query.Translation
 	/// <summary>
 	/// rewrites nested projections into client-side joins
 	/// </summary>
-	public class ClientJoinedProjectionRewriter : DbExpressionVisitor
+	internal sealed class ClientJoinedProjectionRewriter : DbExpressionVisitor
 	{
 		bool isTopLevel = true;
 		SelectExpression currentSelect;

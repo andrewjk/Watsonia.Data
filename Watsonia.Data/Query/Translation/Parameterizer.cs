@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query.Translation
 	/// <summary>
 	/// Converts user arguments into named-value parameters
 	/// </summary>
-	public class Parameterizer : DbExpressionVisitor
+	internal sealed class Parameterizer : DbExpressionVisitor
 	{
 		Dictionary<TypeAndValue, NamedValueExpression> map = new Dictionary<TypeAndValue, NamedValueExpression>();
 		Dictionary<HashedExpression, NamedValueExpression> pmap = new Dictionary<HashedExpression, NamedValueExpression>();

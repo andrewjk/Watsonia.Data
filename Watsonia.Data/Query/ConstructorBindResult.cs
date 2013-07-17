@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Watsonia.Data.Query
 {
-	public class ConstructorBindResult
+	internal sealed class ConstructorBindResult
 	{
 		public NewExpression Expression
 		{

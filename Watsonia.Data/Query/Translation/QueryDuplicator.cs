@@ -16,7 +16,7 @@ namespace Watsonia.Data.Query.Translation
     /// <summary>
     /// Duplicate the query expression by making a copy with new table aliases
     /// </summary>
-    public class QueryDuplicator : DbExpressionVisitor
+    internal sealed class QueryDuplicator : DbExpressionVisitor
     {
         Dictionary<TableAlias, TableAlias> map = new Dictionary<TableAlias, TableAlias>();
 

@@ -15,7 +15,7 @@ namespace Watsonia.Data.Query.Expressions
     /// <summary>
     /// An extended expression visitor including custom DbExpression nodes
     /// </summary>
-    public abstract class DbExpressionVisitor : Watsonia.Data.Query.ExpressionVisitor
+    internal abstract class DbExpressionVisitor : Watsonia.Data.Query.ExpressionVisitor
     {
         protected override Expression Visit(Expression exp)
         {
