@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -190,10 +191,9 @@ namespace Watsonia.Data
 		/// <returns>The loaded collection.</returns>
 		public IList<T> LoadCollection<T>(string propertyName)
 		{
-			AddLoadedCollection(propertyName);
 			if (this.Item.IsNew)
 			{
-				this.SavedCollectionIDs.Add(propertyName, new List<object>());
+				SetCollection(propertyName, new List<object>());
 				return new ObservableCollection<T>();
 			}
 			else
@@ -203,29 +203,43 @@ namespace Watsonia.Data
 				string foreignKeyColumnName = this.Database.Configuration.GetForeignKeyColumnName(tableType, this.Item.GetType().BaseType);
 				var select = Select.From(tableName).Where(foreignKeyColumnName, SqlOperator.Equals, this.Item.PrimaryKeyValue);
 				IList<T> collection = this.Database.LoadCollection<T>(select);
-				if (collection.Count > 0)
+				SetCollection(propertyName, (IList)collection);
+				return collection;
+			}
+		}
+
+		/// <summary>
+		/// Loads the related collection of child items.
+		/// </summary>
+		/// <typeparam name="T">The type of items in the collection.</typeparam>
+		/// <param name="propertyName">The name of the property containing the collection.</param>
+		/// <returns>The loaded collection.</returns>
+		public void SetCollection(string propertyName, IList collection)
+		{
+			AddLoadedCollection(propertyName);
+
+			if (collection.Count > 0)
+			{
+				// TODO: Less reflection!  Less casting!
+				foreach (PropertyInfo property in collection[0].GetType().GetProperties())
 				{
-					// TODO: Less reflection!  Less casting!
-					foreach (PropertyInfo property in collection[0].GetType().GetProperties())
+					if (property.PropertyType.IsAssignableFrom(this.Item.GetType()) &&
+						property.PropertyType != typeof(object))
 					{
-						if (property.PropertyType.IsAssignableFrom(this.Item.GetType()) &&
-							property.PropertyType != typeof(object))
+						foreach (object item in collection)
 						{
-							foreach (T item in collection)
-							{
-								((IDynamicProxy)item).StateTracker.IsLoading = true;
-								property.SetValue(item, this.Item, null);
-								((IDynamicProxy)item).StateTracker.IsLoading = false;
-							}
+							((IDynamicProxy)item).StateTracker.IsLoading = true;
+							property.SetValue(item, this.Item, null);
+							((IDynamicProxy)item).StateTracker.IsLoading = false;
 						}
 					}
 				}
-				this.SavedCollectionIDs.Add(propertyName, new List<object>());
-				for (int i = 0; i < collection.Count; i++)
-				{
-					this.SavedCollectionIDs[propertyName].Add(((IDynamicProxy)collection[i]).PrimaryKeyValue);
-				}
-				return collection;
+			}
+
+			this.SavedCollectionIDs.Add(propertyName, new List<object>());
+			for (int i = 0; i < collection.Count; i++)
+			{
+				this.SavedCollectionIDs[propertyName].Add(((IDynamicProxy)collection[i]).PrimaryKeyValue);
 			}
 		}
 

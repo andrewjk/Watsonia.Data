@@ -8,7 +8,7 @@ namespace Watsonia.Data
 {
 	public sealed class Select : Statement
 	{
-		////private readonly List<string> _includePaths = new List<string>();
+		private readonly List<string> _includePaths = new List<string>();
 		private readonly List<Join> _sourceJoins = new List<Join>();
 		private readonly List<SourceExpression> _sourceFields = new List<SourceExpression>();
 		private readonly List<Table> _sourceFieldsFrom = new List<Table>();
@@ -38,13 +38,13 @@ namespace Watsonia.Data
 			}
 		}
 
-		////internal List<string> IncludePaths
-		////{
-		////	get
-		////	{
-		////		return _includePaths;
-		////	}
-		////}
+		public List<string> IncludePaths
+		{
+			get
+			{
+				return _includePaths;
+			}
+		}
 
 		public List<SourceExpression> SourceFields
 		{
@@ -104,6 +104,7 @@ namespace Watsonia.Data
 			}
 		}
 
+		// TODO: Should this just be a string?
 		public string Alias
 		{
 			get;
@@ -288,11 +289,11 @@ namespace Watsonia.Data
 			return this;
 		}
 
-		////public Select Include(string path)
-		////{
-		////	this.IncludePaths.Add(path);
-		////	return this;
-		////}
+		public Select Include(string path)
+		{
+			this.IncludePaths.Add(path);
+			return this;
+		}
 
 		public override string ToString()
 		{

@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Watsonia.Data.Tests.Models
 {
-	public class Par
+	public class SubChil
 	{
-		public virtual string Name
+		public virtual Chil Chil
 		{
 			get;
 			set;
 		}
 
-		[Cascade]
-		public virtual IList<Chil> Chils
+		public virtual string SubName
 		{
 			get;
 			set;

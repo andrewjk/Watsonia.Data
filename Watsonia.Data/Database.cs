@@ -10,6 +10,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using Watsonia.Data.Query;
 using Watsonia.Data.Sql;
 
@@ -294,10 +295,10 @@ namespace Watsonia.Data
 				}
 				OnAfterExecuteCommand(command);
 
-				//if (result.Count > 0)
-				//{
-				//	LoadIncludePaths(query, result);
-				//}
+				if (result.Count > 0 && query.IncludePaths.Count > 0)
+				{
+					LoadIncludePaths(query, result);
+				}
 			}
 
 			OnAfterLoadCollection(result);
@@ -305,6 +306,241 @@ namespace Watsonia.Data
 			return result;
 		}
 
+		private void LoadIncludePaths<T>(Select query, IList<T> result)
+		{
+			Type parentType = typeof(T);
+			if (typeof(IDynamicProxy).IsAssignableFrom(parentType))
+			{
+				parentType = parentType.BaseType;
+			}
+
+			// We need to ensure that paths are not loaded twice if the user has specified any compound paths
+			// E.g. for "Books.Subject" on Author we need to remove "Books" if it's been specified
+			// Otherwise the books collection would be loaded for "Books" AND "Books.Subject"
+			List<string> pathsToRemove = new List<string>();
+			foreach (string path in query.IncludePaths)
+			{
+				string[] pathParts = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+				for (int i = 0; i < pathParts.Length - 1; i++)
+				{
+					string newPath = string.Join(".", pathParts.Take(i + 1));
+					pathsToRemove.Add(newPath);
+				}
+			}
+
+			IEnumerable<string> newPaths = query.IncludePaths.Except(pathsToRemove);
+			foreach (string path in newPaths)
+			{
+				LoadIncludePath(query, result, parentType, path);
+			}
+		}
+
+		private void LoadIncludePath<T>(Select parentQuery, IList<T> parentCollection, Type parentType, string path)
+		{
+			string firstProperty = path.Contains(".") ? path.Substring(0, path.IndexOf(".")) : path;
+			PropertyInfo pathProperty = parentType.GetProperty(firstProperty);
+			LoadCompoundChildItems(parentQuery, parentCollection, path, parentType, pathProperty);
+		}
+
+		private void LoadCompoundChildItems<T>(Select parentQuery, IList<T> parentCollection, string path, Type parentType, PropertyInfo pathProperty)
+		{
+			// Create arrays for each path and its corresponding properties and collections
+			string[] pathParts = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+			IncludePath[] paths = pathParts.Select(p => new IncludePath(p)).ToArray();
+
+			// Get the chain of properties in this path
+			Type propertyParentType = parentType;
+			for (int i = 0; i < pathParts.Length; i++)
+			{
+				paths[i].Property = propertyParentType.GetProperty(pathParts[i]);
+				propertyParentType = paths[i].Property.PropertyType;
+				if (this.Configuration.IsRelatedCollection(paths[i].Property))
+				{
+					propertyParentType = TypeHelper.GetElementType(propertyParentType);
+				}
+			}
+
+			// Build a statement to use as a subquery to get the IDs of the parent items
+			Type itemType;
+			Select childQuery;
+			if (this.Configuration.IsRelatedCollection(pathProperty))
+			{
+				itemType = TypeHelper.GetElementType(pathProperty.PropertyType);
+				childQuery = GetChildCollectionSubquery(parentQuery, parentType, itemType);
+			}
+			else if (this.Configuration.IsRelatedItem(pathProperty))
+			{
+				itemType = pathProperty.PropertyType;
+				childQuery = GetChildItemSubquery(parentQuery, parentType, itemType);
+			}
+			else
+			{
+				throw new InvalidOperationException();
+			}
+
+			// Load the first child items
+			// E.g. SELECT * FROM Book WHERE AuthorID IN (SELECT ID FROM Author WHERE LastName LIKE 'A%')
+			MethodInfo loadCollectionMethod = this.GetType().GetMethod("LoadCollection", new Type[] { typeof(Select) });
+			MethodInfo genericLoadCollectionMethod = loadCollectionMethod.MakeGenericMethod(itemType);
+			object childCollection = genericLoadCollectionMethod.Invoke(this, new object[] { childQuery });
+			paths[0].ChildCollection = (IEnumerable)childCollection;
+
+			// For compound paths, load the other child items
+			// E.g. SELECT Subject.*
+			//		FROM Book INNER JOIN Subject ON Book.SubjectID = Subject.ID
+			//		WHERE Book.AuthorID IN (SELECT ID FROM Author WHERE LastName LIKE 'A%')
+			// We're doing a subquery for the first path part and joins for the rest, only because it
+			// seems easier this way
+			propertyParentType = itemType;
+			for (int i = 1; i < pathParts.Length; i++)
+			{
+				paths[i].ChildCollection = LoadChildCollection(childQuery ,propertyParentType, paths[i].Property, loadCollectionMethod);
+				propertyParentType = paths[i].Property.PropertyType;
+			}
+
+			// Assign the child items to the appropriate parent items
+			// TODO: There's a lot of scope for optimization here!
+			SetChildItems(parentCollection, parentType, paths, 0);
+		}
+	
+		private Select GetChildCollectionSubquery(Select parentQuery, Type parentType, Type itemType)
+		{
+			// Build a statement to use as a subquery to get the IDs of the parent items
+			string parentIDColumnName = this.Configuration.GetPrimaryKeyColumnName(parentType);
+			Select selectParentItemIDs = Select.From((Table)parentQuery.Source).Columns(parentIDColumnName).Where(parentQuery.Conditions);
+
+			// Build a statement to get the child items
+			Type itemProxyType = DynamicProxyFactory.GetDynamicProxyType(itemType, this);
+			string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(itemType, parentType);
+			string childTableName = this.Configuration.GetTableName(itemType);
+			Select childQuery = Select.From(childTableName).Where(
+				new Condition(foreignKeyColumnName, SqlOperator.IsIn, selectParentItemIDs));
+
+			return childQuery;
+		}
+
+		private Select GetChildItemSubquery(Select parentQuery, Type parentType, Type itemType)
+		{
+			// Build a statement to use as a subquery to get the IDs of the parent items
+			string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(parentType, itemType);
+			string childIDColumnName = this.Configuration.GetPrimaryKeyColumnName(itemType);
+			Select selectChildItemIDs = Select.From((Table)parentQuery.Source).Columns(foreignKeyColumnName).Where(parentQuery.Conditions);
+
+			// Build a statement to get the child items
+			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(itemType);
+			string childTableName = this.Configuration.GetTableName(itemType);
+			Select childQuery = Select.From(childTableName).Where(
+				new Condition(primaryKeyColumnName, SqlOperator.IsIn, selectChildItemIDs));
+
+			return childQuery;
+		}
+
+		private IEnumerable LoadChildCollection(Select childQuery, Type propertyParentType, PropertyInfo pathProperty, MethodInfo loadCollectionMethod)
+		{
+			childQuery.SourceFields.Clear();
+
+			Type itemType;
+			if (this.Configuration.IsRelatedCollection(pathProperty))
+			{
+				itemType = TypeHelper.GetElementType(pathProperty.PropertyType);
+
+				string tableName = this.Configuration.GetTableName(itemType);
+				childQuery = childQuery.ColumnsFrom(tableName);
+				childQuery = childQuery.Join(
+					tableName,
+					this.Configuration.GetTableName(propertyParentType),
+					this.Configuration.GetPrimaryKeyColumnName(propertyParentType),
+					tableName,
+					this.Configuration.GetForeignKeyColumnName(itemType, propertyParentType));
+			}
+			else if (this.Configuration.IsRelatedItem(pathProperty))
+			{
+				itemType = pathProperty.PropertyType;
+
+				string tableName = this.Configuration.GetTableName(itemType);
+				childQuery = childQuery.ColumnsFrom(tableName);
+				childQuery = childQuery.Join(
+					tableName,
+					this.Configuration.GetTableName(propertyParentType),
+					this.Configuration.GetForeignKeyColumnName(propertyParentType, itemType),
+					tableName,
+					this.Configuration.GetPrimaryKeyColumnName(itemType));
+			}
+			else
+			{
+				throw new InvalidOperationException();
+			}
+
+			MethodInfo genericLoadCollectionMethod = loadCollectionMethod.MakeGenericMethod(itemType);
+			object childCollection = genericLoadCollectionMethod.Invoke(this, new object[] { childQuery });
+			return (IEnumerable)childCollection;
+		}
+
+		private void SetChildItems(IEnumerable parentCollection, Type parentType, IncludePath[] paths, int pathIndex)
+		{
+			string pathToLoad = paths[pathIndex].Path;
+			PropertyInfo propertyToLoad = paths[pathIndex].Property;
+			IEnumerable childCollection = paths[pathIndex].ChildCollection;
+			if (this.Configuration.IsRelatedCollection(propertyToLoad))
+			{
+				Type itemType = TypeHelper.GetElementType(propertyToLoad.PropertyType);
+				Type itemProxyType = DynamicProxyFactory.GetDynamicProxyType(itemType, this);
+				string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(itemType, parentType);
+
+				PropertyInfo childParentIDProperty = itemProxyType.GetProperty(foreignKeyColumnName);
+				foreach (IDynamicProxy parent in parentCollection)
+				{
+					var children = (IList)Activator.CreateInstance(typeof(ObservableCollection<>).MakeGenericType(itemType));
+					foreach (object child in childCollection)
+					{
+						object parentID = child.GetType().GetProperty(foreignKeyColumnName).GetValue(child);
+						if (parent.PrimaryKeyValue.Equals(parentID))
+						{
+							children.Add(child);
+						}
+					}
+					parent.StateTracker.SetCollection(pathToLoad, children);
+					propertyToLoad.SetValue(parent, children);
+
+					if (pathIndex < paths.Length - 1)
+					{
+						SetChildItems(children, itemType, paths, pathIndex + 1);
+					}
+				}
+
+			}
+			else if (this.Configuration.IsRelatedItem(propertyToLoad))
+			{
+				Type itemType = propertyToLoad.PropertyType;
+				string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(parentType, itemType);
+
+				Type parentProxyType = DynamicProxyFactory.GetDynamicProxyType(parentType, this);
+				PropertyInfo parentChildIDProperty = parentProxyType.GetProperty(foreignKeyColumnName);
+				foreach (IDynamicProxy parent in parentCollection)
+				{
+					object parentChildID = parentChildIDProperty.GetValue(parent);
+					foreach (object child in childCollection)
+					{
+						if (((IDynamicProxy)child).PrimaryKeyValue.Equals(parentChildID))
+						{
+							propertyToLoad.SetValue(parent, child);
+
+							if (pathIndex < paths.Length - 1)
+							{
+								SetChildItems(new object[] { child }, itemType, paths, pathIndex + 1);
+							}
+
+							break;
+						}
+					}
+				}
+			}
+			else
+			{
+				throw new InvalidOperationException();
+			}
+		}
+	
 		/// <summary>
 		/// Loads a collection of items from the database using the supplied query.
 		/// </summary>
@@ -1271,7 +1507,7 @@ namespace Watsonia.Data
 		protected string GetSqlStringFromCommand(DbCommand command)
 		{
 			StringBuilder b = new StringBuilder();
-			b.Append(command.CommandText.Replace(Environment.NewLine, " "));
+			b.Append(Regex.Replace(command.CommandText.Replace(Environment.NewLine, " "), @"\s+", " "));
 			if (command.Parameters.Count > 0)
 			{
 				b.Append(" { ");

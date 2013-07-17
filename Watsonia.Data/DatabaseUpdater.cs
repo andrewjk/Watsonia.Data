@@ -168,18 +168,16 @@ namespace Watsonia.Data
 				string tableName = relationshipKey.Split('.')[0];
 				string columnName = relationshipKey.Split('.')[1];
 				MappedTable table;
-				if (!tables.TryGetValue(tableName, out table))
+				if (tables.TryGetValue(tableName, out table))
 				{
-					table = new MappedTable(tableName);
-					tables.Add(table.Name, table);
+					MappedColumn column = table.Columns.FirstOrDefault(c => c.Name == columnName);
+					if (column == null)
+					{
+						column = new MappedColumn(columnName, typeof(long?), "");
+						table.Columns.Add(column);
+					}
+					column.Relationship = tableRelationships[relationshipKey];
 				}
-				MappedColumn column = table.Columns.FirstOrDefault(c => c.Name == columnName);
-				if (column == null)
-				{
-					column = new MappedColumn(columnName, typeof(long?), "");
-					table.Columns.Add(column);
-				}
-				column.Relationship = tableRelationships[relationshipKey];
 			}
 
 			return tables.Values;

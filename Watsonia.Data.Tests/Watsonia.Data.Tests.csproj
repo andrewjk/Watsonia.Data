@@ -64,6 +64,7 @@
     <Compile Include="Models\Book.cs" />
     <Compile Include="Models\Bung.cs" />
     <Compile Include="Models\CardinalDirection.cs" />
+    <Compile Include="Models\Chil.cs" />
     <Compile Include="Models\Coll.cs" />
     <Compile Include="Models\Crud.cs" />
     <Compile Include="Models\Agg.cs" />
@@ -75,6 +76,7 @@
     <Compile Include="DatabaseTests.cs" />
     <Compile Include="DynamicProxyTests.cs" />
     <Compile Include="Models\Par.cs" />
+    <Compile Include="Models\SubChil.cs" />
     <Compile Include="NorthwindDatabase.cs" />
     <Compile Include="Northwind\Customer.cs" />
     <Compile Include="NorthwindConfiguration.cs" />

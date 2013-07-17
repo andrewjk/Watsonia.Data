@@ -70,9 +70,7 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestCollections()
 		{
-			// Delete all existing pars and colls
-			//var deletePars = Delete.From("Par");
-			//_database.ExecuteNonQuery(deletePars);
+			// Delete all existing colls
 			var deleteColls = Delete.From("Coll").Where(true);
 			db.Execute(deleteColls);
 
@@ -81,16 +79,6 @@ namespace Watsonia.Data.Tests
 			db.Insert(new Coll() { Value = 3, Description = "Three" });
 			db.Insert(new Coll() { Value = 4, Description = "Four" });
 			db.Insert(new Coll() { Value = 5, Description = "Five" });
-
-			// TODO:
-			// Add a test par
-			//Par newPar = _database.Create<Par>();
-			//newPar.Colls.Add(_database.Create(new Coll() { Description = "One" }));
-			//newPar.Colls.Add(_database.Create(new Coll() { Description = "Two" }));
-			//newPar.Colls.Add(_database.Create(new Coll() { Description = "Three" }));
-			//newPar.Colls.Add(_database.Create(new Coll() { Description = "Four" }));
-			//newPar.Colls.Add(_database.Create(new Coll() { Description = "Five" }));
-			//_database.Save(newPar);
 
 			// Load all of the colls except for one
 			var select = Select.From("Coll").Where("Description", SqlOperator.NotEquals, "Four").OrderBy("Description");
@@ -103,8 +91,55 @@ namespace Watsonia.Data.Tests
 			var collection2 = db.LoadCollection<Coll>(select2);
 			Assert.AreEqual(4, collection2.Count);
 			Assert.AreEqual("Two", collection2[3].Description);
+		}
+
+		[TestMethod]
+		public void TestLazyAndEagerLoading()
+		{
+			// Delete all existing subchils, chils and pars
+			var deleteSubChils = Delete.From("SubChil").Where(true);
+			db.Execute(deleteSubChils);
+			var deleteChils = Delete.From("Chil").Where(true);
+			db.Execute(deleteChils);
+			var deletePars = Delete.From("Par").Where(true);
+			db.Execute(deletePars);
+
+			// Add a couple of test pars
+			Par newPar = db.Create<Par>();
+			newPar.Name = "P1";
+			newPar.Chils.Add(db.Create(new Chil() { Value = 1, Description = "One" }));
+			newPar.Chils[0].SubChils.Add(db.Create(new SubChil() { SubName = "SC1" }));
+			newPar.Chils[0].SubChils.Add(db.Create(new SubChil() { SubName = "SC2" }));
+			newPar.Chils.Add(db.Create(new Chil() { Value = 2, Description = "Two" }));
+			db.Save(newPar);
+
+			Par newPar2 = db.Create<Par>();
+			newPar2.Name = "P2";
+			newPar2.Chils.Add(db.Create(new Chil() { Value = 3, Description = "Three" }));
+			newPar2.Chils.Add(db.Create(new Chil() { Value = 4, Description = "Four" }));
+			newPar2.Chils.Add(db.Create(new Chil() { Value = 5, Description = "Five" }));
+			db.Save(newPar2);
 
 			// Test lazy loading
+			var select = Select.From("Par").Where("Name", SqlOperator.StartsWith, "P");
+			var collection = db.LoadCollection<Par>(select);
+			Assert.AreEqual(2, collection.Count);
+			Assert.IsFalse(((IDynamicProxy)collection[0]).StateTracker.LoadedCollections.Contains("Chils"));
+			Assert.AreEqual(2, collection[0].Chils.Count);
+			Assert.IsTrue(((IDynamicProxy)collection[0]).StateTracker.LoadedCollections.Contains("Chils"));
+
+			// Test eager loading
+			var select2 = Select.From("Par").Include("Chils").Where("Name", SqlOperator.StartsWith, "P");
+			var collection2 = db.LoadCollection<Par>(select2);
+			Assert.AreEqual(2, collection2.Count);
+			Assert.IsTrue(((IDynamicProxy)collection2[0]).StateTracker.LoadedCollections.Contains("Chils"));
+
+			// Test eager loading with dots
+			var select3 = Select.From("Par").Include("Chils").Include("Chils.SubChils").Where("Name", SqlOperator.StartsWith, "P");
+			var collection3 = db.LoadCollection<Par>(select3);
+			Assert.AreEqual(2, collection3.Count);
+			Assert.IsTrue(((IDynamicProxy)collection3[0]).StateTracker.LoadedCollections.Contains("Chils"));
+			Assert.IsTrue(((IDynamicProxy)((Par)collection3[0]).Chils[0]).StateTracker.LoadedCollections.Contains("SubChils"));
 		}
 
 		[TestMethod]
