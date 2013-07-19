@@ -99,7 +99,7 @@ namespace Watsonia.Data.SqlServer
 		public DbCommand BuildCommand(Statement statement, DatabaseConfiguration configuration)
 		{
 			var builder = new SqlServerCommandBuilder();
-			return builder.BuildCommand(statement);
+			return builder.BuildCommand(statement, configuration);
 		}
 
 		/// <summary>

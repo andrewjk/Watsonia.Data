@@ -40,14 +40,23 @@ namespace Watsonia.Data
 			}
 		}
 
-		public static Update Table(string tableName)
+		internal Update()
 		{
-			return new Update(tableName);
 		}
 
-		private Update(string tableName)
+		public static Update Table(string tableName)
 		{
-			this.Target = new Table(tableName);
+			return Update.Table(new Table(tableName));
+		}
+
+		public static Update Table(Table table)
+		{
+			return new Update() { Target = table };
+		}
+
+		internal static Update<T> Table<T>()
+		{
+			return new Update<T>();
 		}
 
 		public Update Set(string columnName, object value)

@@ -6,9 +6,13 @@ namespace Watsonia.Data.Sql
 	public enum StatementPartType
 	{
 		Select,
+		GenericSelect,
 		Insert,
+		GenericInsert,
 		Update,
+		GenericUpdate,
 		Delete,
+		GenericDelete,
 		Table,
 		Column,
 		//Projection,

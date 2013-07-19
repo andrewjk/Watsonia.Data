@@ -18,7 +18,11 @@ namespace Watsonia.Data.Query
 	/// </summary>
 	public class QueryProvider : IQueryProvider
 	{
-		private Database _database;
+		private Database Database
+		{
+			get;
+			set;
+		}
 
 		IQueryable<S> IQueryProvider.CreateQuery<S>(Expression expression)
 		{
@@ -52,12 +56,12 @@ namespace Watsonia.Data.Query
 
 		public QueryProvider(Database database)
 		{
-			_database = database;
+			this.Database = database;
 		}
 
 		protected QueryExecutor CreateExecutor()
 		{
-			return new QueryExecutor(_database);
+			return new QueryExecutor(this.Database);
 		}
 
 		/// <summary>
@@ -115,11 +119,11 @@ namespace Watsonia.Data.Query
 			}
 
 			// TODO: Move the stuff from mapping into DatabaseConfig
-			var mapping = new QueryMapping(_database);
+			var mapping = new QueryMapping(this.Database);
 			var translator = new QueryTranslator(mapping);
 
 			// Translate the query into client and server parts
-			Expression translation = translator.Translate(_database, expression);
+			Expression translation = translator.Translate(Database, expression);
 
 			var parameters = lambda != null ? lambda.Parameters : null;
 			Expression provider = Find(expression, parameters, typeof(QueryProvider));

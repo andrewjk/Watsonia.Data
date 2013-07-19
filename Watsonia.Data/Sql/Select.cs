@@ -8,6 +8,8 @@ namespace Watsonia.Data
 {
 	public sealed class Select : Statement
 	{
+		#region Declarations
+
 		private readonly List<string> _includePaths = new List<string>();
 		private readonly List<Join> _sourceJoins = new List<Join>();
 		private readonly List<SourceExpression> _sourceFields = new List<SourceExpression>();
@@ -15,6 +17,10 @@ namespace Watsonia.Data
 		private readonly ConditionCollection _conditions = new ConditionCollection();
 		private readonly List<OrderByExpression> _orderByFields = new List<OrderByExpression>();
 		private readonly List<Column> _groupByFields = new List<Column>();
+
+		#endregion Declarations
+
+		#region Properties
 
 		public override StatementPartType PartType
 		{
@@ -104,16 +110,23 @@ namespace Watsonia.Data
 			}
 		}
 
-		// TODO: Should this just be a string?
 		public string Alias
 		{
 			get;
 			set;
 		}
 
+		#endregion Properties
+
+		#region Constructor
+
 		internal Select()
 		{
 		}
+		
+		#endregion Constructor
+
+		#region Fluent Methods
 
 		public static Select From(string tableName)
 		{
@@ -123,6 +136,11 @@ namespace Watsonia.Data
 		public static Select From(Table table)
 		{
 			return new Select() { Source = table };
+		}
+
+		public static Select<T> From<T>()
+		{
+			return new Select<T>();
 		}
 
 		public Select Join(string tableName, string leftTableName, string leftColumnName, string rightTableName, string rightColumnName)
@@ -295,6 +313,10 @@ namespace Watsonia.Data
 			return this;
 		}
 
+		#endregion Fluent Methods
+
+		#region Methods
+
 		public override string ToString()
 		{
 			StringBuilder b = new StringBuilder();
@@ -389,5 +411,7 @@ namespace Watsonia.Data
 
 		//	return clone;
 		//}
+
+		#endregion Methods
 	}
 }

@@ -22,8 +22,13 @@ namespace Watsonia.Data.Sql
 		}
 
 		public SetValue(string columnName, object value)
+			: this(new Column(columnName), value)
 		{
-			this.Column = new Column(columnName);
+		}
+
+		public SetValue(Column column, object value)
+		{
+			this.Column = column;
 			this.Value = new ConstantPart(value);
 		}
 	}

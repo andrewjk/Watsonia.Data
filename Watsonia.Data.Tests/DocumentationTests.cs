@@ -75,6 +75,9 @@ namespace Watsonia.Data.Tests
 			var query2 = Select.From("Author").Where("LastName", SqlOperator.StartsWith, "P");
 			Assert.AreEqual(2, db.LoadCollection<Author>(query2).Count);
 
+			var query22 = Select.From<Author>().Where(a => a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase));
+			Assert.AreEqual(2, db.LoadCollection<Author>(query22).Count);
+
 			// Test an SQL string
 			var query3 = "SELECT * FROM Author WHERE LastName LIKE @0";
 			Assert.AreEqual(2, db.LoadCollection<Author>(query3, "P%").Count);
@@ -83,6 +86,10 @@ namespace Watsonia.Data.Tests
 			var query4 = Select.From("Author").Count("*").Where("LastName", SqlOperator.StartsWith, "P");
 			int count = (int)db.LoadValue(query4);
 			Assert.AreEqual(2, count);
+
+			var query44 = Select.From<Author>().Count().Where(a => a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase));
+			int count44 = (int)db.LoadValue(query44);
+			Assert.AreEqual(2, count44);
 
 			// Test loading an item
 			var author = db.Load<Author>(existingAuthorID);
@@ -131,6 +138,23 @@ namespace Watsonia.Data.Tests
 			// Delete using an SQL string
 			var delete2 = "DELETE FROM Author WHERE Rating < @0";
 			db.Execute(delete2, 80);
+		}
+
+		[TestMethod]
+		public void TestBulkInsertUpdateAndDeleteWithExpressions()
+		{
+			// Not sure how useful these would be:
+			//var insert = Insert.Into<Author>().Values(new Author() { FirstName = "Enter", LastName = "Name" }, 20);
+			//db.Execute(insert);
+
+			//var insert = Insert.Into<Author>().Select(Select.From<Author>().Where(a => a.LastName.StartsWith("P"));
+			//db.Execute(insert);
+
+			var update = Update.Table<Author>().Set(a => a.Rating, 95).Where(a => a.LastName.StartsWith("P"));
+			db.Execute(update);
+
+			var delete = Delete.From<Author>().Where(a => a.Rating < 80);
+			db.Execute(delete);
 		}
 
 		[TestMethod]

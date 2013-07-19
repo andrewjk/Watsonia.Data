@@ -16,10 +16,10 @@ namespace Watsonia.Data.SqlServer
 		{
 		}
 
-		public SqlCommand BuildCommand(Statement statement)
+		public SqlCommand BuildCommand(Statement statement, DatabaseConfiguration configuration)
 		{
 			TSqlCommandBuilder builder = new TSqlCommandBuilder();
-			builder.VisitStatement(statement);
+			builder.VisitStatement(statement, configuration);
 
 			SqlCommand command = new SqlCommand();
 			command.CommandText = builder.CommandText.ToString();

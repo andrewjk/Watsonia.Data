@@ -174,7 +174,7 @@ namespace Watsonia.Data
 			return new DatabaseQuery<T>(provider, proxyTableType);
 		}
 
-		public Select[] Compile(Expression expression)
+		internal Select[] Compile(Expression expression)
 		{
 			// For testing
 			var provider = new QueryProvider(this);
@@ -183,7 +183,7 @@ namespace Watsonia.Data
 			return Array.ConvertAll<Expression, Select>(blocks, b => StatementCreator.Compile(b));
 		}
 
-		public object Execute(Expression expression)
+		internal object Execute(Expression expression)
 		{
 			// For testing
 			var provider = new QueryProvider(this);
@@ -540,6 +540,18 @@ namespace Watsonia.Data
 				throw new InvalidOperationException();
 			}
 		}
+
+		/// <summary>
+		/// Loads a collection of items from the database using the supplied query.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="query">The query.</param>
+		/// <returns></returns>
+		public IList<T> LoadCollection<T>(Select<T> query)
+		{
+			Select select = query.CreateStatement(this.Configuration);
+			return LoadCollection<T>(select);
+		}
 	
 		/// <summary>
 		/// Loads a collection of items from the database using the supplied query.
@@ -691,6 +703,17 @@ namespace Watsonia.Data
 			OnAfterLoadValue(value);
 
 			return value;
+		}
+
+		/// <summary>
+		/// Loads the first returned value from the database using the supplied query.
+		/// </summary>
+		/// <param name="query">The query.</param>
+		/// <returns></returns>
+		public object LoadValue<T>(Select<T> query)
+		{
+			Select select = query.CreateStatement(this.Configuration);
+			return LoadValue(select);
 		}
 
 		/// <summary>

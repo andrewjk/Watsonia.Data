@@ -60,7 +60,7 @@ namespace Watsonia.Data.Query.Translation
 		{
 			return ColumnProjector.ProjectColumns(expression, null, newAlias, existingAliases);
 		}
-
+		
 		protected override Expression VisitMethodCall(MethodCallExpression m)
 		{
 			if (m.Method.DeclaringType == typeof(Queryable) || m.Method.DeclaringType == typeof(Enumerable))
@@ -1326,6 +1326,25 @@ namespace Watsonia.Data.Query.Translation
 				return ((PropertyInfo)a).GetGetMethod().Name == b.Name;
 			}
 			return false;
+		}
+
+		public static Expression BindLambda(QueryMapper mapper, Type resultType, Expression source, LambdaExpression predicate)
+		{
+			return new QueryBinder(mapper, null).BindLambda(resultType, source, predicate);
+		}
+
+		private Expression BindLambda(Type resultType, Expression source, LambdaExpression predicate)
+		{
+			ProjectionExpression projection = this.VisitSequence(source);
+			this.map[predicate.Parameters[0]] = projection.Projector;
+			Expression where = this.Visit(predicate.Body);
+			//var alias = this.GetNextAlias();
+			//ProjectedColumns pc = this.ProjectColumns(projection.Projector, alias, projection.SelectExpression.Alias);
+			//return new ProjectionExpression(
+			//	new SelectExpression(alias, pc.Columns, projection.SelectExpression, where),
+			//	pc.Projector
+			//	);
+			return where;
 		}
 	}
 }

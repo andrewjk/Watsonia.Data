@@ -99,7 +99,7 @@ namespace Watsonia.Data.SqlServerCe
 		public DbCommand BuildCommand(Statement statement, DatabaseConfiguration configuration)
 		{
 			var builder = new SqlServerCeCommandBuilder();
-			return builder.BuildCommand(statement);
+			return builder.BuildCommand(statement, configuration);
 		}
 
 		/// <summary>

@@ -28,12 +28,35 @@ namespace Watsonia.Data.Query
 		}
 
 		/// <summary>
+		/// Gets or sets the configuration options used for mapping to and accessing the database.</param>
+		/// </summary>
+		/// <value>
+		/// The configuration.
+		/// </value>
+		private DatabaseConfiguration Configuration
+		{
+			get;
+			set;
+		}
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="EntityMapping" /> class.
 		/// </summary>
 		/// <param name="database">The database.</param>
 		public QueryMapping(Database database)
 		{
+			// TODO: Shouldn't be passing the database around
 			this.Database = database;
+			this.Configuration = database.Configuration;
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="EntityMapping" /> class.
+		/// </summary>
+		/// <param name="database">The database.</param>
+		public QueryMapping(DatabaseConfiguration configuration)
+		{
+			this.Configuration = configuration;
 		}
 
 		/// <summary>
@@ -88,7 +111,7 @@ namespace Watsonia.Data.Query
 		/// <returns></returns>
 		public IEnumerable<MemberInfo> GetMappedMembers(MappingEntity entity)
 		{
-			return this.Database.Configuration.PropertiesToMap(entity.EntityType);
+			return this.Configuration.PropertiesToMap(entity.EntityType);
 		}
 
 		public bool IsPrimaryKey(MappingEntity entity, MemberInfo member)
@@ -326,7 +349,7 @@ namespace Watsonia.Data.Query
 
 			// Get the property
 			// TODO: Should probably implement IsAssociation and make sure it's a property
-			string propertyName = this.Database.Configuration.GetForeignKeyColumnName((PropertyInfo)member);
+			string propertyName = this.Configuration.GetForeignKeyColumnName((PropertyInfo)member);
 			MemberInfo property = proxyType.GetProperty(propertyName);
 			if (property == null)
 			{
@@ -418,11 +441,11 @@ namespace Watsonia.Data.Query
 		{
 			if (typeof(IDynamicProxy).IsAssignableFrom(entity.EntityType))
 			{
-				return this.Database.Configuration.GetTableName(entity.EntityType.BaseType);
+				return this.Configuration.GetTableName(entity.EntityType.BaseType);
 			}
 			else
 			{
-				return this.Database.Configuration.GetTableName(entity.EntityType);
+				return this.Configuration.GetTableName(entity.EntityType);
 			}
 		}
 
@@ -464,7 +487,7 @@ namespace Watsonia.Data.Query
 		public string GetColumnName(MappingEntity entity, MemberInfo member)
 		{
 			// TODO: Should probably implement ShouldMap and make sure it's a property
-			return this.Database.Configuration.GetColumnName((PropertyInfo)member);
+			return this.Configuration.GetColumnName((PropertyInfo)member);
 		}
 
 		public object CloneEntity(MappingEntity entity, object instance)

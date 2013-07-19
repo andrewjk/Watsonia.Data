@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using Watsonia.Data.Query.Expressions;
+using Watsonia.Data.Query.Translation;
 using Watsonia.Data.Sql;
 
 namespace Watsonia.Data.Query
@@ -35,7 +37,7 @@ namespace Watsonia.Data.Query
 			set;
 		}
 
-		private Select SelectExpression
+		private Select SelectStatement
 		{
 			get;
 			set;
@@ -55,7 +57,21 @@ namespace Watsonia.Data.Query
 		{
 			StatementCreator creator = new StatementCreator();
 			creator.Visit(expression);
-			return creator.SelectExpression;
+			return creator.SelectStatement;
+		}
+
+		public static StatementPart CompileStatementPart<T>(DatabaseConfiguration configuration, Type resultType, DatabaseQuery<T> query, Expression expression)
+		{
+			var mapping = new QueryMapping(configuration);
+			var translator = new QueryTranslator(mapping);
+			var mapper = new QueryMapper(mapping, translator);
+
+			Expression expression2 = QueryBinder.BindLambda(mapper, resultType, Expression.Constant(query, query.GetType()), (LambdaExpression)expression);
+
+			StatementCreator creator = new StatementCreator();
+			creator.HideColumnAliases = true;
+			creator.HideTableAliases = true;
+			return creator.VisitConditionCollection(expression2);
 		}
 
 		private string GetAliasName(TableAlias alias)
@@ -1412,9 +1428,9 @@ namespace Watsonia.Data.Query
 			this.AddAliases(select.From);
 
 			Select newSelect = new Select();
-			if (this.SelectExpression == null)
+			if (this.SelectStatement == null)
 			{
-				this.SelectExpression = newSelect;
+				this.SelectStatement = newSelect;
 			}
 
 			newSelect.IsDistinct = select.IsDistinct;
@@ -1451,29 +1467,10 @@ namespace Watsonia.Data.Query
 
 			if (select.Where != null)
 			{
-				this.VisitPredicate(select.Where);
-				if (this.Stack.Count == 0)
+				ConditionCollection conditions = this.VisitConditionCollection(select.Where);
+				for (int i = 0; i < conditions.Count; i++)
 				{
-					// We want this to throw an exception rather than generate incorrect SQL
-					this.Stack.Pop();
-				}
-				while (this.Stack.Count > 0 && (this.Stack.Peek() is ConditionExpression || this.Stack.Peek() is UnaryOperation))
-				{
-					StatementPart part = this.Stack.Pop();
-					if (part is ConditionExpression)
-					{
-						// Insert the conditions in reverse order from the stack
-						newSelect.Conditions.Insert(0, (ConditionExpression)part);
-					}
-					else if (part is UnaryOperation)
-					{
-						UnaryOperation unary = (UnaryOperation)part;
-						newSelect.Conditions.Insert(0, (ConditionExpression)unary.Expression);
-						if (unary.Operator == UnaryOperator.Not)
-						{
-							newSelect.Conditions[0].Not = true;
-						}
-					}
+					newSelect.Conditions.Add(conditions[i]);
 				}
 			}
 
@@ -1506,6 +1503,38 @@ namespace Watsonia.Data.Query
 
 			this.Stack.Push(newSelect);
 			return select;
+		}
+
+		private ConditionCollection VisitConditionCollection(Expression expression)
+		{
+			ConditionCollection conditions = new ConditionCollection();
+
+			this.VisitPredicate(expression);
+			if (this.Stack.Count == 0)
+			{
+				// We want this to throw an exception rather than generate incorrect SQL
+				this.Stack.Pop();
+			}
+			while (this.Stack.Count > 0 && (this.Stack.Peek() is ConditionExpression || this.Stack.Peek() is UnaryOperation))
+			{
+				StatementPart part = this.Stack.Pop();
+				if (part is ConditionExpression)
+				{
+					// Insert the conditions in reverse order from the stack
+					conditions.Insert(0, (ConditionExpression)part);
+				}
+				else if (part is UnaryOperation)
+				{
+					UnaryOperation unary = (UnaryOperation)part;
+					conditions.Insert(0, (ConditionExpression)unary.Expression);
+					if (unary.Operator == UnaryOperator.Not)
+					{
+						conditions[0].Not = true;
+					}
+				}
+			}
+
+			return conditions;
 		}
 
 		private OrderDirection GetOrderDirectionFromExpression(OrderExpression expression)

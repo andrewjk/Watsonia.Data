@@ -46,14 +46,23 @@ namespace Watsonia.Data
 			set;
 		}
 
-		public static Insert Into(string tableName)
+		internal Insert()
 		{
-			return new Insert(tableName);
 		}
 
-		private Insert(string tableName)
+		public static Insert Into(string tableName)
 		{
-			this.Target = new Table(tableName);
+			return Insert.Into(new Table(tableName));
+		}
+
+		public static Insert Into(Table table)
+		{
+			return new Insert() { Target = table };
+		}
+
+		internal static Insert<T> Into<T>()
+		{
+			return new Insert<T>();
 		}
 
 		public Insert Value(string columnName, object value)

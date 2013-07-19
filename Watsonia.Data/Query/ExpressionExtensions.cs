@@ -56,10 +56,22 @@ namespace Watsonia.Data.Query
 			return Expression.And(expression1, expression2);
 		}
 
+		public static Expression AndAlso(this Expression expression1, Expression expression2)
+		{
+			ConvertExpressions(ref expression1, ref expression2);
+			return Expression.AndAlso(expression1, expression2);
+		}
+
 		public static Expression Or(this Expression expression1, Expression expression2)
 		{
 			ConvertExpressions(ref expression1, ref expression2);
 			return Expression.Or(expression1, expression2);
+		}
+
+		public static Expression OrElse(this Expression expression1, Expression expression2)
+		{
+			ConvertExpressions(ref expression1, ref expression2);
+			return Expression.OrElse(expression1, expression2);
 		}
 
 		public static Expression Binary(this Expression expression1, ExpressionType op, Expression expression2)

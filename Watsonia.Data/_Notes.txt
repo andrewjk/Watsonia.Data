@@ -1,13 +1,29 @@
-﻿http://www.infoq.com/news/2012/01/ef-feature-requests
-https://github.com/loresoft/EntityFramework.Extended
-Batch loading (i.e. EF Include())
-http://msdn.microsoft.com/en-us/data/jj574232.aspx
-http://yobriefca.se/blog/2011/06/21/microorms-for-dotnet-inserts-updates-deletes/
+﻿THINGS TO WORK ON:
 
-Empty object constructor should throw an exception saying "use db.create"
+Should we implement IValidatableObject, or just leave it up to the consumer to build on top of our IDataErrorInfo?
+Validate objects before saving to the database
+Undo and redo functionality
+Build the parent-child mapping when creating an item to check whether it needs a reference to its parent
+	This should also fix up problems with Include mappings
+Separate out the mandatory ShouldMapProperty functionality from the overridable
+	E.g. properties MUST be virtual and collections MUST be an interface but the user may want to filter further
+Have better error messages
+	When a standard overridden property is of the wrong type or access e.g. if HasChanges only has a getter
+	When calling Select.And without Select.Where
+Test using Guids for IDs
+Add async support
+Add an SQLite implementation
+Really have to tidy up the mess I've made of the LINQ stuff
+Add a query result cache a la EntityFramework.Extended
+Fix up the documentation
+Performance improvements!
+	Should we use the type-specific methods (GetInt32 etc) in SetValuesFromReader?
+	Should we have SetValue(propertyName) methods instead of using reflection?
 
-https://code.google.com/p/fluent-nhibernate-test/source/browse/trunk/FluentNHibernate/Automapping/DefaultAutomappingConfiguration.cs?spec=svn2&r=2
 
-Implement IValidatableObject
+THINGS THAT WOULD BE AWESOME:
 
-I think there is a bug where you set a related item (e.g. WebUser.Customer) to a new item, save the item and the item's ID (e.g. WebUser.CustomerID) is not updated.  I think we need to listen to IDChanged :(
+Add a second level cache
+Add a PostgreSQL implementation
+Add a MongoDB implementation
+Add syncing functionality for multiple databases

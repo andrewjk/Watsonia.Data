@@ -82,7 +82,6 @@
     <Compile Include="DatabaseQuery.cs" />
     <Compile Include="DatabaseUpdater.cs" />
     <Compile Include="DefaultDateTimeValueAttribute.cs" />
-    <Compile Include="DynamicEntityProvider.cs" />
     <Compile Include="EventArgs.cs" />
     <Compile Include="IDatabaseQuery.cs" />
     <Compile Include="IncludePath.cs" />
@@ -176,10 +175,13 @@
     <Compile Include="Query\StrongDelegate.cs" />
     <Compile Include="Query\TypedSubtreeFinder.cs" />
     <Compile Include="Query\TypeHelper.cs" />
+    <Compile Include="Sql\AnonymousParameterReplacer.cs" />
     <Compile Include="Sql\CoalesceFunction.cs" />
     <Compile Include="Sql\ConditionCollection.cs" />
     <Compile Include="Sql\ConditionExpression.cs" />
     <Compile Include="Sql\ConvertFunction.cs" />
+    <Compile Include="Sql\DeleteT.cs" />
+    <Compile Include="Sql\InsertT.cs" />
     <Compile Include="Sql\NumberExponentialFunction.cs" />
     <Compile Include="Sql\DateAddFunction.cs" />
     <Compile Include="Sql\Field.cs" />
@@ -191,11 +193,14 @@
     <Compile Include="Sql\NumberRootFunction.cs" />
     <Compile Include="Sql\NumberSignFunction.cs" />
     <Compile Include="Sql\NumberTrigFunction.cs" />
+    <Compile Include="Sql\ReadOnlyCollection.cs" />
     <Compile Include="Sql\ScalarField.cs" />
+    <Compile Include="Sql\SelectT.cs" />
     <Compile Include="Sql\StatementPartType.cs" />
     <Compile Include="Sql\Statement.cs" />
     <Compile Include="Sql\StringCompareFunction.cs" />
     <Compile Include="Sql\TrigFunction.cs" />
+    <Compile Include="Sql\UpdateT.cs" />
     <Compile Include="TitleCaser.cs" />
     <Compile Include="Query\Translation\AggregateChecker.cs" />
     <Compile Include="Query\Translation\AggregateRewriter.cs" />
@@ -214,7 +219,6 @@
     <Compile Include="Query\Translation\Parameterizer.cs" />
     <Compile Include="Query\Translation\QueryBinder.cs" />
     <Compile Include="Query\Translation\QueryDuplicator.cs" />
-    <Compile Include="Query\Translation\QueryTypeReplacer.cs" />
     <Compile Include="Query\Translation\RedundantColumnRemover.cs" />
     <Compile Include="Query\Translation\RedundantJoinRemover.cs" />
     <Compile Include="Query\Translation\RedundantSubqueryRemover.cs" />

@@ -7,7 +7,7 @@ namespace Watsonia.Data
 {
 	public sealed class Delete : Statement
 	{
-		private readonly List<ConditionExpression> _conditions = new List<ConditionExpression>();
+		private readonly ConditionCollection _conditions = new ConditionCollection();
 
 		public override StatementPartType PartType
 		{
@@ -23,7 +23,7 @@ namespace Watsonia.Data
 			set;
 		}
 
-		public IList<ConditionExpression> Conditions
+		public ConditionCollection Conditions
 		{
 			get
 			{
@@ -31,14 +31,23 @@ namespace Watsonia.Data
 			}
 		}
 
-		public static Delete From(string tableName)
+		internal Delete()
 		{
-			return new Delete(tableName);
 		}
 
-		private Delete(string tableName)
+		public static Delete From(string tableName)
 		{
-			this.Target = new Table(tableName);
+			return Delete.From(new Table(tableName));
+		}
+
+		public static Delete From(Table table)
+		{
+			return new Delete() { Target = table };
+		}
+
+		internal static Delete<T> From<T>()
+		{
+			return new Delete<T>();
 		}
 
 		public Delete Where(bool all)

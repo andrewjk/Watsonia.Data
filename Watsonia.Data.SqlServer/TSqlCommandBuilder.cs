@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Watsonia.Data.Sql;
@@ -50,7 +51,7 @@ namespace Watsonia.Data.SqlServer
 			set;
 		}
 
-		public void VisitStatement(Statement statement)
+		public void VisitStatement(Statement statement, DatabaseConfiguration configuration)
 		{
 			switch (statement.PartType)
 			{
@@ -59,9 +60,25 @@ namespace Watsonia.Data.SqlServer
 					VisitSelect((Select)statement);
 					break;
 				}
+				case StatementPartType.GenericSelect:
+				{
+					Type messageType = statement.GetType();
+					MethodInfo method = statement.GetType().GetMethod("CreateStatement");
+					Select select = (Select)method.Invoke(statement, new object[] { configuration });
+					VisitSelect(select);
+					break;
+				}
 				case StatementPartType.Insert:
 				{
 					VisitInsert((Insert)statement);
+					break;
+				}
+				case StatementPartType.GenericInsert:
+				{
+					Type messageType = statement.GetType();
+					MethodInfo method = statement.GetType().GetMethod("CreateStatement");
+					Insert select = (Insert)method.Invoke(statement, new object[] { configuration });
+					VisitInsert(select);
 					break;
 				}
 				case StatementPartType.Update:
@@ -69,9 +86,25 @@ namespace Watsonia.Data.SqlServer
 					VisitUpdate((Update)statement);
 					break;
 				}
+				case StatementPartType.GenericUpdate:
+				{
+					Type messageType = statement.GetType();
+					MethodInfo method = statement.GetType().GetMethod("CreateStatement");
+					Update select = (Update)method.Invoke(statement, new object[] { configuration });
+					VisitUpdate(select);
+					break;
+				}
 				case StatementPartType.Delete:
 				{
 					VisitDelete((Delete)statement);
+					break;
+				}
+				case StatementPartType.GenericDelete:
+				{
+					Type messageType = statement.GetType();
+					MethodInfo method = statement.GetType().GetMethod("CreateStatement");
+					Delete select = (Delete)method.Invoke(statement, new object[] { configuration });
+					VisitDelete(select);
 					break;
 				}
 				default:

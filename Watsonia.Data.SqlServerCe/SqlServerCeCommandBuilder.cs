@@ -17,10 +17,10 @@ namespace Watsonia.Data.SqlServerCe
 		{
 		}
 
-		public SqlCeCommand BuildCommand(Statement statement)
+		public SqlCeCommand BuildCommand(Statement statement, DatabaseConfiguration configuration)
 		{
 			TSqlCommandBuilder builder = new TSqlCommandBuilder();
-			builder.VisitStatement(statement);
+			builder.VisitStatement(statement, configuration);
 
 			SqlCeCommand command = new SqlCeCommand();
 			command.CommandText = builder.CommandText.ToString();
