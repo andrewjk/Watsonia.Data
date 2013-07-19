@@ -9,10 +9,27 @@ namespace Watsonia.Data.Tests.Models
 {
 	public class Author
 	{
+		public virtual bool IsValid
+		{
+			get
+			{
+				return true;
+			}
+		}
+
+		public virtual List<ValidationError> ValidationErrors
+		{
+			get
+			{
+				return new List<ValidationError>();
+			}
+		}
+
 		// TODO: Raise this from the child class
 		//public event EventHandler NameChanged;
 
 		// Intercept this in the child class
+		[Required]
 		public virtual string FirstName
 		{
 			get;
@@ -30,6 +47,7 @@ namespace Watsonia.Data.Tests.Models
 		}
 
 		[StringLength(200)]
+		[Required]
 		public virtual string LastName
 		{
 			get;

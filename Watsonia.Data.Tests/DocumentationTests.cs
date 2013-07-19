@@ -26,9 +26,9 @@ namespace Watsonia.Data.Tests
 			db.Configuration.ProviderName = "Watsonia.Data.SqlServerCe";
 			db.UpdateDatabase();
 
-			// Let's first delete all of the authors
-			var delete = Delete.From("Author").Where(true);
-			db.Execute(delete);
+			// Let's first delete all of the authors and books
+			db.Execute(Delete.From("Book").Where(true));
+			db.Execute(Delete.From("Author").Where(true));
 
 			// Pop quiz: What do these authors have in common?
 			db.Insert(new Author { FirstName = "Stephen Jay", LastName = "Gould" });
@@ -160,6 +160,62 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestValidation()
 		{
+			Author author = db.Create<Author>();
+
+			// There should be an error for the first and last name being required
+			Assert.IsFalse(author.IsValid, "Author should be invalid");
+			Assert.AreEqual(2, author.ValidationErrors.Count, "Author validation error count should be 2");
+
+			// Fix those errors
+			author.FirstName = "Eric";
+			author.LastName = "Blair";
+
+			// There shouldn't be any errors now
+			Assert.IsTrue(author.IsValid, "Author should be valid");
+			Assert.AreEqual(0, author.ValidationErrors.Count, "Author validation error count should be 0");
+
+			// Add a book without a title
+			Book book = db.Create<Book>();
+			author.Books.Add(book);
+
+			// There should be an error for the book's title being required
+			Assert.IsFalse(author.IsValid, "Author should be invalid because of a book");
+			Assert.AreEqual(1, author.ValidationErrors.Count, "Author validation error count should be 1");
+
+			// Fix up the book
+			book.Title = "1984";
+
+			// Add another dodgy book and make sure that saving it to the database fails
+			Book book2 = db.Create<Book>();
+			author.Books.Add(book2);
+			try
+			{
+				db.Save(author);
+				Assert.Fail("Book with no title shouldn't save");
+			}
+			catch (ValidationException)
+			{
+			}
+			Assert.AreEqual(1, author.ValidationErrors.Count, "Book validation error count should be 1");
+			Assert.AreEqual("Title", author.ValidationErrors[0].PropertyName, "Book validation error should be title");
+
+			// Fix up that book too
+			book2.Title = "Animal Farm";
+
+			// Add yet another dodgy book and make sure that saving it to the database fails
+			Book book3 = db.Create<Book>();
+			book3.Title = "Bad Book";
+			author.Books.Add(book3);
+			try
+			{
+				db.Save(author);
+				Assert.Fail("Book with bad title shouldn't save");
+			}
+			catch (ValidationException)
+			{
+			}
+			Assert.AreEqual(1, author.ValidationErrors.Count, "Bad book validation error count should be 1");
+			Assert.AreEqual("Nope", author.ValidationErrors[0].ErrorMessage, "Book validation error should be nope");
 		}
 	}
 }

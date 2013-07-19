@@ -557,6 +557,39 @@ namespace Watsonia.Data
 				CreateProperty(type, parentType, "HasChanges", typeof(bool), members, database);
 			}
 
+			PropertyInfo isValidProperty = parentType.GetProperty("IsValid", flags);
+			if (isValidProperty != null)
+			{
+				if (isValidProperty.PropertyType != typeof(bool))
+				{
+					throw new InvalidOperationException(
+						string.Format("The IsValid property on {0} must be of type {1}", parentType.FullName, typeof(bool).FullName));
+				}
+				//// TODO: That probably shouldn't be a field property, just a regular overridden property
+				//CreateOveriddenFieldProperty(type, parentType, isValidProperty, members, database, true);
+			}
+			//else
+			//{
+			CreateIsValidProperty(type, members);
+			//}
+
+			PropertyInfo validationErrorsProperty = parentType.GetProperty("ValidationErrors", flags);
+			if (validationErrorsProperty != null)
+			{
+				if (validationErrorsProperty.PropertyType != typeof(List<ValidationError>))
+				{
+					throw new InvalidOperationException(
+						string.Format("The ValidationErrors property on {0} must be of type {1}", parentType.FullName, "List<ValidationError>"));
+				}
+				//// TODO: That probably shouldn't be a field property, just a regular overridden property
+				//CreateOveriddenFieldProperty(type, parentType, validationErrorsProperty, members, database, true);
+			}
+			//else
+			//{
+			//	CreateProperty(type, parentType, "ValidationErrors", typeof(List<ValidationError>), members, database, true);
+			CreateValidationErrorsProperty(type, members);
+			//}
+
 			// Create the related item properties
 			foreach (PropertyInfo property in members.BaseItemProperties)
 			{
@@ -568,7 +601,10 @@ namespace Watsonia.Data
 		{
 			// Add the get and set methods to the members class so that we can access them while building the proxy
 			members.GetPropertyMethods.Add(property.Name, getMethod);
-			members.SetPropertyMethods.Add(property.Name, setMethod);
+			if (setMethod != null)
+			{
+				members.SetPropertyMethods.Add(property.Name, setMethod);
+			}
 
 			if (isOverridden)
 			{
@@ -609,7 +645,7 @@ namespace Watsonia.Data
 			}
 		}
 
-		private static void CreateProperty(TypeBuilder type, Type parentType, string propertyName, Type propertyType, DynamicProxyTypeMembers members, Database database)
+		private static void CreateProperty(TypeBuilder type, Type parentType, string propertyName, Type propertyType, DynamicProxyTypeMembers members, Database database, bool isReadOnly = false)
 		{
 			FieldBuilder field = type.DefineField(
 				"_" + propertyName,
@@ -623,11 +659,18 @@ namespace Watsonia.Data
 				null);
 
 			MethodBuilder getMethod = CreatePropertyGetMethod(type, propertyName, propertyType, field);
-			MethodBuilder setMethod = CreatePropertySetMethod(type, parentType, propertyName, propertyType, field, members);
+			MethodBuilder setMethod = null;
+			if (!isReadOnly)
+			{
+				setMethod = CreatePropertySetMethod(type, parentType, propertyName, propertyType, field, members);
+			}
 
 			// Map the get and set methods created above to their corresponding property methods
 			property.SetGetMethod(getMethod);
-			property.SetSetMethod(setMethod);
+			if (!isReadOnly)
+			{
+				property.SetSetMethod(setMethod);
+			}
 
 			CheckCreatedProperty(property, getMethod, setMethod, false, members, database);
 		}
@@ -723,7 +766,7 @@ namespace Watsonia.Data
 			return method;
 		}
 
-		private static void CreateOveriddenFieldProperty(TypeBuilder type, Type parentType, PropertyInfo property, DynamicProxyTypeMembers members, Database database)
+		private static void CreateOveriddenFieldProperty(TypeBuilder type, Type parentType, PropertyInfo property, DynamicProxyTypeMembers members, Database database, bool isReadOnly = false)
 		{
 			PropertyBuilder propertyBuilder = type.DefineProperty(
 				property.Name,
@@ -739,7 +782,10 @@ namespace Watsonia.Data
 			if (database.Configuration.IsRelatedCollection(property, out enumeratedType))
 			{
 				getMethod = CreateOverriddenCollectionPropertyGetMethod(type, property, enumeratedType, members);
-				setMethod = CreateOverriddenCollectionPropertySetMethod(type, property, members);
+				if (!isReadOnly)
+				{
+					setMethod = CreateOverriddenCollectionPropertySetMethod(type, property, members);
+				}
 			}
 
 			if (getMethod == null)
@@ -747,14 +793,17 @@ namespace Watsonia.Data
 				getMethod = CreateOverriddenFieldPropertyGetMethod(type, property, members);
 			}
 
-			if (setMethod == null)
+			if (setMethod == null && !isReadOnly)
 			{
 				setMethod = CreateOverriddenFieldPropertySetMethod(type, property, members);
 			}
 
 			// Map the get and set methods created above to their corresponding property methods
 			propertyBuilder.SetGetMethod(getMethod);
-			propertyBuilder.SetSetMethod(setMethod);
+			if (!isReadOnly)
+			{
+				propertyBuilder.SetSetMethod(setMethod);
+			}
 
 			CheckCreatedProperty(property, getMethod, setMethod, true, members, database);
 		}
@@ -1595,6 +1644,62 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ret);
 
 			return method;
+		}
+
+		private static void CreateIsValidProperty(TypeBuilder type, DynamicProxyTypeMembers members)
+		{
+			PropertyBuilder property = type.DefineProperty(
+				"IsValid",
+				PropertyAttributes.None,
+				typeof(bool),
+				null);
+
+			MethodBuilder getMethod = type.DefineMethod(
+				"get_IsValid",
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
+				typeof(bool),
+				Type.EmptyTypes);
+
+			MethodInfo getIsValidMethod = typeof(DynamicProxyStateTracker).GetMethod("get_IsValid");
+
+			ILGenerator gen = getMethod.GetILGenerator();
+
+			// return this.StateTracker.IsValid;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
+			gen.Emit(OpCodes.Callvirt, getIsValidMethod);
+			gen.Emit(OpCodes.Ret);
+
+			// Map the get method to its corresponding property method
+			property.SetGetMethod(getMethod);
+		}
+
+		private static void CreateValidationErrorsProperty(TypeBuilder type, DynamicProxyTypeMembers members)
+		{
+			PropertyBuilder property = type.DefineProperty(
+				"ValidationErrors",
+				PropertyAttributes.None,
+				typeof(List<ValidationError>),
+				null);
+
+			MethodBuilder getMethod = type.DefineMethod(
+				"get_ValidationErrors",
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
+				typeof(List<ValidationError>),
+				Type.EmptyTypes);
+
+			MethodInfo getValidationErrorsMethod = typeof(DynamicProxyStateTracker).GetMethod("get_ValidationErrors");
+
+			ILGenerator gen = getMethod.GetILGenerator();
+
+			// return this.StateTracker.ValidationErrors;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
+			gen.Emit(OpCodes.Callvirt, getValidationErrorsMethod);
+			gen.Emit(OpCodes.Ret);
+
+			// Map the get method to its corresponding property method
+			property.SetGetMethod(getMethod);
 		}
 
 		private static void CreateSetValuesFromReaderMethod(TypeBuilder type, DynamicProxyTypeMembers members)

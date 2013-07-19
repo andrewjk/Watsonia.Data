@@ -139,12 +139,26 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
-		/// Gets any validation errors.
+		/// Gets a value indicating whether this instance is valid.
 		/// </summary>
 		/// <value>
-		/// The errors.
+		///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.
 		/// </value>
-		public List<ValidationError> Errors
+		public bool IsValid
+		{
+			get
+			{
+				return this.Validate();
+			}
+		}
+
+		/// <summary>
+		/// Gets the validation errors that apply to this instance.
+		/// </summary>
+		/// <value>
+		/// The validation errors.
+		/// </value>
+		public List<ValidationError> ValidationErrors
 		{
 			get
 			{
@@ -396,14 +410,60 @@ namespace Watsonia.Data
 		/// <summary>
 		/// Checks whether this item is in a valid state.
 		/// </summary>
-		public void Validate()
+		///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.
+		public bool Validate()
 		{
 			this.ValidateAllFields = true;
-			this.Errors.Clear();
-			foreach (PropertyInfo prop in this.Item.GetType().GetProperties())
+			this.ValidationErrors.Clear();
+			ValidateItem(this.Item);
+			return (this.ValidationErrors.Count == 0);
+		}
+
+		private void ValidateItem(IDynamicProxy item)
+		{
+			// First check data annotations on properties
+			foreach (PropertyInfo prop in item.GetType().GetProperties())
 			{
 				// This will have the side effect of filling out the Errors collection:
-				GetError(prop);
+				GetError(item, prop);
+			}
+
+			// Now check IValidatableObject methods (if that interface is implemented)
+			if (typeof(IValidatableObject).IsAssignableFrom(item.GetType()))
+			{
+				foreach (var error in ((IValidatableObject)item).Validate(null))
+				{
+					string itemName = item.GetType().BaseType.Name;
+					string propertyName = string.Join(", ", error.MemberNames);
+					ValidationError newError = new ValidationError(itemName, propertyName, "Error", error.ErrorMessage);
+					this.ValidationErrors.Add(newError);
+				}
+			}
+
+			// Validate the item's loaded collections
+			foreach (string collectionPropertyName in item.StateTracker.LoadedCollections)
+			{
+				PropertyInfo property = item.GetType().GetProperty(collectionPropertyName,
+					BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+				foreach (var child in (IList)property.GetValue(item, null))
+				{
+					ValidateItem((IDynamicProxy)child);
+				}
+			}
+
+			// Validate the item's loaded items
+			foreach (string itemPropertyName in item.StateTracker.LoadedItems)
+			{
+				PropertyInfo property = item.GetType().GetProperty(itemPropertyName,
+					BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+				IDynamicProxy relatedItem = (IDynamicProxy)property.GetValue(item, null);
+				if (relatedItem != null)
+				{
+					if (this.Database.Configuration.ShouldCascade(property))
+					{
+						ValidateItem((IDynamicProxy)property.GetValue(item, null));
+					}
+				}
 			}
 		}
 
@@ -415,7 +475,7 @@ namespace Watsonia.Data
 		{
 			this.Validate();
 			return string.Join(Environment.NewLine,
-				Array.ConvertAll<ValidationError, string>(this.Errors.ToArray(), e => e.ErrorMessage));
+				Array.ConvertAll<ValidationError, string>(this.ValidationErrors.ToArray(), e => e.ErrorMessage));
 		}
 
 		/// <summary>
@@ -431,7 +491,7 @@ namespace Watsonia.Data
 
 		private string GetErrorText(PropertyInfo prop)
 		{
-			ValidationError error = GetError(prop);
+			ValidationError error = GetError(this.Item, prop);
 			return (error != null) ? error.ErrorMessage : "";
 		}
 
@@ -443,10 +503,10 @@ namespace Watsonia.Data
 		public ValidationError GetError(string propertyName)
 		{
 			PropertyInfo prop = this.Item.GetType().GetProperty(propertyName);
-			return GetError(prop);
+			return GetError(this.Item, prop);
 		}
 
-		private ValidationError GetError(PropertyInfo prop)
+		private ValidationError GetError(IDynamicProxy item, PropertyInfo prop)
 		{
 			// Don't check errors if we're in the middle of loading the item from the database
 			if (this.IsLoading)
@@ -460,21 +520,22 @@ namespace Watsonia.Data
 				return null;
 			}
 
-			this.Errors.RemoveAll(e => e.PropertyName == prop.Name);
+			this.ValidationErrors.RemoveAll(e => e.PropertyName == prop.Name);
 
 			// NOTE: Interestingly, prop.GetCustomAttributes doesn't actually search the inheritance
 			// chain whereas Attribute.GetCustomAttributes does
 			foreach (object attribute in Attribute.GetCustomAttributes(prop, typeof(ValidationAttribute), true))
 			{
 				ValidationAttribute validation = (ValidationAttribute)attribute;
-				object value = prop.GetValue(this.Item, null);
+				object value = prop.GetValue(item, null);
 				if (!validation.IsValid(value))
 				{
+					string itemName = item.GetType().BaseType.Name;
 					string errorName = attribute.GetType().Name.Replace("Attribute", "");
 					string errorMessage = validation.FormatErrorMessage(PropertyName(prop));
-					ValidationError newError = new ValidationError(prop.Name, errorName, errorMessage);
+					ValidationError newError = new ValidationError(itemName, prop.Name, errorName, errorMessage);
 
-					this.Errors.Add(newError);
+					this.ValidationErrors.Add(newError);
 
 					// Just return the first error rather than bombarding the user with a bunch of them
 					return newError;

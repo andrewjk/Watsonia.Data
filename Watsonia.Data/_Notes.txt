@@ -1,7 +1,7 @@
 ﻿THINGS TO WORK ON:
 
-Should we implement IValidatableObject, or just leave it up to the consumer to build on top of our IDataErrorInfo?
-Validate objects before saving to the database
+Allow properties to be abstract as well as virtual (specifically for IsValid and ValidationErrors)?
+Fix up HasChanges
 Undo and redo functionality
 Build the parent-child mapping when creating an item to check whether it needs a reference to its parent
 	This should also fix up problems with Include mappings
@@ -19,6 +19,7 @@ Fix up the documentation
 Performance improvements!
 	Should we use the type-specific methods (GetInt32 etc) in SetValuesFromReader?
 	Should we have SetValue(propertyName) methods instead of using reflection?
+LoadedCollections and LoadedItems should actually be a collection of collections and items, rather than (or as well as) names
 
 
 THINGS THAT WOULD BE AWESOME:

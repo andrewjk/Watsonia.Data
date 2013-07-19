@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Common;
 
 namespace Watsonia.Data
@@ -47,12 +48,34 @@ namespace Watsonia.Data
 		/// Gets or sets a value indicating whether this instance has changes.
 		/// </summary>
 		/// <value>
-		/// <c>true</c> if this instance has changes; otherwise, <c>false</c>.
+		///	  <c>true</c> if this instance has changes; otherwise, <c>false</c>.
 		/// </value>
 		bool HasChanges
 		{
 			get;
 			set;
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether this instance is in a valid state.
+		/// </summary>
+		/// <value>
+		///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.
+		/// </value>
+		bool IsValid
+		{
+			get;
+		}
+
+		/// <summary>
+		/// Gets the validation errors that apply to this instance.
+		/// </summary>
+		/// <value>
+		/// The validation errors.
+		/// </value>
+		List<ValidationError> ValidationErrors
+		{
+			get;
 		}
 
 		/// <summary>

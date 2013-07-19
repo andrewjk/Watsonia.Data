@@ -129,8 +129,11 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestDataErrorInfoMethods()
 		{
-			Bung bung = DynamicProxyFactory.GetDynamicProxy<Bung>(db);
+			Bung bung = db.Create<Bung>();
 			IDataErrorInfo bungErrorInfo = (IDataErrorInfo)bung;
+
+			// Make sure that the RequiredString doesn't have an error until its property gets changed
+			Assert.AreEqual("", bungErrorInfo["RequiredString"]);
 
 			bung.RequiredString = "Aoeu";
 			bung.RequiredString = "";
@@ -158,6 +161,8 @@ namespace Watsonia.Data.Tests
 			
 			bung.ConfirmEmailAddress = "support@donotreply.com";
 			Assert.AreEqual("The Confirm email address field is no good.", bungErrorInfo["ConfirmEmailAddress"]);
+
+			// Now let's validate the whole thing
 		}
 	}
 }

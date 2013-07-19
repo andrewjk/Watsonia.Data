@@ -757,6 +757,14 @@ namespace Watsonia.Data
 
 			OnBeforeSave(proxy);
 
+			if (!proxy.IsValid)
+			{
+				ValidationException ex = new ValidationException(
+					string.Format("Validation failed for {0}: {1}", item.GetType().Name, item.ToString()));
+				ex.ValidationErrors.AddRange(proxy.ValidationErrors);
+				throw ex;
+			}
+
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
 			DbConnection connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);

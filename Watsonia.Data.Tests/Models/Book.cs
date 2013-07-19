@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Watsonia.Data.Tests.Models
 {
-	public class Book
+	public class Book : IValidatableObject
 	{
+		[Required]
 		public virtual string Title
 		{
 			get;
@@ -18,6 +20,14 @@ namespace Watsonia.Data.Tests.Models
 		{
 			get;
 			set;
+		}
+
+		public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+		{
+			if (this.Title == "Bad Book")
+			{
+				yield return new ValidationResult("Nope");
+			}
 		}
 	}
 }
