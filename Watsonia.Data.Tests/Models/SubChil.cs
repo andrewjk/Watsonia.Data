@@ -8,12 +8,6 @@ namespace Watsonia.Data.Tests.Models
 {
 	public class SubChil
 	{
-		public virtual Chil Chil
-		{
-			get;
-			set;
-		}
-
 		public virtual string SubName
 		{
 			get;

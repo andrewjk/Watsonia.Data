@@ -8,12 +8,6 @@ namespace Watsonia.Data.Tests.Models
 {
 	public class Chil
 	{
-		public virtual Par Par
-		{
-			get;
-			set;
-		}
-
 		public virtual int Value
 		{
 			get;

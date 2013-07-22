@@ -547,6 +547,7 @@ namespace Watsonia.Data
 			// Create the PrimaryKeyValue property which just wraps the primary key property
 			CreatePrimaryKeyValueProperty(type, members);
 
+			// Create the IsNew property
 			BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 			PropertyInfo isNewProperty = parentType.GetProperty("IsNew", flags);
 			if (isNewProperty != null)
@@ -563,6 +564,7 @@ namespace Watsonia.Data
 				CreateProperty(type, "IsNew", typeof(bool), members, database);
 			}
 
+			// Create the HasChanges property
 			PropertyInfo hasChangesProperty = parentType.GetProperty("HasChanges", flags);
 			if (hasChangesProperty != null)
 			{
@@ -578,6 +580,7 @@ namespace Watsonia.Data
 				CreateProperty(type, "HasChanges", typeof(bool), members, database);
 			}
 
+			// Create the IsValid property
 			PropertyInfo isValidProperty = parentType.GetProperty("IsValid", flags);
 			if (isValidProperty != null)
 			{
@@ -589,6 +592,7 @@ namespace Watsonia.Data
 			}
 			CreateIsValidProperty(type, members);
 
+			// Create the ValidationErrors property
 			PropertyInfo validationErrorsProperty = parentType.GetProperty("ValidationErrors", flags);
 			if (validationErrorsProperty != null)
 			{
@@ -604,6 +608,21 @@ namespace Watsonia.Data
 			foreach (PropertyInfo property in members.BaseItemProperties)
 			{
 				CreateOverriddenItemProperty(type, property, members, database);
+			}
+
+			// Create the related item properties for parent-child relationships that don't exist as properties
+			if (database.ChildParentMapping.ContainsKey(parentType))
+			{
+				foreach (Type parent in database.ChildParentMapping[parentType])
+				{
+					// If the ID property doesn't exist, create it
+					string relatedItemIDPropertyName = database.Configuration.GetForeignKeyColumnName(parentType, parent);
+					if (!members.GetRelatedItemIDMethods.ContainsKey(relatedItemIDPropertyName))
+					{
+						Type primaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(parent);
+						CreateFieldProperty(type, parentType, relatedItemIDPropertyName, typeof(Nullable<>).MakeGenericType(primaryKeyColumnType), members, database);
+					}
+				}
 			}
 		}
 

@@ -44,6 +44,8 @@ namespace Watsonia.Data
 		public event EventHandler BeforeExecuteCommand;
 		public event EventHandler AfterExecuteCommand;
 
+		private static Dictionary<Type, List<Type>> _childParentMapping = null;
+
 		/// <summary>
 		/// Gets the configuration options used for mapping to and accessing the database.
 		/// </summary>
@@ -70,6 +72,28 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Gets the child parent mapping.
+		/// </summary>
+		/// <remarks>
+		/// Before we can build any proxies we first need to scan through the mapped types and build
+		/// lists of types that exist in a one-to-many relationship in a parent type with a collection.
+		/// </remarks>
+		/// <value>
+		/// The child parent mapping.
+		/// </value>
+		internal Dictionary<Type, List<Type>> ChildParentMapping
+		{
+			get
+			{
+				if (_childParentMapping == null)
+				{
+					LoadChildParentMapping();
+				}
+				return _childParentMapping;
+			}
+		}
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="Database" /> class.
 		/// </summary>
 		/// <param name="connectionString">The connection string used to access the database.</param>
@@ -78,6 +102,8 @@ namespace Watsonia.Data
 		{
 			this.Configuration = new DatabaseConfiguration(connectionString, entityNamespace);
 			this.DatabaseName = this.GetType().Name;
+
+			LoadChildParentMapping();
 		}
 
 		/// <summary>
@@ -88,6 +114,8 @@ namespace Watsonia.Data
 		{
 			this.Configuration = configuration;
 			this.DatabaseName = this.GetType().Name;
+
+			LoadChildParentMapping();
 		}
 
 		/// <summary>
@@ -788,7 +816,7 @@ namespace Watsonia.Data
 			DbTransaction transactionToUse = transaction ?? connectionToUse.BeginTransaction();
 			try
 			{
-				SaveWithOptionalExtraFields(proxy, connectionToUse, transactionToUse);
+				SaveItem(proxy, connectionToUse, transactionToUse);
 
 				UpdateSavedCollectionIDs(item);
 
@@ -823,11 +851,8 @@ namespace Watsonia.Data
 			OnAfterSave(proxy);
 		}
 
-		private void SaveWithOptionalExtraFields(IDynamicProxy proxy, DbConnection connection, DbTransaction transaction, params SetValue[] extraValues)
+		private void SaveItem(IDynamicProxy proxy, DbConnection connection, DbTransaction transaction)
 		{
-			// TODO: This method is a quick and dirty way to get the right parent ID into related collections
-			// It would be ideal to have the field created as part of the dynamic proxy but might not be feasible
-
 			Type tableType = proxy.GetType().BaseType;
 			string tableName = this.Configuration.GetTableName(tableType);
 			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(tableType);
@@ -842,7 +867,7 @@ namespace Watsonia.Data
 				{
 					if (this.Configuration.ShouldCascade(property))
 					{
-						SaveWithOptionalExtraFields(relatedItem, connection, transaction);
+						SaveItem(relatedItem, connection, transaction);
 
 						// Update the related item ID property
 						string relatedItemIDPropertyName = this.Configuration.GetForeignKeyColumnName(property);
@@ -862,15 +887,15 @@ namespace Watsonia.Data
 			}
 
 			// Insert or update the item if its fields have been changed and then clear its changed fields
-			if (proxy.StateTracker.ChangedFields.Count > 0 || extraValues.Length > 0)
+			if (proxy.StateTracker.ChangedFields.Count > 0)
 			{
 				if (proxy.IsNew)
 				{
-					InsertItem(proxy, tableName, tableType, primaryKeyColumnName, connection, transaction, extraValues);
+					InsertItem(proxy, tableName, tableType, primaryKeyColumnName, connection, transaction);
 				}
 				else
 				{
-					UpdateItem(proxy, tableName, primaryKeyColumnName, connection, transaction, extraValues);
+					UpdateItem(proxy, tableName, primaryKeyColumnName, connection, transaction);
 				}
 				proxy.StateTracker.ChangedFields.Clear();
 			}
@@ -883,22 +908,22 @@ namespace Watsonia.Data
 
 				// Insert items and collect the item IDs while we're at it
 				var collectionIDs = new List<object>();
-				foreach (IDynamicProxy cascadeItem in ((IEnumerable)property.GetValue(proxy, null)))
+				foreach (IDynamicProxy childItem in ((IEnumerable)property.GetValue(proxy, null)))
 				{
-					// We can't just set a property value here because it won't exist unless each item in the collection
-					// has a property pointing back to the parent item.  Luckily the only time we will need to set the parent
-					// IDs is when the item is new (as they will never change)
-					if (cascadeItem.IsNew || newRelatedItems.Contains(cascadeItem))
+					if (childItem.IsNew || newRelatedItems.Contains(childItem))
 					{
-						string parentIDPropertyName = this.Configuration.GetForeignKeyColumnName(cascadeItem.GetType().BaseType, tableType);
-						SetValue setParentID = new SetValue(parentIDPropertyName, proxy.PrimaryKeyValue);
-						SaveWithOptionalExtraFields(cascadeItem, connection, transaction, setParentID);
+						// Set the parent ID of the item in the collection
+						string parentIDPropertyName = this.Configuration.GetForeignKeyColumnName(childItem.GetType().BaseType, tableType);
+						PropertyInfo parentIDProperty = childItem.GetType().GetProperty(parentIDPropertyName);
+						parentIDProperty.SetValue(childItem, proxy.PrimaryKeyValue, null);
+
+						SaveItem(childItem, connection, transaction);
 					}
 					else
 					{
-						SaveWithOptionalExtraFields(cascadeItem, connection, transaction);
+						SaveItem(childItem, connection, transaction);
 					}
-					collectionIDs.Add(((IDynamicProxy)cascadeItem).PrimaryKeyValue);
+					collectionIDs.Add(((IDynamicProxy)childItem).PrimaryKeyValue);
 				}
 
 				// Delete items that have been removed from the collection
@@ -916,7 +941,7 @@ namespace Watsonia.Data
 			proxy.HasChanges = false;
 		}
 
-		private void InsertItem(IDynamicProxy proxy, string tableName, Type tableType, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction, params SetValue[] extraValues)
+		private void InsertItem(IDynamicProxy proxy, string tableName, Type tableType, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction)
 		{
 			var insert = Watsonia.Data.Insert.Into(tableName);
 			foreach (PropertyInfo property in this.Configuration.PropertiesToLoadAndSave(proxy.GetType()))
@@ -934,20 +959,6 @@ namespace Watsonia.Data
 				}
 			}
 
-			foreach (SetValue setValue in extraValues)
-			{
-				SetValue localSetValue = setValue;
-				SetValue existingSetValue = insert.SetValues.FirstOrDefault(sv => sv.Column.Name == localSetValue.Column.Name);
-				if (existingSetValue == null)
-				{
-					insert.SetValues.Add(localSetValue);
-				}
-				else
-				{
-					existingSetValue.Value = localSetValue.Value;
-				}
-			}
-
 			Execute(insert, connection, transaction);
 
 			// TODO: This probably isn't going to deal too well with concurrency, should there be a transaction?
@@ -962,7 +973,7 @@ namespace Watsonia.Data
 			}
 		}
 
-		private void UpdateItem(IDynamicProxy proxy, string tableName, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction, params SetValue[] extraValues)
+		private void UpdateItem(IDynamicProxy proxy, string tableName, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction)
 		{
 			// TODO: Get rid of this, it's just to stop propertise like Database and HasChanges
 			bool doUpdate = false;
@@ -982,21 +993,6 @@ namespace Watsonia.Data
 					}
 					doUpdate = true;
 				}
-			}
-
-			foreach (SetValue setValue in extraValues)
-			{
-				SetValue localSetValue = setValue;
-				SetValue existingSetValue = update.SetValues.FirstOrDefault(sv => sv.Column.Name == localSetValue.Column.Name);
-				if (existingSetValue == null)
-				{
-					update.SetValues.Add(localSetValue);
-				}
-				else
-				{
-					existingSetValue.Value = localSetValue.Value;
-				}
-				doUpdate = true;
 			}
 
 			if (!doUpdate)
@@ -1284,6 +1280,32 @@ namespace Watsonia.Data
 			}
 
 			destination.StateTracker.IsLoading = false;
+		}
+
+		private void LoadChildParentMapping()
+		{
+			_childParentMapping = new Dictionary<Type, List<Type>>();
+			foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+			{
+				foreach (Type parentType in this.Configuration.TypesToMap(assembly))
+				{
+					foreach (PropertyInfo childProperty in this.Configuration.PropertiesToMap(parentType))
+					{
+						if (this.Configuration.IsRelatedCollection(childProperty))
+						{
+							// E.g. given Author.Books, Author is the parent and Book is the child
+							// We will add Book as the key for the dictionary as we will want to add
+							// the AuthorID column when creating its proxy
+							Type childPropertyType = TypeHelper.GetElementType(childProperty.PropertyType);
+							if (!_childParentMapping.ContainsKey(childPropertyType))
+							{
+								_childParentMapping.Add(childPropertyType, new List<Type>());
+							}
+							_childParentMapping[childPropertyType].Add(parentType);
+						}
+					}
+				}
+			}
 		}
 
 		/// <summary>

@@ -2,8 +2,6 @@
 
 Allow properties to be abstract as well as virtual (specifically for IsValid and ValidationErrors)?
 Undo and redo functionality
-Build the parent-child mapping when creating an item to check whether it needs a reference to its parent
-	This should also fix up problems with Include mappings
 Separate out the mandatory ShouldMapProperty functionality from the overridable
 	E.g. properties MUST be virtual and collections MUST be an interface but the user may want to filter further
 Have better error messages
@@ -13,7 +11,6 @@ Test using Guids for IDs
 Add async support
 Add an SQLite implementation
 Really have to tidy up the mess I've made of the LINQ stuff
-Add a query result cache a la EntityFramework.Extended
 Fix up the documentation
 Performance improvements!
 	Should we use the type-specific methods (GetInt32 etc) in SetValuesFromReader?
@@ -22,10 +19,14 @@ LoadedCollections and LoadedItems should actually be a collection of collections
 	Should expose a yield method that recurses through the loaded children of an item
 Build the assembly as a PCL
 Put it up on NuGet
+Have a poke through the generated assembly to see where things can be improved
+More XML commenting throughout
 
 THINGS THAT WOULD BE AWESOME:
 
+Add a query result cache a la EntityFramework.Extended
 Add a second level cache
 Add a PostgreSQL implementation
 Add a MongoDB implementation
 Add syncing functionality for multiple databases
+A Glimpse plugin
