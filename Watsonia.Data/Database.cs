@@ -123,6 +123,23 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Exports all mapped entity proxies to an assembly.
+		/// </summary>
+		/// <param name="path">The assembly path.</param>
+		public void ExportProxies(string path)
+		{
+			DynamicProxyFactory.SetAssemblyPath(path);
+			foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+			{
+				foreach (Type type in this.Configuration.TypesToMap(assembly))
+				{
+					DynamicProxyFactory.GetDynamicProxyType(type, this);
+				}
+			}
+			DynamicProxyFactory.SaveAssembly();
+		}
+
+		/// <summary>
 		/// Creates a proxy object for the type T.
 		/// </summary>
 		/// <typeparam name="T">The type of item to create a proxy for.</typeparam>

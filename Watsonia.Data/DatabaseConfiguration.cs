@@ -309,6 +309,7 @@ namespace Watsonia.Data
 		{
 			return (
 				type.IsClass &&
+				!type.IsNested &&
 				type.Namespace == this.EntityNamespace &&
 				!typeof(Database).IsAssignableFrom(type) &&
 				!typeof(DatabaseConfiguration).IsAssignableFrom(type));

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Common;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -11,9 +12,10 @@ namespace Watsonia.Data
 {
 	internal static class DynamicProxyFactory
 	{
-		private static readonly AssemblyBuilder _assemblyBuilder = null;
-		private static readonly ModuleBuilder _moduleBuilder = null;
-		//private static readonly string _fileName = null;
+		private static AssemblyBuilder _assemblyBuilder = null;
+		private static ModuleBuilder _moduleBuilder = null;
+		private static string _exportPath = null;
+
 		private static readonly Dictionary<string, Type> _cachedTypes = new Dictionary<string, Type>();
 
 		static DynamicProxyFactory()
@@ -23,11 +25,35 @@ namespace Watsonia.Data
 
 			_assemblyBuilder = Thread.GetDomain().DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
 			_moduleBuilder = _assemblyBuilder.DefineDynamicModule(_assemblyBuilder.GetName().Name, false);
+		}
 
-			// NOTE: We can also save the generated assembly to a file so that we can inspect it with Reflector
-			//_assemblyBuilder = Thread.GetDomain().DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
-			//_fileName = _assemblyBuilder.GetName().Name + ".dll";
-			//_moduleBuilder = _assemblyBuilder.DefineDynamicModule(_assemblyBuilder.GetName().Name, _fileName);
+		internal static void SetAssemblyPath(string path)
+		{
+			// Remove any previously created types so that they will be re-created
+			_cachedTypes.Clear();
+
+			AssemblyName newAssemblyName = new AssemblyName();
+			newAssemblyName.Name = System.IO.Path.GetFileNameWithoutExtension(path);
+
+			_assemblyBuilder = Thread.GetDomain().DefineDynamicAssembly(newAssemblyName, AssemblyBuilderAccess.RunAndSave);
+			string fileName = Path.GetFileName(path);
+			_moduleBuilder = _assemblyBuilder.DefineDynamicModule(_assemblyBuilder.GetName().Name, fileName);
+
+			_exportPath = path;
+		}
+
+		internal static void SaveAssembly()
+		{
+			string folder = Path.GetDirectoryName(_exportPath);
+			string fileName = Path.GetFileName(_exportPath);
+
+			_assemblyBuilder.Save(fileName);
+
+			if (!Directory.Exists(folder))
+			{
+				Directory.CreateDirectory(folder);
+			}
+			File.Move(fileName, _exportPath);
 		}
 
 		internal static Type GetDynamicProxyType(Type parentType, Database database)
@@ -93,7 +119,7 @@ namespace Watsonia.Data
 
 			// You'd think it would be easy to override the == and != operators by defining static op_Equality
 			// and op_Inequality methods but you'd be wrong.  Apparently C# resolves operator calls at compile
-			// time, so overrides added at runtime will never be called
+			// time, so overrides added at runtime will never be called.  Maybe this will change one day...
 			//CreateEqualityOperator(type, parent, members);
 			//CreateInequalityOperator(type, parent, members);
 
@@ -105,9 +131,6 @@ namespace Watsonia.Data
 			AddConstructor(type, parent, members);
 
 			Type t = type.CreateType();
-
-			// NOTE: We can also save the generated assembly to a file so that we can inspect it with Reflector
-			//_assemblyBuilder.Save(_fileName);
 
 			return t;
 		}
