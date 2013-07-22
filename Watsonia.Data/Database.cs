@@ -895,6 +895,8 @@ namespace Watsonia.Data
 					Execute(delete, connection, transaction);
 				}
 			}
+
+			proxy.HasChanges = false;
 		}
 
 		private void InsertItem(IDynamicProxy proxy, string tableName, Type tableType, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction, params SetValue[] extraValues)

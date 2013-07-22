@@ -1,7 +1,6 @@
 ﻿THINGS TO WORK ON:
 
 Allow properties to be abstract as well as virtual (specifically for IsValid and ValidationErrors)?
-Fix up HasChanges
 Undo and redo functionality
 Build the parent-child mapping when creating an item to check whether it needs a reference to its parent
 	This should also fix up problems with Include mappings
@@ -20,7 +19,8 @@ Performance improvements!
 	Should we use the type-specific methods (GetInt32 etc) in SetValuesFromReader?
 	Should we have SetValue(propertyName) methods instead of using reflection?
 LoadedCollections and LoadedItems should actually be a collection of collections and items, rather than (or as well as) names
-
+	Should expose a yield method that recurses through the loaded children of an item
+Allow the user to export all proxies to an assembly
 
 THINGS THAT WOULD BE AWESOME:
 

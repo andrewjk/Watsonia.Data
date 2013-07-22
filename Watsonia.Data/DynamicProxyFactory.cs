@@ -518,7 +518,7 @@ namespace Watsonia.Data
 			// Create the primary key property (e.g. ID or TableID) if it didn't already get created
 			if (members.GetPrimaryKeyMethod == null)
 			{
-				CreateProperty(type, parentType, members.PrimaryKeyColumnName, members.PrimaryKeyColumnType, members, database);
+				CreateFieldProperty(type, parentType, members.PrimaryKeyColumnName, members.PrimaryKeyColumnType, members, database);
 			}
 
 			// Create the PrimaryKeyValue property which just wraps the primary key property
@@ -533,12 +533,11 @@ namespace Watsonia.Data
 					throw new InvalidOperationException(
 						string.Format("The IsNew property on {0} must be of type {1}", parentType.FullName, typeof(bool).FullName));
 				}
-				// TODO: That probably shouldn't be a field property, just a regular overridden property
-				CreateOveriddenFieldProperty(type, parentType, isNewProperty, members, database);
+				CreateOverriddenProperty(type, isNewProperty, members, database);
 			}
 			else
 			{
-				CreateProperty(type, parentType, "IsNew", typeof(bool), members, database);
+				CreateProperty(type, "IsNew", typeof(bool), members, database);
 			}
 
 			PropertyInfo hasChangesProperty = parentType.GetProperty("HasChanges", flags);
@@ -549,12 +548,11 @@ namespace Watsonia.Data
 					throw new InvalidOperationException(
 						string.Format("The HasChanges property on {0} must be of type {1}", parentType.FullName, typeof(bool).FullName));
 				}
-				// TODO: That probably shouldn't be a field property, just a regular overridden property
-				CreateOveriddenFieldProperty(type, parentType, hasChangesProperty, members, database);
+				CreateOverriddenProperty(type, hasChangesProperty, members, database);
 			}
 			else
 			{
-				CreateProperty(type, parentType, "HasChanges", typeof(bool), members, database);
+				CreateProperty(type, "HasChanges", typeof(bool), members, database);
 			}
 
 			PropertyInfo isValidProperty = parentType.GetProperty("IsValid", flags);
@@ -565,13 +563,8 @@ namespace Watsonia.Data
 					throw new InvalidOperationException(
 						string.Format("The IsValid property on {0} must be of type {1}", parentType.FullName, typeof(bool).FullName));
 				}
-				//// TODO: That probably shouldn't be a field property, just a regular overridden property
-				//CreateOveriddenFieldProperty(type, parentType, isValidProperty, members, database, true);
 			}
-			//else
-			//{
 			CreateIsValidProperty(type, members);
-			//}
 
 			PropertyInfo validationErrorsProperty = parentType.GetProperty("ValidationErrors", flags);
 			if (validationErrorsProperty != null)
@@ -581,14 +574,8 @@ namespace Watsonia.Data
 					throw new InvalidOperationException(
 						string.Format("The ValidationErrors property on {0} must be of type {1}", parentType.FullName, "List<ValidationError>"));
 				}
-				//// TODO: That probably shouldn't be a field property, just a regular overridden property
-				//CreateOveriddenFieldProperty(type, parentType, validationErrorsProperty, members, database, true);
 			}
-			//else
-			//{
-			//	CreateProperty(type, parentType, "ValidationErrors", typeof(List<ValidationError>), members, database, true);
 			CreateValidationErrorsProperty(type, members);
-			//}
 
 			// Create the related item properties
 			foreach (PropertyInfo property in members.BaseItemProperties)
@@ -645,7 +632,7 @@ namespace Watsonia.Data
 			}
 		}
 
-		private static void CreateProperty(TypeBuilder type, Type parentType, string propertyName, Type propertyType, DynamicProxyTypeMembers members, Database database, bool isReadOnly = false)
+		private static void CreateProperty(TypeBuilder type, string propertyName, Type propertyType, DynamicProxyTypeMembers members, Database database, bool isReadOnly = false)
 		{
 			FieldBuilder field = type.DefineField(
 				"_" + propertyName,
@@ -662,7 +649,7 @@ namespace Watsonia.Data
 			MethodBuilder setMethod = null;
 			if (!isReadOnly)
 			{
-				setMethod = CreatePropertySetMethod(type, parentType, propertyName, propertyType, field, members);
+				setMethod = CreatePropertySetMethod(type, propertyName, propertyType, field);
 			}
 
 			// Map the get and set methods created above to their corresponding property methods
@@ -697,7 +684,159 @@ namespace Watsonia.Data
 			return method;
 		}
 
-		private static MethodBuilder CreatePropertySetMethod(TypeBuilder type, Type parentType, string propertyName, Type propertyType, FieldBuilder privateField, DynamicProxyTypeMembers members)
+		private static MethodBuilder CreatePropertySetMethod(TypeBuilder type, string propertyName, Type propertyType, FieldBuilder privateField)
+		{
+			MethodBuilder method = type.DefineMethod(
+				"set_" + propertyName,
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+				null,
+				new Type[] { propertyType });
+
+			ILGenerator gen = method.GetILGenerator();
+
+			ParameterBuilder value = method.DefineParameter(1, ParameterAttributes.None, "value");
+
+			// _property = value;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Stfld, privateField);
+			gen.Emit(OpCodes.Ret);
+
+			return method;
+		}
+
+		private static void CreateOverriddenProperty(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members, Database database, bool isReadOnly = false)
+		{
+			FieldBuilder field = type.DefineField(
+				"_" + property.Name,
+				property.PropertyType,
+				FieldAttributes.Private);
+
+			PropertyBuilder newProperty = type.DefineProperty(
+				property.Name,
+				PropertyAttributes.None,
+				property.PropertyType,
+				null);
+
+			MethodBuilder getMethod = CreateOverriddenPropertyGetMethod(type, property);
+			MethodBuilder setMethod = null;
+			if (!isReadOnly)
+			{
+				setMethod = CreateOverriddenPropertySetMethod(type, property);
+			}
+
+			// Map the get and set methods created above to their corresponding property methods
+			newProperty.SetGetMethod(getMethod);
+			if (!isReadOnly)
+			{
+				newProperty.SetSetMethod(setMethod);
+			}
+
+			CheckCreatedProperty(property, getMethod, setMethod, false, members, database);
+		}
+
+		private static MethodBuilder CreateOverriddenPropertyGetMethod(TypeBuilder type, PropertyInfo property)
+		{
+			MethodBuilder method = type.DefineMethod(
+				"get_" + property.Name,
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+				property.PropertyType,
+				Type.EmptyTypes);
+
+			ILGenerator gen = method.GetILGenerator();
+
+			LocalBuilder value = gen.DeclareLocal(property.PropertyType);
+
+			Label exitLabel = gen.DefineLabel();
+
+			// return base.Property;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Call, property.GetGetMethod());
+			gen.Emit(OpCodes.Stloc_0);
+			gen.Emit(OpCodes.Br_S, exitLabel);
+			gen.MarkLabel(exitLabel);
+			gen.Emit(OpCodes.Ldloc_0);
+			gen.Emit(OpCodes.Ret);
+
+			return method;
+		}
+
+		private static MethodBuilder CreateOverriddenPropertySetMethod(TypeBuilder type, PropertyInfo property)
+		{
+			MethodBuilder method = type.DefineMethod(
+				"set_" + property.Name,
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+				null,
+				new Type[] { property.PropertyType });
+
+			ILGenerator gen = method.GetILGenerator();
+
+			ParameterBuilder value = method.DefineParameter(1, ParameterAttributes.None, "value");
+
+			// base.Property = value;
+			gen.Emit(OpCodes.Nop);
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Call, property.GetSetMethod());
+			gen.Emit(OpCodes.Nop);
+			gen.Emit(OpCodes.Ret);
+
+			return method;
+		}
+
+		private static void CreateFieldProperty(TypeBuilder type, Type parentType, string propertyName, Type propertyType, DynamicProxyTypeMembers members, Database database, bool isReadOnly = false)
+		{
+			FieldBuilder field = type.DefineField(
+				"_" + propertyName,
+				propertyType,
+				FieldAttributes.Private);
+
+			PropertyBuilder property = type.DefineProperty(
+				propertyName,
+				PropertyAttributes.None,
+				propertyType,
+				null);
+
+			MethodBuilder getMethod = CreateFieldPropertyGetMethod(type, propertyName, propertyType, field);
+			MethodBuilder setMethod = null;
+			if (!isReadOnly)
+			{
+				setMethod = CreateFieldPropertySetMethod(type, parentType, propertyName, propertyType, field, members);
+			}
+
+			// Map the get and set methods created above to their corresponding property methods
+			property.SetGetMethod(getMethod);
+			if (!isReadOnly)
+			{
+				property.SetSetMethod(setMethod);
+			}
+
+			CheckCreatedProperty(property, getMethod, setMethod, false, members, database);
+		}
+
+		private static MethodBuilder CreateFieldPropertyGetMethod(TypeBuilder type, string propertyName, Type propertyType, FieldBuilder privateField)
+		{
+			MethodBuilder method = type.DefineMethod(
+				"get_" + propertyName,
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+				propertyType,
+				Type.EmptyTypes);
+
+			ILGenerator gen = method.GetILGenerator();
+
+			LocalBuilder value = gen.DeclareLocal(propertyType);
+
+			// return _property;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Ldfld, privateField);
+			gen.Emit(OpCodes.Stloc_0);
+			gen.Emit(OpCodes.Ldloc_0);
+			gen.Emit(OpCodes.Ret);
+
+			return method;
+		}
+
+		private static MethodBuilder CreateFieldPropertySetMethod(TypeBuilder type, Type parentType, string propertyName, Type propertyType, FieldBuilder privateField, DynamicProxyTypeMembers members)
 		{
 			MethodBuilder method = type.DefineMethod(
 				"set_" + propertyName,
@@ -1078,7 +1217,7 @@ namespace Watsonia.Data
 			if (!members.GetRelatedItemIDMethods.ContainsKey(relatedItemIDPropertyName))
 			{
 				Type primaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(property.PropertyType);
-				CreateProperty(type, property.DeclaringType, relatedItemIDPropertyName, typeof(Nullable<>).MakeGenericType(primaryKeyColumnType), members, database);
+				CreateFieldProperty(type, property.DeclaringType, relatedItemIDPropertyName, typeof(Nullable<>).MakeGenericType(primaryKeyColumnType), members, database);
 			}
 
 			if (!members.SetRelatedItemIDMethods.ContainsKey(relatedItemIDPropertyName))

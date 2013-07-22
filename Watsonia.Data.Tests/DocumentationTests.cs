@@ -217,5 +217,56 @@ namespace Watsonia.Data.Tests
 			Assert.AreEqual(1, author.ValidationErrors.Count, "Bad book validation error count should be 1");
 			Assert.AreEqual("Nope", author.ValidationErrors[0].ErrorMessage, "Book validation error should be nope");
 		}
+
+		[TestMethod]
+		public void TestHasChanges()
+		{
+			// Create an author and some books
+			Author author = db.Create<Author>();
+			author.FirstName = "Ernest";
+			author.LastName = "Hemingway";
+
+			Book book1 = db.Create<Book>();
+			book1.Title = "The Sun Also Rises";
+			author.Books.Add(book1);
+
+			Book book2 = db.Create<Book>();
+			book2.Title = "The Old Man And The Sea";
+			author.Books.Add(book2);
+
+			// Everything should be new
+			Assert.IsTrue(author.IsNew, "Author should be new");
+			Assert.IsTrue(book1.IsNew, "Book 1 should be new");
+			Assert.IsTrue(book2.IsNew, "Book 2 should be new");
+
+			// Save the author
+			db.Save(author);
+
+			// Everything should be not new and have no changes
+			Assert.IsFalse(author.IsNew, "Author shouldn't be new");
+			Assert.IsFalse(book1.IsNew, "Book 1 shouldn't be new");
+			Assert.IsFalse(book2.IsNew, "Book 2 shouldn't be new");
+
+			Assert.IsFalse(author.HasChanges, "Author shouldn't have changes");
+			Assert.IsFalse(book1.HasChanges, "Book 1 shouldn't have changes");
+			Assert.IsFalse(book2.HasChanges, "Book 2 shouldn't have changes");
+
+			// Oops, fix some mistakes
+			book1.Title = "The Sun Also Rises";
+			book2.Title = "The Old Man and the Sea";
+
+			// Some things should have changes
+			Assert.IsFalse(author.HasChanges, "Author shouldn't have changes");
+			Assert.IsFalse(book1.HasChanges, "Book 1 shouldn't have changes");
+			Assert.IsTrue(book2.HasChanges, "Book 2 should have changes");
+
+			// Save the author
+			db.Save(author);
+
+			// Nothing should have changes
+			Assert.IsFalse(author.HasChanges, "Author shouldn't have changes");
+			Assert.IsFalse(book1.HasChanges, "Book 1 shouldn't have changes");
+			Assert.IsFalse(book2.HasChanges, "Book 2 shouldn't have changes");
+		}
 	}
 }

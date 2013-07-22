@@ -9,6 +9,26 @@ namespace Watsonia.Data.Tests.Models
 {
 	public class Author
 	{
+		public virtual bool IsNew
+		{
+			get;
+			set;
+		}
+
+		private bool _hc;
+
+		public virtual bool HasChanges
+		{
+			get
+			{
+				return _hc;
+			}
+			set
+			{
+				_hc = value;
+			}
+		}
+
 		public virtual bool IsValid
 		{
 			get
