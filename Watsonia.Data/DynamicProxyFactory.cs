@@ -527,7 +527,7 @@ namespace Watsonia.Data
 			foreach (PropertyInfo property in database.Configuration.PropertiesToMap(parentType))
 			{
 				// Check whether the property is a related item
-				if (database.Configuration.ShouldMapType(property.PropertyType))
+				if (database.Configuration.ShouldMapTypeInternal(property.PropertyType))
 				{
 					// Just store this in a list for now.  It will need to be created after we know which associated ID properties
 					// we need to override and which ones we need to create

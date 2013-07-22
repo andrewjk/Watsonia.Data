@@ -2,8 +2,6 @@
 
 Allow properties to be abstract as well as virtual (specifically for IsValid and ValidationErrors)?
 Undo and redo functionality
-Separate out the mandatory ShouldMapProperty functionality from the overridable
-	E.g. properties MUST be virtual and collections MUST be an interface but the user may want to filter further
 Have better error messages
 	When a standard overridden property is of the wrong type or access e.g. if HasChanges only has a getter
 	When calling Select.And without Select.Where
@@ -21,6 +19,11 @@ Build the assembly as a PCL
 Put it up on NuGet
 Have a poke through the generated assembly to see where things can be improved
 More XML commenting throughout
+Handle lists better
+	I.e. if the virtual property is a concrete list type, create that type in the overridden property
+	If it's an interface, create an ObservableCollection
+Should primary key columns be nullable?  New items could have their ID set to null and we could get rid of GetPrimaryKeyNewItemValue
+
 
 THINGS THAT WOULD BE AWESOME:
 

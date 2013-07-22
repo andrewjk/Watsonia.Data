@@ -459,7 +459,7 @@ namespace Watsonia.Data
 				IDynamicProxy relatedItem = (IDynamicProxy)property.GetValue(item, null);
 				if (relatedItem != null)
 				{
-					if (this.Database.Configuration.ShouldCascade(property))
+					if (this.Database.Configuration.ShouldCascadeInternal(property))
 					{
 						ValidateItem((IDynamicProxy)property.GetValue(item, null));
 					}

@@ -865,7 +865,7 @@ namespace Watsonia.Data
 				IDynamicProxy relatedItem = (IDynamicProxy)property.GetValue(proxy, null);
 				if (relatedItem != null)
 				{
-					if (this.Configuration.ShouldCascade(property))
+					if (this.Configuration.ShouldCascadeInternal(property))
 					{
 						SaveItem(relatedItem, connection, transaction);
 
@@ -1255,7 +1255,7 @@ namespace Watsonia.Data
 			// TODO: Pipe everything through the same area; this, linq, etc
 			foreach (PropertyInfo sourceProperty in this.Configuration.PropertiesToMap(source.GetType()))
 			{
-				if (this.Configuration.ShouldMapType(sourceProperty.PropertyType))
+				if (this.Configuration.ShouldMapTypeInternal(sourceProperty.PropertyType))
 				{
 					string destPropertyName = this.Configuration.GetForeignKeyColumnName(sourceProperty);
 					PropertyInfo destProperty = destination.GetType().GetProperty(destPropertyName);

@@ -245,7 +245,7 @@ namespace Watsonia.Data
 		/// </returns>
 		public bool IsRelatedItem(PropertyInfo property)
 		{
-			return (!property.PropertyType.IsValueType && ShouldMapType(property.PropertyType));
+			return (!property.PropertyType.IsValueType && ShouldMapTypeInternal(property.PropertyType));
 		}
 
 		/// <summary>
@@ -290,7 +290,7 @@ namespace Watsonia.Data
 			if (collectionType != null)
 			{
 				Type genericArgumentType = collectionType.GetGenericArguments()[0];
-				if (genericArgumentType != null && ShouldMapType(genericArgumentType))
+				if (genericArgumentType != null && ShouldMapTypeInternal(genericArgumentType))
 				{
 					itemType = genericArgumentType;
 					return true;
@@ -305,14 +305,28 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="type">The type.</param>
 		/// <returns></returns>
+		internal bool ShouldMapTypeInternal(Type type)
+		{
+			// Only map classes and don't map the database or configuration
+			if (!type.IsClass ||
+				typeof(Database).IsAssignableFrom(type) ||
+				typeof(DatabaseConfiguration).IsAssignableFrom(type))
+			{
+				return false;
+			}
+
+			// Let the user specify what we should map
+			return ShouldMapType(type);
+		}
+
+		/// <summary>
+		/// Determines whether the class with the supplied type should be mapped to the database.
+		/// </summary>
+		/// <param name="type">The type.</param>
+		/// <returns></returns>
 		public virtual bool ShouldMapType(Type type)
 		{
-			return (
-				type.IsClass &&
-				!type.IsNested &&
-				type.Namespace == this.EntityNamespace &&
-				!typeof(Database).IsAssignableFrom(type) &&
-				!typeof(DatabaseConfiguration).IsAssignableFrom(type));
+			return (type.Namespace == this.EntityNamespace);
 		}
 
 		/// <summary>
@@ -324,7 +338,7 @@ namespace Watsonia.Data
 		{
 			foreach (Type type in assembly.GetTypes())
 			{
-				if (this.ShouldMapType(type))
+				if (this.ShouldMapTypeInternal(type))
 				{
 					yield return type;
 				}
@@ -336,7 +350,7 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="property">The property.</param>
 		/// <returns></returns>
-		public virtual bool ShouldMapProperty(PropertyInfo property)
+		internal bool ShouldMapPropertyInternal(PropertyInfo property)
 		{
 			// Don't map the properties that we add to the proxy
 			if (property.Name == "StateTracker" ||
@@ -349,12 +363,27 @@ namespace Watsonia.Data
 			}
 
 			// Only map the property if it's readable, writeable, public and virtual
-			return (
-				property.CanRead &&
-				property.CanWrite &&
-				property.GetGetMethod().IsPublic &&
-				property.GetSetMethod().IsPublic &&
-				property.GetGetMethod().IsVirtual);
+			if (!property.CanRead ||
+				!property.CanWrite ||
+				!property.GetGetMethod().IsPublic ||
+				!property.GetSetMethod().IsPublic ||
+				!property.GetGetMethod().IsVirtual)
+			{
+				return false;
+			}
+
+			// Let the user specify what we should map
+			return ShouldMapProperty(property);
+		}
+
+				/// <summary>
+		/// Determines whether the supplied property should be mapped to the database.
+		/// </summary>
+		/// <param name="property">The property.</param>
+		/// <returns></returns>
+		internal bool ShouldMapProperty(PropertyInfo property)
+		{
+			return true;
 		}
 
 		/// <summary>
@@ -367,7 +396,7 @@ namespace Watsonia.Data
 			BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 			foreach (PropertyInfo property in type.GetProperties(flags))
 			{
-				if (this.ShouldMapProperty(property))
+				if (this.ShouldMapPropertyInternal(property))
 				{
 					yield return property;
 				}
@@ -379,9 +408,9 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="property">The property.</param>
 		/// <returns></returns>
-		public virtual bool ShouldLoadAndSaveProperty(PropertyInfo property)
+		public bool ShouldLoadAndSaveProperty(PropertyInfo property)
 		{
-			if (!ShouldMapProperty(property))
+			if (!ShouldMapPropertyInternal(property))
 			{
 				return false;
 			}
@@ -432,7 +461,7 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="property">The property.</param>
 		/// <returns></returns>
-		public virtual bool ShouldCascade(PropertyInfo property)
+		internal bool ShouldCascadeInternal(PropertyInfo property)
 		{
 			if (property.PropertyType.IsValueType)
 			{
@@ -440,6 +469,17 @@ namespace Watsonia.Data
 				return false;
 			}
 
+			// Let the user specify what we should cascade
+			return ShouldCascade(property);
+		}
+
+		/// <summary>
+		/// Determines whether the value in the supplied property should be saved with its parent object.
+		/// </summary>
+		/// <param name="property">The property.</param>
+		/// <returns></returns>
+		public bool ShouldCascade(PropertyInfo property)
+		{
 			if (IsRelatedItem(property))
 			{
 				// It's an object linked with a foreign key so it shouldn't be cascaded
@@ -449,6 +489,13 @@ namespace Watsonia.Data
 			if (IsRelatedCollection(property))
 			{
 				// It's a related collection so changes to the item should be cascaded
+				return true;
+			}
+
+			// If it has a Cascade attribute then it should be cascaded
+			CascadeAttribute cascade = GetCustomAttribute<CascadeAttribute>(property);
+			if (cascade != null && cascade.ShouldCascade)
+			{
 				return true;
 			}
 
@@ -466,7 +513,7 @@ namespace Watsonia.Data
 			BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 			foreach (PropertyInfo property in type.GetProperties(flags))
 			{
-				if (this.ShouldCascade(property))
+				if (this.ShouldCascadeInternal(property))
 				{
 					yield return property;
 				}
