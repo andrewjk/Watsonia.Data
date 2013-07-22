@@ -21,7 +21,7 @@ namespace Watsonia.Data.Tests.Models
 		}
 
 		[Cascade]
-		public virtual ICollection<SubChil> SubChils
+		public virtual List<SubChil> SubChils
 		{
 			get;
 			set;

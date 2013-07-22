@@ -3,7 +3,9 @@
 Allow properties to be abstract as well as virtual (specifically for IsValid and ValidationErrors)?
 Undo and redo functionality
 Have better error messages
-	When a standard overridden property is of the wrong type or access e.g. if HasChanges only has a getter
+	When a standard overridden property is of the wrong type e.g. if HasChanges is a string
+	When a standard overridden property has the wrong access type e.g. if HasChanges only has a getter
+	When an oddball collection is used (one that doesn't take an IList<T> in a constructor)
 	When calling Select.And without Select.Where
 Test using Guids for IDs
 Add async support
@@ -19,9 +21,6 @@ Build the assembly as a PCL
 Put it up on NuGet
 Have a poke through the generated assembly to see where things can be improved
 More XML commenting throughout
-Handle lists better
-	I.e. if the virtual property is a concrete list type, create that type in the overridden property
-	If it's an interface, create an ObservableCollection
 Should primary key columns be nullable?  New items could have their ID set to null and we could get rid of GetPrimaryKeyNewItemValue
 
 

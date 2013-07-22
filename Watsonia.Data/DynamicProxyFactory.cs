@@ -1002,7 +1002,7 @@ namespace Watsonia.Data
 			MethodInfo loadCollectionMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"LoadCollection", new Type[] { typeof(string) }).MakeGenericMethod(enumeratedType);
 
-			LocalBuilder list = gen.DeclareLocal(typeof(ICollection<>).MakeGenericType(enumeratedType));
+			LocalBuilder list = gen.DeclareLocal(typeof(IList<>).MakeGenericType(enumeratedType));
 			LocalBuilder flag = gen.DeclareLocal(typeof(bool));
 
 			Label endIfLabel = gen.DefineLabel();
@@ -1025,6 +1025,20 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
 			gen.Emit(OpCodes.Ldstr, property.Name);
 			gen.Emit(OpCodes.Callvirt, loadCollectionMethod);
+
+			// If the property isn't an interface (e.g. it's a List<T>) then we need to try and instantiate
+			// an instance and hope that it has a constructor that takes an IList<T>
+			// TODO: Should probably throw an exception if it doesn't
+			if (!property.PropertyType.IsInterface)
+			{
+				ConstructorInfo listConstructor = property.PropertyType.GetConstructor(
+					BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+					null,
+					new Type[] { typeof(IList<>).MakeGenericType(enumeratedType) },
+					null);
+				gen.Emit(OpCodes.Newobj, listConstructor);
+			}
+
 			gen.Emit(OpCodes.Call, property.GetSetMethod());
 
 			gen.MarkLabel(endIfLabel);

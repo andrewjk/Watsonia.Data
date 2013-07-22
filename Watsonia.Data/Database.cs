@@ -535,7 +535,9 @@ namespace Watsonia.Data
 				PropertyInfo childParentIDProperty = itemProxyType.GetProperty(foreignKeyColumnName);
 				foreach (IDynamicProxy parent in parentCollection)
 				{
-					var children = (IList)Activator.CreateInstance(typeof(ObservableCollection<>).MakeGenericType(itemType));
+					var children = propertyToLoad.PropertyType.IsInterface ?
+						(IList)Activator.CreateInstance(typeof(ObservableCollection<>).MakeGenericType(itemType)) :
+						(IList)Activator.CreateInstance(propertyToLoad.PropertyType);
 					foreach (object child in childCollection)
 					{
 						object parentID = child.GetType().GetProperty(foreignKeyColumnName).GetValue(child);

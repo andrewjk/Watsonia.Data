@@ -225,6 +225,7 @@ namespace Watsonia.Data.Tests
 			Author author = db.Create<Author>();
 			author.FirstName = "Ernest";
 			author.LastName = "Hemingway";
+			author.Rating = 95;
 
 			Book book1 = db.Create<Book>();
 			book1.Title = "The Sun Also Rises";
