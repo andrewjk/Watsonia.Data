@@ -59,30 +59,32 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DocumentationTests.cs" />
-    <Compile Include="Models\Address.cs" />
-    <Compile Include="Models\Author.cs" />
-    <Compile Include="Models\Book.cs" />
-    <Compile Include="Models\Bung.cs" />
-    <Compile Include="Models\CardinalDirection.cs" />
-    <Compile Include="Models\Chil.cs" />
-    <Compile Include="Models\Coll.cs" />
-    <Compile Include="Models\Crud.cs" />
-    <Compile Include="Models\Agg.cs" />
-    <Compile Include="Models\Def.cs" />
-    <Compile Include="Models\Entity.cs" />
-    <Compile Include="Models\Link.cs" />
-    <Compile Include="Models\Order.cs" />
-    <Compile Include="Models\Customer.cs" />
+    <Compile Include="DatabaseModels\Address.cs" />
+    <Compile Include="DocumentationModels\Author.cs" />
+    <Compile Include="DocumentationModels\Book.cs" />
+    <Compile Include="DatabaseModels\Bung.cs" />
+    <Compile Include="DatabaseModels\CardinalDirection.cs" />
+    <Compile Include="DatabaseModels\Chil.cs" />
+    <Compile Include="DatabaseModels\Coll.cs" />
+    <Compile Include="DatabaseModels\Crud.cs" />
+    <Compile Include="DatabaseModels\Agg.cs" />
+    <Compile Include="DatabaseModels\Def.cs" />
+    <Compile Include="DatabaseModels\Entity.cs" />
+    <Compile Include="DatabaseModels\Link.cs" />
+    <Compile Include="DatabaseModels\Order.cs" />
+    <Compile Include="DatabaseModels\Customer.cs" />
     <Compile Include="DatabaseTests.cs" />
     <Compile Include="DynamicProxyTests.cs" />
-    <Compile Include="Models\Par.cs" />
-    <Compile Include="Models\SubChil.cs" />
-    <Compile Include="NorthwindDatabase.cs" />
+    <Compile Include="DatabaseModels\Par.cs" />
+    <Compile Include="DatabaseModels\SubChil.cs" />
+    <Compile Include="Northwind\NorthwindDatabase.cs" />
     <Compile Include="Northwind\Customer.cs" />
-    <Compile Include="NorthwindConfiguration.cs" />
+    <Compile Include="Northwind\NorthwindConfiguration.cs" />
     <Compile Include="Northwind\Order.cs" />
     <Compile Include="Northwind\OrderDetail.cs" />
     <Compile Include="Northwind\Product.cs" />
+    <Compile Include="PerformanceModels\Post.cs" />
+    <Compile Include="PerformanceTests.cs" />
     <Compile Include="PluralizeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryExecutionTests.cs" />
@@ -117,6 +119,7 @@
   <ItemGroup>
     <None Include="Watsonia.snk" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -15,11 +16,14 @@ namespace Watsonia.Data
 	public class DynamicProxyStateTracker
 	{
 		private int? _oldHashCode;
+		private readonly Dictionary<string, object> _originalValues = new Dictionary<string, object>();
 		private readonly List<string> _changedFields = new List<string>();
 		private readonly List<string> _loadedCollections = new List<string>();
 		private readonly Dictionary<string, List<object>> _savedCollectionIDs = new Dictionary<string, List<object>>();
 		private readonly List<string> _loadedItems = new List<string>();
 		private readonly List<ValidationError> _errors = new List<ValidationError>();
+		private readonly Stack<DataChange> _undoStack = new Stack<DataChange>();
+		private readonly Stack<DataChange> _redoStack = new Stack<DataChange>();
 
 		/// <summary>
 		/// Gets or sets the database.
@@ -67,6 +71,20 @@ namespace Watsonia.Data
 		{
 			get;
 			set;
+		}
+
+		/// <summary>
+		/// Gets the original values of the item, which correspond to the values stored in the database.
+		/// </summary>
+		/// <value>
+		/// The original values.
+		/// </value>
+		public Dictionary<string, object> OriginalValues
+		{
+			get
+			{
+				return _originalValues;
+			}
 		}
 
 		/// <summary>
@@ -166,6 +184,22 @@ namespace Watsonia.Data
 			}
 		}
 
+		private Stack<DataChange> UndoStack
+		{
+			get
+			{
+				return _undoStack;
+			}
+		}
+
+		private Stack<DataChange> RedoStack
+		{
+			get
+			{
+				return _redoStack;
+			}
+		}
+
 		/// <summary>
 		/// Gets or sets an action to call when a property's value is changing.
 		/// </summary>
@@ -207,8 +241,9 @@ namespace Watsonia.Data
 		{
 			if (this.Item.IsNew)
 			{
-				SetCollection(propertyName, new List<object>());
-				return new ObservableCollection<T>();
+				IList<T> collection = new ObservableCollection<T>();
+				SetCollection(propertyName, (IList)collection);
+				return collection;
 			}
 			else
 			{
@@ -234,7 +269,7 @@ namespace Watsonia.Data
 
 			if (collection.Count > 0)
 			{
-				// TODO: Less reflection!  Less casting!
+				// TODO: Less reflection!  Less casting!  Less looping!
 				foreach (PropertyInfo property in collection[0].GetType().GetProperties())
 				{
 					if (property.PropertyType.IsAssignableFrom(this.Item.GetType()) &&
@@ -248,6 +283,25 @@ namespace Watsonia.Data
 						}
 					}
 				}
+			}
+
+			if (typeof(INotifyCollectionChanged).IsAssignableFrom(collection.GetType()))
+			{
+				INotifyCollectionChanged notifyingCollection = (INotifyCollectionChanged)collection;
+				notifyingCollection.CollectionChanged += (sender, e) =>
+					{
+						if (!this.IsLoading)
+						{
+							if (e.Action == NotifyCollectionChangedAction.Add)
+							{
+								this.UndoStack.Push(new DataChange(ChangeType.CollectionAdd, this.Item, propertyName, null, e.NewItems[0], this.Item.HasChanges));
+							}
+							else if (e.Action == NotifyCollectionChangedAction.Remove)
+							{
+								this.UndoStack.Push(new DataChange(ChangeType.CollectionRemove, this.Item, propertyName, e.OldItems[0], null, this.Item.HasChanges));
+							}
+						}
+					};
 			}
 
 			this.SavedCollectionIDs.Add(propertyName, new List<object>());
@@ -318,15 +372,20 @@ namespace Watsonia.Data
 					onChanging(newValue);
 				}
 				this.OnPropertyChanging(propertyName);
+				T oldValue = propertyValueField;
 				propertyValueField = newValue;
 				if (onChanged != null)
 				{
 					onChanged();
 				}
 				this.OnPropertyChanged(propertyName);
-				if (!this.IsLoading && !this.ChangedFields.Contains(propertyName))
+				if (!this.IsLoading)
 				{
-					this.ChangedFields.Add(propertyName);
+					if (!this.ChangedFields.Contains(propertyName))
+					{
+						this.ChangedFields.Add(propertyName);
+					}
+					this.UndoStack.Push(new DataChange(ChangeType.PropertyValue, this.Item, propertyName, oldValue, newValue, this.Item.HasChanges));
 				}
 				this.Item.HasChanges = true;
 			}
@@ -360,9 +419,13 @@ namespace Watsonia.Data
 					onChanged();
 				}
 				this.OnPropertyChanged(propertyName);
-				if (!this.IsLoading && !this.ChangedFields.Contains(propertyName))
+				if (!this.IsLoading)
 				{
-					this.ChangedFields.Add(propertyName);
+					if (!this.ChangedFields.Contains(propertyName))
+					{
+						this.ChangedFields.Add(propertyName);
+					}
+					this.UndoStack.Push(new DataChange(ChangeType.PropertyValue, this.Item, propertyName, oldValue, newValue, this.Item.HasChanges));
 				}
 				this.Item.HasChanges = true;
 			}
@@ -415,7 +478,10 @@ namespace Watsonia.Data
 		{
 			this.ValidateAllFields = true;
 			this.ValidationErrors.Clear();
-			ValidateItem(this.Item);
+			foreach (IDynamicProxy item in RecurseRelatedItems(this.Item))
+			{
+				ValidateItem(item);
+			}
 			return (this.ValidationErrors.Count == 0);
 		}
 
@@ -437,32 +503,6 @@ namespace Watsonia.Data
 					string propertyName = string.Join(", ", error.MemberNames);
 					ValidationError newError = new ValidationError(itemName, propertyName, "Error", error.ErrorMessage);
 					this.ValidationErrors.Add(newError);
-				}
-			}
-
-			// Validate the item's loaded collections
-			foreach (string collectionPropertyName in item.StateTracker.LoadedCollections)
-			{
-				PropertyInfo property = item.GetType().GetProperty(collectionPropertyName,
-					BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-				foreach (var child in (IList)property.GetValue(item, null))
-				{
-					ValidateItem((IDynamicProxy)child);
-				}
-			}
-
-			// Validate the item's loaded items
-			foreach (string itemPropertyName in item.StateTracker.LoadedItems)
-			{
-				PropertyInfo property = item.GetType().GetProperty(itemPropertyName,
-					BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-				IDynamicProxy relatedItem = (IDynamicProxy)property.GetValue(item, null);
-				if (relatedItem != null)
-				{
-					if (this.Database.Configuration.ShouldCascadeInternal(property))
-					{
-						ValidateItem((IDynamicProxy)property.GetValue(item, null));
-					}
 				}
 			}
 		}
@@ -565,6 +605,92 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Determines whether this item has changes that can be undone.
+		/// </summary>
+		/// <returns>
+		///   <c>true</c> if this instance has changes that can be undone; otherwise, <c>false</c>.
+		/// </returns>
+		public bool CanUndo()
+		{
+			return RecurseRelatedItems(this.Item).Any(i => i.StateTracker.UndoStack.Count > 0);
+		}
+
+		/// <summary>
+		/// Builds the queue of changes that can be undone, with the most recent first.
+		/// </summary>
+		/// <returns></returns>
+		public IList<DataChange> BuildUndoQueue()
+		{
+			List<DataChange> queue = new List<DataChange>();
+			foreach (var item in RecurseRelatedItems(this.Item))
+			{
+				queue.AddRange(item.StateTracker.UndoStack.ToList());
+			}
+			queue.Sort();
+			return queue;
+		}
+
+		/// <summary>
+		/// Undoes the last change.
+		/// </summary>
+		public void Undo()
+		{
+			// We can't know which is the most recent undo operation until we've built and sorted the
+			// whole lot
+			IList<DataChange> allChanges = BuildUndoQueue();
+			if (allChanges.Count > 0)
+			{
+				DataChange change = allChanges[0];
+				change.Proxy.StateTracker.UndoStack.Pop();
+				change.Proxy.StateTracker.RedoStack.Push(change);
+				change.Undo();
+			}
+		}
+
+		/// <summary>
+		/// Determines whether this item has changes that can be redone.
+		/// </summary>
+		/// <returns>
+		///   <c>true</c> if this instance has changes that can be redone; otherwise, <c>false</c>.
+		/// </returns>
+		public bool CanRedo()
+		{
+			return RecurseRelatedItems(this.Item).Any(i => i.StateTracker.RedoStack.Count > 0);
+		}
+
+		/// <summary>
+		/// Builds the queue of changes that can be redone, with the most recent first.
+		/// </summary>
+		/// <returns></returns>
+		public IList<DataChange> BuildRedoQueue()
+		{
+			List<DataChange> queue = new List<DataChange>();
+			foreach (var item in RecurseRelatedItems(this.Item))
+			{
+				queue.AddRange(item.StateTracker.RedoStack.ToList());
+			}
+			queue.Sort();
+			return queue;
+		}
+
+		/// <summary>
+		/// Redoes the last undone change.
+		/// </summary>
+		public void Redo()
+		{
+			// We can't know which is the most recent undo operation until we've built and sorted the
+			// whole lot
+			IList<DataChange> allChanges = BuildRedoQueue();
+			if (allChanges.Count > 0)
+			{
+				DataChange change = allChanges[0];
+				change.Proxy.StateTracker.RedoStack.Pop();
+				change.Proxy.StateTracker.UndoStack.Push(change);
+				change.Redo();
+			}
+		}
+
+		/// <summary>
 		/// Gets the item hash code.
 		/// </summary>
 		/// <returns></returns>
@@ -623,6 +749,37 @@ namespace Watsonia.Data
 			else
 			{
 				return false;
+			}
+		}
+
+		private IEnumerable<IDynamicProxy> RecurseRelatedItems(IDynamicProxy item)
+		{
+			yield return item;
+
+			// Recurse through loaded collections
+			foreach (string collectionPropertyName in item.StateTracker.LoadedCollections)
+			{
+				PropertyInfo property = item.GetType().GetProperty(collectionPropertyName,
+					BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+				foreach (var child in (IList)property.GetValue(item, null))
+				{
+					yield return (IDynamicProxy)child;
+				}
+			}
+
+			// Recurse through loaded items
+			foreach (string itemPropertyName in item.StateTracker.LoadedItems)
+			{
+				PropertyInfo property = item.GetType().GetProperty(itemPropertyName,
+					BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+				IDynamicProxy relatedItem = (IDynamicProxy)property.GetValue(item, null);
+				if (relatedItem != null)
+				{
+					if (this.Database.Configuration.ShouldCascadeInternal(property))
+					{
+						yield return (IDynamicProxy)property.GetValue(item, null);
+					}
+				}
 			}
 		}
 	}

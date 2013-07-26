@@ -2,14 +2,14 @@
 using System.ComponentModel;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Watsonia.Data.Tests.Models;
+using Watsonia.Data.Tests.DatabaseModels;
 
 namespace Watsonia.Data.Tests
 {
 	[TestClass]
 	public class DynamicProxyTests
 	{
-		private static Database db = new Database("", "Watsonia.Data.Tests.Models");
+		private static Database db = new Database("", "Watsonia.Data.Tests.DatabaseModels");
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)

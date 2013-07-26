@@ -114,8 +114,17 @@ namespace Watsonia.Data
 
 			// Add some methods
 			CreateSetValuesFromReaderMethod(type, members);
-			CreateGetHashCodeMethod(type, members);
-			CreateEqualsMethod(type, members);
+
+			CreateMethodToCallStateTrackerMethod(type, "CanUndo", "CanUndo", typeof(bool), Type.EmptyTypes, members);
+			CreateMethodToCallStateTrackerMethod(type, "BuildUndoQueue", "BuildUndoQueue", typeof(IList<>).MakeGenericType(typeof(DataChange)), Type.EmptyTypes, members);
+			CreateMethodToCallStateTrackerMethod(type, "Undo", "Undo", null, Type.EmptyTypes, members);
+
+			CreateMethodToCallStateTrackerMethod(type, "CanRedo", "CanRedo", typeof(bool), Type.EmptyTypes, members);
+			CreateMethodToCallStateTrackerMethod(type, "BuildRedoQueue", "BuildRedoQueue", typeof(IList<>).MakeGenericType(typeof(DataChange)), Type.EmptyTypes, members);
+			CreateMethodToCallStateTrackerMethod(type, "Redo", "Redo", null, Type.EmptyTypes, members);
+
+			CreateMethodToCallStateTrackerMethod(type, "GetHashCode", "GetItemHashCode", typeof(int), Type.EmptyTypes, members);
+			CreateMethodToCallStateTrackerMethod(type, "Equals", "ItemEquals", typeof(bool), new Type[] { typeof(object) }, members);
 
 			// You'd think it would be easy to override the == and != operators by defining static op_Equality
 			// and op_Inequality methods but you'd be wrong.  Apparently C# resolves operator calls at compile
@@ -596,10 +605,10 @@ namespace Watsonia.Data
 			PropertyInfo validationErrorsProperty = parentType.GetProperty("ValidationErrors", flags);
 			if (validationErrorsProperty != null)
 			{
-				if (validationErrorsProperty.PropertyType != typeof(List<ValidationError>))
+				if (validationErrorsProperty.PropertyType != typeof(IList<ValidationError>))
 				{
 					throw new InvalidOperationException(
-						string.Format("The ValidationErrors property on {0} must be of type {1}", parentType.FullName, "List<ValidationError>"));
+						string.Format("The ValidationErrors property on {0} must be of type {1}", parentType.FullName, "IList<ValidationError>"));
 				}
 			}
 			CreateValidationErrorsProperty(type, members);
@@ -617,7 +626,7 @@ namespace Watsonia.Data
 				{
 					// If the ID property doesn't exist, create it
 					string relatedItemIDPropertyName = database.Configuration.GetForeignKeyColumnName(parentType, parent);
-					if (!members.GetRelatedItemIDMethods.ContainsKey(relatedItemIDPropertyName))
+					if (!members.GetPropertyMethods.ContainsKey(relatedItemIDPropertyName))
 					{
 						Type primaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(parent);
 						CreateFieldProperty(type, parentType, relatedItemIDPropertyName, typeof(Nullable<>).MakeGenericType(primaryKeyColumnType), members, database);
@@ -664,13 +673,6 @@ namespace Watsonia.Data
 				members.SetPrimaryKeyMethod = setMethod;
 
 				return;
-			}
-
-			// Check whether it's the ID of a related item
-			if (database.Configuration.IsRelatedItemID(property))
-			{
-				members.GetRelatedItemIDMethods.Add(property.Name, getMethod);
-				members.SetRelatedItemIDMethods.Add(property.Name, setMethod);
 			}
 		}
 
@@ -1270,13 +1272,17 @@ namespace Watsonia.Data
 		{
 			// If the ID property doesn't exist, create it
 			string relatedItemIDPropertyName = database.Configuration.GetForeignKeyColumnName(property);
-			if (!members.GetRelatedItemIDMethods.ContainsKey(relatedItemIDPropertyName))
+			if (!members.GetPropertyMethods.ContainsKey(relatedItemIDPropertyName))
 			{
 				Type primaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(property.PropertyType);
-				CreateFieldProperty(type, property.DeclaringType, relatedItemIDPropertyName, typeof(Nullable<>).MakeGenericType(primaryKeyColumnType), members, database);
+				if (primaryKeyColumnType.IsValueType)
+				{
+					primaryKeyColumnType = typeof(Nullable<>).MakeGenericType(primaryKeyColumnType);
+				}
+				CreateFieldProperty(type, property.DeclaringType, relatedItemIDPropertyName, primaryKeyColumnType, members, database);
 			}
 
-			if (!members.SetRelatedItemIDMethods.ContainsKey(relatedItemIDPropertyName))
+			if (!members.SetPropertyMethods.ContainsKey(relatedItemIDPropertyName))
 			{
 				// TODO: more informative message
 				throw new InvalidOperationException();
@@ -1307,19 +1313,18 @@ namespace Watsonia.Data
 			ILGenerator gen = method.GetILGenerator();
 
 			Type primaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(property.PropertyType);
-
-			MethodInfo getNullableHasValueMethod = typeof(Nullable<>).MakeGenericType(primaryKeyColumnType).GetMethod(
-				"get_HasValue", Type.EmptyTypes);
-
-			MethodInfo getNullableValueMethod = typeof(Nullable<>).MakeGenericType(primaryKeyColumnType).GetMethod(
-				"get_Value", Type.EmptyTypes);
+			bool primaryKeyColumnIsValueType = primaryKeyColumnType.IsValueType;
+			if (primaryKeyColumnIsValueType)
+			{
+				primaryKeyColumnType = typeof(Nullable<>).MakeGenericType(primaryKeyColumnType);
+			}
 
 			// TODO: Cannot change that LoadItem to take an object parameter, it just won't work
 			MethodInfo loadItemMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"LoadItem", new Type[] { typeof(long), typeof(string) }).MakeGenericMethod(property.PropertyType);
 
 			LocalBuilder item = gen.DeclareLocal(property.PropertyType);
-			LocalBuilder itemID = gen.DeclareLocal(typeof(Nullable<>).MakeGenericType(primaryKeyColumnType));
+			LocalBuilder itemID = gen.DeclareLocal(primaryKeyColumnType);
 			LocalBuilder flag = gen.DeclareLocal(typeof(bool));
 
 			Label label28 = gen.DefineLabel();
@@ -1334,11 +1339,22 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Call, property.GetGetMethod());
 			gen.Emit(OpCodes.Brtrue_S, label28);
 			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.GetRelatedItemIDMethods[relatedItemIDPropertyName]);
-			gen.Emit(OpCodes.Stloc_1);
-			gen.Emit(OpCodes.Ldloca_S, 1);
-			gen.Emit(OpCodes.Call, getNullableHasValueMethod);
-			gen.Emit(OpCodes.Ldc_I4_0);
+			gen.Emit(OpCodes.Call, members.GetPropertyMethods[relatedItemIDPropertyName]);
+
+			if (primaryKeyColumnIsValueType)
+			{
+				MethodInfo getNullableHasValueMethod = primaryKeyColumnType.GetMethod(
+					"get_HasValue", Type.EmptyTypes);
+				gen.Emit(OpCodes.Stloc_1);
+				gen.Emit(OpCodes.Ldloca_S, 1);
+				gen.Emit(OpCodes.Call, getNullableHasValueMethod);
+				gen.Emit(OpCodes.Ldc_I4_0);
+			}
+			else
+			{
+				gen.Emit(OpCodes.Ldnull);
+			}
+
 			gen.Emit(OpCodes.Ceq);
 			gen.Emit(OpCodes.Br_S, label29);
 			gen.MarkLabel(label28);
@@ -1353,10 +1369,15 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
 			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.GetRelatedItemIDMethods[relatedItemIDPropertyName]);
+			gen.Emit(OpCodes.Call, members.GetPropertyMethods[relatedItemIDPropertyName]);
 			gen.Emit(OpCodes.Stloc_1);
-			gen.Emit(OpCodes.Ldloca_S, 1);
-			gen.Emit(OpCodes.Call, getNullableValueMethod);
+			if (primaryKeyColumnIsValueType)
+			{
+				MethodInfo getNullableValueMethod = primaryKeyColumnType.GetMethod(
+					"get_Value", Type.EmptyTypes);
+				gen.Emit(OpCodes.Ldloca_S, 1);
+				gen.Emit(OpCodes.Call, getNullableValueMethod);
+			}
 			gen.Emit(OpCodes.Ldstr, property.Name);
 			gen.Emit(OpCodes.Callvirt, loadItemMethod);
 			gen.Emit(OpCodes.Call, property.GetSetMethod());
@@ -1490,10 +1511,14 @@ namespace Watsonia.Data
 			ParameterBuilder value = method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			Type primaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(property.PropertyType);
+			if (primaryKeyColumnType.IsValueType)
+			{
+				primaryKeyColumnType = typeof(Nullable<>).MakeGenericType(primaryKeyColumnType);
+			}
 
 			LocalBuilder variableProxy = gen.DeclareLocal(typeof(IDynamicProxy));
 			LocalBuilder flag = gen.DeclareLocal(typeof(bool));
-			LocalBuilder itemID = gen.DeclareLocal(typeof(Nullable<>).MakeGenericType(primaryKeyColumnType));
+			LocalBuilder itemID = gen.DeclareLocal(primaryKeyColumnType);
 
 			string relatedItemIDPropertyName = database.Configuration.GetForeignKeyColumnName(property);
 
@@ -1546,9 +1571,9 @@ namespace Watsonia.Data
 
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Ldloca_S, 2);
-			gen.Emit(OpCodes.Initobj, typeof(Nullable<long>));
+			gen.Emit(OpCodes.Initobj, primaryKeyColumnType);
 			gen.Emit(OpCodes.Ldloc_2);
-			gen.Emit(OpCodes.Call, members.SetRelatedItemIDMethods[relatedItemIDPropertyName]);
+			gen.Emit(OpCodes.Call, members.SetPropertyMethods[relatedItemIDPropertyName]);
 
 			gen.MarkLabel(label88);
 
@@ -1570,9 +1595,6 @@ namespace Watsonia.Data
 			MethodInfo getPrimaryKeyValueMethod = typeof(IDynamicProxy).GetMethod(
 				"get_PrimaryKeyValue", Type.EmptyTypes);
 
-			ConstructorInfo newNullableID = typeof(Nullable<>).MakeGenericType(primaryKeyColumnType).GetConstructor(
-				new Type[] { primaryKeyColumnType });
-
 			ILGenerator gen = method.GetILGenerator();
 
 			ParameterBuilder value = method.DefineParameter(1, ParameterAttributes.None, "value");
@@ -1586,9 +1608,15 @@ namespace Watsonia.Data
 			if (primaryKeyColumnType.IsValueType)
 			{
 				gen.Emit(OpCodes.Unbox_Any, primaryKeyColumnType);
+				ConstructorInfo newNullableID = typeof(Nullable<>).MakeGenericType(primaryKeyColumnType).GetConstructor(
+					new Type[] { primaryKeyColumnType });
+				gen.Emit(OpCodes.Newobj, newNullableID);
 			}
-			gen.Emit(OpCodes.Newobj, newNullableID);
-			gen.Emit(OpCodes.Call, members.SetRelatedItemIDMethods[relatedItemIDPropertyName]);
+			else
+			{
+				gen.Emit(OpCodes.Castclass, primaryKeyColumnType);
+			}
+			gen.Emit(OpCodes.Call, members.SetPropertyMethods[relatedItemIDPropertyName]);
 
 			gen.Emit(OpCodes.Ret);
 
@@ -1874,13 +1902,13 @@ namespace Watsonia.Data
 			PropertyBuilder property = type.DefineProperty(
 				"ValidationErrors",
 				PropertyAttributes.None,
-				typeof(List<ValidationError>),
+				typeof(IList<ValidationError>),
 				null);
 
 			MethodBuilder getMethod = type.DefineMethod(
 				"get_ValidationErrors",
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
-				typeof(List<ValidationError>),
+				typeof(IList<ValidationError>),
 				Type.EmptyTypes);
 
 			MethodInfo getValidationErrorsMethod = typeof(DynamicProxyStateTracker).GetMethod("get_ValidationErrors");
@@ -1926,6 +1954,12 @@ namespace Watsonia.Data
 			MethodInfo changeTypeMethod = typeof(TypeHelper).GetMethod(
 				"ChangeType", new Type[] { typeof(Object), typeof(Type) });
 
+			MethodInfo stateTrackerGetOriginalValuesMethod = typeof(DynamicProxyStateTracker).GetMethod(
+				"get_OriginalValues", Type.EmptyTypes);
+
+		    MethodInfo dictionarySetItemMethod = typeof(Dictionary<,>).MakeGenericType(typeof(string), typeof(object)).GetMethod(
+				"set_Item", new Type[] { typeof(string), typeof(object) });
+
 			MethodInfo stateTrackerGetChangedFieldsMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"get_ChangedFields", Type.EmptyTypes);
 
@@ -1942,7 +1976,6 @@ namespace Watsonia.Data
 			LocalBuilder i = gen.DeclareLocal(typeof(int));
 			LocalBuilder fieldName = gen.DeclareLocal(typeof(string));
 
-			Label endIfIsNew = gen.DefineLabel();
 			Label endFieldLoop = gen.DefineLabel();
 			Label endSwitch = gen.DefineLabel();
 
@@ -1956,17 +1989,11 @@ namespace Watsonia.Data
 
 			Label startFieldLoop = gen.DefineLabel();
 
-			// if (!this.IsNew)
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.GetPropertyMethods["IsNew"]);
-			gen.Emit(OpCodes.Brtrue_S, endIfIsNew);
-
 			// this.StateTracker.IsLoading = true;
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
 			gen.Emit(OpCodes.Ldc_I4_1);
 			gen.Emit(OpCodes.Callvirt, stateTrackerIsLoadingMethod);
-			gen.MarkLabel(endIfIsNew);
 
 			gen.Emit(OpCodes.Ldc_I4_0);
 			gen.Emit(OpCodes.Stloc_0);
@@ -2015,6 +2042,19 @@ namespace Watsonia.Data
 				}
 				gen.Emit(OpCodes.Call, members.SetPropertyMethods[key]);
 
+				// this.StateTracker.OriginalValues["Property"] = this.Property;
+				gen.Emit(OpCodes.Ldarg_0);
+				gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
+				gen.Emit(OpCodes.Callvirt, stateTrackerGetOriginalValuesMethod);
+				gen.Emit(OpCodes.Ldstr, key);
+				gen.Emit(OpCodes.Ldarg_0);
+				gen.Emit(OpCodes.Callvirt, members.GetPropertyMethods[key]);
+				if (propertyType.IsValueType)
+				{
+					gen.Emit(OpCodes.Box, propertyType);
+				}
+				gen.Emit(OpCodes.Callvirt, dictionarySetItemMethod);
+
 				// this.StateTracker.ChangedFields.Remove("Property");
 				gen.Emit(OpCodes.Ldarg_0);
 				gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
@@ -2054,58 +2094,44 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ret);
 		}
 
-		private static void CreateGetHashCodeMethod(TypeBuilder type, DynamicProxyTypeMembers members)
+		private static void CreateMethodToCallStateTrackerMethod(TypeBuilder type, string methodName, string stateTrackerMethodName, Type methodReturnType, Type[] methodParameterTypes, DynamicProxyTypeMembers members)
 		{
 			MethodBuilder method = type.DefineMethod(
-				"GetHashCode",
+				methodName,
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
-				typeof(int),
-				Type.EmptyTypes);
+				methodReturnType,
+				methodParameterTypes);
 
-			MethodInfo getHashCodeForItemMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"GetItemHashCode", Type.EmptyTypes);
+			MethodInfo stateTrackerMethod = typeof(DynamicProxyStateTracker).GetMethod(
+				stateTrackerMethodName, methodParameterTypes);
 
 			ILGenerator gen = method.GetILGenerator();
 
-			LocalBuilder local = gen.DeclareLocal(typeof(int));
+			if (methodReturnType != null)
+			{
+				LocalBuilder local = gen.DeclareLocal(methodReturnType);
+			}
 			Label exitLabel = gen.DefineLabel();
 
-			// return this.StateTracker.GetHashCodeForItem();
+			// return this.StateTracker.Method(parameters);
+			// TODO: This isn't going to work with more than one parameter...
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-			gen.Emit(OpCodes.Callvirt, getHashCodeForItemMethod);
-			gen.Emit(OpCodes.Stloc_0);
+			if (methodParameterTypes.Length > 0)
+			{
+				gen.Emit(OpCodes.Ldarg_1);
+			}
+			gen.Emit(OpCodes.Callvirt, stateTrackerMethod);
+			if (methodReturnType != null)
+			{
+				gen.Emit(OpCodes.Stloc_0);
+			}
 			gen.Emit(OpCodes.Br_S, exitLabel);
 			gen.MarkLabel(exitLabel);
-			gen.Emit(OpCodes.Ldloc_0);
-			gen.Emit(OpCodes.Ret);
-		}
-
-		private static void CreateEqualsMethod(TypeBuilder type, DynamicProxyTypeMembers members)
-		{
-			MethodBuilder method = type.DefineMethod(
-				"Equals",
-				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
-				typeof(bool),
-				new Type[] { typeof(object) });
-
-			MethodInfo itemEqualsMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"ItemEquals", new Type[] { typeof(object) });
-
-			ILGenerator gen = method.GetILGenerator();
-
-			LocalBuilder local = gen.DeclareLocal(typeof(bool));
-			Label exitLabel = gen.DefineLabel();
-
-			// return this.StateTracker.ItemEquals(obj);
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-			gen.Emit(OpCodes.Ldarg_1);
-			gen.Emit(OpCodes.Callvirt, itemEqualsMethod);
-			gen.Emit(OpCodes.Stloc_0);
-			gen.Emit(OpCodes.Br_S, exitLabel);
-			gen.MarkLabel(exitLabel);
-			gen.Emit(OpCodes.Ldloc_0);
+			if (methodReturnType != null)
+			{
+				gen.Emit(OpCodes.Ldloc_0);
+			}
 			gen.Emit(OpCodes.Ret);
 		}
 

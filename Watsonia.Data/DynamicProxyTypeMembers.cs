@@ -72,22 +72,6 @@ namespace Watsonia.Data
 			}
 		}
 
-		public Dictionary<string, MethodBuilder> GetRelatedItemIDMethods
-		{
-			get
-			{
-				return _getRelatedItemIDMethods;
-			}
-		}
-
-		public Dictionary<string, MethodBuilder> SetRelatedItemIDMethods
-		{
-			get
-			{
-				return _setRelatedItemIDMethods;
-			}
-		}
-
 		public Dictionary<string, object> DefaultValues
 		{
 			get

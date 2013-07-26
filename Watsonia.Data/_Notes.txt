@@ -1,7 +1,8 @@
 ﻿THINGS TO WORK ON:
 
 Allow properties to be abstract as well as virtual (specifically for IsValid and ValidationErrors)?
-Undo and redo functionality
+	And change ValidationErrors to an IList
+Implement IEditableObject
 Have better error messages
 	When a standard overridden property is of the wrong type e.g. if HasChanges is a string
 	When a standard overridden property has the wrong access type e.g. if HasChanges only has a getter
@@ -12,19 +13,27 @@ Add async support
 Add an SQLite implementation
 Really have to tidy up the mess I've made of the LINQ stuff
 Fix up the documentation
+	Make a list of conventions
 Performance improvements!
 	Should we use the type-specific methods (GetInt32 etc) in SetValuesFromReader?
 	Should we have SetValue(propertyName) methods instead of using reflection?
-LoadedCollections and LoadedItems should actually be a collection of collections and items, rather than (or as well as) names
-	Should expose a yield method that recurses through the loaded children of an item
+LoadedCollections and LoadedItems should probably be a collection of collections and items, rather than names
 Build the assembly as a PCL
 Put it up on NuGet
 Have a poke through the generated assembly to see where things can be improved
 More XML commenting throughout
-Should primary key columns be nullable?  New items could have their ID set to null and we could get rid of GetPrimaryKeyNewItemValue
+
+Add many more extension points (MEF) so that people can make plugin assemblies
+
+Should primary key columns be nullable?  New items could have their ID set to null and we could get
+rid of GetPrimaryKeyNewItemValue
+
+Having methods defined on IDynamicProxy introduces the risk of clashes with base class names.  We should
+probably allow the user to set method names in DatabaseConfiguration that override base class methods
+and then we just create calls to the appropriate methods in DynamicProxyStateTracker
 
 
-THINGS THAT WOULD BE AWESOME:
+THINGS THAT WOULD BE AWESOME BUT TIME CONSUMING:
 
 Add a query result cache a la EntityFramework.Extended
 Add a second level cache

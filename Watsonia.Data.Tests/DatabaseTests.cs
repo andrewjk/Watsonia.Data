@@ -1,7 +1,7 @@
 ﻿using System.Data.SqlClient;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Watsonia.Data.Tests.Models;
+using Watsonia.Data.Tests.DatabaseModels;
 using System.Data.Common;
 using Watsonia.Data.SqlServer;
 using System.IO;
@@ -13,7 +13,7 @@ namespace Watsonia.Data.Tests
 	{
 		public const string ConnectionString = @"Data Source=Data\DatabaseTests.sdf;Persist Security Info=False";
 
-		private readonly static Database db = new Database(DatabaseTests.ConnectionString, "Watsonia.Data.Tests.Models");
+		private readonly static Database db = new Database(DatabaseTests.ConnectionString, "Watsonia.Data.Tests.DatabaseModels");
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)

@@ -13,6 +13,20 @@ namespace Watsonia.Data.SqlServer
 		protected IDataAccessProvider _dataAccessProvider;
 		protected DatabaseConfiguration _configuration;
 
+		private bool _clusterKeys = true;
+
+		protected virtual bool ClusterKeys
+		{
+			get
+			{
+				return _clusterKeys;
+			}
+			set
+			{
+				_clusterKeys = value;
+			}
+		}
+
 		public TSqlDatabaseUpdater(IDataAccessProvider dataAccessProvider, DatabaseConfiguration configuration)
 		{
 			_dataAccessProvider = dataAccessProvider;
@@ -219,7 +233,7 @@ namespace Watsonia.Data.SqlServer
 				b.AppendLine();
 				b.Append(string.Join(", ", Array.ConvertAll(table.Columns.ToArray(), c => ColumnText(table, c, true, true))));
 				b.AppendLine(",");
-				b.AppendFormat("CONSTRAINT [{0}] PRIMARY KEY CLUSTERED ([{1}] ASC)", table.PrimaryKeyConstraintName, table.PrimaryKeyColumnName);
+				b.AppendFormat("CONSTRAINT [{0}] PRIMARY KEY {1} ([{2}] ASC)", table.PrimaryKeyConstraintName, (this.ClusterKeys ? "CLUSTERED" : ""), table.PrimaryKeyColumnName);
 				b.AppendLine();
 				b.Append(")");
 				command.CommandText = b.ToString();
@@ -421,7 +435,7 @@ namespace Watsonia.Data.SqlServer
 					// If the column is the primary key, add that constraint back now
 					if (column.IsPrimaryKey)
 					{
-						command.CommandText = string.Format("ALTER TABLE [{0}] ADD CONSTRAINT [{1}] PRIMARY KEY CLUSTERED ([{2}] ASC)", table.Name, table.PrimaryKeyConstraintName, table.PrimaryKeyColumnName);
+						command.CommandText = string.Format("ALTER TABLE [{0}] ADD CONSTRAINT [{1}] PRIMARY KEY {2} ([{3}] ASC)", table.Name, table.PrimaryKeyConstraintName, (this.ClusterKeys ? "CLUSTERED" : ""), table.PrimaryKeyColumnName);
 						ExecuteSql(command, doUpdate, script);
 					}
 
