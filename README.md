@@ -7,15 +7,14 @@ Watsonia.Data is a simple object-relational mapper designed to be dropped into a
 - Load and save entity objects from the database with automatic change tracking
 - Load entities with LINQ, a fluent SQL API or (if you must...) with SQL strings
 - Update and delete entities in bulk
-- Lazy loading of entity properties that refer to related items or collections, TODO: with eager loading via the Include method
+- Lazy loading of entity properties that contain related items or collections, with eager loading via the Include method
 - Automatic implementation of INotifyPropertyChanging and INotifyPropertyChanged on entities
-- Automatic validation of entities that are decorated with System.ComponentModel.DataAnnotations.ValidationAttributes
-- TODO: Automatic entity-level undo and redo
+- Automatic validation of entities that are decorated with System.ComponentModel.DataAnnotations.ValidationAttributes or that implement IValidatableObject
+- Automatic entity-level undo and redo
 - Hook most database operations with event handlers or method overrides
 - Support for database transactions
 - Built-in support for Microsoft SQL Server with support for other databases via a plugin architecture
-- TODO: Work on Mono
-- TODO: Output proxy classes in an assembly to work in environments with no dynamic support
+- Export proxy classes in an assembly to work in environments with no dynamic support
 
 Watsonia.Data is in a very, very beta stage and does just what I need it to for the moment.  If you need something more stable, powerful, flexible or fast you might want to compare it with other free ORMs such as Entity Framework, NHibernate, SubSonic, Dapper, PetaPoco and Massive.  
 
@@ -77,6 +76,16 @@ foreach (Author a in query)
 ```
 
 Using the fluent SQL API to do the same looks like this:
+
+```C#
+var query = Select.From<Author>().Where(a => a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase));
+foreach (Author a in db.LoadCollection(query))
+{
+	Console.WriteLine(a.FullName);
+}
+```
+
+or like this:
 
 ```C#
 var query = Select.From("Author").Where("LastName", SqlOperator.StartsWith, "P");
@@ -149,28 +158,38 @@ Sorry :(
 
 ## Bulk Update and Delete ##
 
-You can update entities in bulk using TODO: LINQ, fluent SQL or SQL:
+You can update entities in bulk using fluent SQL methods or SQL strings:
 
 ```C#
-var update = Update.Table("Author").Set("Rating", 95).Where("LastName", SqlOperator.StartsWith, "P");
+var update = Update.Table<Author>().Set(a => a.Rating, 95).Where(a => a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase));
 db.Execute(update);
 ```
 
 ```C#
-var update2 = "UPDATE Author SET Rating = 95 WHERE LastName LIKE @0 + '%'";
-db.Execute(update, "P");
+var update2 = Update.Table("Author").Set("Rating", 95).Where("LastName", SqlOperator.StartsWith, "P");
+db.Execute(update2);
 ```
 
-You can also delete entities in bulk using TODO: LINQ, fluent SQL or SQL:
+```C#
+var update3 = "UPDATE Author SET Rating = 95 WHERE LastName LIKE @0 + '%'";
+db.Execute(update3, "P");
+```
+
+You can also delete entities in bulk using fluent SQL methods or SQL strings:
 
 ```C#
-var delete = Delete.From("Author").Where("Rating", SqlOperator.IsLessThan, 80);
+var delete = Delete.From<Author>().Where(a => a.Rating < 80));
 db.Execute(delete);
 ```
 
 ```C#
-var delete = "DELETE FROM Author WHERE Rating < @0";
-db.Execute(delete, 80);
+var delete2 = Delete.From("Author").Where("Rating", SqlOperator.IsLessThan, 80);
+db.Execute(delete2);
+```
+
+```C#
+var delete3 = "DELETE FROM Author WHERE Rating < @0";
+db.Execute(delete3, 80);
 ```
 
 ## Database Mapping ##
@@ -245,6 +264,16 @@ When updating the database:
 
 TODO: Need examples here
 
+## Generating Assemblies ##
+
+You can export proxies in an assembly by calling the database's ExportProxies method:
+
+```C#
+db.ExportProxies("Proxies.dll");
+```
+
+In this way you can use the proxies in an environment that doesn't support dynamic type generation or just have a poke around the classes via reflection to see what they are doing.
+
 ## How it Works ##
 
 Watsonia.Data creates a proxy object for each entity class when its corresponding database table is accessed.  The proxy object is an instance of a class that inherits from the entity class and overrides its virtual properties.  In this way we can intercept changes to property values to provide change notification and validation functionality.  
@@ -290,7 +319,67 @@ When the FirstName property is changed in the proxy object, it will do the follo
 
 ## Validation ##
 
-Each proxy object class also implements the IDataErrorInfo interface... TODO:
+Each proxy object class also implements the IDataErrorInfo interface to provide error information for user interfaces.  When the proxy object is loaded or created, it will have no errors.  When each property is set by the user, any System.ComponentModel.DataAnnotations.ValidationAttributes will be checked and errors created if the property value is invalid.  When the proxy object is saved to the database, all properties will be checked to see whether they are valid and an exception will be thrown if any are invalid.  For example, we can change the author class to look like this:
+
+```C#
+public class Author
+{
+	[Required]
+	public virtual string FirstName
+	{
+		get;
+		set;
+	}
+
+	[Required]
+	public virtual string LastName
+	{
+		get;
+		set;
+	}
+
+	...
+}
+```
+
+and then create an author:
+
+```C#
+Author author = db.Create<Author>();
+```
+
+At this point the author will be considered to have no errors and won't display any errors if the UI it is bound to supports IDataErrorInfo (e.g. WPF).  If we attempt to save the author or check the author's IsValid property, however, the author will have two errors in its ValidationErrors collection.  
+
+You can also implement the IValidatableObject interface if you have more complex validation requirements and it will be called when saving to the database or checking IsValid.  
+
+Note that validation is recursive and will check any loaded related items or collections that are contained in an entity's properties.  We can add a collection of books to the author class:
+
+```C#
+public class Author
+{
+	...
+
+	public virtual IList<Book> Books
+	{
+		get;
+		set;
+	}
+
+	...
+}
+
+public class Book
+{
+	[
+	public virtual string Title
+	{
+		get;
+		set;
+	}
+}
+```
+
+If we then add a book with no title to the author, attempting to save the author or checking IsValid will cause the author to have an error for the missing book title in its ValidationErrors collection.   
 
 ## Undo and Redo ##
 
