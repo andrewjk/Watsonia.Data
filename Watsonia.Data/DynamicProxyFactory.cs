@@ -1408,9 +1408,6 @@ namespace Watsonia.Data
 				null,
 				new Type[] { property.PropertyType });
 
-			MethodInfo addLoadedItemMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"AddLoadedItem", new Type[] { typeof(string) });
-
 			ConstructorInfo setValueActionConstructor = typeof(Action<>).MakeGenericType(property.PropertyType).GetConstructor(
 				new Type[] { typeof(object), typeof(IntPtr) });
 
@@ -1441,11 +1438,11 @@ namespace Watsonia.Data
 
 			ILGenerator gen = method.GetILGenerator();
 
-			// this.StateTracker.AddLoadedItem("Thing");
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-			gen.Emit(OpCodes.Ldstr, property.Name);
-			gen.Emit(OpCodes.Callvirt, addLoadedItemMethod);
+			//// this.StateTracker.AddLoadedItem("Thing");
+			//gen.Emit(OpCodes.Ldarg_0);
+			//gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
+			//gen.Emit(OpCodes.Ldstr, property.Name);
+			//gen.Emit(OpCodes.Callvirt, addLoadedItemMethod);
 
 			// this.StateTracker.SetPropertyValueWithFunction(base.Thing, value, "Thing", SetThing, base.OnThingChanging, base.OnThingChanged);
 			gen.Emit(OpCodes.Ldarg_0);
@@ -1496,6 +1493,9 @@ namespace Watsonia.Data
 				null,
 				new Type[] { property.PropertyType });
 
+			MethodInfo addLoadedItemMethod = typeof(DynamicProxyStateTracker).GetMethod(
+				"AddLoadedItem", new Type[] { typeof(string) });
+
 			MethodInfo getIsNewMethod = typeof(IDynamicProxy).GetMethod(
 				"get_IsNew", Type.EmptyTypes);
 
@@ -1538,6 +1538,12 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Stloc_1);
 			gen.Emit(OpCodes.Ldloc_1);
 			gen.Emit(OpCodes.Brtrue_S, label70);
+
+			// this.StateTracker.AddLoadedItem("Thing");
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
+			gen.Emit(OpCodes.Ldstr, property.Name);
+			gen.Emit(OpCodes.Callvirt, addLoadedItemMethod);
 
 			// IDynamicProxy thingProxy = (IDynamicProxy)value;
 			// SetThingID(thingProxy);
