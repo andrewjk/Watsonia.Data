@@ -45,7 +45,7 @@ namespace Watsonia.Data
 			return new Delete() { Target = table };
 		}
 
-		internal static Delete<T> From<T>()
+		public static Delete<T> From<T>()
 		{
 			return new Delete<T>();
 		}

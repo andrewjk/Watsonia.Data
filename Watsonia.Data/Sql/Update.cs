@@ -54,7 +54,7 @@ namespace Watsonia.Data
 			return new Update() { Target = table };
 		}
 
-		internal static Update<T> Table<T>()
+		public static Update<T> Table<T>()
 		{
 			return new Update<T>();
 		}

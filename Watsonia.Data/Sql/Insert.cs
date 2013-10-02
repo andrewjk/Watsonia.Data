@@ -60,7 +60,7 @@ namespace Watsonia.Data
 			return new Insert() { Target = table };
 		}
 
-		internal static Insert<T> Into<T>()
+		public static Insert<T> Into<T>()
 		{
 			return new Insert<T>();
 		}

@@ -10,7 +10,7 @@ using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
 {
-	internal sealed class Update<T> : Statement
+	public sealed class Update<T> : Statement
 	{
 		private readonly List<Tuple<PropertyInfo, object>> _setValues = new List<Tuple<PropertyInfo, object>>();
 

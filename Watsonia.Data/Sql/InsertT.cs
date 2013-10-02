@@ -10,7 +10,7 @@ using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
 {
-	internal sealed class Insert<T> : Statement
+	public sealed class Insert<T> : Statement
 	{
 		public override StatementPartType PartType
 		{

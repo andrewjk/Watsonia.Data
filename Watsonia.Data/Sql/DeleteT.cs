@@ -10,7 +10,7 @@ using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
 {
-	internal sealed class Delete<T> : Statement
+	public sealed class Delete<T> : Statement
 	{
 		public override StatementPartType PartType
 		{
