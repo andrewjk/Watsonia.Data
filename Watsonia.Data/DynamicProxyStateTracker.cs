@@ -499,9 +499,10 @@ namespace Watsonia.Data
 			{
 				foreach (var error in ((IValidatableObject)item).Validate(null))
 				{
+					object itemID = item.PrimaryKeyValue;
 					string itemName = item.GetType().BaseType.Name;
 					string propertyName = string.Join(", ", error.MemberNames);
-					ValidationError newError = new ValidationError(itemName, propertyName, "Error", error.ErrorMessage);
+					ValidationError newError = new ValidationError(itemID, itemName, propertyName, "Error", error.ErrorMessage);
 					this.ValidationErrors.Add(newError);
 				}
 			}
@@ -560,7 +561,14 @@ namespace Watsonia.Data
 				return null;
 			}
 
-			this.ValidationErrors.RemoveAll(e => e.PropertyName == prop.Name);
+			// Remove the errors for this item
+			object itemID = item.PrimaryKeyValue;
+			string itemName = item.GetType().BaseType.Name;
+			string propertyName = prop.Name;
+			this.ValidationErrors.RemoveAll(e =>
+				e.ItemID == itemID &&
+				e.ItemName == itemName &&
+				e.PropertyName == propertyName);
 
 			// NOTE: Interestingly, prop.GetCustomAttributes doesn't actually search the inheritance
 			// chain whereas Attribute.GetCustomAttributes does
@@ -570,10 +578,9 @@ namespace Watsonia.Data
 				object value = prop.GetValue(item, null);
 				if (!validation.IsValid(value))
 				{
-					string itemName = item.GetType().BaseType.Name;
 					string errorName = attribute.GetType().Name.Replace("Attribute", "");
 					string errorMessage = validation.FormatErrorMessage(PropertyName(prop));
-					ValidationError newError = new ValidationError(itemName, prop.Name, errorName, errorMessage);
+					ValidationError newError = new ValidationError(itemID, itemName, prop.Name, errorName, errorMessage);
 
 					this.ValidationErrors.Add(newError);
 

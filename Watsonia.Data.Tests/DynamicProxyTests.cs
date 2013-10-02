@@ -131,6 +131,7 @@ namespace Watsonia.Data.Tests
 		{
 			Bung bung = db.Create<Bung>();
 			IDataErrorInfo bungErrorInfo = (IDataErrorInfo)bung;
+			IDynamicProxy bungProxy = (IDynamicProxy)bung;
 
 			// Make sure that the RequiredString doesn't have an error until its property gets changed
 			Assert.AreEqual("", bungErrorInfo["RequiredString"]);
@@ -156,13 +157,33 @@ namespace Watsonia.Data.Tests
 			bung.InvalidPostCode = "3001";
 			Assert.AreEqual("", bungErrorInfo["InvalidPostCode"]);
 	
-			bung.EmailAddress = "info@donotreply.com";
+			bung.EmailAddress = "info.donotreply.com";
 			Assert.AreEqual("The Email address field is no good.", bungErrorInfo["EmailAddress"]);
+			bung.EmailAddress = "info@donotreply.com";
+			Assert.AreEqual("", bungErrorInfo["EmailAddress"]);
 			
-			bung.ConfirmEmailAddress = "support@donotreply.com";
+			bung.ConfirmEmailAddress = "support.donotreply.com";
 			Assert.AreEqual("The Confirm email address field is no good.", bungErrorInfo["ConfirmEmailAddress"]);
+			bung.ConfirmEmailAddress = "support@donotreply.com";
+			Assert.AreEqual("", bungErrorInfo["ConfirmEmailAddress"]);
 
-			// Now let's validate the whole thing
+			// Validate the whole thing
+			BungBaby baby1 = db.Create<BungBaby>();
+			bung.BungBabies.Add(baby1);
+			BungBaby baby2 = db.Create<BungBaby>();
+			bung.BungBabies.Add(baby2);
+
+			baby1.Name = "Good";
+			baby2.Name = "Baaaaaaaaaad";
+			Assert.IsFalse(bungProxy.IsValid);
+
+			baby1.Name = "Baaaaaaaaaad";
+			baby2.Name = "Good";
+			Assert.IsFalse(bungProxy.IsValid);
+
+			baby1.Name = "Good";
+			baby2.Name = "Yep";
+			Assert.IsTrue(bungProxy.IsValid);
 		}
 	}
 }

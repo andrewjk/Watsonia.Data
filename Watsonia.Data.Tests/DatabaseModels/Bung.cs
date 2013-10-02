@@ -2,6 +2,7 @@
 using System.Linq;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
+using System.Collections.Generic;
 
 namespace Watsonia.Data.Tests.DatabaseModels
 {
@@ -57,7 +58,21 @@ namespace Watsonia.Data.Tests.DatabaseModels
 
 		public static ValidationResult ValidateEmailAddress(string emailAddress)
 		{
-			return new ValidationResult("The {0} field is no good.");
+			if (emailAddress.Contains("@"))
+			{
+				return null;
+			}
+			else
+			{
+				return new ValidationResult("The {0} field is no good.");
+			}
+		}
+
+		[Cascade]
+		public virtual List<BungBaby> BungBabies
+		{
+			get;
+			set;
 		}
 	}
 }

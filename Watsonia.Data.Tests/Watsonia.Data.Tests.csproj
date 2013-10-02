@@ -58,6 +58,7 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DatabaseModels\BungBaby.cs" />
     <Compile Include="DocumentationTests.cs" />
     <Compile Include="DatabaseModels\Address.cs" />
     <Compile Include="DocumentationModels\Author.cs" />
