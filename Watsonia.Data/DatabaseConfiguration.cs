@@ -480,6 +480,13 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public bool ShouldCascade(PropertyInfo property)
 		{
+			// If it has a Cascade attribute then it should be cascaded
+			CascadeAttribute cascade = GetCustomAttribute<CascadeAttribute>(property);
+			if (cascade != null && cascade.ShouldCascade)
+			{
+				return true;
+			}
+
 			if (IsRelatedItem(property))
 			{
 				// It's an object linked with a foreign key so it shouldn't be cascaded
@@ -489,13 +496,6 @@ namespace Watsonia.Data
 			if (IsRelatedCollection(property))
 			{
 				// It's a related collection so changes to the item should be cascaded
-				return true;
-			}
-
-			// If it has a Cascade attribute then it should be cascaded
-			CascadeAttribute cascade = GetCustomAttribute<CascadeAttribute>(property);
-			if (cascade != null && cascade.ShouldCascade)
-			{
 				return true;
 			}
 
