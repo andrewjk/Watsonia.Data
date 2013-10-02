@@ -12,7 +12,7 @@ namespace Watsonia.Data
 	/// <summary>
 	/// Provides access to the data access providers for different database systems.
 	/// </summary>
-	internal static class DataAccessProviders
+	public static class DataAccessProviders
 	{
 		private static string _providerPath;
 		private static List<IDataAccessProvider> _providers = null;
