@@ -138,6 +138,16 @@ namespace Watsonia.Data
 			return new Select() { Source = table };
 		}
 
+		public static Select From(Join join)
+		{
+			return new Select() { Source = join };
+		}
+
+		internal static Select From(StatementPart part)
+		{
+			return new Select() { Source = part };
+		}
+
 		public static Select<T> From<T>()
 		{
 			return new Select<T>();

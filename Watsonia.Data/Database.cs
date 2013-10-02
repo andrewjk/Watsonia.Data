@@ -469,7 +469,7 @@ namespace Watsonia.Data
 			// Build a statement to use as a subquery to get the IDs of the parent items
 			string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(parentType, itemType);
 			string childIDColumnName = this.Configuration.GetPrimaryKeyColumnName(itemType);
-			Select selectChildItemIDs = Select.From((Table)parentQuery.Source).Columns(foreignKeyColumnName).Where(parentQuery.Conditions);
+			Select selectChildItemIDs = Select.From(parentQuery.Source).Columns(foreignKeyColumnName).Where(parentQuery.Conditions);
 
 			// Build a statement to get the child items
 			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(itemType);
@@ -807,7 +807,7 @@ namespace Watsonia.Data
 			if (!proxy.IsValid)
 			{
 				ValidationException ex = new ValidationException(
-					string.Format("Validation failed for {0}: {1}", item.GetType().Name, item.ToString()));
+					string.Format("Validation failed for {0}: {1}", item.GetType().BaseType.Name, item.ToString()));
 				ex.ValidationErrors.AddRange(proxy.ValidationErrors);
 				throw ex;
 			}
