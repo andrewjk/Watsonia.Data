@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Common;
@@ -16,7 +17,7 @@ namespace Watsonia.Data
 		private static ModuleBuilder _moduleBuilder = null;
 		private static string _exportPath = null;
 
-		private static readonly Dictionary<string, Type> _cachedTypes = new Dictionary<string, Type>();
+		private static readonly ConcurrentDictionary<string, Type> _cachedTypes = new ConcurrentDictionary<string, Type>();
 
 		static DynamicProxyFactory()
 		{
@@ -61,11 +62,7 @@ namespace Watsonia.Data
 			// A new type needs to be made for each type in each database
 			// This is because each database may have different naming conventions and primary/foreign key types
 			string proxyTypeName = database.DatabaseName + parentType.Name + "Proxy";
-			if (!_cachedTypes.ContainsKey(proxyTypeName))
-			{
-				_cachedTypes.Add(proxyTypeName, CreateType(proxyTypeName, parentType, database));
-			}
-			return _cachedTypes[proxyTypeName];
+			return _cachedTypes.GetOrAdd(proxyTypeName, (string s) => CreateType(proxyTypeName, parentType, database));
 		}
 
 		internal static IDynamicProxy GetDynamicProxy(Type parentType, Database database)
@@ -1963,7 +1960,7 @@ namespace Watsonia.Data
 			MethodInfo stateTrackerGetOriginalValuesMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"get_OriginalValues", Type.EmptyTypes);
 
-		    MethodInfo dictionarySetItemMethod = typeof(Dictionary<,>).MakeGenericType(typeof(string), typeof(object)).GetMethod(
+			MethodInfo dictionarySetItemMethod = typeof(Dictionary<,>).MakeGenericType(typeof(string), typeof(object)).GetMethod(
 				"set_Item", new Type[] { typeof(string), typeof(object) });
 
 			MethodInfo stateTrackerGetChangedFieldsMethod = typeof(DynamicProxyStateTracker).GetMethod(
