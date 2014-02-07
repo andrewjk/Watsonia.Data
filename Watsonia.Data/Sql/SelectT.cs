@@ -17,7 +17,7 @@ namespace Watsonia.Data
 
 		private readonly List<PropertyInfo> _sourceFields = new List<PropertyInfo>();
 		private readonly List<Tuple<PropertyInfo, AggregateType>> _aggregateFields = new List<Tuple<PropertyInfo, AggregateType>>();
-		private readonly List<PropertyInfo> _orderByFields = new List<PropertyInfo>();
+		private readonly List<Tuple<PropertyInfo, OrderDirection>> _orderByFields = new List<Tuple<PropertyInfo, OrderDirection>>();
 
 		#endregion Declarations
 
@@ -77,7 +77,7 @@ namespace Watsonia.Data
 			private set;
 		}
 
-		public List<PropertyInfo> OrderByFields
+		public List<Tuple<PropertyInfo, OrderDirection>> OrderByFields
 		{
 			get
 			{
@@ -156,7 +156,13 @@ namespace Watsonia.Data
 
 		public Select<T> OrderBy(Expression<Func<T, object>> property)
 		{
-			this.OrderByFields.Add(FuncToPropertyInfo(property));
+			this.OrderByFields.Add(new Tuple<PropertyInfo, OrderDirection>(FuncToPropertyInfo(property), OrderDirection.Ascending));
+			return this;
+		}
+
+		public Select<T> OrderByDescending(Expression<Func<T, object>> property)
+		{
+			this.OrderByFields.Add(new Tuple<PropertyInfo, OrderDirection>(FuncToPropertyInfo(property), OrderDirection.Descending));
 			return this;
 		}
 
@@ -197,7 +203,7 @@ namespace Watsonia.Data
 			select.SelectStartIndex = this.SelectStartIndex;
 			select.SelectLimit = this.SelectLimit;
 			select.Conditions.Add((ConditionCollection)StatementCreator.CompileStatementPart(configuration, this.Source, new DatabaseQuery<T>(provider, this.Source), this.Conditions));
-			select.OrderByFields.AddRange(this.OrderByFields.Select(s => new OrderByExpression(configuration.GetColumnName(s))));
+			select.OrderByFields.AddRange(this.OrderByFields.Select(s => new OrderByExpression(configuration.GetColumnName(s.Item1), s.Item2)));
 			return select;
 		}
 

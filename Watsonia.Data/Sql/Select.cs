@@ -143,7 +143,7 @@ namespace Watsonia.Data
 			return new Select() { Source = join };
 		}
 
-		internal static Select From(StatementPart part)
+		public static Select From(StatementPart part)
 		{
 			return new Select() { Source = part };
 		}
