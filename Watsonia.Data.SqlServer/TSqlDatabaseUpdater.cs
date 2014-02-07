@@ -13,17 +13,17 @@ namespace Watsonia.Data.SqlServer
 		protected IDataAccessProvider _dataAccessProvider;
 		protected DatabaseConfiguration _configuration;
 
-		private bool _clusterKeys = true;
+		private bool _compactEdition = false;
 
-		protected virtual bool ClusterKeys
+		protected virtual bool CompactEdition
 		{
 			get
 			{
-				return _clusterKeys;
+				return _compactEdition;
 			}
 			set
 			{
-				_clusterKeys = value;
+				_compactEdition = value;
 			}
 		}
 
@@ -175,6 +175,7 @@ namespace Watsonia.Data.SqlServer
 					return allowNulls ? typeof(DateTime?) : typeof(DateTime);
 				}
 				case "DECIMAL":
+				case "NUMERIC":
 				{
 					return allowNulls ? typeof(decimal?) : typeof(decimal);
 				}
@@ -197,7 +198,7 @@ namespace Watsonia.Data.SqlServer
 				}
 				case "UNIQUEIDENTIFIER":
 				{
-					return typeof(Guid);
+					return allowNulls ? typeof(Guid?) : typeof(Guid);
 				}
 				default:
 				{
@@ -233,7 +234,7 @@ namespace Watsonia.Data.SqlServer
 				b.AppendLine();
 				b.Append(string.Join(", ", Array.ConvertAll(table.Columns.ToArray(), c => ColumnText(table, c, true, true))));
 				b.AppendLine(",");
-				b.AppendFormat("CONSTRAINT [{0}] PRIMARY KEY {1} ([{2}] ASC)", table.PrimaryKeyConstraintName, (this.ClusterKeys ? "CLUSTERED" : ""), table.PrimaryKeyColumnName);
+				b.AppendFormat("CONSTRAINT [{0}] PRIMARY KEY {1} ([{2}]{3})", table.PrimaryKeyConstraintName, (this.CompactEdition ? "" : "CLUSTERED"), table.PrimaryKeyColumnName, (this.CompactEdition ? "" : " ASC"));
 				b.AppendLine();
 				b.Append(")");
 				command.CommandText = b.ToString();
@@ -322,14 +323,21 @@ namespace Watsonia.Data.SqlServer
 			{
 				if (column.MaxLength >= 4000)
 				{
-					return "NVARCHAR(MAX)";
+					if (this.CompactEdition)
+					{
+						return "NTEXT";
+					}
+					else
+					{
+						return "NVARCHAR(MAX)";
+					}
 				}
 				else
 				{
 					return string.Format("NVARCHAR({0})", column.MaxLength);
 				}
 			}
-			else if (column.ColumnType == typeof(Guid))
+			else if (column.ColumnType == typeof(Guid) || column.ColumnType == typeof(Guid?))
 			{
 				return "UNIQUEIDENTIFIER";
 			}
@@ -385,8 +393,8 @@ namespace Watsonia.Data.SqlServer
 			using (var command = CreateCommand(connection))
 			{
 				command.CommandText = string.Format(
-					"ALTER TABLE [{0}] WITH CHECK ADD CONSTRAINT [{1}] FOREIGN KEY ([{2}]) REFERENCES [{3}] ({4})",
-					table.Name, column.Relationship.ConstraintName, column.Name, column.Relationship.ForeignTableName, column.Relationship.ForeignTableColumnName);
+					"ALTER TABLE [{0}] {1} ADD CONSTRAINT [{2}] FOREIGN KEY ([{3}]) REFERENCES [{4}] ({5})",
+					table.Name, (this.CompactEdition ? "" : "WITH CHECK"), column.Relationship.ConstraintName, column.Name, column.Relationship.ForeignTableName, column.Relationship.ForeignTableColumnName);
 				command.Connection = connection;
 				ExecuteSql(command, doUpdate, script);
 			}
@@ -435,7 +443,7 @@ namespace Watsonia.Data.SqlServer
 					// If the column is the primary key, add that constraint back now
 					if (column.IsPrimaryKey)
 					{
-						command.CommandText = string.Format("ALTER TABLE [{0}] ADD CONSTRAINT [{1}] PRIMARY KEY {2} ([{3}] ASC)", table.Name, table.PrimaryKeyConstraintName, (this.ClusterKeys ? "CLUSTERED" : ""), table.PrimaryKeyColumnName);
+						command.CommandText = string.Format("ALTER TABLE [{0}] ADD CONSTRAINT [{1}] PRIMARY KEY {2} ([{3}]{4})", table.Name, table.PrimaryKeyConstraintName, (this.CompactEdition ? "" : "CLUSTERED"), table.PrimaryKeyColumnName, (this.CompactEdition ? "" : " ASC"));
 						ExecuteSql(command, doUpdate, script);
 					}
 
@@ -530,6 +538,12 @@ namespace Watsonia.Data.SqlServer
 		protected virtual List<string> GetDefaultValueConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			List<string> constraints = new List<string>();
+
+			// Can't get default value constraints in CE so just return an empty list
+			if (this.CompactEdition)
+			{
+				return constraints;
+			}
 
 			// Get default value constraints for this column
 			using (var command = CreateCommand(connection))
@@ -646,5 +660,34 @@ namespace Watsonia.Data.SqlServer
 			command.Connection = (SqlConnection)connection;
 			return command;
 		}
+
+		public string GetUnmappedColumns(IEnumerable<MappedTable> tables)
+		{
+			StringBuilder columns = new StringBuilder();
+
+			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
+			{
+				// Load the existing columns
+				var existingColumns = LoadExistingColumns(connection);
+
+				// Check whether each existing column is mapped
+				foreach (string columnKey in existingColumns.Keys)
+				{
+					string tableName = columnKey.Split('.')[0];
+					string columnName = columnKey.Split('.')[1];
+
+					MappedTable table = tables.FirstOrDefault(m => m.Name.Equals(tableName, StringComparison.InvariantCultureIgnoreCase));
+					bool isColumnMapped = (table != null && table.Columns.Any(c => c.Name.Equals(columnName, StringComparison.InvariantCultureIgnoreCase)));
+
+					if (!isColumnMapped)
+					{
+						columns.AppendLine(columnKey);
+					}
+				}
+			}
+
+			return columns.ToString();
+		}
+
 	}
 }

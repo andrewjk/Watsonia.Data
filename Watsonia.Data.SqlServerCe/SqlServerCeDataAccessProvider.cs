@@ -116,5 +116,20 @@ namespace Watsonia.Data.SqlServerCe
 			var builder = new SqlServerCeCommandBuilder();
 			return builder.BuildCommand(statement, parameters);
 		}
+
+		/// <summary>
+		/// Gets columns that exist in the database but are not mapped.
+		/// </summary>
+		/// <param name="tables">The tables that should exist in the database.</param>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		/// <returns>
+		/// A string containing the unmapped columns.
+		/// </returns>
+		/// <exception cref="System.NotImplementedException"></exception>
+		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration)
+		{
+			var updater = new SqlServerCeDatabaseUpdater(this, configuration);
+			return updater.GetUnmappedColumns(tables);
+		}
 	}
 }

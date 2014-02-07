@@ -23,142 +23,145 @@ namespace Watsonia.Data
 			return configuration.DataAccessProvider.GetUpdateScript(tables, configuration);
 		}
 
+		public string GetUnmappedColumns(DatabaseConfiguration configuration)
+		{
+			var tables = GetMappedTables(configuration);
+			return configuration.DataAccessProvider.GetUnmappedColumns(tables, configuration);
+		}
+
 		private IEnumerable<MappedTable> GetMappedTables(DatabaseConfiguration configuration)
 		{
 			var tables = new Dictionary<string, MappedTable>();
 			var tableRelationships = new Dictionary<string, MappedRelationship>();
-			foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+			foreach (Type type in configuration.TypesToMap())
 			{
-				foreach (Type type in configuration.TypesToMap(assembly))
+				string tableName = configuration.GetTableName(type);
+				string primaryKeyColumnName = configuration.GetPrimaryKeyColumnName(type);
+				string primaryKeyConstraintName = configuration.GetPrimaryKeyConstraintName(type);
+
+				MappedTable table = new MappedTable(tableName, primaryKeyColumnName, primaryKeyConstraintName);
+
+				bool tableHasColumns = false;
+				bool tableHasRelationships = false;
+
+				foreach (PropertyInfo property in configuration.PropertiesToMap(type))
 				{
-					string tableName = configuration.GetTableName(type);
-					string primaryKeyColumnName = configuration.GetPrimaryKeyColumnName(type);
-					string primaryKeyConstraintName = configuration.GetPrimaryKeyConstraintName(type);
+					string columnName = configuration.GetColumnName(property);
+					string defaultValueConstraintName = configuration.GetDefaultValueConstraintName(property);
 
-					MappedTable table = new MappedTable(tableName, primaryKeyColumnName, primaryKeyConstraintName);
-
-					bool tableHasColumns = false;
-					bool tableHasRelationships = false;
-
-					foreach (PropertyInfo property in configuration.PropertiesToMap(type))
+					MappedColumn column = new MappedColumn(columnName, property.PropertyType, defaultValueConstraintName);
+					bool addColumn = true;
+					if (property.PropertyType == typeof(string))
 					{
-						string columnName = configuration.GetColumnName(property);
-						string defaultValueConstraintName = configuration.GetDefaultValueConstraintName(property);
-
-						MappedColumn column = new MappedColumn(columnName, property.PropertyType, defaultValueConstraintName);
-						bool addColumn = true;
-						if (property.PropertyType == typeof(string))
+						// It's a string so get the max length from any StringLength attribute that is applied
+						object[] stringLengthAttributes = property.GetCustomAttributes(typeof(StringLengthAttribute), false);
+						if (stringLengthAttributes.Length > 0)
 						{
-							// It's a string so get the max length from any StringLength attribute that is applied
-							object[] stringLengthAttributes = property.GetCustomAttributes(typeof(StringLengthAttribute), false);
-							if (stringLengthAttributes.Length > 0)
-							{
-								StringLengthAttribute attribute = (StringLengthAttribute)stringLengthAttributes[0];
-								column.MaxLength = attribute.MaximumLength;
-							}
-							else
-							{
-								column.MaxLength = 255;
-							}
-
-							// And its default value is the empty string
-							column.DefaultValue = "";
-						}
-						else if (property.PropertyType.IsEnum)
-						{
-							// It's an enum so we might need to create a table for it
-							string enumTableName = configuration.GetTableName(property.PropertyType);
-							string enumPrimaryKeyColumnName = configuration.GetPrimaryKeyColumnName(property.PropertyType);
-							string enumPrimaryKeyConstraintName = configuration.GetPrimaryKeyConstraintName(property.PropertyType);
-
-							if (!tables.ContainsKey(property.PropertyType.Name))
-							{
-								MappedTable enumTable = new MappedTable(enumTableName, enumPrimaryKeyColumnName, enumPrimaryKeyConstraintName);
-								enumTable.Columns.Add(new MappedColumn(enumPrimaryKeyColumnName, typeof(int), "") { IsPrimaryKey = true });
-								enumTable.Columns.Add(new MappedColumn("Text", typeof(string), "DF_" + enumTableName + "_Text") { MaxLength = 255 });
-								foreach (object value in Enum.GetValues(property.PropertyType))
-								{
-									enumTable.Values.Add(new Dictionary<string, object>() { 
-										{ "ID", (int)value },
-										{ "Text", Enum.GetName(property.PropertyType, value) }
-									});
-								}
-								tables.Add(enumTable.Name, enumTable);
-							}
-
-							// We also have to set it up as a foreign key
-							column.ColumnType = typeof(int);
-							column.Relationship = new MappedRelationship(
-								configuration.GetForeignKeyConstraintName(property),
-								enumTableName,
-								enumPrimaryKeyColumnName);
-
-							// And its default value is the default value for the enum
-							object[] enumDefaultValueAttributes = property.PropertyType.GetCustomAttributes(typeof(DefaultValueAttribute), false);
-							if (enumDefaultValueAttributes.Length > 0)
-							{
-								DefaultValueAttribute attribute = (DefaultValueAttribute)enumDefaultValueAttributes[0];
-								column.DefaultValue = (int)attribute.Value;
-							}
-							else
-							{
-								column.DefaultValue = (int)Enum.GetValues(property.PropertyType).GetValue(0);
-							}
-						}
-						else if (configuration.IsRelatedItem(property))
-						{
-							// It's a property referencing another table so change its name and type
-							column.Name = configuration.GetForeignKeyColumnName(property);
-							column.ColumnType = typeof(Nullable<>).MakeGenericType(configuration.GetPrimaryKeyColumnType(property.PropertyType));
-							column.Relationship = new MappedRelationship(
-								configuration.GetForeignKeyConstraintName(property),
-								configuration.GetTableName(property.PropertyType),
-								configuration.GetPrimaryKeyColumnName(property.PropertyType));
+							StringLengthAttribute attribute = (StringLengthAttribute)stringLengthAttributes[0];
+							column.MaxLength = attribute.MaximumLength;
 						}
 						else
 						{
-							Type itemType;
-							if (configuration.IsRelatedCollection(property, out itemType))
-							{
-								// It's a collection property referencing another table so add it to the table relationships
-								// collection for wiring up when we have all tables
-								string key = string.Format("{0}.{1}", configuration.GetTableName(itemType), configuration.GetForeignKeyColumnName(itemType, type));
-								tableRelationships.Add(key,
-									new MappedRelationship(
-									configuration.GetForeignKeyConstraintName(itemType, type),
-									configuration.GetTableName(type),
-									configuration.GetPrimaryKeyColumnName(type)));
-								addColumn = false;
-								tableHasRelationships = true;
-							}
+							column.MaxLength = 255;
 						}
 
-						// Get the default value from any DefaultValue attribute that is applied
-						object[] defaultValueAttributes = property.GetCustomAttributes(typeof(DefaultValueAttribute), false);
-						if (defaultValueAttributes.Length > 0)
-						{
-							DefaultValueAttribute attribute = (DefaultValueAttribute)defaultValueAttributes[0];
-							column.DefaultValue = attribute.Value;
-						}
-
-						if (addColumn)
-						{
-							table.Columns.Add(column);
-							tableHasColumns = true;
-						}
+						// And its default value is the empty string
+						column.DefaultValue = "";
 					}
-
-					if (tableHasColumns || tableHasRelationships)
+					else if (property.PropertyType.IsEnum)
 					{
-						MappedColumn primaryKeyColumn = table.Columns.FirstOrDefault(c => c.Name.Equals(primaryKeyColumnName, StringComparison.InvariantCultureIgnoreCase));
-						if (primaryKeyColumn == null)
+						// It's an enum so we might need to create a table for it
+						string enumTableName = configuration.GetTableName(property.PropertyType);
+						string enumPrimaryKeyColumnName = configuration.GetPrimaryKeyColumnName(property.PropertyType);
+						string enumPrimaryKeyConstraintName = configuration.GetPrimaryKeyConstraintName(property.PropertyType);
+
+						if (!tables.ContainsKey(property.PropertyType.Name))
 						{
-							primaryKeyColumn = new MappedColumn(primaryKeyColumnName, configuration.GetPrimaryKeyColumnType(type), "");
-							table.Columns.Add(primaryKeyColumn);
+							MappedTable enumTable = new MappedTable(enumTableName, enumPrimaryKeyColumnName, enumPrimaryKeyConstraintName);
+							enumTable.Columns.Add(new MappedColumn(enumPrimaryKeyColumnName, typeof(int), "") { IsPrimaryKey = true });
+							enumTable.Columns.Add(new MappedColumn("Text", typeof(string), "DF_" + enumTableName + "_Text") { MaxLength = 255 });
+							foreach (object value in Enum.GetValues(property.PropertyType))
+							{
+								enumTable.Values.Add(new Dictionary<string, object>() { 
+										{ "ID", (int)value },
+										{ "Text", Enum.GetName(property.PropertyType, value) }
+									});
+							}
+							tables.Add(enumTable.Name, enumTable);
 						}
-						primaryKeyColumn.IsPrimaryKey = true;
-						tables.Add(table.Name, table);
+
+						// We also have to set it up as a foreign key
+						column.ColumnType = typeof(int);
+						column.Relationship = new MappedRelationship(
+							configuration.GetForeignKeyConstraintName(property),
+							enumTableName,
+							enumPrimaryKeyColumnName);
+
+						// And its default value is the default value for the enum
+						object[] enumDefaultValueAttributes = property.PropertyType.GetCustomAttributes(typeof(DefaultValueAttribute), false);
+						if (enumDefaultValueAttributes.Length > 0)
+						{
+							DefaultValueAttribute attribute = (DefaultValueAttribute)enumDefaultValueAttributes[0];
+							column.DefaultValue = (int)attribute.Value;
+						}
+						else
+						{
+							column.DefaultValue = (int)Enum.GetValues(property.PropertyType).GetValue(0);
+						}
 					}
+					else if (configuration.IsRelatedItem(property))
+					{
+						// It's a property referencing another table so change its name and type
+						column.Name = configuration.GetForeignKeyColumnName(property);
+						column.ColumnType = typeof(Nullable<>).MakeGenericType(configuration.GetPrimaryKeyColumnType(property.PropertyType));
+						column.Relationship = new MappedRelationship(
+							configuration.GetForeignKeyConstraintName(property),
+							configuration.GetTableName(property.PropertyType),
+							configuration.GetPrimaryKeyColumnName(property.PropertyType));
+					}
+					else
+					{
+						Type itemType;
+						if (configuration.IsRelatedCollection(property, out itemType))
+						{
+							// It's a collection property referencing another table so add it to the table relationships
+							// collection for wiring up when we have all tables
+							string key = string.Format("{0}.{1}", configuration.GetTableName(itemType), configuration.GetForeignKeyColumnName(itemType, type));
+							tableRelationships.Add(key,
+								new MappedRelationship(
+								configuration.GetForeignKeyConstraintName(itemType, type),
+								configuration.GetTableName(type),
+								configuration.GetPrimaryKeyColumnName(type)));
+							addColumn = false;
+							tableHasRelationships = true;
+						}
+					}
+
+					// Get the default value from any DefaultValue attribute that is applied
+					object[] defaultValueAttributes = property.GetCustomAttributes(typeof(DefaultValueAttribute), false);
+					if (defaultValueAttributes.Length > 0)
+					{
+						DefaultValueAttribute attribute = (DefaultValueAttribute)defaultValueAttributes[0];
+						column.DefaultValue = attribute.Value;
+					}
+
+					if (addColumn)
+					{
+						table.Columns.Add(column);
+						tableHasColumns = true;
+					}
+				}
+
+				if (tableHasColumns || tableHasRelationships)
+				{
+					MappedColumn primaryKeyColumn = table.Columns.FirstOrDefault(c => c.Name.Equals(primaryKeyColumnName, StringComparison.InvariantCultureIgnoreCase));
+					if (primaryKeyColumn == null)
+					{
+						primaryKeyColumn = new MappedColumn(primaryKeyColumnName, configuration.GetPrimaryKeyColumnType(type), "");
+						table.Columns.Add(primaryKeyColumn);
+					}
+					primaryKeyColumn.IsPrimaryKey = true;
+					tables.Add(table.Name, table);
 				}
 			}
 

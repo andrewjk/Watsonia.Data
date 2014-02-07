@@ -46,6 +46,16 @@ namespace Watsonia.Data
 		string GetUpdateScript(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration);
 
 		/// <summary>
+		/// Gets columns that exist in the database but are not mapped.
+		/// </summary>
+		/// <param name="tables">The tables that should exist in the database.</param>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		/// <returns>
+		/// A string containing the unmapped columns.
+		/// </returns>
+		string GetUnmappedColumns(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration);
+
+		/// <summary>
 		/// Builds a command to return the ID of the last inserted item.
 		/// </summary>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
