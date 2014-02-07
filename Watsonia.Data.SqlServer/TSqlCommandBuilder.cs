@@ -206,6 +206,13 @@ namespace Watsonia.Data.SqlServer
 
 		private void VisitSelect(Select select)
 		{
+			// TODO: If we're using SQL Server 2012 we should just use the OFFSET keyword
+			if (select.SelectStartIndex > 0)
+			{
+				VisitSelectWithRowNumber(select);
+				return;
+			}
+
 			this.CommandText.Append("SELECT ");
 			if (select.IsDistinct)
 			{
@@ -219,7 +226,7 @@ namespace Watsonia.Data.SqlServer
 			}
 			if (select.SourceFieldsFrom.Count > 0)
 			{
-				// TODO: Should the SourceFIeldsFRom actually be its own class?
+				// TODO: Should the SourceFieldsFrom actually be its own class?
 				for (int i = 0; i < select.SourceFieldsFrom.Count; i++)
 				{
 					if (i > 0)
@@ -341,6 +348,49 @@ namespace Watsonia.Data.SqlServer
 					}
 				}
 			}
+		}
+
+		private void VisitSelectWithRowNumber(Select select)
+		{
+			// It's going to look something like this:
+			// SELECT Fields
+			// FROM (SELECT Fields,
+			//		ROW_NUMBER() OVER (ORDER BY OrderFields) AS RowNumber
+			//		FROM Table
+			//		WHERE Condition)
+			// WHERE RowNumber > Start AND RowNumber <= End
+			// ORDER BY OrderFields
+
+			// Clone the select and add the RowNumber field to it
+			Select inner = Select.From(select.Source);
+			inner.Alias = "RowNumberTable";
+			inner.SourceFields.AddRange(select.SourceFields);
+			inner.SourceFields.Add(new RowNumber(select.OrderByFields.ToArray()));
+			inner.Conditions.AddRange(select.Conditions);
+
+			// Clone the select and change its source
+			Select outer = Select.From(inner);
+			foreach (SourceExpression field in select.SourceFields)
+			{
+				Column column = field as Column;
+				if (column != null)
+				{
+					outer.SourceFields.Add(new Column(inner.Alias, column.Name));
+				}
+			}
+			outer.Conditions.Add(new Condition("RowNumber", SqlOperator.IsGreaterThan, select.SelectStartIndex));
+			outer.Conditions.Add(new Condition("RowNumber", SqlOperator.IsLessThanOrEqualTo, select.SelectStartIndex + select.SelectLimit));
+			foreach (OrderByExpression field in select.OrderByFields)
+			{
+				Column column = field.Expression as Column;
+				if (column != null)
+				{
+					outer.OrderByFields.Add(new OrderByExpression(new Column(inner.Alias, column.Name), field.Direction));
+				}
+			}
+
+			// Visit the outer select
+			VisitSelect(outer);
 		}
 
 		private void VisitUpdate(Update update)
@@ -732,17 +782,6 @@ namespace Watsonia.Data.SqlServer
 
 		private void VisitColumn(Column column)
 		{
-			////if (column.AggregateFunction != AggregateType.None)
-			////{
-			////	this.CommandText.Append(AggregateFunctionName(column.AggregateFunction));
-			////	this.CommandText.Append("(");
-			////}
-			////if (!string.IsNullOrEmpty(column.TableName))
-			////{
-			////	this.CommandText.Append("[");
-			////	this.CommandText.Append(column.TableName);
-			////	this.CommandText.Append("].");
-			////}
 			if (column.Table != null)
 			{
 				VisitTable(column.Table);
@@ -758,50 +797,7 @@ namespace Watsonia.Data.SqlServer
 				this.CommandText.Append(column.Name);
 				this.CommandText.Append("]");
 			}
-			////if (column.AggregateFunction != AggregateType.None)
-			////{
-			////	this.CommandText.Append(")");
-			////}
 		}
-
-		////private string AggregateFunctionName(AggregateType aggregate)
-		////{
-		////	switch (aggregate)
-		////	{
-		////		case AggregateType.None:
-		////		{
-		////			return "";
-		////		}
-		////		case AggregateType.Count:
-		////		{
-		////			return "COUNT";
-		////		}
-		////		case AggregateType.BigCount:
-		////		{
-		////			return "COUNT_BIG";
-		////		}
-		////		case AggregateType.Sum:
-		////		{
-		////			return "SUM";
-		////		}
-		////		case AggregateType.Average:
-		////		{
-		////			return "AVG";
-		////		}
-		////		case AggregateType.Min:
-		////		{
-		////			return "MIN";
-		////		}
-		////		case AggregateType.Max:
-		////		{
-		////			return "MAX";
-		////		}
-		////		default:
-		////		{
-		////			throw new InvalidOperationException("Invalid aggregate: " + aggregate.ToString());
-		////		}
-		////	}
-		////}
 
 		private void VisitSource(StatementPart source)
 		{
@@ -1128,7 +1124,7 @@ namespace Watsonia.Data.SqlServer
 					}
 				}
 			}
-			this.CommandText.Append(")");
+			this.CommandText.Append(") AS RowNumber");
 		}
 
 		private void VisitAggregate(Aggregate aggregate)
