@@ -9,7 +9,7 @@ namespace Watsonia.Data.Sql
 	/// <summary>
 	/// A collection of conditions.
 	/// </summary>
-	public sealed class ConditionCollection : ConditionExpression
+	public sealed class ConditionCollection : ConditionExpression, IEnumerable<ConditionExpression>
 	{
 		private List<ConditionExpression> _conditions = new List<ConditionExpression>();
 
@@ -117,6 +117,16 @@ namespace Watsonia.Data.Sql
 				b.Append(")");
 			}
 			return b.ToString();
+		}
+
+		public IEnumerator<ConditionExpression> GetEnumerator()
+		{
+			return _conditions.GetEnumerator();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return _conditions.GetEnumerator();
 		}
 	}
 }
