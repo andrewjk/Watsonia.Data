@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -44,7 +45,7 @@ namespace Watsonia.Data
 		public event EventHandler BeforeExecuteCommand;
 		public event EventHandler AfterExecuteCommand;
 
-		private static Dictionary<Type, List<Type>> _childParentMapping = null;
+		private static ConcurrentDictionary<Type, List<Type>> _childParentMapping = null;
 
 		/// <summary>
 		/// Gets the configuration options used for mapping to and accessing the database.
@@ -81,7 +82,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The child parent mapping.
 		/// </value>
-		internal Dictionary<Type, List<Type>> ChildParentMapping
+		internal ConcurrentDictionary<Type, List<Type>> ChildParentMapping
 		{
 			get
 			{
@@ -151,18 +152,27 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Gets the columns that exist in the database but not the mapped entity classes.
+		/// </summary>
+		/// <returns>
+		/// A string containing the unmapped columns.
+		/// </returns>
+		public string GetUnmappedColumns()
+		{
+			DatabaseUpdater updater = new DatabaseUpdater();
+			return updater.GetUnmappedColumns(this.Configuration);
+		}
+
+		/// <summary>
 		/// Exports all mapped entity proxies to an assembly.
 		/// </summary>
 		/// <param name="path">The assembly path.</param>
 		public void ExportProxies(string path)
 		{
 			DynamicProxyFactory.SetAssemblyPath(path);
-			foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+			foreach (Type type in this.Configuration.TypesToMap())
 			{
-				foreach (Type type in this.Configuration.TypesToMap(assembly))
-				{
-					DynamicProxyFactory.GetDynamicProxyType(type, this);
-				}
+				DynamicProxyFactory.GetDynamicProxyType(type, this);
 			}
 			DynamicProxyFactory.SaveAssembly();
 		}
@@ -249,9 +259,7 @@ namespace Watsonia.Data
 			string tableName = this.Configuration.GetTableName(typeof(T));
 			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(typeof(T));
 
-			var select =
-				Select.From(tableName)
-					  .Where(primaryKeyColumnName, SqlOperator.Equals, id);
+			var select = Select.From(tableName).Where(primaryKeyColumnName, SqlOperator.Equals, id);
 
 			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
 			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
@@ -351,6 +359,41 @@ namespace Watsonia.Data
 			return result;
 		}
 
+		private IList<IDynamicProxy> LoadCollection(Select query, Type itemType)
+		{
+			OnBeforeLoadCollection(query);
+
+			var result = new ObservableCollection<IDynamicProxy>();
+
+			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration))
+			{
+				command.Connection = connection;
+				OnBeforeExecuteCommand(command);
+				using (DbDataReader reader = command.ExecuteReader())
+				{
+					while (reader.Read())
+					{
+						Type proxyType = DynamicProxyFactory.GetDynamicProxyType(itemType, this);
+						IDynamicProxy newItem = (IDynamicProxy)proxyType.GetConstructor(Type.EmptyTypes).Invoke(Type.EmptyTypes);
+						newItem.StateTracker.Database = this;
+						newItem.SetValuesFromReader(reader);
+						result.Add(newItem);
+					}
+				}
+				OnAfterExecuteCommand(command);
+
+				if (result.Count > 0 && query.IncludePaths.Count > 0)
+				{
+					LoadIncludePaths(query, result);
+				}
+			}
+
+			OnAfterLoadCollection(result);
+
+			return result;
+		}
+
 		private void LoadIncludePaths<T>(Select query, IList<T> result)
 		{
 			Type parentType = typeof(T);
@@ -416,7 +459,7 @@ namespace Watsonia.Data
 			else if (this.Configuration.IsRelatedItem(pathProperty))
 			{
 				itemType = pathProperty.PropertyType;
-				childQuery = GetChildItemSubquery(parentQuery, parentType, itemType);
+				childQuery = GetChildItemSubquery(parentQuery, pathProperty, itemType);
 			}
 			else
 			{
@@ -439,7 +482,7 @@ namespace Watsonia.Data
 			propertyParentType = itemType;
 			for (int i = 1; i < pathParts.Length; i++)
 			{
-				paths[i].ChildCollection = LoadChildCollection(childQuery ,propertyParentType, paths[i].Property, loadCollectionMethod);
+				paths[i].ChildCollection = LoadChildCollection(childQuery, propertyParentType, paths[i].Property, loadCollectionMethod);
 				propertyParentType = paths[i].Property.PropertyType;
 			}
 
@@ -447,12 +490,12 @@ namespace Watsonia.Data
 			// TODO: There's a lot of scope for optimization here!
 			SetChildItems(parentCollection, parentType, paths, 0);
 		}
-	
+
 		private Select GetChildCollectionSubquery(Select parentQuery, Type parentType, Type itemType)
 		{
 			// Build a statement to use as a subquery to get the IDs of the parent items
 			string parentIDColumnName = this.Configuration.GetPrimaryKeyColumnName(parentType);
-			Select selectParentItemIDs = Select.From((Table)parentQuery.Source).Columns(parentIDColumnName).Where(parentQuery.Conditions);
+			Select selectParentItemIDs = Select.From(parentQuery.Source).Columns(parentIDColumnName).Where(parentQuery.Conditions);
 
 			// Build a statement to get the child items
 			Type itemProxyType = DynamicProxyFactory.GetDynamicProxyType(itemType, this);
@@ -464,12 +507,16 @@ namespace Watsonia.Data
 			return childQuery;
 		}
 
-		private Select GetChildItemSubquery(Select parentQuery, Type parentType, Type itemType)
+		private Select GetChildItemSubquery(Select parentQuery, PropertyInfo parentProperty, Type itemType)
 		{
 			// Build a statement to use as a subquery to get the IDs of the parent items
-			string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(parentType, itemType);
+			string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(parentProperty);
 			string childIDColumnName = this.Configuration.GetPrimaryKeyColumnName(itemType);
-			Select selectChildItemIDs = Select.From(parentQuery.Source).Columns(foreignKeyColumnName).Where(parentQuery.Conditions);
+			Select selectChildItemIDs = Select.From(parentQuery.Source).Columns(foreignKeyColumnName);
+			if (parentQuery.Conditions.Count > 0)
+			{
+				selectChildItemIDs = selectChildItemIDs.Where(parentQuery.Conditions);
+			}
 
 			// Build a statement to get the child items
 			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(itemType);
@@ -559,7 +606,7 @@ namespace Watsonia.Data
 			else if (this.Configuration.IsRelatedItem(propertyToLoad))
 			{
 				Type itemType = propertyToLoad.PropertyType;
-				string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(parentType, itemType);
+				string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(propertyToLoad);
 
 				Type parentProxyType = DynamicProxyFactory.GetDynamicProxyType(parentType, this);
 				PropertyInfo parentChildIDProperty = parentProxyType.GetProperty(foreignKeyColumnName);
@@ -599,7 +646,7 @@ namespace Watsonia.Data
 			Select select = query.CreateStatement(this.Configuration);
 			return LoadCollection<T>(select);
 		}
-	
+
 		/// <summary>
 		/// Loads a collection of items from the database using the supplied query.
 		/// </summary>
@@ -888,55 +935,72 @@ namespace Watsonia.Data
 				}
 			}
 
-			// Insert or update the item if its fields have been changed and then clear its changed fields
-			if (proxy.StateTracker.ChangedFields.Count > 0)
+			if (proxy.IsNew)
 			{
-				if (proxy.IsNew)
-				{
-					InsertItem(proxy, tableName, tableType, primaryKeyColumnName, connection, transaction);
-				}
-				else
+				// Insert the item
+				InsertItem(proxy, tableName, tableType, primaryKeyColumnName, connection, transaction);
+			}
+			else
+			{
+				// Only update the item if its fields have been changed
+				if (proxy.StateTracker.ChangedFields.Count > 0)
 				{
 					UpdateItem(proxy, tableName, primaryKeyColumnName, connection, transaction);
 				}
-				proxy.StateTracker.ChangedFields.Clear();
 			}
+
+			// Clear any changed fields
+			proxy.StateTracker.ChangedFields.Clear();
 
 			// Insert, update or delete all of the related collections that should be saved with this item
 			foreach (string collectionPropertyName in proxy.StateTracker.LoadedCollections)
 			{
-				PropertyInfo property = proxy.GetType().GetProperty(collectionPropertyName,
+				PropertyInfo property = tableType.GetProperty(collectionPropertyName,
 					BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
-				// Insert items and collect the item IDs while we're at it
+				// Save items and collect the item IDs while we're at it
 				var collectionIDs = new List<object>();
 				foreach (IDynamicProxy childItem in ((IEnumerable)property.GetValue(proxy, null)))
 				{
-					if (childItem.IsNew || newRelatedItems.Contains(childItem))
+					if (this.Configuration.ShouldCascade(property))
 					{
-						// Set the parent ID of the item in the collection
-						string parentIDPropertyName = this.Configuration.GetForeignKeyColumnName(childItem.GetType().BaseType, tableType);
-						PropertyInfo parentIDProperty = childItem.GetType().GetProperty(parentIDPropertyName);
-						parentIDProperty.SetValue(childItem, proxy.PrimaryKeyValue, null);
-
-						SaveItem(childItem, connection, transaction);
-					}
-					else
-					{
+						if (childItem.IsNew || newRelatedItems.Contains(childItem))
+						{
+							// Set the parent ID of the item in the collection
+							string parentIDPropertyName = this.Configuration.GetForeignKeyColumnName(childItem.GetType().BaseType, tableType);
+							PropertyInfo parentIDProperty = childItem.GetType().GetProperty(parentIDPropertyName);
+							parentIDProperty.SetValue(childItem, proxy.PrimaryKeyValue, null);
+						}
 						SaveItem(childItem, connection, transaction);
 					}
 					collectionIDs.Add(((IDynamicProxy)childItem).PrimaryKeyValue);
 				}
 
 				// Delete items that have been removed from the collection
-				object[] cascadeIDsToDelete = proxy.StateTracker.SavedCollectionIDs[property.Name].Except(collectionIDs).ToArray();
-				if (cascadeIDsToDelete.Length > 0)
+				if (this.Configuration.ShouldCascadeDelete(property))
 				{
-					Type cascadeType = TypeHelper.GetElementType(property.PropertyType);
-					string cascadeTableName = this.Configuration.GetTableName(cascadeType);
-					string cascadePrimaryKeyName = this.Configuration.GetPrimaryKeyColumnName(cascadeType);
-					var delete = Watsonia.Data.Delete.From(cascadeTableName).Where(cascadePrimaryKeyName, SqlOperator.IsIn, cascadeIDsToDelete);
-					Execute(delete, connection, transaction);
+					object[] cascadeIDsToDelete = proxy.StateTracker.SavedCollectionIDs[property.Name].Except(collectionIDs).ToArray();
+					if (cascadeIDsToDelete.Length > 0)
+					{
+						// Do it ten at a time just in case there's a huge amount and we would time out
+						Type deleteType = TypeHelper.GetElementType(property.PropertyType);
+						string deleteTableName = this.Configuration.GetTableName(deleteType);
+						string deletePrimaryKeyName = this.Configuration.GetPrimaryKeyColumnName(deleteType);
+
+						int chunkSize = 10;
+						for (int i = 0; i < cascadeIDsToDelete.Length; i += chunkSize)
+						{
+							var chunkedIDsToDelete = cascadeIDsToDelete.Skip(i).Take(chunkSize);
+							var select = Watsonia.Data.Select.From(deleteTableName).Where(deletePrimaryKeyName, SqlOperator.IsIn, chunkedIDsToDelete);
+
+							// Load the items and delete them. Not the most efficient but it ensures that things
+							// are cascaded correctly and the right events are raised
+							foreach (IDynamicProxy deleteItem in LoadCollection(select, deleteType))
+							{
+								Delete(deleteItem, deleteType, connection, transaction);
+							}
+						}
+					}
 				}
 			}
 
@@ -977,7 +1041,7 @@ namespace Watsonia.Data
 
 		private void UpdateItem(IDynamicProxy proxy, string tableName, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction)
 		{
-			// TODO: Get rid of this, it's just to stop propertise like Database and HasChanges
+			// TODO: Get rid of this, it's just to stop properties like Database and HasChanges
 			bool doUpdate = false;
 
 			Update update = Update.Table(tableName);
@@ -1054,6 +1118,19 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Deletes the item with the supplied ID from the database.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="id">The ID.</param>
+		/// <param name="connection">The connection.</param>
+		/// <param name="transaction">The transaction.</param>
+		public void Delete<T>(object id, DbConnection connection = null, DbTransaction transaction = null)
+		{
+			T item = Load<T>(id);
+			Delete(item, connection, transaction);
+		}
+
+		/// <summary>
 		/// Deletes the specified item from the database.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
@@ -1062,6 +1139,11 @@ namespace Watsonia.Data
 		/// <param name="transaction">The transaction.</param>
 		/// <exception cref="System.ArgumentException">item</exception>
 		public void Delete<T>(T item, DbConnection connection = null, DbTransaction transaction = null)
+		{
+			Delete(item, typeof(T), connection, transaction);
+		}
+
+		private void Delete(object item, Type itemType, DbConnection connection = null, DbTransaction transaction = null)
 		{
 			if ((item as IDynamicProxy) == null)
 			{
@@ -1075,7 +1157,7 @@ namespace Watsonia.Data
 
 			Type tableType = proxy.GetType().BaseType;
 			string tableName = this.Configuration.GetTableName(tableType);
-			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(tableType);
+			string primaryKeyName = this.Configuration.GetPrimaryKeyColumnName(tableType);
 
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
@@ -1083,24 +1165,22 @@ namespace Watsonia.Data
 			DbTransaction transactionToUse = transaction ?? connectionToUse.BeginTransaction();
 			try
 			{
-				foreach (PropertyInfo property in this.Configuration.PropertiesToCascade(typeof(T)))
+				foreach (PropertyInfo property in this.Configuration.PropertiesToCascadeDelete(itemType))
 				{
-					// TODO: This isn't going to work for cascades of cascades, I think we need to build up a database mapping
-					//       Or should we just allow cascading for one level?
-					Type enumeratedType = TypeHelper.GetElementType(property.PropertyType);
-					string relatedTableName = this.Configuration.GetTableName(enumeratedType);
-					string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(enumeratedType, tableType);
-					var relatedTableStatement = Watsonia.Data
-														.Delete
-														.From(relatedTableName)
-														.Where(foreignKeyColumnName, SqlOperator.Equals, proxy.PrimaryKeyValue);
-					Execute(relatedTableStatement, connectionToUse, transactionToUse);
+					Type deleteType = TypeHelper.GetElementType(property.PropertyType);
+					string deleteTableName = this.Configuration.GetTableName(deleteType);
+					string deleteForeignKeyName = this.Configuration.GetForeignKeyColumnName(deleteType, tableType);
+					var select = Watsonia.Data.Select.From(deleteTableName).Where(deleteForeignKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
+
+					// Load the items and delete them. Not the most efficient but it ensures that things
+					// are cascaded correctly and the right events are raised
+					foreach (IDynamicProxy deleteItem in LoadCollection(select, deleteType))
+					{
+						Delete(deleteItem, deleteType, connection, transaction);
+					}
 				}
 
-				var query = Watsonia.Data
-										.Delete
-										.From(tableName)
-										.Where(primaryKeyColumnName, SqlOperator.Equals, proxy.PrimaryKeyValue);
+				var query = Watsonia.Data.Delete.From(tableName).Where(primaryKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
 				Execute(query, connectionToUse, transactionToUse);
 
 				// If a transaction was not passed in and we created our own, commit it
@@ -1132,28 +1212,6 @@ namespace Watsonia.Data
 			}
 
 			OnAfterDelete(proxy);
-		}
-
-		/// <summary>
-		/// Deletes the item with the supplied ID from the database.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="id">The ID.</param>
-		/// <param name="connection">The connection.</param>
-		/// <param name="transaction">The transaction.</param>
-		public void Delete<T>(object id, DbConnection connection = null, DbTransaction transaction = null)
-		{
-			Type tableType = typeof(T);
-			string tableName = this.Configuration.GetTableName(tableType);
-			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(tableType);
-
-			// TODO: Cascade?  And events...
-
-			var query = Watsonia.Data
-									.Delete
-									.From(tableName)
-									.Where(primaryKeyColumnName, SqlOperator.Equals, id);
-			Execute(query, connection, transaction);
 		}
 
 		/// <summary>
@@ -1286,25 +1344,19 @@ namespace Watsonia.Data
 
 		private void LoadChildParentMapping()
 		{
-			_childParentMapping = new Dictionary<Type, List<Type>>();
-			foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+			_childParentMapping = new ConcurrentDictionary<Type, List<Type>>();
+			foreach (Type parentType in this.Configuration.TypesToMap())
 			{
-				foreach (Type parentType in this.Configuration.TypesToMap(assembly))
+				foreach (PropertyInfo childProperty in this.Configuration.PropertiesToMap(parentType))
 				{
-					foreach (PropertyInfo childProperty in this.Configuration.PropertiesToMap(parentType))
+					if (this.Configuration.IsRelatedCollection(childProperty))
 					{
-						if (this.Configuration.IsRelatedCollection(childProperty))
-						{
-							// E.g. given Author.Books, Author is the parent and Book is the child
-							// We will add Book as the key for the dictionary as we will want to add
-							// the AuthorID column when creating its proxy
-							Type childPropertyType = TypeHelper.GetElementType(childProperty.PropertyType);
-							if (!_childParentMapping.ContainsKey(childPropertyType))
-							{
-								_childParentMapping.Add(childPropertyType, new List<Type>());
-							}
-							_childParentMapping[childPropertyType].Add(parentType);
-						}
+						// E.g. given Author.Books, Author is the parent and Book is the child
+						// We will add Book as the key for the dictionary as we will want to add
+						// the AuthorID column when creating its proxy
+						Type childPropertyType = TypeHelper.GetElementType(childProperty.PropertyType);
+						List<Type> childTypes = _childParentMapping.GetOrAdd(childPropertyType, (Type t) => new List<Type>());
+						childTypes.Add(parentType);
 					}
 				}
 			}
