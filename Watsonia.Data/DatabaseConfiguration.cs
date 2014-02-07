@@ -301,6 +301,32 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Determines whether the supplied assembly should be looked in for types to map to the database.
+		/// </summary>
+		/// <param name="assembly">The assembly.</param>
+		/// <returns></returns>
+		internal bool ShouldMapAssemblyInternal(Assembly assembly)
+		{
+			// This assembly causes problems with some unit testing platforms
+			if (assembly.FullName.StartsWith("Microsoft.VisualStudio"))
+			{
+				return false;
+			}
+
+			return ShouldMapAssembly(assembly);
+		}
+
+		/// <summary>
+		/// Determines whether the supplied assembly should be looked in for types to map to the database.
+		/// </summary>
+		/// <param name="assembly">The assembly.</param>
+		/// <returns></returns>
+		public virtual bool ShouldMapAssembly(Assembly assembly)
+		{
+			return true;
+		}
+
+		/// <summary>
 		/// Determines whether the class with the supplied type should be mapped to the database.
 		/// </summary>
 		/// <param name="type">The type.</param>
@@ -330,15 +356,45 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Gets a list of assemblies to look in for types to map.
+		/// </summary>
+		/// <returns></returns>
+		public IEnumerable<Assembly> AssembliesToMap()
+		{
+			foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+			{
+				if (ShouldMapAssemblyInternal(assembly))
+				{
+					yield return assembly;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Gets a list of classes within the current AppDomain to map to the database.
+		/// </summary>
+		/// <returns></returns>
+		public IEnumerable<Type> TypesToMap()
+		{
+			foreach (Assembly assembly in AssembliesToMap())
+			{
+				foreach (Type type in TypesToMap(assembly))
+				{
+					yield return type;
+				}
+			}
+		}
+
+		/// <summary>
 		/// Gets a list of classes within the supplied assembly to map to the database.
 		/// </summary>
 		/// <param name="assembly">The assembly.</param>
 		/// <returns></returns>
-		public IEnumerable<Type> TypesToMap(Assembly assembly)
+		internal IEnumerable<Type> TypesToMap(Assembly assembly)
 		{
 			foreach (Type type in assembly.GetTypes())
 			{
-				if (this.ShouldMapTypeInternal(type))
+				if (ShouldMapTypeInternal(type))
 				{
 					yield return type;
 				}
@@ -376,7 +432,7 @@ namespace Watsonia.Data
 			return ShouldMapProperty(property);
 		}
 
-				/// <summary>
+		/// <summary>
 		/// Determines whether the supplied property should be mapped to the database.
 		/// </summary>
 		/// <param name="property">The property.</param>
@@ -481,10 +537,10 @@ namespace Watsonia.Data
 		public bool ShouldCascade(PropertyInfo property)
 		{
 			// If it has a Cascade attribute then it should be cascaded
-			CascadeAttribute cascade = GetCustomAttribute<CascadeAttribute>(property);
-			if (cascade != null && cascade.ShouldCascade)
+			CascadeAttribute attribute = GetCustomAttribute<CascadeAttribute>(property);
+			if (attribute != null)
 			{
-				return true;
+				return attribute.ShouldCascade;
 			}
 
 			if (IsRelatedItem(property))
@@ -514,6 +570,58 @@ namespace Watsonia.Data
 			foreach (PropertyInfo property in type.GetProperties(flags))
 			{
 				if (this.ShouldCascadeInternal(property))
+				{
+					yield return property;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Determines whether the value in the supplied property should be deleted with its parent object.
+		/// </summary>
+		/// <param name="property">The property.</param>
+		/// <returns></returns>
+		internal bool ShouldCascadeDeleteInternal(PropertyInfo property)
+		{
+			if (property.PropertyType.IsValueType)
+			{
+				// It's a value type so it can't be cascaded
+				return false;
+			}
+
+			// Let the user specify what we should cascade
+			return ShouldCascadeDelete(property);
+		}
+
+		/// <summary>
+		/// Determines whether the value in the supplied property should be deleted with its parent object.
+		/// </summary>
+		/// <param name="property">The property.</param>
+		/// <returns></returns>
+		public bool ShouldCascadeDelete(PropertyInfo property)
+		{
+			// If it has a CascadeDelete attribute then it should be cascaded
+			CascadeDeleteAttribute attribute = GetCustomAttribute<CascadeDeleteAttribute>(property);
+			if (attribute != null)
+			{
+				return attribute.ShouldCascade;
+			}
+
+			// Nothing else should be cascaded by default
+			return false;
+		}
+
+		/// <summary>
+		/// Gets a list of properties within the supplied type to delete with the parent object.
+		/// </summary>
+		/// <param name="type">The type.</param>
+		/// <returns></returns>
+		public IEnumerable<PropertyInfo> PropertiesToCascadeDelete(Type type)
+		{
+			BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+			foreach (PropertyInfo property in type.GetProperties(flags))
+			{
+				if (this.ShouldCascadeDeleteInternal(property))
 				{
 					yield return property;
 				}
