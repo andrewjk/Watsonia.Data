@@ -68,19 +68,31 @@ namespace Watsonia.Data
 			}
 		}
 
+		public bool IsAny
+		{
+			get;
+			set;
+		}
+
+		public bool IsAll
+		{
+			get;
+			set;
+		}
+
 		public bool IsDistinct
 		{
 			get;
 			set;
 		}
 
-		public int SelectStartIndex
+		public int StartIndex
 		{
 			get;
 			set;
 		}
 
-		public int SelectLimit
+		public int Limit
 		{
 			get;
 			set;
@@ -159,6 +171,12 @@ namespace Watsonia.Data
 			return this;
 		}
 
+		public Select Join(JoinType joinType, string tableName, string leftTableName, string leftColumnName, string rightTableName, string rightColumnName)
+		{
+			this.SourceJoins.Add(new Join(joinType, tableName, leftTableName, leftColumnName, rightTableName, rightColumnName));
+			return this;
+		}
+
 		public Select Join(Table table, Column leftColumn, Column rightColumn)
 		{
 			this.SourceJoins.Add(new Join(table, leftColumn, rightColumn));
@@ -191,31 +209,66 @@ namespace Watsonia.Data
 
 		public Select Count(params string[] columnNames)
 		{
-			this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Count, new Column(cn))));
+			if (columnNames.Any())
+			{
+				this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Count, new Column(cn))));
+			}
+			else
+			{
+				this.SourceFields.Add(new Aggregate(AggregateType.Count, new Column("*")));
+			}
 			return this;
 		}
 
 		public Select Sum(params string[] columnNames)
 		{
-			this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Sum, new Column(cn))));
+			if (columnNames.Any())
+			{
+				this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Sum, new Column(cn))));
+			}
+			else
+			{
+				this.SourceFields.Add(new Aggregate(AggregateType.Sum, new Column("*")));
+			}
 			return this;
 		}
 
 		public Select Min(params string[] columnNames)
 		{
-			this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Min, new Column(cn))));
+			if (columnNames.Any())
+			{
+				this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Min, new Column(cn))));
+			}
+			else
+			{
+				this.SourceFields.Add(new Aggregate(AggregateType.Min, new Column("*")));
+			}
 			return this;
 		}
 
 		public Select Max(params string[] columnNames)
 		{
-			this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Max, new Column(cn))));
+			if (columnNames.Any())
+			{
+				this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Max, new Column(cn))));
+			}
+			else
+			{
+				this.SourceFields.Add(new Aggregate(AggregateType.Max, new Column("*")));
+			}
 			return this;
 		}
 
 		public Select Average(params string[] columnNames)
 		{
-			this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Average, new Column(cn))));
+			if (columnNames.Any())
+			{
+				this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Average, new Column(cn))));
+			}
+			else
+			{
+				this.SourceFields.Add(new Aggregate(AggregateType.Average, new Column("*")));
+			}
 			return this;
 		}
 
@@ -225,15 +278,15 @@ namespace Watsonia.Data
 			return this;
 		}
 
-		public Select Start(int startIndex)
+		public Select Skip(int startIndex)
 		{
-			this.SelectStartIndex = startIndex;
+			this.StartIndex = startIndex;
 			return this;
 		}
 
-		public Select Limit(int limit)
+		public Select Take(int limit)
 		{
-			this.SelectLimit = limit;
+			this.Limit = limit;
 			return this;
 		}
 
@@ -299,6 +352,12 @@ namespace Watsonia.Data
 			return this;
 		}
 
+		public Select OrderBy(params Column[] columns)
+		{
+			this.OrderByFields.AddRange(columns.Select(c => new OrderByExpression(c)));
+			return this;
+		}
+
 		public Select OrderBy(params OrderByExpression[] columns)
 		{
 			this.OrderByFields.AddRange(columns);
@@ -332,28 +391,36 @@ namespace Watsonia.Data
 			StringBuilder b = new StringBuilder();
 			b.Append("(");
 			b.Append("Select ");
+			if (this.IsAny)
+			{
+				b.Append("Any ");
+			}
+			if (this.IsAll)
+			{
+				b.Append("All ");
+			}
 			if (this.IsDistinct)
 			{
 				b.Append("Distinct ");
 			}
-			if (this.SelectLimit == 1)
+			if (this.Limit == 1)
 			{
 				b.Append("(Row ");
-				b.Append(this.SelectStartIndex);
+				b.Append(this.StartIndex);
 				b.Append(") ");
 			}
-			else if (this.SelectStartIndex != 0 || this.SelectLimit != 0)
+			else if (this.StartIndex != 0 || this.Limit != 0)
 			{
 				b.Append("(Rows ");
-				b.Append(this.SelectStartIndex);
-				if (this.SelectLimit == 0)
+				b.Append(this.StartIndex);
+				if (this.Limit == 0)
 				{
 					b.Append("+");
 				}
 				else
 				{
 					b.Append("-");
-					b.Append(this.SelectStartIndex + this.SelectLimit);
+					b.Append(this.StartIndex + this.Limit);
 				}
 				b.Append(") ");
 			}
@@ -363,7 +430,7 @@ namespace Watsonia.Data
 			}
 			else
 			{
-				b.Append("All ");
+				b.Append("* ");
 			}
 			b.AppendLine(" ");
 			if (this.Source != null)

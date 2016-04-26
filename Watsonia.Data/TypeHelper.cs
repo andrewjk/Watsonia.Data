@@ -60,16 +60,6 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
-		/// Gets an IEnumerable&lt;T&gt; type where T is the supplied element type.
-		/// </summary>
-		/// <param name="elementType">The type of element to be contained in the sequence.</param>
-		/// <returns></returns>
-		public static Type MakeSequenceType(Type elementType)
-		{
-			return typeof(IEnumerable<>).MakeGenericType(elementType);
-		}
-
-		/// <summary>
 		/// Gets the type of element contained in a sequence.
 		/// </summary>
 		/// <param name="sequenceType">The type of the sequence, which must implement an IEnumerable interface.</param>
@@ -97,11 +87,6 @@ namespace Watsonia.Data
 			return type != null && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 		}
 
-		public static bool IsNullAssignable(Type type)
-		{
-			return !type.IsValueType || IsNullableType(type);
-		}
-
 		/// <summary>
 		/// Gets a non-nullable version of the supplied type.
 		/// </summary>
@@ -115,68 +100,7 @@ namespace Watsonia.Data
 			}
 			return type;
 		}
-
-		public static Type GetNullAssignableType(Type type)
-		{
-			if (!IsNullAssignable(type))
-			{
-				return typeof(Nullable<>).MakeGenericType(type);
-			}
-			return type;
-		}
-
-		public static ConstantExpression GetNullConstant(Type type)
-		{
-			return Expression.Constant(null, GetNullAssignableType(type));
-		}
-
-		/// <summary>
-		/// Gets the type of the supplied member.
-		/// </summary>
-		/// <param name="mi">The member.</param>
-		/// <returns></returns>
-		public static Type GetMemberType(MemberInfo mi)
-		{
-			FieldInfo fi = mi as FieldInfo;
-			if (fi != null)
-			{
-				return fi.FieldType;
-			}
-			PropertyInfo pi = mi as PropertyInfo;
-			if (pi != null)
-			{
-				return pi.PropertyType;
-			}
-			EventInfo ei = mi as EventInfo;
-			if (ei != null)
-			{
-				return ei.EventHandlerType;
-			}
-			return null;
-		}
-
-		public static object GetDefault(Type type)
-		{
-			bool isNullable = !type.IsValueType || TypeHelper.IsNullableType(type);
-			if (!isNullable)
-				return Activator.CreateInstance(type);
-			return null;
-		}
-
-		public static bool IsReadOnly(MemberInfo member)
-		{
-			switch (member.MemberType)
-			{
-				case MemberTypes.Field:
-				return (((FieldInfo)member).Attributes & FieldAttributes.InitOnly) != 0;
-				case MemberTypes.Property:
-				PropertyInfo pi = (PropertyInfo)member;
-				return !pi.CanWrite || pi.GetSetMethod() == null;
-				default:
-				return true;
-			}
-		}
-
+		
 		/// <summary>
 		/// Determines whether the specified type is boolean.
 		/// </summary>
@@ -271,10 +195,57 @@ namespace Watsonia.Data
 		{
 			// From http://stackoverflow.com/questions/2483023/how-to-test-if-a-type-is-anonymous
 			// HACK: The only way to detect anonymous types right now.
-			return Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
-				&& type.IsGenericType && type.Name.Contains("AnonymousType")
-				&& (type.Name.StartsWith("<>") || type.Name.StartsWith("VB$"))
-				&& (type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic;
+			return
+				Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false) &&
+				type.IsGenericType &&
+				type.Name.Contains("AnonymousType") &&
+				(type.Name.StartsWith("<>") || type.Name.StartsWith("VB$")) && 
+				(type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic;
+		}
+
+		public static bool IsGenericType(Type type, Type genericType)
+		{
+			// From http://stackoverflow.com/questions/982487/testing-if-object-is-of-generic-type-in-c-sharp
+			while (type != null)
+			{
+				if (type.IsGenericType && type.GetGenericTypeDefinition() == genericType)
+				{
+					return true;
+				}
+				if (genericType.IsInterface && IsAssignableToGenericType(type, genericType))
+				{
+					return true;
+				}
+				type = type.BaseType;
+			}
+			return false;
+		}
+
+		public static bool IsAssignableToGenericType(Type type, Type genericType)
+		{
+			// From http://stackoverflow.com/questions/5461295/using-isassignablefrom-with-generics
+			var interfaceTypes = type.GetInterfaces();
+
+			foreach (var it in interfaceTypes)
+			{
+				if (it.IsGenericType && it.GetGenericTypeDefinition() == genericType)
+				{
+					return true;
+				}
+			}
+
+			if (type.IsGenericType && type.GetGenericTypeDefinition() == genericType)
+			{
+				return true;
+			}
+
+			Type baseType = type.BaseType;
+			if (baseType == null)
+			{
+				return false;
+			}
+
+			return IsAssignableToGenericType(baseType, genericType);
 		}
 
 		/// <summary>

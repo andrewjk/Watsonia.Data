@@ -64,6 +64,16 @@ namespace Watsonia.Data.Sql
 			this.Conditions.Add(new Condition(leftTableName, leftColumnName, SqlOperator.Equals, new Column(rightTableName, rightColumnName)));
 		}
 
+		public Join(JoinType joinType, string tableName, string leftTableName, string leftColumnName, string rightTableName, string rightColumnName)
+		{
+			this.JoinType = joinType;
+			// TODO: Fix this pug fugly syntax
+			// TODO: Change field => column in all the SQL stuff?  Column if it's a column, field if it's a statement part
+			//this.Left = new Table(leftTableName);
+			this.Right = new Table(tableName);
+			this.Conditions.Add(new Condition(leftTableName, leftColumnName, SqlOperator.Equals, new Column(rightTableName, rightColumnName)));
+		}
+
 		public Join(Table table, Column leftColumn, Column rightColumn)
 		{
 			this.JoinType = JoinType.Inner;

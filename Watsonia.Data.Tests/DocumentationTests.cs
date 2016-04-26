@@ -101,7 +101,7 @@ namespace Watsonia.Data.Tests
 		public void TestSavingEntities()
 		{
 			// Get a random author's ID:
-			var selectAuthor = Select.From("Author").Limit(1).Where("LastName", SqlOperator.StartsWith, "P");
+			var selectAuthor = Select.From("Author").Take(1).Where("LastName", SqlOperator.StartsWith, "P");
 			var existingAuthors = db.LoadCollection<Author>(selectAuthor);
 			var existingAuthor = existingAuthors[0];
 			var existingAuthorID = ((IDynamicProxy)existingAuthor).PrimaryKeyValue;

@@ -94,14 +94,6 @@ namespace Watsonia.Data
 			private set;
 		}
 
-		///// <summary>
-		///// Initializes a new instance of the <see cref="DataChange"/> class.
-		///// </summary>
-		//protected DataChange()
-		//{
-		//	this.DateTime = DateTime.Now;
-		//}
-
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DataChange" /> class.
 		/// </summary>

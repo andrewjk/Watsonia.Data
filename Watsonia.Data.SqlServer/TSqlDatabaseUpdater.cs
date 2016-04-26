@@ -33,25 +33,26 @@ namespace Watsonia.Data.SqlServer
 			_configuration = configuration;
 		}
 
-		public void UpdateDatabase(IEnumerable<MappedTable> tables)
+		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views)
 		{
-			UpdateDatabase(tables, true);
+			UpdateDatabase(tables, views, true);
 		}
 
-		public string GetUpdateScript(IEnumerable<MappedTable> tables)
+		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views)
 		{
 			StringBuilder script = new StringBuilder();
-			UpdateDatabase(tables, false, script);
+			UpdateDatabase(tables, views, false, script);
 			return script.ToString();
 		}
 
-		protected virtual void UpdateDatabase(IEnumerable<MappedTable> tables, bool doUpdate, StringBuilder script = null)
+		protected virtual void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, bool doUpdate, StringBuilder script = null)
 		{
 			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
 			{
 				// Load the existing tables and columns
 				var existingTables = LoadExistingTables(connection);
 				var existingColumns = LoadExistingColumns(connection);
+				var existingViews = LoadExistingViews(connection);
 
 				// First pass - create or update tables and columns
 				foreach (MappedTable table in tables)
@@ -84,7 +85,8 @@ namespace Watsonia.Data.SqlServer
 				// Second pass - fill table data
 				foreach (MappedTable table in tables.Where(t => t.Values.Count > 0))
 				{
-					UpdateTableData(table, connection, doUpdate, script);
+					bool tableExists = existingTables.ContainsKey(table.Name.ToUpperInvariant());
+					UpdateTableData(table, connection, doUpdate, script, tableExists);
 				}
 
 				// Third pass - create relationship constraints
@@ -98,6 +100,22 @@ namespace Watsonia.Data.SqlServer
 							CreateForeignKey(table, column, connection, doUpdate, script);
 							existingForeignKeys.Add(column.Relationship.ConstraintName);
 						}
+					}
+				}
+
+				// Fourth pass - create views
+				foreach (MappedView view in views)
+				{
+					string key = view.Name.ToUpperInvariant();
+					if (existingViews.ContainsKey(key))
+					{
+						// The view exists so we need to check whether it should be updated
+						UpdateView(view, existingViews[key], connection, doUpdate, script);
+					}
+					else
+					{
+						// The view doesn't exist so it needs to be created
+						CreateView(view, connection, doUpdate, script);
 					}
 				}
 			}
@@ -162,6 +180,32 @@ namespace Watsonia.Data.SqlServer
 			return existingColumns;
 		}
 
+		protected virtual Dictionary<string, MappedView> LoadExistingViews(DbConnection connection)
+		{
+			var existingViews = new Dictionary<string, MappedView>();
+			if (!this.CompactEdition)
+			{
+				using (var existingViewsCommand = CreateCommand(connection))
+				{
+					existingViewsCommand.CommandText = "SELECT TABLE_NAME, VIEW_DEFINITION FROM INFORMATION_SCHEMA.VIEWS";
+					existingViewsCommand.Connection = connection;
+					using (var reader = existingViewsCommand.ExecuteReader())
+					{
+						while (reader.Read())
+						{
+							string viewName = reader.GetString(reader.GetOrdinal("TABLE_NAME"));
+							string selectStatementText = reader.GetString(reader.GetOrdinal("VIEW_DEFINITION"));
+							MappedView view = new MappedView(viewName);
+							view.SelectStatementText = selectStatementText;
+							string key = viewName.ToUpperInvariant();
+							existingViews.Add(key, view);
+						}
+					}
+				}
+			}
+			return existingViews;
+		}
+
 		protected virtual Type FrameworkTypeFromDatabase(string databaseTypeName, bool allowNulls)
 		{
 			switch (databaseTypeName.ToUpperInvariant())
@@ -173,6 +217,10 @@ namespace Watsonia.Data.SqlServer
 				case "DATETIME":
 				{
 					return allowNulls ? typeof(DateTime?) : typeof(DateTime);
+				}
+				case "DATETIMEOFFSET":
+				{
+					return allowNulls ? typeof(DateTimeOffset?) : typeof(DateTimeOffset);
 				}
 				case "DECIMAL":
 				case "NUMERIC":
@@ -191,10 +239,23 @@ namespace Watsonia.Data.SqlServer
 				{
 					return allowNulls ? typeof(long?) : typeof(long);
 				}
+				case "SMALLINT":
+				{
+					return allowNulls ? typeof(short?) : typeof(short);
+				}
+				case "TINYINT":
+				{
+					return allowNulls ? typeof(byte?) : typeof(byte);
+				}
 				case "VARCHAR":
 				case "NVARCHAR":
 				{
 					return typeof(string);
+				}
+				case "VARBINARY":
+				case "IMAGE":
+				{
+					return typeof(byte[]);
 				}
 				case "UNIQUEIDENTIFIER":
 				{
@@ -227,16 +288,16 @@ namespace Watsonia.Data.SqlServer
 
 		protected virtual void CreateTable(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
+			StringBuilder b = new StringBuilder();
+			b.AppendFormat("CREATE TABLE [{0}] (", table.Name);
+			b.AppendLine();
+			b.Append(string.Join(", ", Array.ConvertAll(table.Columns.ToArray(), c => ColumnText(table, c, true, true))));
+			b.AppendLine(",");
+			b.AppendFormat("CONSTRAINT [{0}] PRIMARY KEY {1} ([{2}]{3})", table.PrimaryKeyConstraintName, (this.CompactEdition ? "" : "CLUSTERED"), table.PrimaryKeyColumnName, (this.CompactEdition ? "" : " ASC"));
+			b.AppendLine();
+			b.Append(")");
 			using (var command = CreateCommand(connection))
 			{
-				StringBuilder b = new StringBuilder();
-				b.AppendFormat("CREATE TABLE [{0}] (", table.Name);
-				b.AppendLine();
-				b.Append(string.Join(", ", Array.ConvertAll(table.Columns.ToArray(), c => ColumnText(table, c, true, true))));
-				b.AppendLine(",");
-				b.AppendFormat("CONSTRAINT [{0}] PRIMARY KEY {1} ([{2}]{3})", table.PrimaryKeyConstraintName, (this.CompactEdition ? "" : "CLUSTERED"), table.PrimaryKeyColumnName, (this.CompactEdition ? "" : " ASC"));
-				b.AppendLine();
-				b.Append(")");
 				command.CommandText = b.ToString();
 				command.Connection = connection;
 				ExecuteSql(command, doUpdate, script);
@@ -319,6 +380,10 @@ namespace Watsonia.Data.SqlServer
 			{
 				return "BIGINT";
 			}
+			else if (column.ColumnType == typeof(byte) || column.ColumnType == typeof(byte?))
+			{
+				return "TINYINT";
+			}
 			else if (column.ColumnType == typeof(string))
 			{
 				if (column.MaxLength >= 4000)
@@ -335,6 +400,26 @@ namespace Watsonia.Data.SqlServer
 				else
 				{
 					return string.Format("NVARCHAR({0})", column.MaxLength);
+				}
+			}
+			else if (column.ColumnType == typeof(byte[]))
+			{
+				if (column.MaxLength == 0)
+				{
+					if (this.CompactEdition)
+					{
+						// NOTE: VARBINARY has a max of 8000 in CE which very well might not be large
+						// enough, so instead we use IMAGE
+						return "IMAGE";
+					}
+					else
+					{
+						return "VARBINARY(MAX)";
+					}
+				}
+				else
+				{
+					return string.Format("VARBINARY({0})", column.MaxLength);
 				}
 			}
 			else if (column.ColumnType == typeof(Guid) || column.ColumnType == typeof(Guid?))
@@ -371,6 +456,10 @@ namespace Watsonia.Data.SqlServer
 				return column.DefaultValue != null ? column.DefaultValue.ToString() : "0";
 			}
 			else if (column.ColumnType == typeof(long) || column.ColumnType == typeof(long?))
+			{
+				return column.DefaultValue != null ? column.DefaultValue.ToString() : "0";
+			}
+			else if (column.ColumnType == typeof(byte) || column.ColumnType == typeof(byte?))
 			{
 				return column.DefaultValue != null ? column.DefaultValue.ToString() : "0";
 			}
@@ -570,21 +659,24 @@ namespace Watsonia.Data.SqlServer
 			return constraints;
 		}
 
-		protected virtual void UpdateTableData(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
+		protected virtual void UpdateTableData(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script, bool tableExists)
 		{
 			// TODO: This is a bit messy and could be tidied up a bit
 			var existingTableData = new List<int>();
 
 			// Load the existing table data
-			var selectExistingTableData = Select.From(table.Name).Columns(table.PrimaryKeyColumnName);
-			using (var existingTableDataCommand = _dataAccessProvider.BuildCommand(selectExistingTableData, _configuration))
+			if (tableExists)
 			{
-				existingTableDataCommand.Connection = connection;
-				using (var reader = existingTableDataCommand.ExecuteReader())
+				var selectExistingTableData = Select.From(table.Name).Columns(table.PrimaryKeyColumnName);
+				using (var existingTableDataCommand = _dataAccessProvider.BuildCommand(selectExistingTableData, _configuration))
 				{
-					while (reader.Read())
+					existingTableDataCommand.Connection = connection;
+					using (var reader = existingTableDataCommand.ExecuteReader())
 					{
-						existingTableData.Add(reader.GetInt32(0));
+						while (reader.Read())
+						{
+							existingTableData.Add(reader.GetInt32(0));
+						}
 					}
 				}
 			}
@@ -615,6 +707,51 @@ namespace Watsonia.Data.SqlServer
 						identityInsertCommand.CommandText = "SET IDENTITY_INSERT " + table.Name + " OFF";
 						ExecuteSql(identityInsertCommand, doUpdate, script);
 					}
+				}
+			}
+		}
+
+		protected virtual void CreateView(MappedView view, DbConnection connection, bool doUpdate, StringBuilder script)
+		{
+			if (this.CompactEdition)
+			{
+				// No views in CE
+				return;
+			}
+
+			StringBuilder b = new StringBuilder();
+			b.AppendFormat("CREATE VIEW [{0}] AS", view.Name);
+			b.AppendLine();
+			using (var viewCommand = _configuration.DataAccessProvider.BuildCommand(view.SelectStatement, _configuration))
+			{
+				b.Append(viewCommand.CommandText);
+			}
+			b.AppendLine();
+			using (var command = CreateCommand(connection))
+			{
+				command.CommandText = b.ToString();
+				command.Connection = connection;
+				ExecuteSql(command, doUpdate, script);
+			}
+		}
+
+		protected virtual void UpdateView(MappedView view, MappedView oldView, DbConnection connection, bool doUpdate, StringBuilder script)
+		{
+			StringBuilder b = new StringBuilder();
+			b.AppendFormat("CREATE VIEW [{0}] AS", view.Name);
+			b.AppendLine();
+			using (var viewCommand = _configuration.DataAccessProvider.BuildCommand(view.SelectStatement, _configuration))
+			{
+				b.Append(viewCommand.CommandText);
+			}
+			b.AppendLine();
+			if (oldView.SelectStatementText != b.ToString())
+			{
+				using (var command = CreateCommand(connection))
+				{
+					command.CommandText = b.ToString().Replace("CREATE VIEW", "ALTER VIEW");
+					command.Connection = connection;
+					ExecuteSql(command, doUpdate, script);
 				}
 			}
 		}
@@ -661,7 +798,7 @@ namespace Watsonia.Data.SqlServer
 			return command;
 		}
 
-		public string GetUnmappedColumns(IEnumerable<MappedTable> tables)
+		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views)
 		{
 			StringBuilder columns = new StringBuilder();
 
@@ -681,13 +818,12 @@ namespace Watsonia.Data.SqlServer
 
 					if (!isColumnMapped)
 					{
-						columns.AppendLine(columnKey);
+						columns.AppendLine(columnKey + " " + ColumnTypeText(existingColumns[columnKey]));
 					}
 				}
 			}
 
 			return columns.ToString();
 		}
-
 	}
 }

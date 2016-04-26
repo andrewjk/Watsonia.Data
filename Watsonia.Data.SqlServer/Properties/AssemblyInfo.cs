@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Watsonia.Data.SqlServer")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Watsonia Publishing")]
 [assembly: AssemblyProduct("Watsonia.Data.SqlServer")]
-[assembly: AssemblyCopyright("Copyright ©  2013")]
+[assembly: AssemblyCopyright("© Watsonia Publishing")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

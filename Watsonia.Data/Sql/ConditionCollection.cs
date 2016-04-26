@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Watsonia.Data.Sql;
 
-namespace Watsonia.Data.Sql
+namespace Watsonia.Data
 {
 	/// <summary>
 	/// A collection of conditions.
@@ -26,21 +27,7 @@ namespace Watsonia.Data.Sql
 				return StatementPartType.ConditionCollection;
 			}
 		}
-
-		///// <summary>
-		///// Gets the conditions.
-		///// </summary>
-		///// <value>
-		///// The conditions.
-		///// </value>
-		//public List<ConditionExpression> Conditions
-		//{
-		//	get
-		//	{
-		//		return _conditions;
-		//	}
-		//}
-
+		
 		public int Count
 		{
 			get

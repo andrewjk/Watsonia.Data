@@ -47,17 +47,11 @@ namespace Watsonia.Data.Sql
 			private set;
 		}
 
-		////public string Alias
-		////{
-		////    get;
-		////    set;
-		////}
-
-		////public AggregateType AggregateFunction
-		////{
-		////	get;
-		////	set;
-		////}
+		internal Type PropertyType
+		{
+			get;
+			set;
+		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Column" /> class.

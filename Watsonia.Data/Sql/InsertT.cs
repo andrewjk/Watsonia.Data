@@ -5,13 +5,14 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Watsonia.Data.Query;
 using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
 {
 	public sealed class Insert<T> : Statement
 	{
+		private readonly List<Tuple<PropertyInfo, object>> _setValues = new List<Tuple<PropertyInfo, object>>();
+
 		public override StatementPartType PartType
 		{
 			get
@@ -26,6 +27,14 @@ namespace Watsonia.Data
 			internal set;
 		}
 
+		public List<Tuple<PropertyInfo, object>> SetValues
+		{
+			get
+			{
+				return _setValues;
+			}
+		}
+
 		public Expression Conditions
 		{
 			get;
@@ -37,33 +46,39 @@ namespace Watsonia.Data
 			this.Target = typeof(T);
 		}
 
-		public static Insert<T> From()
+		public Insert<T> Value(Expression<Func<T, object>> property, object value)
 		{
-			return new Insert<T>() { Target = typeof(T) };
-		}
-
-		public Insert<T> Where(Expression<Func<T, bool>> condition)
-		{
-			this.Conditions = condition.Body;
+			this.SetValues.Add(new Tuple<PropertyInfo, object>(FuncToPropertyInfo(property), value));
 			return this;
 		}
 
-		public Insert<T> And(Expression<Func<T, bool>> condition)
+		// TODO: This should go into a helper
+		private static PropertyInfo FuncToPropertyInfo(Expression<Func<T, object>> selector)
 		{
-			this.Conditions = this.Conditions.AndAlso(condition.Body);
-			return this;
-		}
+			if (selector.Body is MemberExpression)
+			{
+				MemberExpression mex = (MemberExpression)selector.Body;
+				return (PropertyInfo)mex.Member;
+			}
+			else if (selector.Body is UnaryExpression)
+			{
+				// Throw away Converts
+				UnaryExpression uex = (UnaryExpression)selector.Body;
+				if (uex.Operand is MemberExpression)
+				{
+					MemberExpression mex = (MemberExpression)uex.Operand;
+					return (PropertyInfo)mex.Member;
+				}
+			}
 
-		public Insert<T> Or(Expression<Func<T, bool>> condition)
-		{
-			this.Conditions = this.Conditions.OrElse(condition.Body);
-			return this;
+			throw new InvalidOperationException();
 		}
 
 		public Insert CreateStatement(DatabaseConfiguration configuration)
 		{
 			Insert insert = new Insert();
 			insert.Target = new Table(configuration.GetTableName(this.Target));
+			insert.SetValues.AddRange(this.SetValues.Select(sv => new SetValue(new Column(configuration.GetColumnName(sv.Item1)), sv.Item2)));
 			return insert;
 		}
 	}

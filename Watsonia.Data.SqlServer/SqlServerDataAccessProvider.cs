@@ -53,25 +53,27 @@ namespace Watsonia.Data.SqlServer
 		/// Updates the database with any changes that have been made to tables and columns.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
+		/// <param name="views">The views that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		public void UpdateDatabase(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration)
+		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
-			updater.UpdateDatabase(tables);
+			updater.UpdateDatabase(tables, views);
 		}
 
 		/// <summary>
 		/// Gets the update script for any changes that have been made to tables and columns.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
+		/// <param name="views">The views that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		public string GetUpdateScript(IEnumerable<MappedTable> tables, DatabaseConfiguration  configuration)
+		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
-			return updater.GetUpdateScript(tables);
+			return updater.GetUpdateScript(tables, views);
 		}
 
 		/// <summary>
@@ -121,15 +123,16 @@ namespace Watsonia.Data.SqlServer
 		/// Gets columns that exist in the database but are not mapped.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
+		/// <param name="views">The views that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the unmapped columns.
 		/// </returns>
 		/// <exception cref="System.NotImplementedException"></exception>
-		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration)
+		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
-			return updater.GetUnmappedColumns(tables);
+			return updater.GetUnmappedColumns(tables, views);
 		}
 	}
 }

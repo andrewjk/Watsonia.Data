@@ -1,464 +1,464 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <baselines>
   <baseline key="TestMathLog10">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Log10(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Log10(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestMathCeiling">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Ceiling(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Ceiling(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestMathRoundToPlace">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Round(t0.OrderID, 2) Equals 0
+    Select *
+    From Orders
+    Where Round(Orders.OrderID, 2) Equals 0
   </baseline>
   <baseline key="TestMathFloor">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Floor(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Floor(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestMathTruncate">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Truncate(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Truncate(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestStringCompareToLT">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City IsLessThan @0 ('Seattle')
+    Select *
+    From Customers
+    Where Customers.City IsLessThan @0 ('Seattle')
   </baseline>
   <baseline key="TestStringCompareToLE">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City IsLessThanOrEqualTo @0 ('Seattle')
+    Select *
+    From Customers
+    Where Customers.City IsLessThanOrEqualTo @0 ('Seattle')
   </baseline>
   <baseline key="TestStringCompareToGT">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City IsGreaterThan @0 ('Seattle')
+    Select *
+    From Customers
+    Where Customers.City IsGreaterThan @0 ('Seattle')
   </baseline>
   <baseline key="TestStringCompareToGE">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City IsGreaterThanOrEqualTo @0 ('Seattle')
+    Select *
+    From Customers
+    Where Customers.City IsGreaterThanOrEqualTo @0 ('Seattle')
   </baseline>
   <baseline key="TestStringCompareToEQ">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('Seattle')
+    Select *
+    From Customers
+    Where Customers.City Equals @0 ('Seattle')
   </baseline>
   <baseline key="TestStringCompareToNE">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City NotEquals @0 ('Seattle')
+    Select *
+    From Customers
+    Where Customers.City NotEquals @0 ('Seattle')
   </baseline>
   <baseline key="TestStringCompareLT">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City IsLessThan @0 ('Seattle')
+    Select *
+    From Customers
+    Where Customers.City IsLessThan @0 ('Seattle')
   </baseline>
   <baseline key="TestStringCompareLE">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City IsLessThanOrEqualTo @0 ('Seattle')
+    Select *
+    From Customers
+    Where Customers.City IsLessThanOrEqualTo @0 ('Seattle')
   </baseline>
   <baseline key="TestStringCompareGT">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City IsGreaterThan @0 ('Seattle')
+    Select *
+    From Customers
+    Where Customers.City IsGreaterThan @0 ('Seattle')
   </baseline>
   <baseline key="TestStringCompareGE">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City IsGreaterThanOrEqualTo @0 ('Seattle')
+    Select *
+    From Customers
+    Where Customers.City IsGreaterThanOrEqualTo @0 ('Seattle')
   </baseline>
   <baseline key="TestStringCompareEQ">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('Seattle')
+    Select *
+    From Customers
+    Where Customers.City Equals @0 ('Seattle')
   </baseline>
   <baseline key="TestStringCompareNE">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City NotEquals @0 ('Seattle')
+    Select *
+    From Customers
+    Where Customers.City NotEquals @0 ('Seattle')
   </baseline>
   <baseline key="TestIntCompareTo">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where t0.OrderID Equals 1000
+    Select *
+    From Orders
+    Where Orders.OrderID Equals 1000
   </baseline>
   <baseline key="TestDecimalCompare">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where t0.OrderID Equals 0.0
+    Select *
+    From Orders
+    Where Orders.OrderID Equals 0.0
   </baseline>
   <baseline key="TestDecimalAdd">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID + 0.0) Equals 0.0
+    Select *
+    From Orders
+    Where (Orders.OrderID + 0.0) Equals 0.0
   </baseline>
   <baseline key="TestDecimalSubtract">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID - 0.0) Equals 0.0
+    Select *
+    From Orders
+    Where (Orders.OrderID - 0.0) Equals 0.0
   </baseline>
   <baseline key="TestDecimalMultiply">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID * 1.0) Equals 1.0
+    Select *
+    From Orders
+    Where (Orders.OrderID * 1.0) Equals 1.0
   </baseline>
   <baseline key="TestDecimalDivide">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID / 1.0) Equals 1.0
+    Select *
+    From Orders
+    Where (Orders.OrderID / 1.0) Equals 1.0
   </baseline>
   <baseline key="TestDecimalRemainder">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID % 1.0) Equals 0.0
+    Select *
+    From Orders
+    Where (Orders.OrderID % 1.0) Equals 0.0
   </baseline>
   <baseline key="TestDecimalNegate">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Negate(t0.OrderID) Equals 1.0
+    Select *
+    From Orders
+    Where Negate(Orders.OrderID) Equals 1.0
   </baseline>
   <baseline key="TestDecimalRoundDefault">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Round(t0.OrderID, 0) Equals 0
+    Select *
+    From Orders
+    Where Round(Orders.OrderID, 0) Equals 0
   </baseline>
   <baseline key="TestDecimalRoundPlaces">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Round(t0.OrderID, 2) Equals 0.00
+    Select *
+    From Orders
+    Where Round(Orders.OrderID, 2) Equals 0.00
   </baseline>
   <baseline key="TestDecimalTruncate">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Truncate(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Truncate(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestDecimalCeiling">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Ceiling(t0.OrderID) Equals 0.0
+    Select *
+    From Orders
+    Where Ceiling(Orders.OrderID) Equals 0.0
   </baseline>
   <baseline key="TestDecimalFloor">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Floor(t0.OrderID) Equals 0.0
+    Select *
+    From Orders
+    Where Floor(Orders.OrderID) Equals 0.0
   </baseline>
   <baseline key="TestDecimalLT">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where t0.OrderID IsLessThan 0.0
+    Select *
+    From Orders
+    Where Orders.OrderID IsLessThan 0.0
   </baseline>
   <baseline key="TestIntLessThan">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where t0.OrderID IsLessThan 0
+    Select *
+    From Orders
+    Where Orders.OrderID IsLessThan 0
   </baseline>
   <baseline key="TestIntLessThanOrEqual">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where t0.OrderID IsLessThanOrEqualTo 0
+    Select *
+    From Orders
+    Where Orders.OrderID IsLessThanOrEqualTo 0
   </baseline>
   <baseline key="TestIntGreaterThan">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where t0.OrderID IsGreaterThan 0
+    Select *
+    From Orders
+    Where Orders.OrderID IsGreaterThan 0
   </baseline>
   <baseline key="TestIntGreaterThanOrEqual">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where t0.OrderID IsGreaterThanOrEqualTo 0
+    Select *
+    From Orders
+    Where Orders.OrderID IsGreaterThanOrEqualTo 0
   </baseline>
   <baseline key="TestIntEqual">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where t0.OrderID Equals 0
+    Select *
+    From Orders
+    Where Orders.OrderID Equals 0
   </baseline>
   <baseline key="TestIntNotEqual">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where t0.OrderID NotEquals 0
+    Select *
+    From Orders
+    Where Orders.OrderID NotEquals 0
   </baseline>
   <baseline key="TestIntAdd">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID + 0) Equals 0
+    Select *
+    From Orders
+    Where (Orders.OrderID + 0) Equals 0
   </baseline>
   <baseline key="TestIntSubtract">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID - 0) Equals 0
+    Select *
+    From Orders
+    Where (Orders.OrderID - 0) Equals 0
   </baseline>
   <baseline key="TestIntMultiply">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID * 1) Equals 1
+    Select *
+    From Orders
+    Where (Orders.OrderID * 1) Equals 1
   </baseline>
   <baseline key="TestIntDivide">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID / 1) Equals 1
+    Select *
+    From Orders
+    Where (Orders.OrderID / 1) Equals 1
   </baseline>
   <baseline key="TestIntModulo">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID % 1) Equals 0
+    Select *
+    From Orders
+    Where (Orders.OrderID % 1) Equals 0
   </baseline>
   <baseline key="TestIntLeftShift">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID &lt;&lt; 1) Equals 0
+    Select *
+    From Orders
+    Where (Orders.OrderID &lt;&lt; 1) Equals 0
   </baseline>
   <baseline key="TestIntRightShift">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID &gt;&gt; 1) Equals 0
+    Select *
+    From Orders
+    Where (Orders.OrderID &gt;&gt; 1) Equals 0
   </baseline>
   <baseline key="TestIntBitwiseAnd">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID &amp; 1) Equals 0
+    Select *
+    From Orders
+    Where (Orders.OrderID &amp; 1) Equals 0
   </baseline>
   <baseline key="TestIntBitwiseOr">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID | 1) Equals 1
+    Select *
+    From Orders
+    Where (Orders.OrderID | 1) Equals 1
   </baseline>
   <baseline key="TestIntBitwiseExclusiveOr">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID ^ 1) Equals 1
+    Select *
+    From Orders
+    Where (Orders.OrderID ^ 1) Equals 1
   </baseline>
   <baseline key="TestIntBitwiseNot">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where ~t0.OrderID? Equals 0
+    Select *
+    From Orders
+    Where ~Orders.OrderID? Equals 0
   </baseline>
   <baseline key="TestIntNegate">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Negate t0.OrderID Equals -1
+    Select *
+    From Orders
+    Where Negate Orders.OrderID Equals -1
   </baseline>
   <baseline key="TestAnd">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID IsGreaterThan 0 And t0.OrderID IsLessThan 2000)
+    Select *
+    From Orders
+    Where (Orders.OrderID IsGreaterThan 0 And Orders.OrderID IsLessThan 2000)
   </baseline>
   <baseline key="TestOr">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderID IsLessThan 5 Or t0.OrderID IsGreaterThan 10)
+    Select *
+    From Orders
+    Where (Orders.OrderID IsLessThan 5 Or Orders.OrderID IsGreaterThan 10)
   </baseline>
   <baseline key="TestNot">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Not t0.OrderID Equals 0
+    Select *
+    From Orders
+    Where Not Orders.OrderID Equals 0
   </baseline>
   <baseline key="TestEqualNull">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals Null
+    Select *
+    From Customers
+    Where Customers.City Equals Null
   </baseline>
   <baseline key="TestEqualNullReverse">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Null Equals t0.City
+    Select *
+    From Customers
+    Where Null Equals Customers.City
   </baseline>
   <baseline key="TestConditional">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (Case When t0.CustomerID Equals @0 ('ALFKI') Then 1000 Else 0) Equals 1000
+    Select *
+    From Orders
+    Where (Case When Orders.CustomerID Equals @0 ('ALFKI') Then 1000 Else 0) Equals 1000
   </baseline>
   <baseline key="TestConditional2">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (Case When t0.CustomerID Equals @0 ('ALFKI') Then 1000 When t0.CustomerID Equals @1 ('ABCDE') Then 2000 Else 0) Equals 1000
+    Select *
+    From Orders
+    Where (Case When Orders.CustomerID Equals @0 ('ALFKI') Then 1000 When Orders.CustomerID Equals @1 ('ABCDE') Then 2000 Else 0) Equals 1000
   </baseline>
   <baseline key="TestConditionalTestIsValue">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (Case t0.OrderID When True Then 100 Else 200) Equals 100
+    Select *
+    From Orders
+    Where (Case Orders.OrderID When True Then 100 Else 200) Equals 100
   </baseline>
   <baseline key="TestConditionalResultsArePredicates">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (Case When t0.CustomerID Equals @0 ('ALFKI') Then (Case When t0.OrderID IsLessThan 10 Then True Else False) Else (Case When t0.OrderID IsGreaterThan 10 Then True Else False)) NotEquals False
+    Select *
+    From Orders
+    Where (Case When Orders.CustomerID Equals @0 ('ALFKI') Then (Case When Orders.OrderID IsLessThan 10 Then True Else False) Else (Case When Orders.OrderID IsGreaterThan 10 Then True Else False)) NotEquals False
   </baseline>
   <baseline key="TestSelectManyJoined">
-    Select t0.ContactName, t1.OrderDate
-    From Customers As t0
-    Inner Join Orders As t1 On t1.CustomerID Equals t0.CustomerID
+    Select Customers.ContactName, Orders.OrderDate
+    From Customers
+    Inner Join Orders On Orders.CustomerID Equals Customers.CustomerID
   </baseline>
   <baseline key="TestSelectManyJoinedDefaultIfEmpty">
-    Select t0.ContactName, t1.OrderDate
-    From Customers As t0
-    Left Join Orders As t1 On t1.CustomerID Equals t0.CustomerID
+    Select Customers.ContactName, Orders.OrderDate
+    From Customers
+    Left Join Orders On Orders.CustomerID Equals Customers.CustomerID
   </baseline>
   <baseline key="TestSelectWhereAssociation">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Left Join Customers As t1 On t1.CustomerID Equals t0.CustomerID
-    Where t1.City Equals @0
+    Select *
+    From Orders
+    Left Join Customers On Customers.CustomerID Equals Orders.CustomerID
+    Where Customers.City Equals @0
   </baseline>
   <baseline key="TestSelectWhereAssociations">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Left Join Customers As t1 On t1.CustomerID Equals t0.CustomerID
-    Where t1.City Equals @0 And t1.Phone NotEquals @1
+    Select *
+    From Orders
+    Left Join Customers On Customers.CustomerID Equals Orders.CustomerID
+    Where Customers.City Equals @0 And Customers.Phone NotEquals @1
   </baseline>
   <baseline key="TestSelectWhereAssociationTwice">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Left Join Customers As t1 On t1.CustomerID Equals t0.CustomerID
-    Where t1.City Equals @0 And t1.Phone NotEquals @1
+    Select *
+    From Orders
+    Left Join Customers On Customers.CustomerID Equals Orders.CustomerID
+    Where Customers.City Equals @0 And Customers.Phone NotEquals @1
   </baseline>
   <baseline key="TestSelectAssociation">
-    Select t1.CustomerID As CustomerID1, t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.Phone
-    From Orders As t0
-    Left Join Customers As t1 On t1.CustomerID Equals t0.CustomerID
+    Select Customers.CustomerID As CustomerID1, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
+    From Orders
+    Left Join Customers On Customers.CustomerID Equals Orders.CustomerID
   </baseline>
   <baseline key="TestSelectAssociations">
-    Select t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID As CustomerID1, t1.Phone
-    From Orders As t0
-    Left Join Customers As t1 On t1.CustomerID Equals t0.CustomerID
+    Select Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.CustomerID As CustomerID1, Customers.Phone
+    From Orders
+    Left Join Customers On Customers.CustomerID Equals Orders.CustomerID
   </baseline>
   <baseline key="TestSelectAssociationsWhereAssociations">
-    Select t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID As CustomerID1, t1.Phone
-    From Orders As t0
-    Left Join Customers As t1 On t1.CustomerID Equals t0.CustomerID
-    Where t1.City Equals @0 And t1.Phone NotEquals @1
+    Select Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.CustomerID As CustomerID1, Customers.Phone
+    From Orders
+    Left Join Customers On Customers.CustomerID Equals Orders.CustomerID
+    Where Customers.City Equals @0 And Customers.Phone NotEquals @1
   </baseline>
   <baseline key="TestCustomersIncludeOrders">
-    Select t1.CustomerID, t1.OrderDate, t1.OrderID
-    From Customers As t0
-    Left Join Orders As t1 On t1.CustomerID Equals t0.CustomerID
+    Select *
+    From Customers
+    Left Join Orders On Orders.CustomerID Equals Customers.CustomerID
 
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
   </baseline>
   <baseline key="TestCustomersIncludeOrdersDeferred">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
 
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where t0.CustomerID Equals @n0
+    Select *
+    From
+    Where Orders.CustomerID Equals @n0
   </baseline>
   <baseline key="TestCustomersIncludeOrdersViaConstructorOnly">
     Select t1.CustomerID, t1.OrderID, t1.OrderDate
-    From Customers As t0
-    Left Join Orders As t1 On t1.CustomerID Equals t0.CustomerID
+    From Customers
+    Left Join Orders As t1 On t1.CustomerID Equals Customers.CustomerID
 
-    Select t0.CustomerID, t0.ContactName, t0.CompanyName, t0.Phone, t0.City, t0.Country
-    From Customers As t0
+    Select Customers.CustomerID, Customers.ContactName, Customers.CompanyName, Customers.Phone, Customers.City, Customers.Country
+    From Customers
   </baseline>
   <baseline key="TestCustomersWhereIncludeOrders">
     Select t1.CustomerID, t1.OrderDate, t1.OrderID
-    From Customers As t0
-    Left Join Orders As t1 On t1.CustomerID Equals t0.CustomerID
-    Where t0.City Equals @0
+    From Customers
+    Left Join Orders As t1 On t1.CustomerID Equals Customers.CustomerID
+    Where Customers.City Equals @0
 
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0
+    Select *
+    From Customers
+    Where Customers.City Equals @0
   </baseline>
   <baseline key="TestCustomersIncludeOrdersAndDetails">
     Select t2.OrderID, t2.ProductID
-    From Customers As t0
-    Left Join Orders As t1 On t1.CustomerID Equals t0.CustomerID
+    From Customers
+    Left Join Orders As t1 On t1.CustomerID Equals Customers.CustomerID
     Left Join Order Details As t2 On t2.OrderID Equals t1.OrderID
 
     Select t1.CustomerID, t1.OrderDate, t1.OrderID
-    From Customers As t0
-    Left Join Orders As t1 On t1.CustomerID Equals t0.CustomerID
+    From Customers
+    Left Join Orders As t1 On t1.CustomerID Equals Customers.CustomerID
 
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
   </baseline>
   <baseline key="TestCustomersWhereIncludeOrdersAndDetails">
     Select t2.OrderID, t2.ProductID
-    From Customers As t0
-    Left Join Orders As t1 On t1.CustomerID Equals t0.CustomerID
+    From Customers
+    Left Join Orders As t1 On t1.CustomerID Equals Customers.CustomerID
     Left Join Order Details As t2 On t2.OrderID Equals t1.OrderID
-    Where t0.City Equals @0
+    Where Customers.City Equals @0
 
     Select t1.CustomerID, t1.OrderDate, t1.OrderID
-    From Customers As t0
-    Left Join Orders As t1 On t1.CustomerID Equals t0.CustomerID
-    Where t0.City Equals @0
+    From Customers
+    Left Join Orders As t1 On t1.CustomerID Equals Customers.CustomerID
+    Where Customers.City Equals @0
 
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0
+    Select *
+    From Customers
+    Where Customers.City Equals @0
   </baseline>
   <baseline key="TestInterfaceElementTypeAsGenericConstraint">
-    Select t0.Discontinued, t0.ProductId, t0.ProductName
-    From Products As t0
-    Where t0.ProductId Equals 5
+    Select Products.Discontinued, Products.ProductId, Products.ProductName
+    From Products
+    Where Products.ProductId Equals 5
   </baseline>
   <baseline key="TestXmlMappingSelectCustomers">
-    Select t0.ContactName
-    From Customers As t0
-    Where t0.City Equals @0
+    Select Customers.ContactName
+    From Customers
+    Where Customers.City Equals @0
   </baseline>
   <baseline key="TestSingletonAssociationWithMemberAccess">
-    Select t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID As CustomerID1, t1.Phone
-    From Orders As t0
-    Left Join Customers As t1 On t1.CustomerID Equals t0.CustomerID
-    Where t1.City Equals @0 And t1.Phone NotEquals @1
+    Select Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.CustomerID As CustomerID1, Customers.Phone
+    From Orders
+    Left Join Customers On Customers.CustomerID Equals Orders.CustomerID
+    Where Customers.City Equals @0 And Customers.Phone NotEquals @1
   </baseline>
   <baseline key="TestCompareDateTimesWithDifferentNullability">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where (t0.OrderDate IsLessThan @0 (1/01/2013 12:00:00 AM) And t0.OrderDate IsLessThan @1 (1/01/2013 12:00:00 AM))
+    Select *
+    From Orders
+    Where (Orders.OrderDate IsLessThan @0 (1/01/2013 12:00:00 AM) And Orders.OrderDate IsLessThan @1 (1/01/2013 12:00:00 AM))
   </baseline>
   <baseline key="TestContainsWithEmptyLocalList">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.CustomerID IsIn { }
+    Select *
+    From Customers
+    Where Customers.CustomerID IsIn { }
   </baseline>
   <baseline key="TestContainsWithSubQuery">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.CustomerID IsIn (
-    Select t1.CustomerID
-    From Customers As t1
-    Where t1.City Equals @0 ('London')
+    Select *
+    From Customers
+    Where Customers.CustomerID IsIn (
+    Select Customers.CustomerID
+    From Customers
+    Where Customers.City Equals @0 ('London')
     )
   </baseline>
   <baseline key="TestCombineQueriesDeepNesting">
-    Select t0.OrderID, t0.ProductID
-    From Order Details As t0
+    Select Order Details.OrderID, Order Details.ProductID
+    From Order Details
     Where Exists (
-    Select All
-    From Orders As t1
+    Select *
+    From Orders
     Where (Exists (
-    Select All
-    From Customers As t2
-    Where (t2.ContactName StartsWith @0 ('xxx') And t2.CustomerID Equals t1.CustomerID)
-    ) And t1.OrderID Equals t0.OrderID)
+    Select *
+    From Customers
+    Where (Customers.ContactName StartsWith @0 ('xxx') And Customers.CustomerID Equals Orders.CustomerID)
+    ) And Orders.OrderID Equals Order Details.OrderID)
     )
   </baseline>
   <baseline key="TestLetWithSubquery">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone, (
+    Select *, (
     Select Count(All)
-    From Orders As t1
-    Where t1.CustomerID Equals t0.CustomerID
-    ) As c0
-    From Customers As t0
+    From Orders
+    Where Orders.CustomerID Equals Customers.CustomerID
+    )
+    From Customers
   </baseline>
   <baseline key="TestSkipTakeDistinct">
     Select Distinct t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
     From (
-    Select (Rows 5-15) t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID, t1.Phone
-    From Customers As t1
-    Order By t1.ContactName
+    Select (Rows 5-15) All
+    From Customers
+    Order By Customers.ContactName
     ) As t0
   </baseline>
   <baseline key="TestTakeSkipDistinct">
@@ -466,684 +466,684 @@
     From (
     Select (Rows 5+) t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID, t1.Phone
     From (
-    Select (Rows 0-10) t2.City, t2.CompanyName, t2.ContactName, t2.Country, t2.CustomerID, t2.Phone
-    From Customers As t2
-    Order By t2.ContactName
+    Select (Rows 0-10) All
+    From Customers
+    Order By Customers.ContactName
     ) As t1
     Order By t1.ContactName
     ) As t0
   </baseline>
   <baseline key="TestFirst">
-    Select (Row 0) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Order By t0.ContactName
+    Select (Row 0) All
+    From Customers
+    Order By Customers.ContactName
   </baseline>
   <baseline key="TestFirstPredicate">
-    Select (Row 0) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('London')
-    Order By t0.ContactName
+    Select (Row 0) All
+    From Customers
+    Where Customers.City Equals @0 ('London')
+    Order By Customers.ContactName
   </baseline>
   <baseline key="TestWhereFirst">
-    Select (Row 0) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('London')
-    Order By t0.ContactName
+    Select (Row 0) All
+    From Customers
+    Where Customers.City Equals @0 ('London')
+    Order By Customers.ContactName
   </baseline>
   <baseline key="TestFirstOrDefault">
-    Select (Row 0) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Order By t0.ContactName
+    Select (Row 0) All
+    From Customers
+    Order By Customers.ContactName
   </baseline>
   <baseline key="TestFirstOrDefaultPredicate">
-    Select (Row 0) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('London')
-    Order By t0.ContactName
+    Select (Row 0) All
+    From Customers
+    Where Customers.City Equals @0 ('London')
+    Order By Customers.ContactName
   </baseline>
   <baseline key="TestWhereFirstOrDefault">
-    Select (Row 0) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('London')
-    Order By t0.ContactName
+    Select (Row 0) All
+    From Customers
+    Where Customers.City Equals @0 ('London')
+    Order By Customers.ContactName
   </baseline>
   <baseline key="TestReverse">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Order By t0.ContactName Descending
+    Select *
+    From Customers
+    Order By Customers.ContactName Descending
   </baseline>
   <baseline key="TestReverseReverse">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Order By t0.ContactName
+    Select *
+    From Customers
+    Order By Customers.ContactName
   </baseline>
   <baseline key="TestReverseWhereReverse">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('London')
-    Order By t0.ContactName
+    Select *
+    From Customers
+    Where Customers.City Equals @0 ('London')
+    Order By Customers.ContactName
   </baseline>
   <baseline key="TestReverseTakeReverse">
     Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
     From (
-    Select (Rows 0-5) t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID, t1.Phone
-    From Customers As t1
-    Order By t1.ContactName Descending
+    Select (Rows 0-5) All
+    From Customers
+    Order By Customers.ContactName Descending
     ) As t0
     Order By t0.ContactName
   </baseline>
   <baseline key="TestReverseWhereTakeReverse">
     Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
     From (
-    Select (Rows 0-5) t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID, t1.Phone
-    From Customers As t1
-    Where t1.City Equals @0 ('London')
-    Order By t1.ContactName Descending
+    Select (Rows 0-5) All
+    From Customers
+    Where Customers.City Equals @0 ('London')
+    Order By Customers.ContactName Descending
     ) As t0
     Order By t0.ContactName
   </baseline>
   <baseline key="TestLast">
-    Select (Row 0) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Order By t0.ContactName Descending
+    Select (Row 0) All
+    From Customers
+    Order By Customers.ContactName Descending
   </baseline>
   <baseline key="TestLastPredicate">
-    Select (Row 0) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('London')
-    Order By t0.ContactName Descending
+    Select (Row 0) All
+    From Customers
+    Where Customers.City Equals @0 ('London')
+    Order By Customers.ContactName Descending
   </baseline>
   <baseline key="TestWhereLast">
-    Select (Row 0) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('London')
-    Order By t0.ContactName Descending
+    Select (Row 0) All
+    From Customers
+    Where Customers.City Equals @0 ('London')
+    Order By Customers.ContactName Descending
   </baseline>
   <baseline key="TestLastOrDefault">
-    Select (Row 0) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Order By t0.ContactName Descending
+    Select (Row 0) All
+    From Customers
+    Order By Customers.ContactName Descending
   </baseline>
   <baseline key="TestLastOrDefaultPredicate">
-    Select (Row 0) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('London')
-    Order By t0.ContactName Descending
+    Select (Row 0) All
+    From Customers
+    Where Customers.City Equals @0 ('London')
+    Order By Customers.ContactName Descending
   </baseline>
   <baseline key="TestWhereLastOrDefault">
-    Select (Row 0) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('London')
-    Order By t0.ContactName Descending
+    Select (Row 0) All
+    From Customers
+    Where Customers.City Equals @0 ('London')
+    Order By Customers.ContactName Descending
   </baseline>
   <baseline key="TestSingle">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
   </baseline>
   <baseline key="TestSinglePredicate">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.CustomerID Equals @0 ('ALFKI')
+    Select *
+    From Customers
+    Where Customers.CustomerID Equals @0 ('ALFKI')
   </baseline>
   <baseline key="TestWhereSingle">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.CustomerID Equals @0 ('ALFKI')
+    Select *
+    From Customers
+    Where Customers.CustomerID Equals @0 ('ALFKI')
   </baseline>
   <baseline key="TestSingleOrDefault">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
   </baseline>
   <baseline key="TestSingleOrDefaultPredicate">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.CustomerID Equals @0 ('ALFKI')
+    Select *
+    From Customers
+    Where Customers.CustomerID Equals @0 ('ALFKI')
   </baseline>
   <baseline key="TestWhereSingleOrDefault">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.CustomerID Equals @0 ('ALFKI')
+    Select *
+    From Customers
+    Where Customers.CustomerID Equals @0 ('ALFKI')
   </baseline>
   <baseline key="TestAnyWithSubquery">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
     Where Exists (
-    Select All
-    From Orders As t1
-    Where (t1.CustomerID Equals t0.CustomerID And DatePart(Year, t1.OrderDate) Equals 1997)
+    Select *
+    From Orders
+    Where (Orders.CustomerID Equals Customers.CustomerID And DatePart(Year, Orders.OrderDate) Equals 1997)
     )
   </baseline>
   <baseline key="TestAnyWithSubqueryNoPredicate">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
     Where Exists (
-    Select All
-    From Orders As t1
-    Where t1.CustomerID Equals t0.CustomerID
+    Select *
+    From Orders
+    Where Orders.CustomerID Equals Customers.CustomerID
     )
   </baseline>
   <baseline key="TestAnyWithLocalCollection">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where (t0.CustomerID Equals @0 ('ABCDE') Or t0.CustomerID Equals @1 ('ALFKI'))
+    Select *
+    From Customers
+    Where (Customers.CustomerID Equals @0 ('ABCDE') Or Customers.CustomerID Equals @1 ('ALFKI'))
   </baseline>
   <baseline key="TestAnyTopLevel">
     Select (Case When Exists (
-    Select All
-    From Customers As t0
+    Select *
+    From Customers
     ) Then True Else False) As value
   </baseline>
   <baseline key="TestAllWithSubquery">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
     Where Not Exists (
-    Select All
-    From Orders As t1
-    Where (t1.CustomerID Equals t0.CustomerID And Not DatePart(Year, t1.OrderDate) Equals 1997)
+    Select *
+    From Orders
+    Where (Orders.CustomerID Equals Customers.CustomerID And Not DatePart(Year, Orders.OrderDate) Equals 1997)
     )
   </baseline>
   <baseline key="TestAllWithLocalCollection">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where (t0.ContactName Contains @0 ('a') And t0.ContactName Contains @1 ('e'))
+    Select *
+    From Customers
+    Where (Customers.ContactName Contains @0 ('a') And Customers.ContactName Contains @1 ('e'))
   </baseline>
   <baseline key="TestAllTopLevel">
     Select (Case When Not Exists (
-    Select All
-    From Customers As t0
-    Where Not t0.ContactName StartsWith @0 ('a')
+    Select *
+    From Customers
+    Where Not Customers.ContactName StartsWith @0 ('a')
     ) Then True Else False) As value
   </baseline>
   <baseline key="TestContainsWithSubquery">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.CustomerID IsIn (
-    Select t1.CustomerID
-    From Orders As t1
+    Select *
+    From Customers
+    Where Customers.CustomerID IsIn (
+    Select Orders.CustomerID
+    From Orders
     )
   </baseline>
   <baseline key="TestContainsWithLocalCollection">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.CustomerID IsIn { @0 ('ABCDE'), @1 ('ALFKI') }
+    Select *
+    From Customers
+    Where Customers.CustomerID IsIn { @0 ('ABCDE'), @1 ('ALFKI') }
   </baseline>
   <baseline key="TestContainsTopLevel">
     Select (Case When @0 ('ALFKI') IsIn (
-    Select t0.CustomerID
-    From Customers As t0
+    Select Customers.CustomerID
+    From Customers
     ) Then True Else False) As value
   </baseline>
   <baseline key="TestCoalesce">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Coalesce(t0.City, @0 ('Seattle')) Equals @0 ('Seattle')
+    Select *
+    From Customers
+    Where Coalesce(Customers.City, @0 ('Seattle')) Equals @0 ('Seattle')
   </baseline>
   <baseline key="TestCoalesce2">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Coalesce(t0.City, t0.Country, @0 ('Seattle')) Equals @0 ('Seattle')
+    Select *
+    From Customers
+    Where Coalesce(Customers.City, Customers.Country, @0 ('Seattle')) Equals @0 ('Seattle')
   </baseline>
   <baseline key="TestStringLength">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Length(t0.City) Equals 7
+    Select *
+    From Customers
+    Where Length(Customers.City) Equals 7
   </baseline>
   <baseline key="TestStringStartsWithLiteral">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.ContactName StartsWith @0 ('M')
+    Select *
+    From Customers
+    Where Customers.ContactName StartsWith @0 ('M')
   </baseline>
   <baseline key="TestStringStartsWithColumn">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.ContactName StartsWith t0.ContactName
+    Select *
+    From Customers
+    Where Customers.ContactName StartsWith Customers.ContactName
   </baseline>
   <baseline key="TestStringEndsWithLiteral">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.ContactName EndsWith @0 ('s')
+    Select *
+    From Customers
+    Where Customers.ContactName EndsWith @0 ('s')
   </baseline>
   <baseline key="TestStringEndsWithColumn">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.ContactName EndsWith t0.ContactName
+    Select *
+    From Customers
+    Where Customers.ContactName EndsWith Customers.ContactName
   </baseline>
   <baseline key="TestStringContainsLiteral">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.ContactName Contains @0 ('and')
+    Select *
+    From Customers
+    Where Customers.ContactName Contains @0 ('and')
   </baseline>
   <baseline key="TestStringContainsColumn">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.ContactName Contains t0.ContactName
+    Select *
+    From Customers
+    Where Customers.ContactName Contains Customers.ContactName
   </baseline>
   <baseline key="TestStringConcatImplicit2Args">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where (t0.ContactName + @0 ('X')) Equals @0 ('X')
+    Select *
+    From Customers
+    Where (Customers.ContactName + @0 ('X')) Equals @0 ('X')
   </baseline>
   <baseline key="TestStringConcatExplicit2Args">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Concat(t0.ContactName, @0 ('X')) Equals @0 ('X')
+    Select *
+    From Customers
+    Where Concat(Customers.ContactName, @0 ('X')) Equals @0 ('X')
   </baseline>
   <baseline key="TestStringConcatExplicit3Args">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Concat(t0.ContactName, @0 ('X'), t0.Country) Equals @0 ('X')
+    Select *
+    From Customers
+    Where Concat(Customers.ContactName, @0 ('X'), Customers.Country) Equals @0 ('X')
   </baseline>
   <baseline key="TestStringConcatExplicitNArgs">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Concat(t0.ContactName, @0 ('X'), t0.Country) Equals @0 ('X')
+    Select *
+    From Customers
+    Where Concat(Customers.ContactName, @0 ('X'), Customers.Country) Equals @0 ('X')
   </baseline>
   <baseline key="TestStringIsNullOrEmpty">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where (t0.City Equals Null Or t0.City Equals '')
+    Select *
+    From Customers
+    Where (Customers.City Equals Null Or Customers.City Equals '')
   </baseline>
   <baseline key="TestStringToUpper">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where ToUpper(t0.City) Equals @0 ('SEATTLE')
+    Select *
+    From Customers
+    Where ToUpper(Customers.City) Equals @0 ('SEATTLE')
   </baseline>
   <baseline key="TestStringToLower">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where ToLower(t0.City) Equals @0 ('seattle')
+    Select *
+    From Customers
+    Where ToLower(Customers.City) Equals @0 ('seattle')
   </baseline>
   <baseline key="TestStringSubstring">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Substring(t0.City, 0, 4) Equals @0 ('Seat')
+    Select *
+    From Customers
+    Where Substring(Customers.City, 0, 4) Equals @0 ('Seat')
   </baseline>
   <baseline key="TestStringSubstringNoLength">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Substring(t0.City, 4, 8000) Equals @0 ('tle')
+    Select *
+    From Customers
+    Where Substring(Customers.City, 4, 8000) Equals @0 ('tle')
   </baseline>
   <baseline key="TestStringIndexOf">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where IndexOf(t0.City, @0 ('tt')) Equals 4
+    Select *
+    From Customers
+    Where IndexOf(Customers.City, @0 ('tt')) Equals 4
   </baseline>
   <baseline key="TestStringIndexOfChar">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where IndexOf(t0.City, @0 ('t')) Equals 4
+    Select *
+    From Customers
+    Where IndexOf(Customers.City, @0 ('t')) Equals 4
   </baseline>
   <baseline key="TestStringTrim">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Trim(t0.City) Equals @0 ('Seattle')
+    Select *
+    From Customers
+    Where Trim(Customers.City) Equals @0 ('Seattle')
   </baseline>
   <baseline key="TestStringToString">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('Seattle')
+    Select *
+    From Customers
+    Where Customers.City Equals @0 ('Seattle')
   </baseline>
   <baseline key="TestStringReplace">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Replace(t0.City, @0 ('ea'), @1 ('ae')) Equals @2 ('Saettle')
+    Select *
+    From Customers
+    Where Replace(Customers.City, @0 ('ea'), @1 ('ae')) Equals @2 ('Saettle')
   </baseline>
   <baseline key="TestStringReplaceChars">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Replace(t0.City, @0 ('e'), @1 ('y')) Equals @2 ('Syattly')
+    Select *
+    From Customers
+    Where Replace(Customers.City, @0 ('e'), @1 ('y')) Equals @2 ('Syattly')
   </baseline>
   <baseline key="TestStringRemove">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Remove(t0.City, 1, 2) Equals @0 ('Sttle')
+    Select *
+    From Customers
+    Where Remove(Customers.City, 1, 2) Equals @0 ('Sttle')
   </baseline>
   <baseline key="TestStringRemoveNoCount">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Remove(t0.City, 4, 8000) Equals @0 ('Seat')
+    Select *
+    From Customers
+    Where Remove(Customers.City, 4, 8000) Equals @0 ('Seat')
   </baseline>
   <baseline key="TestDateTimeConstructYmd">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where t0.OrderDate Equals DateNew(DatePart(Year, t0.OrderDate), 1, 1)
+    Select *
+    From Orders
+    Where Orders.OrderDate Equals DateNew(DatePart(Year, Orders.OrderDate), 1, 1)
   </baseline>
   <baseline key="TestDateTimeConstructYmdhms">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where t0.OrderDate Equals DateNew(DatePart(Year, t0.OrderDate), 1, 1, 10, 25, 55)
+    Select *
+    From Orders
+    Where Orders.OrderDate Equals DateNew(DatePart(Year, Orders.OrderDate), 1, 1, 10, 25, 55)
   </baseline>
   <baseline key="TestDateTimeDay">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where DatePart(Day, t0.OrderDate) Equals 5
+    Select *
+    From Orders
+    Where DatePart(Day, Orders.OrderDate) Equals 5
   </baseline>
   <baseline key="TestDateTimeMonth">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where DatePart(Month, t0.OrderDate) Equals 12
+    Select *
+    From Orders
+    Where DatePart(Month, Orders.OrderDate) Equals 12
   </baseline>
   <baseline key="TestDateTimeYear">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where DatePart(Year, t0.OrderDate) Equals 1997
+    Select *
+    From Orders
+    Where DatePart(Year, Orders.OrderDate) Equals 1997
   </baseline>
   <baseline key="TestDateTimeHour">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where DatePart(Hour, t0.OrderDate) Equals 6
+    Select *
+    From Orders
+    Where DatePart(Hour, Orders.OrderDate) Equals 6
   </baseline>
   <baseline key="TestDateTimeMinute">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where DatePart(Minute, t0.OrderDate) Equals 32
+    Select *
+    From Orders
+    Where DatePart(Minute, Orders.OrderDate) Equals 32
   </baseline>
   <baseline key="TestDateTimeSecond">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where DatePart(Second, t0.OrderDate) Equals 47
+    Select *
+    From Orders
+    Where DatePart(Second, Orders.OrderDate) Equals 47
   </baseline>
   <baseline key="TestDateTimeMillisecond">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where DatePart(Millisecond, t0.OrderDate) Equals 200
+    Select *
+    From Orders
+    Where DatePart(Millisecond, Orders.OrderDate) Equals 200
   </baseline>
   <baseline key="TestDateTimeDayOfYear">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where DatePart(DayOfYear, t0.OrderDate) Equals 360
+    Select *
+    From Orders
+    Where DatePart(DayOfYear, Orders.OrderDate) Equals 360
   </baseline>
   <baseline key="TestDateTimeDayOfWeek">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where DatePart(DayOfWeek, t0.OrderDate) Equals 5
+    Select *
+    From Orders
+    Where DatePart(DayOfWeek, Orders.OrderDate) Equals 5
   </baseline>
   <baseline key="TestMathAbs">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Absolute(t0.OrderID) Equals 10
+    Select *
+    From Orders
+    Where Absolute(Orders.OrderID) Equals 10
   </baseline>
   <baseline key="TestMathAtan">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Atan(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Atan(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestMathCos">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Cos(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Cos(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestMathSin">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Sin(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Sin(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestMathTan">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Tan(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Tan(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestMathExp">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Exponential(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Exponential(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestMathLog">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Log(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Log(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestMathSqrt">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Root(t0.OrderID, 2) Equals 0
+    Select *
+    From Orders
+    Where Root(Orders.OrderID, 2) Equals 0
   </baseline>
   <baseline key="TestMathPow">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Power((Case When t0.OrderID IsLessThan 1000 Then 1 Else 2), 3) Equals 0
+    Select *
+    From Orders
+    Where Power((Case When Orders.OrderID IsLessThan 1000 Then 1 Else 2), 3) Equals 0
   </baseline>
   <baseline key="TestMathRoundDefault">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Round(t0.OrderID, 0) Equals 0
+    Select *
+    From Orders
+    Where Round(Orders.OrderID, 0) Equals 0
   </baseline>
   <baseline key="TestMathAcos">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Acos(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Acos(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestMathAsin">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Asin(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Asin(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestMathAtan2">
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where Atan2(t0.OrderID) Equals 0
+    Select *
+    From Orders
+    Where Atan2(Orders.OrderID) Equals 0
   </baseline>
   <baseline key="TestWhere">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('London')
+    Select *
+    From Customers
+    Where Customers.City Equals @0 ('London')
   </baseline>
   <baseline key="TestWhereTrue">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
     Where True NotEquals False
   </baseline>
   <baseline key="TestWhereFalse">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
     Where False NotEquals False
   </baseline>
   <baseline key="TestCompareEntityEqual">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.CustomerID Equals @0 ('ALFKI')
+    Select *
+    From Customers
+    Where Customers.CustomerID Equals @0 ('ALFKI')
   </baseline>
   <baseline key="TestCompareEntityNotEqual">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Not t0.CustomerID Equals @0 ('ALFKI')
+    Select *
+    From Customers
+    Where Not Customers.CustomerID Equals @0 ('ALFKI')
   </baseline>
   <baseline key="TestCompareConstructedEqual">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('London')
+    Select *
+    From Customers
+    Where Customers.City Equals @0 ('London')
   </baseline>
   <baseline key="TestCompareConstructedMultiValueEqual">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where (t0.City Equals @0 ('London') And t0.Country Equals @1 ('UK'))
+    Select *
+    From Customers
+    Where (Customers.City Equals @0 ('London') And Customers.Country Equals @1 ('UK'))
   </baseline>
   <baseline key="TestCompareConstructedMultiValueNotEqual">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where Not (t0.City Equals @0 ('London') And t0.Country Equals @1 ('UK'))
+    Select *
+    From Customers
+    Where Not (Customers.City Equals @0 ('London') And Customers.Country Equals @1 ('UK'))
   </baseline>
   <baseline key="TestCompareConstructed">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where t0.City Equals @0 ('London')
+    Select *
+    From Customers
+    Where Customers.City Equals @0 ('London')
   </baseline>
   <baseline key="TestSelectScalar">
-    Select t0.City
-    From Customers As t0
+    Select Customers.City
+    From Customers
   </baseline>
   <baseline key="TestSelectAnonymousOne">
-    Select t0.City
-    From Customers As t0
+    Select (Customers.City)
+    From Customers
   </baseline>
   <baseline key="TestSelectAnonymousTwo">
-    Select t0.City, t0.Phone
-    From Customers As t0
+    Select (Customers.City, Customers.Phone)
+    From Customers
   </baseline>
   <baseline key="TestSelectAnonymousThree">
-    Select t0.City, t0.Phone, t0.Country
-    From Customers As t0
+    Select (Customers.City, Customers.Phone, Customers.Country)
+    From Customers
   </baseline>
   <baseline key="TestSelectCustomerTable">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
   </baseline>
   <baseline key="TestSelectCustomerIdentity">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
   </baseline>
   <baseline key="TestSelectAnonymousWithObject">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
   </baseline>
   <baseline key="TestSelectAnonymousNested">
-    Select t0.City, t0.Country
-    From Customers As t0
+    Select Customers.City, Customers.Country
+    From Customers
   </baseline>
   <baseline key="TestSelectAnonymousEmpty">
-    Select All
-    From Customers As t0
+    Select *
+    From Customers
   </baseline>
   <baseline key="TestSelectAnonymousLiteral">
-    Select All
-    From Customers As t0
+    Select *
+    From Customers
   </baseline>
   <baseline key="TestSelectConstantInt">
-    Select All
-    From Customers As t0
+    Select *
+    From Customers
   </baseline>
   <baseline key="TestSelectConstantNullString">
-    Select All
-    From Customers As t0
+    Select *
+    From Customers
   </baseline>
   <baseline key="TestSelectLocal">
-    Select All
-    From Customers As t0
+    Select *
+    From Customers
   </baseline>
   <baseline key="TestSelectNestedCollection">
-    Select t0.CustomerID
-    From Customers As t0
-    Where t0.City Equals @0 ('London')
+    Select Customers.CustomerID
+    From Customers
+    Where Customers.City Equals @0 ('London')
 
-    Select t0.OrderID
-    From Orders As t0
-    Where (t0.CustomerID Equals @n0 And DatePart(Year, t0.OrderDate) Equals 1997)
+    Select Orders.OrderID
+    From Orders
+    Where (Orders.CustomerID Equals @n0 And DatePart(Year, Orders.OrderDate) Equals 1997)
   </baseline>
   <baseline key="TestSelectNestedCollectionInAnonymousType">
     Select t1.CustomerID, t1.OrderID
-    From Customers As t0
-    Left Join Orders As t1 On (t1.CustomerID Equals t0.CustomerID And DatePart(Year, t1.OrderDate) Equals 1997)
-    Where t0.CustomerID Equals @0 ('ALFKI')
+    From Customers
+    Left Join Orders As t1 On (t1.CustomerID Equals Customers.CustomerID And DatePart(Year, t1.OrderDate) Equals 1997)
+    Where Customers.CustomerID Equals @0 ('ALFKI')
 
-    Select t0.CustomerID
-    From Customers As t0
-    Where t0.CustomerID Equals @0 ('ALFKI')
+    Select Customers.CustomerID
+    From Customers
+    Where Customers.CustomerID Equals @0 ('ALFKI')
   </baseline>
   <baseline key="TestJoinCustomerOrders">
-    Select t0.ContactName, t1.OrderID
-    From Customers As t0
-    Inner Join Orders As t1 On t0.CustomerID Equals t1.CustomerID
+    Select Customers.ContactName, Orders.OrderID
+    From Customers
+    Inner Join Orders On Customers.CustomerID Equals Orders.CustomerID
   </baseline>
   <baseline key="TestJoinMultiKey">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone, t1.CustomerID As CustomerID1, t1.OrderDate, t1.OrderID
-    From Customers As t0
-    Inner Join Orders As t1 On (t0.CustomerID Equals t1.CustomerID And t0.CustomerID Equals t1.CustomerID)
+    Select *, Orders.CustomerID As CustomerID1, Orders.OrderDate, Orders.OrderID
+    From Customers
+    Inner Join Orders On (Customers.CustomerID Equals Orders.CustomerID And Customers.CustomerID Equals Orders.CustomerID)
   </baseline>
   <baseline key="TestJoinIntoCustomersOrders">
-    Select t1.CustomerID, t1.OrderDate, t1.OrderID
-    From Customers As t0
-    Left Join Orders As t1 On t1.CustomerID Equals t0.CustomerID
+    Select *
+    From Customers
+    Left Join Orders On Orders.CustomerID Equals Customers.CustomerID
 
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select *
+    From Customers
   </baseline>
   <baseline key="TestJoinIntoCustomersOrdersCount">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone, (
+    Select *, (
     Select Count(All)
-    From Orders As t1
-    Where t1.CustomerID Equals t0.CustomerID
+    From Orders
+    Where Orders.CustomerID Equals Customers.CustomerID
     ) As c0
-    From Customers As t0
+    From Customers
   </baseline>
   <baseline key="TestJoinIntoDefaultIfEmpty">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone, t1.CustomerID As CustomerID1, t1.OrderDate, t1.OrderID
-    From Customers As t0
-    Left Join Orders As t1 On t1.CustomerID Equals t0.CustomerID
+    Select *, Orders.CustomerID As CustomerID1, Orders.OrderDate, Orders.OrderID
+    From Customers
+    Left Join Orders On Orders.CustomerID Equals Customers.CustomerID
   </baseline>
   <baseline key="TestSelectManyCustomerOrders">
-    Select t0.ContactName, t1.OrderID
-    From Customers As t0
-    Inner Join Orders As t1 On t0.CustomerID Equals t1.CustomerID
+    Select Customers.ContactName, Orders.OrderID
+    From Customers
+    Inner Join Orders On Customers.CustomerID Equals Orders.CustomerID
   </baseline>
   <baseline key="TestMultipleJoinsWithJoinConditionsInWhere">
     Select t2.ProductID
-    From Customers As t0
-    Inner Join Orders As t1 On t1.CustomerID Equals t0.CustomerID
-    Inner Join Order Details As t2 On t1.OrderID Equals t2.OrderID
-    Where t0.CustomerID Equals @0 ('ALFKI')
+    From Customers
+    Inner Join Orders On Orders.CustomerID Equals Customers.CustomerID
+    Inner Join Order Details As t2 On Orders.OrderID Equals t2.OrderID
+    Where Customers.CustomerID Equals @0 ('ALFKI')
   </baseline>
   <baseline key="TestMultipleJoinsWithMissingJoinCondition">
     Select t2.ProductID
-    From Customers As t0
-    Inner Join Orders As t1 On t1.CustomerID Equals t0.CustomerID
+    From Customers
+    Inner Join Orders On Orders.CustomerID Equals Customers.CustomerID
     Cross Join Order Details As t2
-    Where t0.CustomerID Equals @0 ('ALFKI')
+    Where Customers.CustomerID Equals @0 ('ALFKI')
   </baseline>
   <baseline key="TestOrderBy">
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Order By t0.CustomerID
+    Select *
+    From Customers
+    Order By Customers.CustomerID
   </baseline>
   <baseline key="TestOrderBySelect">
-    Select t0.ContactName
-    From Customers As t0
-    Order By t0.CustomerID
+    Select Customers.ContactName
+    From Customers
+    Order By Customers.CustomerID
   </baseline>
   <baseline key="TestOrderByOrderBy">
-    Select t0.City
-    From Customers As t0
-    Order By t0.Country, t0.CustomerID
+    Select Customers.City
+    From Customers
+    Order By Customers.Country, Customers.CustomerID
   </baseline>
   <baseline key="TestOrderByThenBy">
-    Select t0.City
-    From Customers As t0
-    Order By t0.CustomerID, t0.Country
+    Select Customers.City
+    From Customers
+    Order By Customers.CustomerID, Customers.Country
   </baseline>
   <baseline key="TestOrderByDescending">
-    Select t0.City
-    From Customers As t0
-    Order By t0.CustomerID Descending
+    Select Customers.City
+    From Customers
+    Order By Customers.CustomerID Descending
   </baseline>
   <baseline key="TestOrderByDescendingThenBy">
-    Select t0.City
-    From Customers As t0
-    Order By t0.CustomerID Descending, t0.Country
+    Select Customers.City
+    From Customers
+    Order By Customers.CustomerID Descending, Customers.Country
   </baseline>
   <baseline key="TestOrderByDescendingThenByDescending">
-    Select t0.City
-    From Customers As t0
-    Order By t0.CustomerID Descending, t0.Country Descending
+    Select Customers.City
+    From Customers
+    Order By Customers.CustomerID Descending, Customers.Country Descending
   </baseline>
   <baseline key="TestOrderByJoin">
-    Select t0.CustomerID, t1.OrderID
-    From Customers As t0
-    Inner Join Orders As t1 On t0.CustomerID Equals t1.CustomerID
-    Order By t0.CustomerID, t1.OrderID
+    Select Customers.CustomerID, Orders.OrderID
+    From Customers
+    Inner Join Orders On Customers.CustomerID Equals Orders.CustomerID
+    Order By Customers.CustomerID, Orders.OrderID
   </baseline>
   <baseline key="TestOrderBySelectMany">
-    Select t0.ContactName, t1.OrderID
-    From Customers As t0
-    Inner Join Orders As t1 On t0.CustomerID Equals t1.CustomerID
-    Order By t0.CustomerID, t1.OrderID
+    Select Customers.ContactName, Orders.OrderID
+    From Customers
+    Inner Join Orders On Customers.CustomerID Equals Orders.CustomerID
+    Order By Customers.CustomerID, Orders.OrderID
   </baseline>
   <baseline key="TestGroupBy">
-    Select t0.City
-    From Customers As t0
-    Group By t0.City
+    Select Customers.City
+    From Customers
+    Group By Customers.City
 
-    Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Where ((t0.City Equals Null And @n0 Equals Null) Or t0.City Equals @n0)
+    Select *
+    From Customers
+    Where ((Customers.City Equals Null And @n0 Equals Null) Or Customers.City Equals @n0)
   </baseline>
   <baseline key="TestGroupBySelectMany">
     Select t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID, t1.Phone
@@ -1155,63 +1155,63 @@
     Inner Join Customers As t1 On ((t1.City Equals Null And t0.City Equals Null) Or t1.City Equals t0.City)
   </baseline>
   <baseline key="TestGroupBySum">
-    Select Sum(t0.OrderID) As agg1
-    From Orders As t0
-    Group By t0.CustomerID
+    Select Sum(Orders.OrderID) As agg1
+    From Orders
+    Group By Orders.CustomerID
   </baseline>
   <baseline key="TestGroupByCount">
     Select Count(All) As agg1
-    From Orders As t0
-    Group By t0.CustomerID
+    From Orders
+    Group By Orders.CustomerID
   </baseline>
   <baseline key="TestGroupByLongCount">
     Select BigCount(All) As agg1
-    From Orders As t0
-    Group By t0.CustomerID
+    From Orders
+    Group By Orders.CustomerID
   </baseline>
   <baseline key="TestGroupBySumMinMaxAvg">
-    Select Sum(t0.OrderID) As agg1, Min(t0.OrderID) As agg2, Max(t0.OrderID) As agg3, Average(t0.OrderID) As agg4
-    From Orders As t0
-    Group By t0.CustomerID
+    Select Sum(Orders.OrderID) As agg1, Min(Orders.OrderID) As agg2, Max(Orders.OrderID) As agg3, Average(Orders.OrderID) As agg4
+    From Orders
+    Group By Orders.CustomerID
   </baseline>
   <baseline key="TestGroupByWithResultSelector">
-    Select Sum(t0.OrderID) As c0, Min(t0.OrderID) As c1, Max(t0.OrderID) As c2, Average(t0.OrderID) As c3
-    From Orders As t0
-    Group By t0.CustomerID
+    Select Sum(Orders.OrderID) As c0, Min(Orders.OrderID) As c1, Max(Orders.OrderID) As c2, Average(Orders.OrderID) As c3
+    From Orders
+    Group By Orders.CustomerID
   </baseline>
   <baseline key="TestGroupByWithElementSelectorSum">
-    Select Sum(t0.OrderID) As agg1
-    From Orders As t0
-    Group By t0.CustomerID
+    Select Sum(Orders.OrderID) As agg1
+    From Orders
+    Group By Orders.CustomerID
   </baseline>
   <baseline key="TestGroupByWithElementSelector">
-    Select t0.CustomerID
-    From Orders As t0
-    Group By t0.CustomerID
+    Select Orders.CustomerID
+    From Orders
+    Group By Orders.CustomerID
 
-    Select t0.OrderID
-    From Orders As t0
-    Where ((t0.CustomerID Equals Null And @n0 Equals Null) Or t0.CustomerID Equals @n0)
+    Select Orders.OrderID
+    From Orders
+    Where ((Orders.CustomerID Equals Null And @n0 Equals Null) Or Orders.CustomerID Equals @n0)
   </baseline>
   <baseline key="TestGroupByWithElementSelectorSumMax">
-    Select Sum(t0.OrderID) As agg1, Max(t0.OrderID) As agg2
-    From Orders As t0
-    Group By t0.CustomerID
+    Select Sum(Orders.OrderID) As agg1, Max(Orders.OrderID) As agg2
+    From Orders
+    Group By Orders.CustomerID
   </baseline>
   <baseline key="TestGroupByWithAnonymousElement">
-    Select Sum(t0.OrderID) As agg1
-    From Orders As t0
-    Group By t0.CustomerID
+    Select Sum(Orders.OrderID) As agg1
+    From Orders
+    Group By Orders.CustomerID
   </baseline>
   <baseline key="TestGroupByWithTwoPartKey">
-    Select Sum(t0.OrderID) As agg2
-    From Orders As t0
-    Group By t0.CustomerID, t0.OrderDate
+    Select Sum(Orders.OrderID) As agg2
+    From Orders
+    Group By Orders.CustomerID, Orders.OrderDate
   </baseline>
   <baseline key="TestOrderByGroupBy">
-    Select Sum(t0.OrderID) As agg1
-    From Orders As t0
-    Group By t0.CustomerID
+    Select Sum(Orders.OrderID) As agg1
+    From Orders
+    Group By Orders.CustomerID
   </baseline>
   <baseline key="TestOrderByGroupBySelectMany">
     Select t1.CustomerID, t1.OrderDate, t1.OrderID
@@ -1224,119 +1224,119 @@
     Order By t1.OrderID
   </baseline>
   <baseline key="TestSumWithNoArg">
-    Select Sum(t0.OrderID)
-    From Orders As t0
+    Select Sum(Orders.OrderID)
+    From Orders
   </baseline>
   <baseline key="TestSumWithArg">
-    Select Sum(t0.OrderID)
-    From Orders As t0
+    Select Sum(Orders.OrderID)
+    From Orders
   </baseline>
   <baseline key="TestCountWithNoPredicate">
     Select Count(All)
-    From Orders As t0
+    From Orders
   </baseline>
   <baseline key="TestCountWithPredicate">
     Select Count(All)
-    From Orders As t0
-    Where t0.CustomerID Equals @0 ('ALFKI')
+    From Orders
+    Where Orders.CustomerID Equals @0 ('ALFKI')
   </baseline>
   <baseline key="TestDistinct">
-    Select Distinct t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
+    Select Distinct All
+    From Customers
   </baseline>
   <baseline key="TestDistinctScalar">
-    Select Distinct t0.City
-    From Customers As t0
+    Select Distinct Customers.City
+    From Customers
   </baseline>
   <baseline key="TestOrderByDistinct">
-    Select Distinct t0.City
-    From Customers As t0
+    Select Distinct Customers.City
+    From Customers
   </baseline>
   <baseline key="TestDistinctOrderBy">
-    Select Distinct t0.City
-    From Customers As t0
-    Order By t0.City
+    Select Distinct Customers.City
+    From Customers
+    Order By Customers.City
   </baseline>
   <baseline key="TestDistinctGroupBy">
     Select t0.CustomerID
     From (
-    Select Distinct t1.CustomerID, t1.OrderDate, t1.OrderID
-    From Orders As t1
+    Select Distinct Orders.CustomerID, Orders.OrderDate, Orders.OrderID
+    From Orders
     ) As t0
     Group By t0.CustomerID
 
-    Select Distinct t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where ((t0.CustomerID Equals Null And @n0 Equals Null) Or t0.CustomerID Equals @n0)
+    Select Distinct Orders.CustomerID, Orders.OrderDate, Orders.OrderID
+    From Orders
+    Where ((Orders.CustomerID Equals Null And @n0 Equals Null) Or Orders.CustomerID Equals @n0)
   </baseline>
   <baseline key="TestGroupByDistinct">
     Select Distinct t0.CustomerID
     From (
-    Select t1.CustomerID
-    From Orders As t1
-    Group By t1.CustomerID
+    Select Orders.CustomerID
+    From Orders
+    Group By Orders.CustomerID
     ) As t0
 
-    Select t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
-    Where ((t0.CustomerID Equals Null And @n0 Equals Null) Or t0.CustomerID Equals @n0)
+    Select *
+    From Orders
+    Where ((Orders.CustomerID Equals Null And @n0 Equals Null) Or Orders.CustomerID Equals @n0)
   </baseline>
   <baseline key="TestDistinctCount">
     Select Count(All)
     From (
-    Select Distinct t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID, t1.Phone
-    From Customers As t1
+    Select Distinct All
+    From Customers
     ) As t0
   </baseline>
   <baseline key="TestSelectDistinctCount">
     Select Count(All)
     From (
-    Select Distinct t1.City
-    From Customers As t1
+    Select Distinct Customers.City
+    From Customers
     ) As t0
   </baseline>
   <baseline key="TestSelectSelectDistinctCount">
     Select Count(All)
     From (
-    Select Distinct t1.City
-    From Customers As t1
+    Select Distinct Customers.City
+    From Customers
     ) As t0
   </baseline>
   <baseline key="TestDistinctCountPredicate">
     Select Count(All)
     From (
-    Select Distinct t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID, t1.Phone
-    From Customers As t1
-    Where t1.CustomerID Equals @0 ('ALFKI')
+    Select Distinct All
+    From Customers
+    Where Customers.CustomerID Equals @0 ('ALFKI')
     ) As t0
   </baseline>
   <baseline key="TestDistinctSumWithArg">
     Select Sum(t0.OrderID)
     From (
-    Select Distinct t1.CustomerID, t1.OrderDate, t1.OrderID
-    From Orders As t1
+    Select Distinct Orders.CustomerID, Orders.OrderDate, Orders.OrderID
+    From Orders
     ) As t0
   </baseline>
   <baseline key="TestSelectDistinctSum">
-    Select Sum(Distinct t0.OrderID)
-    From Orders As t0
+    Select Sum(Distinct Orders.OrderID)
+    From
   </baseline>
   <baseline key="TestTake">
-    Select (Rows 0-5) t0.CustomerID, t0.OrderDate, t0.OrderID
-    From Orders As t0
+    Select (Rows 0-5) Orders.CustomerID, Orders.OrderDate, Orders.OrderID
+    From
   </baseline>
   <baseline key="TestTakeDistinct">
     Select Distinct t0.CustomerID, t0.OrderDate, t0.OrderID
     From (
-    Select (Rows 0-5) t1.CustomerID, t1.OrderDate, t1.OrderID
-    From Orders As t1
+    Select (Rows 0-5) Orders.CustomerID, Orders.OrderDate, Orders.OrderID
+    From
     ) As t0
   </baseline>
   <baseline key="TestDistinctTake">
     Select (Rows 0-5) t0.CustomerID, t0.OrderDate, t0.OrderID
     From (
-    Select Distinct t1.CustomerID, t1.OrderDate, t1.OrderID
-    From Orders As t1
+    Select Distinct Orders.CustomerID, Orders.OrderDate, Orders.OrderID
+    From
     ) As t0
   </baseline>
   <baseline key="TestDistinctTakeCount">
@@ -1344,8 +1344,8 @@
     From (
     Select (Rows 0-5) t1.CustomerID, t1.OrderDate, t1.OrderID
     From (
-    Select Distinct t2.CustomerID, t2.OrderDate, t2.OrderID
-    From Orders As t2
+    Select Distinct Orders.CustomerID, Orders.OrderDate, Orders.OrderID
+    From
     ) As t1
     ) As t0
   </baseline>
@@ -1354,8 +1354,8 @@
     From (
     Select Distinct t1.CustomerID, t1.OrderDate, t1.OrderID
     From (
-    Select (Rows 0-5) t2.CustomerID, t2.OrderDate, t2.OrderID
-    From Orders As t2
+    Select (Rows 0-5) Orders.CustomerID, Orders.OrderDate, Orders.OrderID
+    From
     ) As t1
     ) As t0
   </baseline>

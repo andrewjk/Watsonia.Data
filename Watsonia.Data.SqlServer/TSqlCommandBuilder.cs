@@ -151,7 +151,7 @@ namespace Watsonia.Data.SqlServer
 			{
 				this.CommandText.Append(value);
 			}
-			else if (value is IEnumerable && !(value is string))
+			else if (value is IEnumerable && !(value is string) && !(value is byte[]))
 			{
 				bool firstValue = true;
 				foreach (object innerValue in (IEnumerable)value)
@@ -161,7 +161,14 @@ namespace Watsonia.Data.SqlServer
 						this.CommandText.Append(", ");
 					}
 					firstValue = false;
-					this.VisitObject(innerValue);
+					if (innerValue is ConstantPart)
+					{
+						this.VisitConstant((ConstantPart)innerValue);
+					}
+					else
+					{
+						this.VisitObject(innerValue);
+					}
 				}
 			}
 			else
@@ -191,26 +198,36 @@ namespace Watsonia.Data.SqlServer
 				index = this.ParameterValues.Count - 1;
 			}
 
-			// NOTE: We never want to use the parameter name, because later on we set the command parameters
-			// (names and values) from this.ParameterValues.  This is probably indicative of a problem somewhere
-			//if (!string.IsNullOrEmpty(parameter.Name))
-			//{
-			//	this.CommandText.Append(parameter.Name);
-			//}
-			//else
-			//{
 			this.CommandText.Append("@");
 			this.CommandText.Append(index);
-			//}
 		}
 
 		private void VisitSelect(Select select)
 		{
 			// TODO: If we're using SQL Server 2012 we should just use the OFFSET keyword
-			if (select.SelectStartIndex > 0)
+			if (select.StartIndex > 0)
 			{
 				VisitSelectWithRowNumber(select);
 				return;
+			}
+
+			if (select.IsAny)
+			{
+				VisitSelectWithAny(select);
+				return;
+			}
+
+			if (select.IsAll)
+			{
+				VisitSelectWithAll(select);
+				return;
+			}
+
+			// If any of the fields have aggregates that aren't grouped, remove the ordering as SQL Server doesn't like it
+			// TODO: Only if they aren't grouped
+			if (select.SourceFields.Any(f => f is Aggregate))
+			{
+				select.OrderByFields.Clear();
 			}
 
 			this.CommandText.Append("SELECT ");
@@ -218,10 +235,10 @@ namespace Watsonia.Data.SqlServer
 			{
 				this.CommandText.Append("DISTINCT ");
 			}
-			if (select.SelectLimit > 0)
+			if (select.Limit > 0)
 			{
 				this.CommandText.Append("TOP (");
-				this.CommandText.Append(select.SelectLimit);
+				this.CommandText.Append(select.Limit);
 				this.CommandText.Append(") ");
 			}
 			if (select.SourceFieldsFrom.Count > 0)
@@ -284,10 +301,6 @@ namespace Watsonia.Data.SqlServer
 			{
 				this.AppendNewLine(Indentation.Same);
 				this.CommandText.Append("WHERE ");
-				//if (select.Conditions.Count > 1)
-				//{
-				//    this.CommandText.Append("(");
-				//}
 				for (int i = 0; i < select.Conditions.Count; i++)
 				{
 					if (i > 0)
@@ -313,10 +326,6 @@ namespace Watsonia.Data.SqlServer
 					}
 					this.VisitCondition(select.Conditions[i]);
 				}
-				//if (select.Conditions.Count > 1)
-				//{
-				//    this.CommandText.Append(")");
-				//}
 			}
 			if (select.GroupByFields.Count > 0)
 			{
@@ -363,10 +372,21 @@ namespace Watsonia.Data.SqlServer
 
 			// Clone the select and add the RowNumber field to it
 			Select inner = Select.From(select.Source);
+			inner.SourceJoins.AddRange(select.SourceJoins);
 			inner.Alias = "RowNumberTable";
 			inner.SourceFields.AddRange(select.SourceFields);
 			inner.SourceFields.Add(new RowNumber(select.OrderByFields.ToArray()));
 			inner.Conditions.AddRange(select.Conditions);
+
+			// If the original table selected all fields, we need to add another field to select them ourselves
+			if (!select.SourceFields.Any())
+			{
+				Table table = select.Source as Table;
+				if (table != null)
+				{
+					inner.SourceFields.Add(new Column(table.Name, "*"));
+				}
+			}
 
 			// Clone the select and change its source
 			Select outer = Select.From(inner);
@@ -378,8 +398,8 @@ namespace Watsonia.Data.SqlServer
 					outer.SourceFields.Add(new Column(inner.Alias, column.Name));
 				}
 			}
-			outer.Conditions.Add(new Condition("RowNumber", SqlOperator.IsGreaterThan, select.SelectStartIndex));
-			outer.Conditions.Add(new Condition("RowNumber", SqlOperator.IsLessThanOrEqualTo, select.SelectStartIndex + select.SelectLimit));
+			outer.Conditions.Add(new Condition("RowNumber", SqlOperator.IsGreaterThan, select.StartIndex));
+			outer.Conditions.Add(new Condition("RowNumber", SqlOperator.IsLessThanOrEqualTo, select.StartIndex + select.Limit));
 			foreach (OrderByExpression field in select.OrderByFields)
 			{
 				Column column = field.Expression as Column;
@@ -391,6 +411,41 @@ namespace Watsonia.Data.SqlServer
 
 			// Visit the outer select
 			VisitSelect(outer);
+		}
+
+		private void VisitSelectWithAny(Select select)
+		{
+			// It's going to look something like this:
+			// SELECT CASE WHEN EXISTS (
+			//		SELECT Fields,
+			//		FROM Table
+			//		WHERE Condition
+			// ) THEN 1 ELSE 0 END
+
+			this.CommandText.Append("SELECT CASE WHEN EXISTS (");
+			this.Indent(Indentation.Inner);
+			select.IsAny = false;
+			this.VisitSelect(select);
+			this.Indent(Indentation.Outer);
+			this.CommandText.Append(") THEN 1 ELSE 0 END");
+		}
+
+		private void VisitSelectWithAll(Select select)
+		{
+			// It's going to look something like this:
+			// SELECT CASE WHEN NOT EXISTS (
+			//		SELECT Fields,
+			//		FROM Table
+			//		WHERE NOT Condition
+			// ) THEN 1 ELSE 0 END
+
+			this.CommandText.Append("SELECT CASE WHEN NOT EXISTS (");
+			this.Indent(Indentation.Inner);
+			select.IsAll = false;
+			select.Conditions.Not = true;
+			this.VisitSelect(select);
+			this.Indent(Indentation.Outer);
+			this.CommandText.Append(") THEN 1 ELSE 0 END");
 		}
 
 		private void VisitUpdate(Update update)
@@ -540,18 +595,6 @@ namespace Watsonia.Data.SqlServer
 		{
 			switch (field.PartType)
 			{
-				case StatementPartType.SourceExpression:
-				{
-					////SourceExpression sourceField = (SourceExpression)field;
-					////this.VisitField(sourceField.Field);
-					////if (!string.IsNullOrEmpty(sourceField.Alias))
-					////{
-					////	this.CommandText.Append(" AS [");
-					////	this.CommandText.Append(sourceField.Alias);
-					////	this.CommandText.Append("]");
-					////}
-					break;
-				}
 				case StatementPartType.Column:
 				{
 					this.VisitColumn((Column)field);
@@ -762,22 +805,25 @@ namespace Watsonia.Data.SqlServer
 					this.VisitCondition((Condition)field);
 					break;
 				}
+				case StatementPartType.FieldCollection:
+				{
+					var collection = (FieldCollection)field;
+					for (int i = 0; i < collection.Count; i++)
+					{
+						if (i > 0)
+						{
+							this.CommandText.Append(", ");
+						}
+						this.VisitField(collection[i]);
+					}
+					break;
+				}
 				default:
 				{
 					// TODO: Words for all exceptions
 					throw new InvalidOperationException();
 				}
 			}
-			//if (IsPredicate(expression))
-			//{
-			//    this.Builder.Append("CASE WHEN (");
-			//    this.Visit(expression);
-			//    this.Builder.Append(") THEN 1 ELSE 0 END");
-			//}
-			//else
-			//{
-			//    this.Visit(expression);
-			//}
 		}
 
 		private void VisitColumn(Column column)
@@ -796,6 +842,12 @@ namespace Watsonia.Data.SqlServer
 				this.CommandText.Append("[");
 				this.CommandText.Append(column.Name);
 				this.CommandText.Append("]");
+				if (!string.IsNullOrEmpty(column.Alias))
+				{
+					this.CommandText.Append(" AS [");
+					this.CommandText.Append(column.Alias);
+					this.CommandText.Append("]");
+				}
 			}
 		}
 
@@ -990,14 +1042,6 @@ namespace Watsonia.Data.SqlServer
 						this.VisitField(condition.Value);
 						break;
 					}
-					////case SqlOperator.IsBetween:
-					////{
-					////	this.CommandText.Append(" BETWEEN ");
-					////	this.VisitField(condition.Value);
-					////	this.CommandText.Append(" AND ");
-					////	this.VisitField(condition.Values[1]);
-					////	break;
-					////}
 					case SqlOperator.IsIn:
 					{
 						this.CommandText.Append(" IN (");
@@ -1191,7 +1235,6 @@ namespace Watsonia.Data.SqlServer
 
 		private void VisitExists(Exists exists)
 		{
-			//this.CommandText.Append("(");
 			if (exists.Not)
 			{
 				this.CommandText.Append("NOT ");
@@ -1202,27 +1245,25 @@ namespace Watsonia.Data.SqlServer
 			this.AppendNewLine(Indentation.Same);
 			this.CommandText.Append(")");
 			this.Indent(Indentation.Outer);
-			//this.CommandText.Append(")");
 		}
 
 		private void VisitCoalesceFunction(CoalesceFunction coalesce)
 		{
-			// TODO:
-			////StatementPart first = coalesce.First;
-			////StatementPart second = coalesce.Second;
+			StatementPart first = coalesce.Arguments[0];
+			StatementPart second = coalesce.Arguments[1];
 
-			////this.CommandText.Append("COALESCE(");
-			////this.VisitField(first);
-			////this.CommandText.Append(", ");
-			////while (second.PartType == StatementPartType.CoalesceFunction)
-			////{
-			////	CoalesceFunction secondCoalesce = (CoalesceFunction)second;
-			////	this.VisitField(secondCoalesce.First);
-			////	this.CommandText.Append(", ");
-			////	second = secondCoalesce.Second;
-			////}
-			////this.VisitField(second);
-			////this.CommandText.Append(")");
+			this.CommandText.Append("COALESCE(");
+			this.VisitField(first);
+			this.CommandText.Append(", ");
+			while (second.PartType == StatementPartType.CoalesceFunction)
+			{
+				CoalesceFunction secondCoalesce = (CoalesceFunction)second;
+				this.VisitField(secondCoalesce.Arguments[0]);
+				this.CommandText.Append(", ");
+				second = secondCoalesce.Arguments[1];
+			}
+			this.VisitField(second);
+			this.CommandText.Append(")");
 		}
 
 		private void VisitFunction(string name, params StatementPart[] arguments)
@@ -1394,11 +1435,11 @@ namespace Watsonia.Data.SqlServer
 		private void VisitDateAddFunction(DateAddFunction function)
 		{
 			this.VisitFunction("DATEADD", new StatementPart[]
-					{
-						new LiteralPart(function.DatePart.ToString().ToLowerInvariant()),
-						function.Number,
-						function.Argument
-					});
+				{
+					new LiteralPart(function.DatePart.ToString().ToLowerInvariant()),
+					function.Number,
+					function.Argument
+				});
 		}
 
 		private void VisitDateNewFunction(DateNewFunction function)
@@ -1563,10 +1604,6 @@ namespace Watsonia.Data.SqlServer
 				{
 					return "/";
 				}
-				//case BinaryOperator.Negate:
-				//{
-				//    return "-";
-				//}
 				case BinaryOperator.Remainder:
 				{
 					return "%";
@@ -1602,10 +1639,6 @@ namespace Watsonia.Data.SqlServer
 				{
 					return "-";
 				}
-				////case UnaryOperator.UnaryPlus:
-				////{
-				////    return "+";
-				////}
 				default:
 				{
 					throw new InvalidOperationException();

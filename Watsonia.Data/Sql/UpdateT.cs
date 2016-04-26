@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Watsonia.Data.Query;
 using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
@@ -103,12 +102,10 @@ namespace Watsonia.Data
 
 		public Update CreateStatement(DatabaseConfiguration configuration)
 		{
-			QueryProvider provider = new QueryProvider(null);
-
 			Update update = new Update();
 			update.Target = new Table(configuration.GetTableName(this.Target));
 			update.SetValues.AddRange(this.SetValues.Select(sv => new SetValue(new Column(configuration.GetColumnName(sv.Item1)), sv.Item2)));
-			update.Conditions.Add((ConditionCollection)StatementCreator.CompileStatementPart(configuration, this.Target, new DatabaseQuery<T>(provider, this.Target), this.Conditions));
+			update.Conditions.Add(SelectStatementCreator.VisitStatementConditions<T>(this.Conditions, configuration));
 			return update;
 		}
 	}

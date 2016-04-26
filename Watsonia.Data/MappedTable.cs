@@ -19,7 +19,7 @@ namespace Watsonia.Data
 		public string Name
 		{
 			get;
-			set;
+			private set;
 		}
 
 		/// <summary>

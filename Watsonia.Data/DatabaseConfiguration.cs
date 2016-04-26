@@ -110,6 +110,19 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Gets the name of the view for the supplied type.
+		/// </summary>
+		/// <remarks>
+		/// For a Book item, this would return "Book" by default but might be overridden to return "Books" or something different.
+		/// </remarks>
+		/// <param name="type">The type.</param>
+		/// <returns></returns>
+		public virtual string GetViewName(Type type)
+		{
+			return type.Name;
+		}
+
+		/// <summary>
 		/// Gets the name of the column for the supplied property.
 		/// </summary>
 		/// <param name="property">The property.</param>
@@ -237,6 +250,30 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Determines whether the supplied type is a table.
+		/// </summary>
+		/// <param name="type">The type.</param>
+		/// <returns>
+		///   <c>true</c> if the supplied type is a table; otherwise, <c>false</c>.
+		/// </returns>
+		public bool IsTable(Type type)
+		{
+			return !type.Name.EndsWith("View");
+		}
+		
+		/// <summary>
+		/// Determines whether the supplied type is a view.
+		/// </summary>
+		/// <param name="type">The type.</param>
+		/// <returns>
+		///   <c>true</c> if the supplied type is a view; otherwise, <c>false</c>.
+		/// </returns>
+		public bool IsView(Type type)
+		{
+			return type.Name.EndsWith("View");
+		}
+
+		/// <summary>
 		/// Determines whether the supplied property contains a related entity item.
 		/// </summary>
 		/// <param name="property">The property.</param>
@@ -245,7 +282,19 @@ namespace Watsonia.Data
 		/// </returns>
 		public bool IsRelatedItem(PropertyInfo property)
 		{
-			return (!property.PropertyType.IsValueType && ShouldMapTypeInternal(property.PropertyType));
+			return IsRelatedItem(property.PropertyType);
+		}
+
+		/// <summary>
+		/// Determines whether the supplied property contains a related entity item.
+		/// </summary>
+		/// <param name="property">The property.</param>
+		/// <returns>
+		///   <c>true</c> if the supplied property contains a related entity item; otherwise, <c>false</c>.
+		/// </returns>
+		public bool IsRelatedItem(Type type)
+		{
+			return (!type.IsValueType && ShouldMapTypeInternal(type));
 		}
 
 		/// <summary>
@@ -414,6 +463,12 @@ namespace Watsonia.Data
 				property.Name == "PrimaryKeyValue" ||
 				property.Name == "IsNew" ||
 				property.Name == "HasChanges")
+			{
+				return false;
+			}
+
+			// Or the SelectStatement property that we get the view statement from
+			if (property.Name == "SelectStatement")
 			{
 				return false;
 			}

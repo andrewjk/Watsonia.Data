@@ -13,7 +13,6 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\Watsonia.Web.Site\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -46,6 +45,7 @@
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
     <Prefer32Bit>false</Prefer32Bit>
+    <CodeAnalysisRuleSet>..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -66,6 +66,10 @@
     <AssemblyOriginatorKeyFile>Watsonia.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Remotion.Linq, Version=2.0.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
+      <HintPath>..\Watsonia.Orders.Windows\packages\Remotion.Linq.2.0.2\lib\net45\Remotion.Linq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -86,35 +90,15 @@
     <Compile Include="DataChange.cs" />
     <Compile Include="DefaultDateTimeValueAttribute.cs" />
     <Compile Include="EventArgs.cs" />
+    <Compile Include="Sql\FieldCollection.cs" />
+    <Compile Include="Sql\ExpressionExtensions.cs" />
     <Compile Include="IDatabaseQuery.cs" />
     <Compile Include="IncludePath.cs" />
-    <Compile Include="Query\Expressions\AggregateExpression.cs" />
-    <Compile Include="Query\Expressions\AggregateSubqueryExpression.cs" />
-    <Compile Include="Query\Expressions\Aggregator.cs" />
-    <Compile Include="Query\Expressions\AliasedExpression.cs" />
-    <Compile Include="Query\Expressions\BatchExpression.cs" />
-    <Compile Include="Query\Expressions\BetweenExpression.cs" />
-    <Compile Include="Query\Expressions\BlockCommand.cs" />
-    <Compile Include="Query\Expressions\ClientJoinExpression.cs" />
-    <Compile Include="Query\Expressions\ColumnAssignment.cs" />
-    <Compile Include="Query\Expressions\ColumnDeclaration.cs" />
-    <Compile Include="Query\Expressions\ColumnExpression.cs" />
-    <Compile Include="Query\Expressions\CommandExpression.cs" />
-    <Compile Include="Query\Expressions\DbExpression.cs" />
-    <Compile Include="Query\Expressions\DbExpressionComparer.cs" />
-    <Compile Include="Query\Expressions\DbExpressionExtensions.cs" />
-    <Compile Include="Query\Expressions\DbExpressionReplacer.cs" />
-    <Compile Include="Query\Expressions\DbExpressionType.cs" />
-    <Compile Include="Query\Expressions\DbExpressionTypeExtensions.cs" />
-    <Compile Include="Query\Expressions\DbExpressionVisitor.cs" />
-    <Compile Include="Query\Expressions\DbExpressionWriter.cs" />
-    <Compile Include="Query\Expressions\DeclarationCommand.cs" />
-    <Compile Include="Query\Expressions\DeleteCommand.cs" />
-    <Compile Include="Query\Expressions\EntityExpression.cs" />
-    <Compile Include="Query\Expressions\ExistsExpression.cs" />
-    <Compile Include="Query\Expressions\ExpressionComparer.cs" />
-    <Compile Include="Query\Expressions\ExpressionJoinType.cs" />
-    <Compile Include="Query\Expressions\ExpressionWriter.cs" />
+    <Compile Include="ItemNotFoundException.cs" />
+    <Compile Include="MappedView.cs" />
+    <Compile Include="SelectStatementCreator.cs" />
+    <Compile Include="SelectSourceExpander.cs" />
+    <Compile Include="StatementPartCreator.cs" />
     <Compile Include="MappedColumn.cs" />
     <Compile Include="MappedRelationship.cs" />
     <Compile Include="DynamicProxyStateTracker.cs" />
@@ -123,61 +107,7 @@
     <Compile Include="DatabaseConfiguration.cs" />
     <Compile Include="DynamicProxyFactory.cs" />
     <Compile Include="Pluralizer.cs" />
-    <Compile Include="Query\CompiledQuery.cs" />
-    <Compile Include="Query\CompoundKey.cs" />
-    <Compile Include="Query\ConstructorBindResult.cs" />
-    <Compile Include="Query\DeferredList.cs" />
-    <Compile Include="Query\EntityAssignment.cs" />
-    <Compile Include="Query\EntityInfo.cs" />
-    <Compile Include="Query\EnumerateOnce.cs" />
-    <Compile Include="Query\ExecutionBuilder.cs" />
-    <Compile Include="Query\ExpressionExtensions.cs" />
-    <Compile Include="Query\ExpressionReplacer.cs" />
-    <Compile Include="Query\Expressions\FunctionExpression.cs" />
-    <Compile Include="Query\Expressions\IfCommand.cs" />
-    <Compile Include="Query\Expressions\InExpression.cs" />
-    <Compile Include="Query\Expressions\InsertCommand.cs" />
-    <Compile Include="Query\Expressions\IsNullExpression.cs" />
-    <Compile Include="Query\Expressions\JoinExpression.cs" />
-    <Compile Include="Query\Expressions\NamedValueExpression.cs" />
-    <Compile Include="Query\Expressions\OrderExpression.cs" />
-    <Compile Include="Query\Expressions\OrderType.cs" />
-    <Compile Include="Query\Expressions\OuterJoinedExpression.cs" />
-    <Compile Include="Query\Expressions\ProjectionExpression.cs" />
-    <Compile Include="Query\Expressions\RowNumberExpression.cs" />
-    <Compile Include="Query\Expressions\ScalarExpression.cs" />
-    <Compile Include="Query\Expressions\SelectExpression.cs" />
-    <Compile Include="Query\Expressions\SubqueryExpression.cs" />
-    <Compile Include="Query\Expressions\TableAlias.cs" />
-    <Compile Include="Query\Expressions\TableExpression.cs" />
-    <Compile Include="Query\Expressions\UpdateCommand.cs" />
-    <Compile Include="Query\Expressions\VariableDeclaration.cs" />
-    <Compile Include="Query\Expressions\VariableExpression.cs" />
-    <Compile Include="Query\ExpressionVisitor.cs" />
-    <Compile Include="Query\FieldReader.cs" />
-    <Compile Include="Query\Grouping.cs" />
-    <Compile Include="Query\IEntityTable.cs" />
-    <Compile Include="Query\MappingEntity.cs" />
-    <Compile Include="Query\PartialEvaluator.cs" />
-    <Compile Include="Query\Query.cs" />
-    <Compile Include="Query\QueryCommand.cs" />
-    <Compile Include="Query\QueryCommandGatherer.cs" />
-    <Compile Include="Query\QueryCommandParameter.cs" />
-    <Compile Include="Query\QueryCompiler.cs" />
-    <Compile Include="Query\QueryExecutor.cs" />
-    <Compile Include="Query\QueryMapper.cs" />
-    <Compile Include="Query\QueryMapping.cs" />
-    <Compile Include="Query\QueryProvider.cs" />
-    <Compile Include="Query\QueryTranslator.cs" />
-    <Compile Include="Query\QueryType.cs" />
-    <Compile Include="Query\QueryTypeSystem.cs" />
-    <Compile Include="Query\ReadOnlyExtensions.cs" />
-    <Compile Include="Query\ReflectionExtensions.cs" />
-    <Compile Include="Query\ScopedDictionary.cs" />
-    <Compile Include="Query\StatementCreator.cs" />
-    <Compile Include="Query\StrongDelegate.cs" />
-    <Compile Include="Query\TypedSubtreeFinder.cs" />
-    <Compile Include="Query\TypeHelper.cs" />
+    <Compile Include="QueryExecutor.cs" />
     <Compile Include="Sql\AnonymousParameterReplacer.cs" />
     <Compile Include="Sql\CoalesceFunction.cs" />
     <Compile Include="Sql\ConditionCollection.cs" />
@@ -196,7 +126,6 @@
     <Compile Include="Sql\NumberRootFunction.cs" />
     <Compile Include="Sql\NumberSignFunction.cs" />
     <Compile Include="Sql\NumberTrigFunction.cs" />
-    <Compile Include="Sql\ReadOnlyCollection.cs" />
     <Compile Include="Sql\ScalarField.cs" />
     <Compile Include="Sql\SelectT.cs" />
     <Compile Include="Sql\StatementPartType.cs" />
@@ -205,36 +134,6 @@
     <Compile Include="Sql\TrigFunction.cs" />
     <Compile Include="Sql\UpdateT.cs" />
     <Compile Include="TitleCaser.cs" />
-    <Compile Include="Query\Translation\AggregateChecker.cs" />
-    <Compile Include="Query\Translation\AggregateRewriter.cs" />
-    <Compile Include="Query\Translation\ClientJoinedProjectionRewriter.cs" />
-    <Compile Include="Query\Translation\ColumnMapper.cs" />
-    <Compile Include="Query\Translation\ColumnProjector.cs" />
-    <Compile Include="Query\Translation\ComparisonRewriter.cs" />
-    <Compile Include="Query\Translation\CrossApplyRewriter.cs" />
-    <Compile Include="Query\Translation\CrossJoinIsolator.cs" />
-    <Compile Include="Query\Translation\CrossJoinRewriter.cs" />
-    <Compile Include="Query\Translation\DeclaredAliasGatherer.cs" />
-    <Compile Include="Query\Translation\JoinColumnGatherer.cs" />
-    <Compile Include="Query\Translation\NamedValueGatherer.cs" />
-    <Compile Include="Query\Translation\OrderByRewriter.cs" />
-    <Compile Include="Query\Translation\OuterJoinTester.cs" />
-    <Compile Include="Query\Translation\Parameterizer.cs" />
-    <Compile Include="Query\Translation\QueryBinder.cs" />
-    <Compile Include="Query\Translation\QueryDuplicator.cs" />
-    <Compile Include="Query\Translation\RedundantColumnRemover.cs" />
-    <Compile Include="Query\Translation\RedundantJoinRemover.cs" />
-    <Compile Include="Query\Translation\RedundantSubqueryRemover.cs" />
-    <Compile Include="Query\Translation\ReferencedAliasGatherer.cs" />
-    <Compile Include="Query\Translation\ReferencedColumnGatherer.cs" />
-    <Compile Include="Query\Translation\RelationshipBinder.cs" />
-    <Compile Include="Query\Translation\RelationshipIncluder.cs" />
-    <Compile Include="Query\Translation\SelectGatherer.cs" />
-    <Compile Include="Query\Translation\SingletonProjectionRewriter.cs" />
-    <Compile Include="Query\Translation\SkipToNestedOrderByRewriter.cs" />
-    <Compile Include="Query\Translation\SkipToRowNumberRewriter.cs" />
-    <Compile Include="Query\Translation\SubqueryRemover.cs" />
-    <Compile Include="Query\Translation\UnusedColumnRemover.cs" />
     <Compile Include="TypeHelper.cs" />
     <Compile Include="IDynamicProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -290,15 +189,14 @@
     <Compile Include="ValidationException.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Watsonia.snk" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Query\_License.txt" />
     <Content Include="_Notes.txt" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

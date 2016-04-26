@@ -1,19 +1,16 @@
-﻿using System;
+﻿using Remotion.Linq;
+using Remotion.Linq.Parsing.Structure;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.Data.Common;
-using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using Watsonia.Data.Query;
-using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
 {
@@ -45,7 +42,7 @@ namespace Watsonia.Data
 		public event EventHandler BeforeExecuteCommand;
 		public event EventHandler AfterExecuteCommand;
 
-		private static ConcurrentDictionary<Type, List<Type>> _childParentMapping = null;
+		private static ConcurrentDictionary<Type, ConcurrentStack<Type>> _childParentMapping = null;
 
 		/// <summary>
 		/// Gets the configuration options used for mapping to and accessing the database.
@@ -82,7 +79,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The child parent mapping.
 		/// </value>
-		internal ConcurrentDictionary<Type, List<Type>> ChildParentMapping
+		internal ConcurrentDictionary<Type, ConcurrentStack<Type>> ChildParentMapping
 		{
 			get
 			{
@@ -220,31 +217,25 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public DatabaseQuery<T> Query<T>()
 		{
-			// We need to tell the query that we want types to be dynamic proxies so that it will get
-			// their generated properties correctly
-			Type proxyTableType = DynamicProxyFactory.GetDynamicProxyType(typeof(T), this);
+			var queryParser = QueryParser.CreateDefault();
+			var queryExecutor = new QueryExecutor<T>(this);
+			var query = new DatabaseQuery<T>(queryParser, queryExecutor);
 
-			// TODO: DatabaseQuery should probably just set this up in its constructor?
-			var provider = new QueryProvider(this);
-			return new DatabaseQuery<T>(provider, proxyTableType);
+			// HACK: This is a bit horrible and circular, but necessary to get Include paths into the select
+			// statement in the QueryExecutor.Execute methods
+			queryExecutor.Query = query;
+
+			return query;
 		}
 
-		internal Select[] Compile(Expression expression)
+		internal Select Compile(Expression expression)
 		{
 			// For testing
-			var provider = new QueryProvider(this);
-			Expression plan = provider.GetExecutionPlan(expression);
-			Expression[] blocks = QueryCommandGatherer.Gather(plan).Select(c => c.Expression).ToArray();
-			return Array.ConvertAll<Expression, Select>(blocks, b => StatementCreator.Compile(b));
+			var queryParser = QueryParser.CreateDefault();
+			QueryModel queryModel = queryParser.GetParsedQuery(expression);
+			return SelectStatementCreator.Visit(queryModel, this.Configuration);
 		}
-
-		internal object Execute(Expression expression)
-		{
-			// For testing
-			var provider = new QueryProvider(this);
-			return provider.Execute(expression);
-		}
-
+		
 		/// <summary>
 		/// Loads the item from the database with the supplied ID.
 		/// </summary>
@@ -253,8 +244,30 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public T Load<T>(object id)
 		{
-			T item = Create<T>();
-			IDynamicProxy proxy = (IDynamicProxy)item;
+			return LoadOrDefault<T>(id, true);
+		}
+
+		/// <summary>
+		/// Loads the item from the database with the supplied ID.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="id">The ID.</param>
+		/// <returns></returns>
+		public T LoadOrDefault<T>(object id)
+		{
+			return LoadOrDefault<T>(id, false);
+		}
+
+		/// <summary>
+		/// Loads the item from the database with the supplied ID.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="id">The ID.</param>
+		/// <returns></returns>
+		private T LoadOrDefault<T>(object id, bool throwIfNotFound)
+		{
+			T item = default(T);
+			IDynamicProxy proxy = null;
 
 			string tableName = this.Configuration.GetTableName(typeof(T));
 			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(typeof(T));
@@ -270,14 +283,23 @@ namespace Watsonia.Data
 				{
 					if (reader.Read())
 					{
+						item = Create<T>();
+						proxy = (IDynamicProxy)item;
 						proxy.SetValuesFromReader(reader);
 						proxy.IsNew = false;
+					}
+					else if (throwIfNotFound)
+					{
+						throw new ItemNotFoundException(string.Format("The {0} with ID {1} was not found in the database", typeof(T).Name, id), id);
 					}
 				}
 				OnAfterExecuteCommand(command);
 			}
 
-			OnAfterLoad(proxy);
+			if (proxy != null)
+			{
+				OnAfterLoad(proxy);
+			}
 
 			return item;
 		}
@@ -683,7 +705,7 @@ namespace Watsonia.Data
 
 			T newItem;
 
-			if (itemType.IsValueType || itemType == typeof(string))
+			if (itemType.IsValueType || itemType == typeof(string) || itemType == typeof(byte[]))
 			{
 				newItem = (T)TypeHelper.ChangeType(reader.GetValue(0), typeof(T));
 			}
@@ -1172,16 +1194,27 @@ namespace Watsonia.Data
 					string deleteForeignKeyName = this.Configuration.GetForeignKeyColumnName(deleteType, tableType);
 					var select = Watsonia.Data.Select.From(deleteTableName).Where(deleteForeignKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
 
-					// Load the items and delete them. Not the most efficient but it ensures that things
-					// are cascaded correctly and the right events are raised
-					foreach (IDynamicProxy deleteItem in LoadCollection(select, deleteType))
+					// Load the items to delete. Not the most efficient but it ensures that
+					// things are cascaded correctly and the right events are raised
+					var itemsToDelete = LoadCollection(select, deleteType);
+
+					// If it's a single item, update the field to null to avoid a reference
+					// exception when deleting the item
+					if (this.Configuration.IsRelatedItem(property))
+					{
+						string columnName = this.Configuration.GetColumnName(property);
+						var updateQuery = Watsonia.Data.Update.Table(tableName).Set(columnName, null).Where(primaryKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
+						Execute(updateQuery, connection, transaction);
+					}
+
+					foreach (IDynamicProxy deleteItem in itemsToDelete)
 					{
 						Delete(deleteItem, deleteType, connection, transaction);
 					}
 				}
 
-				var query = Watsonia.Data.Delete.From(tableName).Where(primaryKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
-				Execute(query, connectionToUse, transactionToUse);
+				var deleteQuery = Watsonia.Data.Delete.From(tableName).Where(primaryKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
+				Execute(deleteQuery, connectionToUse, transactionToUse);
 
 				// If a transaction was not passed in and we created our own, commit it
 				if (transaction == null)
@@ -1344,7 +1377,7 @@ namespace Watsonia.Data
 
 		private void LoadChildParentMapping()
 		{
-			_childParentMapping = new ConcurrentDictionary<Type, List<Type>>();
+			_childParentMapping = new ConcurrentDictionary<Type, ConcurrentStack<Type>>();
 			foreach (Type parentType in this.Configuration.TypesToMap())
 			{
 				foreach (PropertyInfo childProperty in this.Configuration.PropertiesToMap(parentType))
@@ -1355,8 +1388,8 @@ namespace Watsonia.Data
 						// We will add Book as the key for the dictionary as we will want to add
 						// the AuthorID column when creating its proxy
 						Type childPropertyType = TypeHelper.GetElementType(childProperty.PropertyType);
-						List<Type> childTypes = _childParentMapping.GetOrAdd(childPropertyType, (Type t) => new List<Type>());
-						childTypes.Add(parentType);
+						ConcurrentStack<Type> childTypes = _childParentMapping.GetOrAdd(childPropertyType, (Type t) => new ConcurrentStack<Type>());
+						childTypes.Push(parentType);
 					}
 				}
 			}

@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Watsonia.Data.Query;
 using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
@@ -66,11 +65,9 @@ namespace Watsonia.Data
 
 		public Delete CreateStatement(DatabaseConfiguration configuration)
 		{
-			QueryProvider provider = new QueryProvider(null);
-
 			Delete delete = new Delete();
 			delete.Target = new Table(configuration.GetTableName(this.Target));
-			delete.Conditions.Add((ConditionCollection)StatementCreator.CompileStatementPart(configuration, this.Target, new DatabaseQuery<T>(provider, this.Target), this.Conditions));
+			delete.Conditions.Add(SelectStatementCreator.VisitStatementConditions<T>(this.Conditions, configuration));
 			return delete;
 		}
 	}

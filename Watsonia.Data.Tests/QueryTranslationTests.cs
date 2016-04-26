@@ -37,22 +37,6 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestWhereTrue()
-		{
-			TestQuery(
-				"TestWhereTrue",
-				db.Customers.Where(c => true));
-		}
-
-		[TestMethod]
-		public void TestWhereFalse()
-		{
-			TestQuery(
-				"TestWhereFalse",
-				db.Customers.Where(c => false));
-		}
-
-		[TestMethod]
 		public void TestCompareEntityEqual()
 		{
 			Customer alfki = new Customer { CustomerID = "ALFKI" };
@@ -2235,22 +2219,22 @@ namespace Watsonia.Data.Tests
 		{
 			if (query.NodeType == ExpressionType.Convert && query.Type == typeof(object))
 			{
-				// remove box
+				// Remove boxing
 				query = ((UnaryExpression)query).Operand;
 			}
 
 #if DEBUG
 			string expected = "(" + TrimExtraWhiteSpace(baselines[baseline].Replace("\n\n", ") (")) + ")";
-			Select[] selects = db.Compile(query);
-			string actual = TrimExtraWhiteSpace(string.Join("\n\n", selects.Select(s => s.ToString())));
+			Select select = db.Compile(query);
+			string actual = TrimExtraWhiteSpace(select.ToString());
 #else
 			string expected = "";
 			string actual = "";
 			try
 			{
 				expected = "(" + TrimExtraWhiteSpace(baselines[baseline].Replace("\n\n", ") (")) + ")";
-				Select[] selects = db.Compile(query);
-				actual = TrimExtraWhiteSpace(string.Join("\n\n", selects.Select(s => s.ToString())));
+				Select select = db.Compile(query);
+				actual = TrimExtraWhiteSpace(select.ToString());
 			}
 			catch (Exception ex)
 			{

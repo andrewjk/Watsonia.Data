@@ -16,6 +16,5 @@ namespace Watsonia.Data.Sql
 		/// Negates the expression.
 		/// </summary>
 		Negate,
-		////UnaryPlus,
 	}
 }

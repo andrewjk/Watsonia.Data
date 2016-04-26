@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Watsonia.Data.Query;
 using Watsonia.Data.Tests.Northwind;
 
 namespace Watsonia.Data.Tests
@@ -27,42 +26,7 @@ namespace Watsonia.Data.Tests
 				baselines = doc.Root.Elements("baseline").ToDictionary(e => (string)e.Attribute("key"), e => e.Value);
 			}
 		}
-
-		[TestMethod]
-		public void TestCompiledQuery()
-		{
-			var fn = QueryCompiler.Compile((string id) => db.Customers.Where(c => c.CustomerID == id));
-			var items = fn("ALKFI").ToList();
-		}
-
-		[TestMethod]
-		public void TestCompiledQuerySingleton()
-		{
-			var fn = QueryCompiler.Compile((string id) => db.Customers.SingleOrDefault(c => c.CustomerID == id));
-			Customer cust = fn("ALKFI");
-		}
-
-		[TestMethod]
-		public void TestCompiledQueryCount()
-		{
-			var fn = QueryCompiler.Compile((string id) => db.Customers.Count(c => c.CustomerID == id));
-			int n = fn("ALKFI");
-		}
-
-		[TestMethod]
-		public void TestCompiledQueryIsolated()
-		{
-			var fn = QueryCompiler.Compile((NorthwindDatabase n, string id) => n.Customers.Where(c => c.CustomerID == id));
-			var items = fn(db, "ALFKI").ToList();
-		}
-
-		[TestMethod]
-		public void TestCompiledQueryIsolatedWithHeirarchy()
-		{
-			var fn = QueryCompiler.Compile((NorthwindDatabase n, string id) => n.Customers.Where(c => c.CustomerID == id).Select(c => n.Orders.Where(o => o.CustomerID == c.CustomerID)));
-			var items = fn(db, "ALFKI").ToList();
-		}
-
+		
 		[TestMethod]
 		public void TestThing()
 		{

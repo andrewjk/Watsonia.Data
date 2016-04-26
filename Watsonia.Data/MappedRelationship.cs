@@ -19,7 +19,7 @@ namespace Watsonia.Data
 		public string ConstraintName
 		{
 			get;
-			set;
+			private set;
 		}
 
 		/// <summary>
@@ -31,7 +31,7 @@ namespace Watsonia.Data
 		public string ForeignTableName
 		{
 			get;
-			set;
+			private set;
 		}
 
 		/// <summary>
@@ -43,7 +43,7 @@ namespace Watsonia.Data
 		public string ForeignTableColumnName
 		{
 			get;
-			set;
+			private set;
 		}
 
 		/// <summary>

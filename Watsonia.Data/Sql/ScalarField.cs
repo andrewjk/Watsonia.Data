@@ -22,7 +22,7 @@ namespace Watsonia.Data.Sql
 		{
 			get
 			{
-				return StatementPartType.SelectField;
+				return StatementPartType.ScalarField;
 			}
 		}
 

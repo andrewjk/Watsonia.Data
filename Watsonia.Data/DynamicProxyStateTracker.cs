@@ -270,6 +270,8 @@ namespace Watsonia.Data
 			if (collection.Count > 0)
 			{
 				// TODO: Less reflection!  Less casting!  Less looping!
+				// TODO: Need to only be setting the one property that points to this item when there
+				// are two properties that point to different items e.g. in LearningUserNotes
 				foreach (PropertyInfo property in collection[0].GetType().GetProperties())
 				{
 					if (property.PropertyType.IsAssignableFrom(this.Item.GetType()) &&

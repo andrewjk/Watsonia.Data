@@ -6,7 +6,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Watsonia.Data.Query;
 using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
@@ -53,19 +52,31 @@ namespace Watsonia.Data
 			}
 		}
 
+		public bool IsAny
+		{
+			get;
+			set;
+		}
+
+		public bool IsAll
+		{
+			get;
+			set;
+		}
+
 		public bool IsDistinct
 		{
 			get;
 			set;
 		}
 
-		public int SelectStartIndex
+		public int StartIndex
 		{
 			get;
 			set;
 		}
 
-		public int SelectLimit
+		public int Limit
 		{
 			get;
 			set;
@@ -105,6 +116,7 @@ namespace Watsonia.Data
 
 		public Select<T> Columns(Expression<Func<T, object>> property)
 		{
+			this.SourceFields.Add(FuncToPropertyInfo(property));
 			return this;
 		}
 
@@ -120,15 +132,15 @@ namespace Watsonia.Data
 			return this;
 		}
 
-		public Select<T> Start(int startIndex)
+		public Select<T> Skip(int startIndex)
 		{
-			this.SelectStartIndex = startIndex;
+			this.StartIndex = startIndex;
 			return this;
 		}
 
-		public Select<T> Limit(int limit)
+		public Select<T> Take(int limit)
 		{
-			this.SelectLimit = limit;
+			this.Limit = limit;
 			return this;
 		}
 
@@ -140,17 +152,31 @@ namespace Watsonia.Data
 
 		public Select<T> And(Expression<Func<T, bool>> condition)
 		{
-			Expression combined = this.Conditions.Body.AndAlso(condition.Body);
-			combined = AnonymousParameterReplacer.Replace(combined, condition.Parameters);
-			this.Conditions = Expression.Lambda<Func<T, bool>>(combined, condition.Parameters);
+			if (this.Conditions != null)
+			{
+				Expression combined = this.Conditions.Body.AndAlso(condition.Body);
+				combined = AnonymousParameterReplacer.Replace(combined, condition.Parameters);
+				this.Conditions = Expression.Lambda<Func<T, bool>>(combined, condition.Parameters);
+			}
+			else
+			{
+				this.Conditions = condition;
+			}
 			return this;
 		}
 
 		public Select<T> Or(Expression<Func<T, bool>> condition)
 		{
-			Expression combined = this.Conditions.Body.OrElse(condition.Body);
-			combined = AnonymousParameterReplacer.Replace(combined, condition.Parameters);
-			this.Conditions = Expression.Lambda<Func<T, bool>>(combined, condition.Parameters);
+			if (this.Conditions != null)
+			{
+				Expression combined = this.Conditions.Body.OrElse(condition.Body);
+				combined = AnonymousParameterReplacer.Replace(combined, condition.Parameters);
+				this.Conditions = Expression.Lambda<Func<T, bool>>(combined, condition.Parameters);
+			}
+			else
+			{
+				this.Conditions = condition;
+			}
 			return this;
 		}
 
@@ -193,16 +219,19 @@ namespace Watsonia.Data
 
 		public Select CreateStatement(DatabaseConfiguration configuration)
 		{
-			QueryProvider provider = new QueryProvider(null);
-
 			Select select = new Select();
 			select.Source = new Table(configuration.GetTableName(this.Source));
 			select.SourceFields.AddRange(this.SourceFields.Select(s => new Column(configuration.GetColumnName(s))));
 			select.SourceFields.AddRange(this.AggregateFields.Select(s => new Aggregate(s.Item2, new Column(s.Item1 != null ? configuration.GetColumnName(s.Item1) : "*"))));
+			select.IsAny = this.IsAny;
+			select.IsAll = this.IsAll;
 			select.IsDistinct = this.IsDistinct;
-			select.SelectStartIndex = this.SelectStartIndex;
-			select.SelectLimit = this.SelectLimit;
-			select.Conditions.Add((ConditionCollection)StatementCreator.CompileStatementPart(configuration, this.Source, new DatabaseQuery<T>(provider, this.Source), this.Conditions));
+			select.StartIndex = this.StartIndex;
+			select.Limit = this.Limit;
+			if (this.Conditions != null)
+			{
+				select.Conditions.Add(SelectStatementCreator.VisitStatementConditions<T>(this.Conditions, configuration));
+			}
 			select.OrderByFields.AddRange(this.OrderByFields.Select(s => new OrderByExpression(configuration.GetColumnName(s.Item1), s.Item2)));
 			return select;
 		}
