@@ -17,7 +17,7 @@ namespace Watsonia.Data
 		public DatabaseQuery<T> Query
 		{
 			get;
-			set;
+			internal set;
 		}
 
 		public QueryExecutor(Database database)
@@ -25,18 +25,22 @@ namespace Watsonia.Data
 			this.Database = database;
 		}
 
-		public IEnumerable<T2> ExecuteCollection<T2>(QueryModel queryModel)
+		internal Select BuildSelectStatement(QueryModel queryModel)
 		{
 			// Create the select statement
 			Select select = SelectStatementCreator.Visit(queryModel, this.Database.Configuration);
 			select.IncludePaths.AddRange(this.Query.IncludePaths);
 
-			// NOTE: I started down this track and then decided I didn't really like it
-			//		 Seems like it's too bug-prone and will degrade performance when you can just add joins manually?
-			//// Add joins for fields that don't already exist
-			//SelectSourceExpander.Visit(queryModel, select, this.Database.Configuration);
+			// Add joins for fields in tables that haven't been joined explicitly
+			// e.g. when using something like DB.Query<T>().Where(x => x.Item.Property == y)
+			SelectSourceExpander.Visit(queryModel, select, this.Database.Configuration);
 
-			// And load the collection
+			return select;
+		}
+
+		public IEnumerable<T2> ExecuteCollection<T2>(QueryModel queryModel)
+		{
+			var select = BuildSelectStatement(queryModel);
 			return this.Database.LoadCollection<T2>(select);
 		}
 

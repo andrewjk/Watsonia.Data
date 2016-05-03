@@ -12,7 +12,7 @@ using Watsonia.Data.Tests.Northwind;
 namespace Watsonia.Data.Tests
 {
 	[TestClass]
-	public class QueryTranslationTests
+	public class QueryLanguageTests
 	{
 		private static NorthwindDatabase db = new NorthwindDatabase();
 		private static Dictionary<string, string> baselines = new Dictionary<string, string>();
@@ -20,7 +20,7 @@ namespace Watsonia.Data.Tests
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
 		{
-			string fileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\QueryTranslationBaselines.xml";
+			string fileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\QueryLanguageBaselines.xml";
 			if (!string.IsNullOrEmpty(fileName) && File.Exists(fileName))
 			{
 				XDocument doc = XDocument.Load(fileName);
@@ -2030,7 +2030,7 @@ namespace Watsonia.Data.Tests
 				where o.Customer.Phone != "555 555 5555"
 				select new { A = o.Customer, B = o.Customer });
 		}
-
+		
 		[TestMethod]
 		public void TestSingletonAssociationWithMemberAccess()
 		{
@@ -2127,9 +2127,28 @@ namespace Watsonia.Data.Tests
 				query = ((UnaryExpression)query).Operand;
 			}
 
-			string expected = "(" + TrimExtraWhiteSpace(baselines[baseline].Replace("\n\n", ") (")) + ")";
+#if DEBUG
+			string expected = TrimExtraWhiteSpace(baselines[baseline].Replace("\n\n", ") ("));
 			Select select = db.BuildSelectStatement(query);
-			string actual = TrimExtraWhiteSpace(select.ToString());
+
+			var builder = new SqlServer.TSqlCommandBuilder();
+			builder.VisitStatement(select, db.Configuration);
+
+			string actual = TrimExtraWhiteSpace(builder.CommandText.ToString());
+#else
+			string expected = "";
+			string actual = "";
+			try
+			{
+				expected = "(" + TrimExtraWhiteSpace(baselines[baseline].Replace("\n\n", ") (")) + ")";
+				Select select = db.Compile(query);
+				actual = TrimExtraWhiteSpace(select.ToString());
+			}
+			catch (Exception ex)
+			{
+				Assert.Fail("Failed to get query text: {0}", ex.Message);
+			}
+#endif
 
 			Assert.AreEqual(expected, actual);
 		}

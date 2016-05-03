@@ -228,12 +228,19 @@ namespace Watsonia.Data
 			return query;
 		}
 
-		internal Select Compile(Expression expression)
+		internal Select BuildSelectStatement(Expression expression)
 		{
 			// For testing
 			var queryParser = QueryParser.CreateDefault();
 			QueryModel queryModel = queryParser.GetParsedQuery(expression);
-			return SelectStatementCreator.Visit(queryModel, this.Configuration);
+
+			// The type doesn't matter
+			var queryExecutor = new QueryExecutor<int>(this);
+			var query = new DatabaseQuery<int>(queryParser, queryExecutor);
+
+			queryExecutor.Query = query;
+
+			return queryExecutor.BuildSelectStatement(queryModel);
 		}
 		
 		/// <summary>

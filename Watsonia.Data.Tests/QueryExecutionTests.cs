@@ -245,7 +245,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestMultipleJoinsWithJoinConditionsInWhere()
 		{
-			// this should reduce to inner joins
 			var list = (
 				from c in db.Customers
 				from o in db.Orders
@@ -261,7 +260,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestMultipleJoinsWithMissingJoinCondition()
 		{
-			// this should force a naked cross join
 			var list = (
 				from c in db.Customers
 				from o in db.Orders
@@ -450,7 +448,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestGroupByWithElementSelector()
 		{
-			// note: groups are retrieved through a separately execute subquery per row
 			var list = db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID, o => (o.CustomerID == "ALFKI" ? 1 : 1)).ToList();
 			Assert.AreEqual(1, list.Count);
 			Assert.AreEqual(6, list[0].Count());
@@ -491,7 +488,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestOrderByGroupBy()
 		{
-			// note: order-by is lost when group-by is applied (the sequence of groups is not ordered)
 			var list = db.Orders.Where(o => o.CustomerID == "ALFKI").OrderBy(o => o.OrderID).GroupBy(o => o.CustomerID).ToList();
 			Assert.AreEqual(1, list.Count);
 			var grp = list[0].ToList();
@@ -578,7 +574,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestGroupByDistinct()
 		{
-			// distinct after group-by should not do anything
 			var list = db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Distinct().ToList();
 			Assert.AreEqual(1, list.Count);
 		}
@@ -593,8 +588,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestSelectDistinctCount()
 		{
-			// cannot do: SELECT COUNT(DISTINCT some-colum) FROM some-table
-			// because COUNT(DISTINCT some-column) does not count nulls
 			var cnt = db.Customers.Select(c => c.City).Distinct().Count();
 			Assert.AreEqual(69, cnt);
 		}
@@ -637,7 +630,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestTakeDistinct()
 		{
-			// distinct must be forced to apply after top has been computed
 			var list = db.Orders.OrderBy(o => o.CustomerID).Select(o => o.CustomerID).Take(5).Distinct().ToList();
 			Assert.AreEqual(1, list.Count);
 		}
@@ -645,7 +637,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestDistinctTake()
 		{
-			// top must be forced to apply after distinct has been computed
 			var list = db.Orders.OrderBy(o => o.CustomerID).Select(o => o.CustomerID).Distinct().Take(5).ToList();
 			Assert.AreEqual(5, list.Count);
 		}
@@ -888,7 +879,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestAnyWithSubqueryNoPredicate()
 		{
-			// customers with at least one order
 			var list = db.Customers.Where(c => db.Orders.Where(o => o.CustomerID == c.CustomerID).Any()).ToList();
 			Assert.AreEqual(89, list.Count);
 		}
@@ -896,7 +886,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestAnyWithLocalCollection()
 		{
-			// get customers for any one of these IDs
 			string[] ids = new[] { "ALFKI", "WOLZA", "NOONE" };
 			var list = db.Customers.Where(c => ids.Any(id => c.CustomerID == id)).ToList();
 			Assert.AreEqual(2, list.Count);
@@ -906,14 +895,12 @@ namespace Watsonia.Data.Tests
 		public void TestAllWithSubquery()
 		{
 			var list = db.Customers.Where(c => c.Orders.All(o => o.CustomerID == "ALFKI")).ToList();
-			// includes customers w/ no orders
 			Assert.AreEqual(3, list.Count);
 		}
 
 		[TestMethod]
 		public void TestAllWithLocalCollection()
 		{
-			// get all customers with a name that contains both 'm' and 'd'  (don't use vowels since these often depend on collation)
 			string[] patterns = new[] { "m", "d" };
 
 			var list = db.Customers.Where(c => patterns.All(p => c.ContactName.Contains(p))).Select(c => c.ContactName).ToList();
@@ -925,7 +912,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestAllTopLevel()
 		{
-			// all customers have name length > 0?
 			var all = db.Customers.All(c => c.ContactName.Length > 0);
 			Assert.IsTrue(all);
 		}
@@ -933,7 +919,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestAllTopLevelNoMatches()
 		{
-			// all customers have name with 'a'
 			var all = db.Customers.All(c => c.ContactName.Contains("a"));
 			Assert.IsFalse(all);
 		}
@@ -941,7 +926,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestContainsWithSubquery()
 		{
-			// this is the long-way to determine all customers that have at least one order
 			var list = db.Customers.Where(c => db.Orders.Select(o => o.CustomerID).Contains(c.CustomerID)).ToList();
 			Assert.AreEqual(89, list.Count);
 		}
@@ -997,8 +981,6 @@ namespace Watsonia.Data.Tests
 			Assert.AreEqual(null, list[0].City);
 			Assert.AreEqual(null, list[0].Country);
 		}
-
-		// framework function tests
 
 		[TestMethod]
 		public void TestStringLength()
@@ -1341,7 +1323,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestMathPow()
 		{
-			// 2^n
 			var zero = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Pow((c.CustomerID == "ALFKI") ? 2.0 : 2.0, 0.0));
 			var one = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Pow((c.CustomerID == "ALFKI") ? 2.0 : 2.0, 1.0));
 			var two = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Pow((c.CustomerID == "ALFKI") ? 2.0 : 2.0, 2.0));
@@ -1364,8 +1345,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestMathFloor()
 		{
-			// The difference between floor and truncate is how negatives are handled.  Floor drops the decimals and moves the
-			// value to the more negative, so Floor(-3.4) is -4.0 and Floor(3.4) is 3.0.
 			var four = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Floor((c.CustomerID == "ALFKI" ? 3.4 : 3.4)));
 			var six = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Floor((c.CustomerID == "ALFKI" ? 3.6 : 3.6)));
 			var nfour = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Floor((c.CustomerID == "ALFKI" ? -3.4 : -3.4)));
@@ -1388,9 +1367,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestMathTruncate()
 		{
-			// The difference between floor and truncate is how negatives are handled.  Truncate drops the decimals, 
-			// therefore a truncated negative often has a more positive value than non-truncated (never has a less positive),
-			// so Truncate(-3.4) is -3.0 and Truncate(3.4) is 3.0.
 			var four = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Truncate((c.CustomerID == "ALFKI") ? 3.4 : 3.4));
 			var six = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Truncate((c.CustomerID == "ALFKI") ? 3.6 : 3.6));
 			var neg4 = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Truncate((c.CustomerID == "ALFKI") ? -3.4 : -3.4));
@@ -1411,7 +1387,7 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestStringCompareToLT()
+		public void TestStringCompareToLessThan()
 		{
 			var cmpLT = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => c.City.CompareTo("Seattle") < 0);
 			var cmpEQ = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => c.City.CompareTo("Berlin") < 0);
@@ -1420,7 +1396,7 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestStringCompareToLE()
+		public void TestStringCompareToLessThanOrEqualTo()
 		{
 			var cmpLE = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => c.City.CompareTo("Seattle") <= 0);
 			var cmpEQ = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => c.City.CompareTo("Berlin") <= 0);
@@ -1431,7 +1407,7 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestStringCompareToGT()
+		public void TestStringCompareToGreaterThan()
 		{
 			var cmpLT = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => c.City.CompareTo("Aaa") > 0);
 			var cmpEQ = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => c.City.CompareTo("Berlin") > 0);
@@ -1440,7 +1416,7 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestStringCompareToGE()
+		public void TestStringCompareToGreaterThanOrEqualTo()
 		{
 			var cmpLE = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => c.City.CompareTo("Seattle") >= 0);
 			var cmpEQ = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => c.City.CompareTo("Berlin") >= 0);
@@ -1451,7 +1427,7 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestStringCompareToEQ()
+		public void TestStringCompareToEquals()
 		{
 			var cmpLE = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => c.City.CompareTo("Seattle") == 0);
 			var cmpEQ = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => c.City.CompareTo("Berlin") == 0);
@@ -1462,7 +1438,7 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestStringCompareToNE()
+		public void TestStringCompareToNotEquals()
 		{
 			var cmpLE = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => c.City.CompareTo("Seattle") != 0);
 			var cmpEQ = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => c.City.CompareTo("Berlin") != 0);
@@ -1484,7 +1460,7 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestStringCompareLT()
+		public void TestStringCompareLessThan()
 		{
 			var cmpLT = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => string.Compare(c.City, "Seattle") < 0);
 			var cmpEQ = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => string.Compare(c.City, "Berlin") < 0);
@@ -1493,7 +1469,7 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestStringCompareLE()
+		public void TestStringCompareLessThanOrEqualTo()
 		{
 			var cmpLE = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => string.Compare(c.City, "Seattle") <= 0);
 			var cmpEQ = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => string.Compare(c.City, "Berlin") <= 0);
@@ -1504,7 +1480,7 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestStringCompareGT()
+		public void TestStringCompareGreaterThan()
 		{
 			var cmpLT = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => string.Compare(c.City, "Aaa") > 0);
 			var cmpEQ = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => string.Compare(c.City, "Berlin") > 0);
@@ -1513,7 +1489,7 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestStringCompareGE()
+		public void TestStringCompareGreaterThanOrEqualTo()
 		{
 			var cmpLE = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => string.Compare(c.City, "Seattle") >= 0);
 			var cmpEQ = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => string.Compare(c.City, "Berlin") >= 0);
@@ -1524,7 +1500,7 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestStringCompareEQ()
+		public void TestStringCompareEquals()
 		{
 			var cmpLE = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => string.Compare(c.City, "Seattle") == 0);
 			var cmpEQ = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => string.Compare(c.City, "Berlin") == 0);
@@ -1535,7 +1511,7 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestStringCompareNE()
+		public void TestStringCompareNotEquals()
 		{
 			var cmpLE = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => string.Compare(c.City, "Seattle") != 0);
 			var cmpEQ = db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault(c => string.Compare(c.City, "Berlin") != 0);
@@ -1548,7 +1524,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestIntCompareTo()
 		{
-			// prove that x.CompareTo(y) works for types other than string
 			var eq = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => (c.CustomerID == "ALFKI" ? 10 : 10).CompareTo(10));
 			var gt = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => (c.CustomerID == "ALFKI" ? 10 : 10).CompareTo(9));
 			var lt = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => (c.CustomerID == "ALFKI" ? 10 : 10).CompareTo(11));
@@ -1560,7 +1535,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestDecimalCompare()
 		{
-			// prove that type.Compare(x,y) works with decimal
 			var eq = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => decimal.Compare((c.CustomerID == "ALFKI" ? 10m : 10m), 10m));
 			var gt = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => decimal.Compare((c.CustomerID == "ALFKI" ? 10m : 10m), 9m));
 			var lt = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => decimal.Compare((c.CustomerID == "ALFKI" ? 10m : 10m), 11m));
@@ -1616,9 +1590,6 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestDecimalTruncate()
 		{
-			// The difference between floor and truncate is how negatives are handled.  Truncate drops the decimals, 
-			// therefore a truncated negative often has a more positive value than non-truncated (never has a less positive),
-			// so Truncate(-3.4) is -3.0 and Truncate(3.4) is 3.0.
 			var four = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => decimal.Truncate((c.CustomerID == "ALFKI") ? 3.4m : 3.4m));
 			var six = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Truncate((c.CustomerID == "ALFKI") ? 3.6m : 3.6m));
 			var neg4 = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Truncate((c.CustomerID == "ALFKI") ? -3.4m : -3.4m));
@@ -1628,9 +1599,8 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestDecimalLT()
+		public void TestDecimalLessThan()
 		{
-			// prove that decimals are treated normally with respect to normal comparison operators
 			var alfki = db.Customers.SingleOrDefault(c => c.CustomerID == "ALFKI" && (c.CustomerID == "ALFKI" ? 1.0m : 3.0m) < 2.0m);
 			Assert.AreNotEqual(null, alfki);
 		}
@@ -1925,228 +1895,6 @@ namespace Watsonia.Data.Tests
 				select new { A = o.Customer, B = o.Customer }
 				).ToList();
 			Assert.AreEqual(108, stuff.Count);
-		}
-
-		[TestMethod]
-		public void TestCustomersIncludeOrders()
-		{
-			// TODO:
-			//var policy = new EntityPolicy();
-			//policy.IncludeWith<Customer>(c => c.Orders);
-			//NorthwindDatabase nw = new NorthwindDatabase(this.provider.New(policy));
-
-			//var custs = nw.Customers.Where(c => c.CustomerID == "ALFKI").ToList();
-			//Assert.AreEqual(1, custs.Count);
-			//Assert.AreNotEqual(null, custs[0].Orders);
-			//Assert.AreEqual(6, custs[0].Orders.Count);
-		}
-
-		[TestMethod]
-		public void TestCustomersIncludeOrdersAndDetails()
-		{
-			// TODO:
-			//var policy = new EntityPolicy();
-			//policy.IncludeWith<Customer>(c => c.Orders);
-			//policy.IncludeWith<Order>(o => o.Details);
-			//NorthwindDatabase nw = new NorthwindDatabase(this.provider.New(policy));
-
-			//var custs = nw.Customers.Where(c => c.CustomerID == "ALFKI").ToList();
-			//Assert.AreEqual(1, custs.Count);
-			//Assert.AreNotEqual(null, custs[0].Orders);
-			//Assert.AreEqual(6, custs[0].Orders.Count);
-			//Assert.IsTrue(custs[0].Orders.Any(o => o.OrderID == 10643));
-			//Assert.AreNotEqual(null, custs[0].Orders.Single(o => o.OrderID == 10643).Details);
-			//Assert.AreEqual(3, custs[0].Orders.Single(o => o.OrderID == 10643).Details.Count);
-		}
-
-		[TestMethod]
-		public void TestCustomersIncludeOrdersViaConstructorOnly()
-		{
-			// TODO:
-			//var mapping = new AttributeMapping(typeof(NorthwindX));
-			//var policy = new EntityPolicy();
-			//policy.IncludeWith<CustomerX>(c => c.Orders);
-			//NorthwindX nw = new NorthwindX(this.provider.New(policy).New(mapping));
-
-			//var custs = nw.Customers.Where(c => c.CustomerID == "ALFKI").ToList();
-			//Assert.AreEqual(1, custs.Count);
-			//Assert.AreNotEqual(null, custs[0].Orders);
-			//Assert.AreEqual(6, custs[0].Orders.Count);
-		}
-
-		[TestMethod]
-		public void TestCustomersIncludeOrdersWhere()
-		{
-			// TODO:
-			//var policy = new EntityPolicy();
-			//policy.IncludeWith<Customer>(c => c.Orders.Where(o => (o.OrderID & 1) == 0));
-			//NorthwindDatabase nw = new NorthwindDatabase(this.provider.New(policy));
-
-			//var custs = nw.Customers.Where(c => c.CustomerID == "ALFKI").ToList();
-			//Assert.AreEqual(1, custs.Count);
-			//Assert.AreNotEqual(null, custs[0].Orders);
-			//Assert.AreEqual(3, custs[0].Orders.Count);
-		}
-
-		[TestMethod]
-		public void TestCustomersIncludeOrdersDeferred()
-		{
-			// TODO:
-			//var policy = new EntityPolicy();
-			//policy.IncludeWith<Customer>(c => c.Orders, true);
-			//NorthwindDatabase nw = new NorthwindDatabase(this.provider.New(policy));
-
-			//var custs = nw.Customers.Where(c => c.CustomerID == "ALFKI").ToList();
-			//Assert.AreEqual(1, custs.Count);
-			//Assert.AreNotEqual(null, custs[0].Orders);
-			//Assert.AreEqual(6, custs[0].Orders.Count);
-		}
-
-		[TestMethod]
-		public void TestCustomersAssociateOrders()
-		{
-			// TODO:
-			//var policy = new EntityPolicy();
-			//policy.AssociateWith<Customer>(c => c.Orders.Where(o => (o.OrderID & 1) == 0));
-			//NorthwindDatabase nw = new NorthwindDatabase(this.provider.New(policy));
-
-			//var custs = nw.Customers.Where(c => c.CustomerID == "ALFKI")
-			//	.Select(c => new { CustomerID = c.CustomerID, FilteredOrdersCount = c.Orders.Count() }).ToList();
-			//Assert.AreEqual(1, custs.Count);
-			//Assert.AreEqual(3, custs[0].FilteredOrdersCount);
-		}
-
-		[TestMethod]
-		public void TestCustomersIncludeThenAssociateOrders()
-		{
-			// TODO:
-			//var policy = new EntityPolicy();
-			//policy.IncludeWith<Customer>(c => c.Orders);
-			//policy.AssociateWith<Customer>(c => c.Orders.Where(o => (o.OrderID & 1) == 0));
-			//NorthwindDatabase nw = new NorthwindDatabase(this.provider.New(policy));
-
-			//var custs = nw.Customers.Where(c => c.CustomerID == "ALFKI").ToList();
-			//Assert.AreEqual(1, custs.Count);
-			//Assert.AreNotEqual(null, custs[0].Orders);
-			//Assert.AreEqual(3, custs[0].Orders.Count);
-		}
-
-		[TestMethod]
-		public void TestCustomersAssociateThenIncludeOrders()
-		{
-			// TODO:
-			//var policy = new EntityPolicy();
-			//policy.AssociateWith<Customer>(c => c.Orders.Where(o => (o.OrderID & 1) == 0));
-			//policy.IncludeWith<Customer>(c => c.Orders);
-			//NorthwindDatabase nw = new NorthwindDatabase(this.provider.New(policy));
-
-			//var custs = nw.Customers.Where(c => c.CustomerID == "ALFKI").ToList();
-			//Assert.AreEqual(1, custs.Count);
-			//Assert.AreNotEqual(null, custs[0].Orders);
-			//Assert.AreEqual(3, custs[0].Orders.Count);
-		}
-
-		[TestMethod]
-		public void TestOrdersIncludeDetailsWithGroupBy()
-		{
-			// TODO:
-			//var policy = new EntityPolicy();
-			//policy.IncludeWith<Order>(o => o.Details);
-			//NorthwindDatabase nw = new NorthwindDatabase(this.provider.New(policy));
-			//var list = nw.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).ToList();
-			//Assert.AreEqual(1, list.Count);
-			//var grp = list[0].ToList();
-			//Assert.AreEqual(6, grp.Count);
-			//var o10643 = grp.SingleOrDefault(o => o.OrderID == 10643);
-			//Assert.AreNotEqual(null, o10643);
-			//Assert.AreEqual(3, o10643.Details.Count);
-		}
-
-		[TestMethod]
-		public void TestCustomersApplyFilter()
-		{
-			// TODO:
-			//var policy = new EntityPolicy();
-			//policy.Apply<Customer>(seq => seq.Where(c => c.City == "London"));
-			//NorthwindDatabase nw = new NorthwindDatabase(this.provider.New(policy));
-
-			//var custs = nw.Customers.ToList();
-			//Assert.AreEqual(6, custs.Count);
-		}
-
-		[TestMethod]
-		public void TestCustomersApplyComputedFilter()
-		{
-			// TODO:
-			//string ci = "Lon";
-			//string ty = "don";
-			//var policy = new EntityPolicy();
-			//policy.Apply<Customer>(seq => seq.Where(c => c.City == ci + ty));
-			//NorthwindDatabase nw = new NorthwindDatabase(this.provider.New(policy));
-
-			//var custs = nw.Customers.ToList();
-			//Assert.AreEqual(6, custs.Count);
-		}
-
-		[TestMethod]
-		public void TestCustomersApplyFilterTwice()
-		{
-			// TODO:
-			//var policy = new EntityPolicy();
-			//policy.Apply<Customer>(seq => seq.Where(c => c.City == "London"));
-			//policy.Apply<Customer>(seq => seq.Where(c => c.Country == "UK"));
-			//NorthwindDatabase nw = new NorthwindDatabase(this.provider.New(policy));
-
-			//var custs = nw.Customers.ToList();
-			//Assert.AreEqual(6, custs.Count);
-		}
-
-		[TestMethod]
-		public void TestCustomersApplyOrder()
-		{
-			// TODO:
-			//var policy = new EntityPolicy();
-			//policy.Apply<Customer>(seq => seq.OrderBy(c => c.ContactName));
-			//NorthwindDatabase nw = new NorthwindDatabase(this.provider.New(policy));
-
-			//var list = nw.Customers.Where(c => c.City == "London").ToList();
-
-			//Assert.AreEqual(6, list.Count);
-			//var sorted = list.OrderBy(c => c.ContactName).ToList();
-			//Assert.IsTrue(Enumerable.SequenceEqual(list, sorted));
-		}
-
-		[TestMethod]
-		public void TestCustomersApplyOrderAndAssociateOrders()
-		{
-			// TODO:
-			//var policy = new EntityPolicy();
-			//policy.Apply<Order>(ords => ords.Where(o => o.OrderDate != null));
-			//policy.IncludeWith<Customer>(c => c.Orders.Where(o => (o.OrderID & 1) == 0));
-			//NorthwindDatabase nw = new NorthwindDatabase(this.provider.New(policy));
-
-			//var custs = nw.Customers.Where(c => c.CustomerID == "ALFKI").ToList();
-			//Assert.AreEqual(1, custs.Count);
-			//Assert.AreNotEqual(null, custs[0].Orders);
-			//Assert.AreEqual(3, custs[0].Orders.Count);
-		}
-
-		[TestMethod]
-		public void TestOrdersIncludeDetailsWithFirst()
-		{
-			// TODO:
-			//EntityPolicy policy = new EntityPolicy();
-			//policy.IncludeWith<Order>(o => o.Details);
-
-			//var ndb = new NorthwindDatabase(provider.New(policy));
-			//var q = from o in ndb.Orders
-			//		where o.OrderID == 10248
-			//		select o;
-
-			//Order so = q.Single();
-			//Assert.AreEqual(3, so.Details.Count);
-			//Order fo = q.First();
-			//Assert.AreEqual(3, fo.Details.Count);
 		}
 	}
 }
