@@ -56,9 +56,51 @@ namespace Watsonia.Data
 		
 		protected override Expression VisitMember(MemberExpression expression)
 		{
-			if (this.Configuration.ShouldMapType(expression.Type))
+			if (expression.Expression != null &&
+				expression.Expression is MemberExpression &&
+				this.Configuration.ShouldMapType(expression.Expression.Type) &&
+				!expression.Expression.Type.IsEnum)
 			{
-				// TODO: ?
+				var subexpression = (MemberExpression)expression.Expression;
+
+				string tableName = this.Configuration.GetTableName(subexpression.Type);
+
+				bool foundTable = false;
+
+				// Check the source
+				if ((this.SelectStatement.Source is Table) &&
+					((Table)this.SelectStatement.Source).Name.Equals(tableName, StringComparison.InvariantCultureIgnoreCase))
+				{
+					foundTable = true;
+				}
+
+				// Check joins
+				if (!foundTable)
+				{
+					foreach (Join join in this.SelectStatement.SourceJoins)
+					{
+						if ((join.Left is Table) &&
+							((Table)join.Left).Name.Equals(tableName, StringComparison.InvariantCultureIgnoreCase))
+						{
+							foundTable = true;
+						}
+						if ((join.Right is Table) &&
+							((Table)join.Right).Name.Equals(tableName, StringComparison.InvariantCultureIgnoreCase))
+						{
+							foundTable = true;
+						}
+					}
+				}
+
+				if (!foundTable)
+				{
+					// Add an outer join, so that we don't exclude any items from the source table
+					string leftTableName = this.Configuration.GetTableName(subexpression.Expression.Type);
+					string leftColumnName = this.Configuration.GetForeignKeyColumnName(subexpression.Expression.Type, subexpression.Type);
+					string rightTableName = this.Configuration.GetTableName(subexpression.Type);
+					string rightColumnName = this.Configuration.GetPrimaryKeyColumnName(subexpression.Type);
+					this.SelectStatement.SourceJoins.Add(new Join(rightTableName, leftTableName, leftColumnName, rightTableName, rightColumnName) { JoinType = JoinType.Left });
+				}
 			}
 
 			return base.VisitMember(expression);
