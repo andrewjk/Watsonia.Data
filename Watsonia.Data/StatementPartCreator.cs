@@ -51,123 +51,214 @@ namespace Watsonia.Data
 
 		protected override Expression VisitBinary(BinaryExpression expression)
 		{
-			if (expression.NodeType == ExpressionType.And ||
-				expression.NodeType == ExpressionType.AndAlso ||
-				expression.NodeType == ExpressionType.Or ||
-				expression.NodeType == ExpressionType.OrElse ||
-				expression.NodeType == ExpressionType.ExclusiveOr)
+			switch (expression.NodeType)
 			{
-				Visit(expression.Left);
-				Visit(expression.Right);
-
-				// Convert the conditions on the stack to a collection and set each condition's relationship
-				var newCondition = new ConditionCollection();
-				for (int i = 0; i < 2; i++)
+				case ExpressionType.And:
+				case ExpressionType.AndAlso:
+				case ExpressionType.Or:
+				case ExpressionType.OrElse:
+				case ExpressionType.ExclusiveOr:
 				{
-					ConditionExpression subCondition = null;
-					if (this.Stack.Peek() is ConditionExpression)
-					{
-						subCondition = (ConditionExpression)this.Stack.Pop();
-					}
-					else if (this.Stack.Peek() is UnaryOperation && ((UnaryOperation)this.Stack.Peek()).Expression is ConditionExpression)
-					{
-						subCondition = (ConditionExpression)((UnaryOperation)this.Stack.Pop()).Expression;
-					}
-					else if (this.Stack.Peek() is UnaryOperation && ((UnaryOperation)this.Stack.Peek()).Expression is Column)
-					{
-						var unary = (UnaryOperation)this.Stack.Pop();
-						var column = (Column)unary.Expression;
-						subCondition = new Condition(column, SqlOperator.Equals, new ConstantPart(unary.Operator != UnaryOperator.Not));
-					}
-					else if (this.Stack.Peek() is ConstantPart && ((ConstantPart)this.Stack.Peek()).Value is bool)
-					{
-						bool value = (bool)((ConstantPart)this.Stack.Pop()).Value;
-						subCondition = new Condition() { Field = new ConstantPart(value), Operator = SqlOperator.Equals, Value = new ConstantPart(true) };
-					}
-					else if (this.Stack.Peek() is Column && ((Column)this.Stack.Peek()).PropertyType == typeof(bool))
-					{
-						subCondition = new Condition((Column)this.Stack.Pop(), SqlOperator.Equals, new ConstantPart(true));
-					}
-					else
-					{
-						break;
-					}
-
-					if (subCondition != null)
-					{
-						newCondition.Insert(0, subCondition);
-
-						if (expression.NodeType == ExpressionType.And ||
-							expression.NodeType == ExpressionType.AndAlso)
-						{
-							subCondition.Relationship = ConditionRelationship.And;
-						}
-						else
-						{
-							subCondition.Relationship = ConditionRelationship.Or;
-						}
-					}
+					VisitBinaryConditionCollection(expression);
+					break;
 				}
-				if (newCondition.Count > 1)
+				case ExpressionType.Equal:
+				case ExpressionType.NotEqual:
+				case ExpressionType.LessThan:
+				case ExpressionType.LessThanOrEqual:
+				case ExpressionType.GreaterThan:
+				case ExpressionType.GreaterThanOrEqual:
 				{
-					this.Stack.Push(newCondition);
+					VisitBinaryCondition(expression);
+					break;
 				}
-				else
+				case ExpressionType.Add:
+				case ExpressionType.Subtract:
+				case ExpressionType.Multiply:
+				case ExpressionType.Divide:
+				case ExpressionType.Modulo:
+				case ExpressionType.LeftShift:
+				case ExpressionType.RightShift:
 				{
-					this.Stack.Push(newCondition[0]);
+					VisitBinaryOperation(expression);
+					break;
 				}
-			}
-			else
-			{
-				var newCondition = new Condition();
-				Visit(expression.Left);
-				newCondition.Field = this.Stack.Pop();
-
-				switch (expression.NodeType)
+				default:
 				{
-					case ExpressionType.Equal:
-					{
-						newCondition.Operator = SqlOperator.Equals;
-						break;
-					}
-					case ExpressionType.NotEqual:
-					{
-						newCondition.Operator = SqlOperator.NotEquals;
-						break;
-					}
-					case ExpressionType.LessThan:
-					{
-						newCondition.Operator = SqlOperator.IsLessThan;
-						break;
-					}
-					case ExpressionType.LessThanOrEqual:
-					{
-						newCondition.Operator = SqlOperator.IsLessThanOrEqualTo;
-						break;
-					}
-					case ExpressionType.GreaterThan:
-					{
-						newCondition.Operator = SqlOperator.IsGreaterThan;
-						break;
-					}
-					case ExpressionType.GreaterThanOrEqual:
-					{
-						newCondition.Operator = SqlOperator.IsGreaterThanOrEqualTo;
-						break;
-					}
-					default:
-					{
-						// TODO: Throw that as a better exception
-						throw new NotSupportedException("Unhandled NodeType: " + expression.NodeType);
-					}
+					// TODO: Throw that as a better exception
+					throw new NotSupportedException("Unhandled NodeType: " + expression.NodeType);
 				}
-
-				Visit(expression.Right);
-				newCondition.Value = this.Stack.Pop();
-				this.Stack.Push(newCondition);
 			}
 
 			return expression;
+		}
+
+		private void VisitBinaryConditionCollection(BinaryExpression expression)
+		{
+			Visit(expression.Left);
+			Visit(expression.Right);
+
+			// Convert the conditions on the stack to a collection and set each condition's relationship
+			var newCondition = new ConditionCollection();
+			for (int i = 0; i < 2; i++)
+			{
+				ConditionExpression subCondition = null;
+				if (this.Stack.Peek() is ConditionExpression)
+				{
+					subCondition = (ConditionExpression)this.Stack.Pop();
+				}
+				else if (this.Stack.Peek() is UnaryOperation && ((UnaryOperation)this.Stack.Peek()).Expression is ConditionExpression)
+				{
+					subCondition = (ConditionExpression)((UnaryOperation)this.Stack.Pop()).Expression;
+				}
+				else if (this.Stack.Peek() is UnaryOperation && ((UnaryOperation)this.Stack.Peek()).Expression is Column)
+				{
+					var unary = (UnaryOperation)this.Stack.Pop();
+					var column = (Column)unary.Expression;
+					subCondition = new Condition(column, SqlOperator.Equals, new ConstantPart(unary.Operator != UnaryOperator.Not));
+				}
+				else if (this.Stack.Peek() is ConstantPart && ((ConstantPart)this.Stack.Peek()).Value is bool)
+				{
+					bool value = (bool)((ConstantPart)this.Stack.Pop()).Value;
+					subCondition = new Condition() { Field = new ConstantPart(value), Operator = SqlOperator.Equals, Value = new ConstantPart(true) };
+				}
+				else if (this.Stack.Peek() is Column && ((Column)this.Stack.Peek()).PropertyType == typeof(bool))
+				{
+					subCondition = new Condition((Column)this.Stack.Pop(), SqlOperator.Equals, new ConstantPart(true));
+				}
+				else
+				{
+					break;
+				}
+
+				if (subCondition != null)
+				{
+					newCondition.Insert(0, subCondition);
+
+					if (expression.NodeType == ExpressionType.And ||
+						expression.NodeType == ExpressionType.AndAlso)
+					{
+						subCondition.Relationship = ConditionRelationship.And;
+					}
+					else
+					{
+						subCondition.Relationship = ConditionRelationship.Or;
+					}
+				}
+			}
+			if (newCondition.Count > 1)
+			{
+				this.Stack.Push(newCondition);
+			}
+			else
+			{
+				this.Stack.Push(newCondition[0]);
+			}
+		}
+
+		private void VisitBinaryCondition(BinaryExpression expression)
+		{
+			var newCondition = new Condition();
+			Visit(expression.Left);
+			newCondition.Field = this.Stack.Pop();
+
+			switch (expression.NodeType)
+			{
+				case ExpressionType.Equal:
+				{
+					newCondition.Operator = SqlOperator.Equals;
+					break;
+				}
+				case ExpressionType.NotEqual:
+				{
+					newCondition.Operator = SqlOperator.NotEquals;
+					break;
+				}
+				case ExpressionType.LessThan:
+				{
+					newCondition.Operator = SqlOperator.IsLessThan;
+					break;
+				}
+				case ExpressionType.LessThanOrEqual:
+				{
+					newCondition.Operator = SqlOperator.IsLessThanOrEqualTo;
+					break;
+				}
+				case ExpressionType.GreaterThan:
+				{
+					newCondition.Operator = SqlOperator.IsGreaterThan;
+					break;
+				}
+				case ExpressionType.GreaterThanOrEqual:
+				{
+					newCondition.Operator = SqlOperator.IsGreaterThanOrEqualTo;
+					break;
+				}
+				default:
+				{
+					// TODO: Throw that as a better exception
+					throw new NotSupportedException("Unhandled NodeType: " + expression.NodeType);
+				}
+			}
+
+			Visit(expression.Right);
+			newCondition.Value = this.Stack.Pop();
+			this.Stack.Push(newCondition);
+		}
+
+		private void VisitBinaryOperation(BinaryExpression expression)
+		{
+			var newBinary = new BinaryOperation();
+			Visit(expression.Left);
+			newBinary.Left = (SourceExpression)this.Stack.Pop();
+
+			switch (expression.NodeType)
+			{
+				case ExpressionType.Add:
+				{
+					newBinary.Operator = BinaryOperator.Add;
+					break;
+				}
+				case ExpressionType.Subtract:
+				{
+					newBinary.Operator = BinaryOperator.Subtract;
+					break;
+				}
+				case ExpressionType.Multiply:
+				{
+					newBinary.Operator = BinaryOperator.Multiply;
+					break;
+				}
+				case ExpressionType.Divide:
+				{
+					newBinary.Operator = BinaryOperator.Divide;
+					break;
+				}
+				case ExpressionType.Modulo:
+				{
+					newBinary.Operator = BinaryOperator.Remainder;
+					break;
+				}
+				case ExpressionType.LeftShift:
+				{
+					newBinary.Operator = BinaryOperator.LeftShift;
+					break;
+				}
+				case ExpressionType.RightShift:
+				{
+					newBinary.Operator = BinaryOperator.RightShift;
+					break;
+				}
+				default:
+				{
+					// TODO: Throw that as a better exception
+					throw new NotSupportedException("Unhandled NodeType: " + expression.NodeType);
+				}
+			}
+
+			Visit(expression.Right);
+			newBinary.Right = (SourceExpression)this.Stack.Pop();
+			this.Stack.Push(newBinary);
 		}
 
 		protected override Expression VisitConstant(ConstantExpression expression)
