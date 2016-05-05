@@ -28,72 +28,72 @@
   <baseline key="TestStringCompareToLessThan">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City IsLessThan 'Seattle'
+    Where Compare(Customers.City, 'Seattle') IsLessThan 0
   </baseline>
   <baseline key="TestStringCompareToLessThanOrEqualTo">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City IsLessThanOrEqualTo 'Seattle'
+    Where Compare(Customers.City, 'Seattle') IsLessThanOrEqualTo 0
   </baseline>
   <baseline key="TestStringCompareToGreaterThan">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City IsGreaterThan 'Seattle'
+    Where Compare(Customers.City, 'Seattle') IsGreaterThan 0
   </baseline>
   <baseline key="TestStringCompareToGreaterThanOrEqualTo">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City IsGreaterThanOrEqualTo 'Seattle'
+    Where Compare(Customers.City, 'Seattle') IsGreaterThanOrEqualTo 0
   </baseline>
   <baseline key="TestStringCompareToEquals">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City Equals 'Seattle'
+    Where Compare(Customers.City, 'Seattle') Equals 0
   </baseline>
   <baseline key="TestStringCompareToNotEquals">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City NotEquals 'Seattle'
+    Where Compare(Customers.City, 'Seattle') NotEquals 0
   </baseline>
   <baseline key="TestStringCompareLessThan">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City IsLessThan 'Seattle'
+    Where Compare(Customers.City, 'Seattle') IsLessThan 0
   </baseline>
   <baseline key="TestStringCompareLessThanOrEqualTo">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City IsLessThanOrEqualTo 'Seattle'
+    Where Compare(Customers.City, 'Seattle') IsLessThanOrEqualTo 0
   </baseline>
   <baseline key="TestStringCompareGreaterThan">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City IsGreaterThan 'Seattle'
+    Where Compare(Customers.City, 'Seattle') IsGreaterThan 0
   </baseline>
   <baseline key="TestStringCompareGreaterThanOrEqualTo">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City IsGreaterThanOrEqualTo 'Seattle'
+    Where Compare(Customers.City, 'Seattle') IsGreaterThanOrEqualTo 0
   </baseline>
   <baseline key="TestStringCompareEquals">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City Equals 'Seattle'
+    Where Compare(Customers.City, 'Seattle') Equals 0
   </baseline>
   <baseline key="TestStringCompareNotEquals">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City NotEquals 'Seattle'
+    Where Compare(Customers.City, 'Seattle') NotEquals 0
   </baseline>
   <baseline key="TestIntCompareTo">
     Select Orders.OrderID, Orders.CustomerID, Orders.OrderDate
     From Orders
-    Where Orders.OrderID Equals 1000
+    Where Compare(Orders.OrderID, 1000) Equals 0
   </baseline>
   <baseline key="TestDecimalCompare">
     Select Orders.OrderID, Orders.CustomerID, Orders.OrderDate
     From Orders
-    Where Orders.OrderID Equals 0.0
+    Where (Case When Orders.OrderID Equals 0.0 Then 0 When Orders.OrderID IsLessThan 0.0 Then -1 Else 1) Equals 0
   </baseline>
   <baseline key="TestDecimalAdd">
     Select Orders.OrderID, Orders.CustomerID, Orders.OrderDate
@@ -350,7 +350,7 @@
     From Customers
     Where Customers.CustomerID IsIn { }
   </baseline>
-  <baseline key="TestContainsWithSubQuery">
+  <baseline key="TestContainsWithSubquery2">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
     Where Customers.CustomerID IsIn (
@@ -381,12 +381,9 @@
     From Customers
   </baseline>
   <baseline key="TestSkipTakeDistinct">
-    Select Distinct t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From (
-    Select (Rows 5-15) Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
+    Select Distinct (Rows 5-15) Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
     Order By Customers.ContactName
-    ) As t0
   </baseline>
   <baseline key="TestTakeSkipDistinct">
     Select Distinct t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
@@ -575,8 +572,7 @@
   <baseline key="TestAllTopLevel">
     Select All Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Not Customers.ContactName StartsWith 'a'
-    ) Then True Else False) As value
+    Where Customers.ContactName StartsWith 'a'
   </baseline>
   <baseline key="TestContainsWithSubquery">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
@@ -592,10 +588,8 @@
     Where Customers.CustomerID IsIn { 'ABCDE', 'ALFKI' }
   </baseline>
   <baseline key="TestContainsTopLevel">
-    Select (Case When 'ALFKI' IsIn (
-    Select Customers.CustomerID
+    Select Contains 'ALFKI' In Customers.CustomerID
     From Customers
-    ) Then True Else False) As value
   </baseline>
   <baseline key="TestCoalesce">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
@@ -870,42 +864,42 @@
   <baseline key="TestCompareEntityNotEqual">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Not Customers.CustomerID Equals 'ALFKI'
+    Where Customers.CustomerID NotEquals 'ALFKI'
   </baseline>
   <baseline key="TestCompareConstructedEqual">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City Equals 'London'
+    Where Customers.City Equals { x = London }
   </baseline>
   <baseline key="TestCompareConstructedMultiValueEqual">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where (Customers.City Equals 'London' And Customers.Country Equals 'UK')
+    Where (Customers.City, Customers.Country) Equals { x = London, y = UK }
   </baseline>
   <baseline key="TestCompareConstructedMultiValueNotEqual">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Not (Customers.City Equals 'London' And Customers.Country Equals 'UK')
+    Where (Customers.City, Customers.Country) NotEquals { x = London, y = UK }
   </baseline>
   <baseline key="TestCompareConstructed">
     Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
     From Customers
-    Where Customers.City Equals 'London'
+    Where Customers.City Equals { x = London }
   </baseline>
   <baseline key="TestSelectScalar">
     Select Customers.City
     From Customers
   </baseline>
   <baseline key="TestSelectAnonymousOne">
-    Select (Customers.City)
+    Select Customers.City
     From Customers
   </baseline>
   <baseline key="TestSelectAnonymousTwo">
-    Select (Customers.City, Customers.Phone)
+    Select Customers.City, Customers.Phone
     From Customers
   </baseline>
   <baseline key="TestSelectAnonymousThree">
-    Select (Customers.City, Customers.Phone, Customers.Country)
+    Select Customers.City, Customers.Phone, Customers.Country
     From Customers
   </baseline>
   <baseline key="TestSelectCustomerTable">
@@ -933,15 +927,15 @@
     From Customers
   </baseline>
   <baseline key="TestSelectConstantInt">
-    Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
+    Select 0
     From Customers
   </baseline>
   <baseline key="TestSelectConstantNullString">
-    Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
+    Select Null
     From Customers
   </baseline>
   <baseline key="TestSelectLocal">
-    Select Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
+    Select 10
     From Customers
   </baseline>
   <baseline key="TestSelectNestedCollection">
@@ -1026,7 +1020,7 @@
   <baseline key="TestOrderByOrderBy">
     Select Customers.City
     From Customers
-    Order By Customers.Country, Customers.CustomerID
+    Order By Customers.CustomerID, Customers.Country
   </baseline>
   <baseline key="TestOrderByThenBy">
     Select Customers.City
@@ -1258,11 +1252,8 @@
     ) As t0
   </baseline>
   <baseline key="TestDistinctTake">
-    Select (Rows 0-5) t0.CustomerID, t0.OrderDate, t0.OrderID
-    From (
-    Select Distinct Orders.OrderID, Orders.CustomerID, Orders.OrderDate
-    From
-    ) As t0
+    Select Distinct (Rows 0-5) Orders.OrderID, Orders.CustomerID, Orders.OrderDate
+    From Orders
   </baseline>
   <baseline key="TestDistinctTakeCount">
     Select Count(*)
@@ -1285,45 +1276,33 @@
     ) As t0
   </baseline>
   <baseline key="TestSkip">
-    Select (Rows 5+) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Order By t0.ContactName
+    Select (Rows 5+) Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
+    From Customers
+    Order By Customers.ContactName
   </baseline>
   <baseline key="TestTakeSkip">
-    Select (Rows 5+) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From (
-    Select (Rows 0-10) t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID, t1.Phone
-    From Customers As t1
-    Order By t1.ContactName) As t0
-    Order By t0.ContactName
+    Select (Rows 5-15) Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
+    From Customers
+    Order By Customers.ContactName
   </baseline>
   <baseline key="TestDistinctSkip">
-    Select (Rows 5+) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From (
-    Select Distinct t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID, t1.Phone
-    From Customers As t1
-    ) As t0
-    Order By t0.ContactName
+    Select Distinct (Rows 5+) Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
+    From Customers
+    Order By Customers.ContactName
   </baseline>
   <baseline key="TestSkipTake">
-    Select (Rows 5-15) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From Customers As t0
-    Order By t0.ContactName
+    Select (Rows 5-15) Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
+    From Customers
+    Order By Customers.ContactName
   </baseline>
   <baseline key="TestDistinctSkipTake">
-    Select (Rows 5-15) t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From (
-    Select Distinct t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID, t1.Phone
-    From Customers As t1
-    ) As t0
-    Order By t0.ContactName
+    Select Distinct (Rows 5-15) Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
+    From Customers
+    Order By Customers.ContactName
   </baseline>
   <baseline key="TestSkipDistinct">
-    Select Distinct t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone
-    From (
-    Select (Rows 5+) t1.City, t1.CompanyName, t1.ContactName, t1.Country, t1.CustomerID, t1.Phone
-    From Customers As t1
-    Order By t1.ContactName
-    ) As t0
+    Select Distinct (Rows 5+) Customers.CustomerID, Customers.City, Customers.CompanyName, Customers.ContactName, Customers.Country, Customers.Phone
+    From Customers
+    Order By Customers.ContactName
   </baseline>
 </baselines>

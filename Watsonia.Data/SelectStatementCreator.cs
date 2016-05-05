@@ -62,50 +62,7 @@ namespace Watsonia.Data
 
 		public override void VisitSelectClause(SelectClause selectClause, QueryModel queryModel)
 		{
-			if (selectClause.Selector.NodeType == ExpressionType.Extension)
-			{
-				// If we are selecting an object, specify its fields
-				// This will avoid the case where selecting fields from multiple tables with non-unique field
-				// names (e.g. two tables with an ID field) fills the object with the wrong value
-				var columnNames = new List<string>();
-				string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(selectClause.Selector.Type);
-				foreach (PropertyInfo property in this.Configuration.PropertiesToMap(selectClause.Selector.Type))
-				{
-					if (this.Configuration.IsRelatedItem(property))
-					{
-						// It's a property referencing another table so change its name and type
-						string columnName = this.Configuration.GetForeignKeyColumnName(property);
-						if (!columnNames.Any(c => c.Equals(columnName, StringComparison.InvariantCultureIgnoreCase)))
-						{
-							columnNames.Add(columnName);
-						}
-					}
-					else if (this.Configuration.IsRelatedCollection(property))
-					{
-						// It's a collection property referencing another table so ignore it
-					}
-					else
-					{
-						// It's a regular mapped column
-						string columnName = this.Configuration.GetColumnName(property);
-						if (!columnName.Equals(primaryKeyColumnName, StringComparison.InvariantCultureIgnoreCase) &&
-							!columnNames.Any(c => c.Equals(columnName, StringComparison.InvariantCultureIgnoreCase)))
-						{
-							columnNames.Add(columnName);
-						}
-					}
-				}
-
-				// Add the primary key column in the first position for nicety
-				columnNames.Insert(0, primaryKeyColumnName);
-
-				string tableName = this.Configuration.GetTableName(selectClause.Selector.Type);
-				foreach (string columnName in columnNames)
-				{
-					this.SelectStatement.SourceFields.Add(new Column(tableName, columnName));
-				}
-			}
-			else
+			if (selectClause.Selector.NodeType != ExpressionType.Extension)
 			{
 				StatementPart fields = StatementPartCreator.Visit(queryModel, selectClause.Selector, this.Configuration);
 				this.SelectStatement.SourceFields.Add((SourceExpression)fields);
@@ -170,6 +127,22 @@ namespace Watsonia.Data
 			if (resultOperator is AllResultOperator)
 			{
 				this.SelectStatement.IsAll = true;
+				var predicate = ((AllResultOperator)resultOperator).Predicate;
+				if (predicate != null)
+				{
+					VisitPredicate(predicate, queryModel);
+				}
+				return;
+			}
+
+			if (resultOperator is ContainsResultOperator)
+			{
+				this.SelectStatement.IsContains = true;
+				var item = ((ContainsResultOperator)resultOperator).Item;
+				if (item != null && item.NodeType == ExpressionType.Constant)
+				{
+					this.SelectStatement.ContainsItem = new ConstantPart(((ConstantExpression)item).Value);
+				}
 				return;
 			}
 
@@ -224,6 +197,34 @@ namespace Watsonia.Data
 				return;
 			}
 
+			if (resultOperator is MinResultOperator)
+			{
+				// Throw an exception if there is not one field
+				if (this.SelectStatement.SourceFields.Count != 1)
+				{
+					throw new InvalidOperationException("can't min multiple or no fields");
+				}
+
+				// Sum the first field
+				this.SelectStatement.SourceFields[0] = new Aggregate(AggregateType.Min, (Field)this.SelectStatement.SourceFields[0]);
+
+				return;
+			}
+
+			if (resultOperator is MaxResultOperator)
+			{
+				// Throw an exception if there is not one field
+				if (this.SelectStatement.SourceFields.Count != 1)
+				{
+					throw new InvalidOperationException("can't max multiple or no fields");
+				}
+
+				// Sum the first field
+				this.SelectStatement.SourceFields[0] = new Aggregate(AggregateType.Max, (Field)this.SelectStatement.SourceFields[0]);
+
+				return;
+			}
+
 			if (resultOperator is DistinctResultOperator)
 			{
 				this.SelectStatement.IsDistinct = true;
@@ -272,7 +273,14 @@ namespace Watsonia.Data
 
 		public override void VisitWhereClause(WhereClause whereClause, QueryModel queryModel, int index)
 		{
-			StatementPart whereStatement = StatementPartCreator.Visit(queryModel, whereClause.Predicate, this.Configuration);
+			VisitPredicate(whereClause.Predicate, queryModel);
+
+			base.VisitWhereClause(whereClause, queryModel, index);
+		}
+
+		private void VisitPredicate(Expression predicate, QueryModel queryModel)
+		{
+			StatementPart whereStatement = StatementPartCreator.Visit(queryModel, predicate, this.Configuration);
 			ConditionExpression condition;
 			if (whereStatement is ConditionExpression)
 			{
@@ -302,8 +310,6 @@ namespace Watsonia.Data
 				throw new InvalidOperationException();
 			}
 			this.SelectStatement.Conditions.Add(condition);
-
-			base.VisitWhereClause(whereClause, queryModel, index);
 		}
 	}
 }

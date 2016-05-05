@@ -2068,12 +2068,12 @@ namespace Watsonia.Data.Tests
 		}
 
 		[TestMethod]
-		public void TestContainsWithSubQuery()
+		public void TestContainsWithSubquery2()
 		{
 			var custsInLondon = db.Customers.Where(c => c.City == "London").Select(c => c.CustomerID);
 
 			TestQuery(
-				"TestContainsWithSubQuery",
+				"TestContainsWithSubquery2",
 				from c in db.Customers
 				where custsInLondon.Contains(c.CustomerID)
 				select c

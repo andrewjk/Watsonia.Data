@@ -59,8 +59,14 @@ namespace Watsonia.Data
 				case ExpressionType.OrElse:
 				case ExpressionType.ExclusiveOr:
 				{
-					VisitBinaryConditionCollection(expression);
-					break;
+					if (expression.Type == typeof(bool))
+					{
+						return VisitBinaryConditionCollection(expression);
+					}
+					else
+					{
+						return VisitBinaryOperation(expression);
+					}
 				}
 				case ExpressionType.Equal:
 				case ExpressionType.NotEqual:
@@ -69,8 +75,7 @@ namespace Watsonia.Data
 				case ExpressionType.GreaterThan:
 				case ExpressionType.GreaterThanOrEqual:
 				{
-					VisitBinaryCondition(expression);
-					break;
+					return VisitBinaryCondition(expression);
 				}
 				case ExpressionType.Add:
 				case ExpressionType.Subtract:
@@ -80,20 +85,14 @@ namespace Watsonia.Data
 				case ExpressionType.LeftShift:
 				case ExpressionType.RightShift:
 				{
-					VisitBinaryOperation(expression);
-					break;
-				}
-				default:
-				{
-					// TODO: Throw that as a better exception
-					throw new NotSupportedException("Unhandled NodeType: " + expression.NodeType);
+					return VisitBinaryOperation(expression);
 				}
 			}
 
-			return expression;
+			return base.VisitBinary(expression);
 		}
 
-		private void VisitBinaryConditionCollection(BinaryExpression expression)
+		private Expression VisitBinaryConditionCollection(BinaryExpression expression)
 		{
 			Visit(expression.Left);
 			Visit(expression.Right);
@@ -146,6 +145,7 @@ namespace Watsonia.Data
 					}
 				}
 			}
+
 			if (newCondition.Count > 1)
 			{
 				this.Stack.Push(newCondition);
@@ -154,9 +154,11 @@ namespace Watsonia.Data
 			{
 				this.Stack.Push(newCondition[0]);
 			}
+
+			return expression;
 		}
 
-		private void VisitBinaryCondition(BinaryExpression expression)
+		private Expression VisitBinaryCondition(BinaryExpression expression)
 		{
 			var newCondition = new Condition();
 			Visit(expression.Left);
@@ -204,9 +206,11 @@ namespace Watsonia.Data
 			Visit(expression.Right);
 			newCondition.Value = this.Stack.Pop();
 			this.Stack.Push(newCondition);
+
+			return expression;
 		}
 
-		private void VisitBinaryOperation(BinaryExpression expression)
+		private Expression VisitBinaryOperation(BinaryExpression expression)
 		{
 			var newBinary = new BinaryOperation();
 			Visit(expression.Left);
@@ -249,6 +253,23 @@ namespace Watsonia.Data
 					newBinary.Operator = BinaryOperator.RightShift;
 					break;
 				}
+				case ExpressionType.And:
+				case ExpressionType.AndAlso:
+				{
+					newBinary.Operator = BinaryOperator.BitwiseAnd;
+					break;
+				}
+				case ExpressionType.Or:
+				case ExpressionType.OrElse:
+				{
+					newBinary.Operator = BinaryOperator.BitwiseOr;
+					break;
+				}
+				case ExpressionType.ExclusiveOr:
+				{
+					newBinary.Operator = BinaryOperator.ExclusiveOr;
+					break;
+				}
 				default:
 				{
 					// TODO: Throw that as a better exception
@@ -259,6 +280,21 @@ namespace Watsonia.Data
 			Visit(expression.Right);
 			newBinary.Right = (SourceExpression)this.Stack.Pop();
 			this.Stack.Push(newBinary);
+
+			return expression;
+		}
+
+		protected override Expression VisitConditional(ConditionalExpression node)
+		{
+			var newConditionalCase = new ConditionalCase();
+			Visit(node.Test);
+			newConditionalCase.Test = this.Stack.Pop();
+			Visit(node.IfTrue);
+			newConditionalCase.IfTrue = this.Stack.Pop();
+			Visit(node.IfFalse);
+			newConditionalCase.IfFalse = this.Stack.Pop();
+			this.Stack.Push(newConditionalCase);
+			return node;
 		}
 
 		protected override Expression VisitConstant(ConstantExpression expression)
@@ -269,8 +305,8 @@ namespace Watsonia.Data
 			}
 			else if (this.Configuration.ShouldMapType(expression.Type))
 			{
-				// TODO: Should probably have converted everything to IDynamicProxies by this point?
-				PropertyInfo property = expression.Type.GetProperty("ID");
+				string primaryKeyName = this.Configuration.GetPrimaryKeyColumnName(expression.Type);
+				PropertyInfo property = expression.Type.GetProperty(primaryKeyName);
 				object value = property.GetValue(expression.Value);
 				this.Stack.Push(new ConstantPart(value));
 			}
@@ -421,540 +457,629 @@ namespace Watsonia.Data
 
 		protected override Expression VisitMethodCall(MethodCallExpression expression)
 		{
+			bool handled = false;
+
 			if (expression.Method.DeclaringType == typeof(string))
 			{
-				switch (expression.Method.Name)
-				{
-					case "StartsWith":
-					{
-						Condition newCondition = new Condition();
-						newCondition.Operator = SqlOperator.StartsWith;
-						this.Visit(expression.Object);
-						newCondition.Field = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newCondition.Value = this.Stack.Pop();
-						this.Stack.Push(newCondition);
-						return expression;
-					}
-					case "EndsWith":
-					{
-						Condition newCondition = new Condition();
-						newCondition.Operator = SqlOperator.EndsWith;
-						this.Visit(expression.Object);
-						newCondition.Field = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newCondition.Value = this.Stack.Pop();
-						this.Stack.Push(newCondition);
-						return expression;
-					}
-					case "Contains":
-					{
-						Condition newCondition = new Condition();
-						newCondition.Operator = SqlOperator.Contains;
-						this.Visit(expression.Object);
-						newCondition.Field = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newCondition.Value = this.Stack.Pop();
-						this.Stack.Push(newCondition);
-						return expression;
-					}
-					case "Concat":
-					{
-						StringConcatenateFunction newFunction = new StringConcatenateFunction();
-						IList<Expression> args = expression.Arguments;
-						if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit)
-						{
-							args = ((NewArrayExpression)args[0]).Expressions;
-						}
-						for (int i = 0; i < args.Count; i++)
-						{
-							this.Visit(args[i]);
-							newFunction.Arguments.Add(this.Stack.Pop());
-						}
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "IsNullOrEmpty":
-					{
-						ConditionCollection newCondition = new ConditionCollection();
-
-						Condition isNullCondition = new Condition();
-						this.Visit(expression.Arguments[0]);
-						isNullCondition.Field = this.Stack.Pop();
-						isNullCondition.Operator = SqlOperator.Equals;
-						isNullCondition.Value = new ConstantPart(null);
-						newCondition.Add(isNullCondition);
-
-						Condition notEqualsCondition = new Condition();
-						notEqualsCondition.Relationship = ConditionRelationship.Or;
-						this.Visit(expression.Arguments[0]);
-						notEqualsCondition.Field = this.Stack.Pop();
-						notEqualsCondition.Operator = SqlOperator.Equals;
-						notEqualsCondition.Value = new ConstantPart("");
-						newCondition.Add(notEqualsCondition);
-
-						this.Stack.Push(newCondition);
-						return expression;
-					}
-					case "ToUpper":
-					case "ToUpperInvariant":
-					{
-						StringToUpperFunction newFunction = new StringToUpperFunction();
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "ToLower":
-					case "ToLowerInvariant":
-					{
-						StringToLowerFunction newFunction = new StringToLowerFunction();
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Replace":
-					{
-						StringReplaceFunction newFunction = new StringReplaceFunction();
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newFunction.OldValue = this.Stack.Pop();
-						this.Visit(expression.Arguments[1]);
-						newFunction.NewValue = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Substring":
-					{
-						SubstringFunction newFunction = new SubstringFunction();
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newFunction.StartIndex = this.Stack.Pop();
-						if (expression.Arguments.Count > 1)
-						{
-							this.Visit(expression.Arguments[1]);
-							newFunction.Length = this.Stack.Pop();
-						}
-						else
-						{
-							newFunction.Length = new ConstantPart(8000);
-						}
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Remove":
-					{
-						StringRemoveFunction newFunction = new StringRemoveFunction();
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newFunction.StartIndex = this.Stack.Pop();
-						if (expression.Arguments.Count > 1)
-						{
-							this.Visit(expression.Arguments[1]);
-							newFunction.Length = this.Stack.Pop();
-						}
-						else
-						{
-							newFunction.Length = new ConstantPart(8000);
-						}
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "IndexOf":
-					{
-						StringIndexFunction newFunction = new StringIndexFunction();
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newFunction.StringToFind = this.Stack.Pop();
-						if (expression.Arguments.Count == 2 && expression.Arguments[1].Type == typeof(int))
-						{
-							this.Visit(expression.Arguments[1]);
-							newFunction.StartIndex = this.Stack.Pop();
-						}
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Trim":
-					{
-						StringTrimFunction newFunction = new StringTrimFunction();
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-				}
+				handled = VisitStringMethodCall(expression);
 			}
 			else if (expression.Method.DeclaringType == typeof(DateTime))
 			{
-				switch (expression.Method.Name)
-				{
-					case "op_Subtract":
-					{
-						if (expression.Arguments[1].Type == typeof(DateTime))
-						{
-							DateDifferenceFunction newFunction = new DateDifferenceFunction();
-							this.Visit(expression.Arguments[0]);
-							newFunction.Date1 = this.Stack.Pop();
-							this.Visit(expression.Arguments[1]);
-							newFunction.Date2 = this.Stack.Pop();
-							this.Stack.Push(newFunction);
-							return expression;
-						}
-						break;
-					}
-					case "AddDays":
-					{
-						DateAddFunction newFunction = new DateAddFunction(DatePart.Day);
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Number = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "AddMonths":
-					{
-						DateAddFunction newFunction = new DateAddFunction(DatePart.Month);
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Number = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "AddYears":
-					{
-						DateAddFunction newFunction = new DateAddFunction(DatePart.Year);
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Number = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "AddHours":
-					{
-						DateAddFunction newFunction = new DateAddFunction(DatePart.Hour);
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Number = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "AddMinutes":
-					{
-						DateAddFunction newFunction = new DateAddFunction(DatePart.Minute);
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Number = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "AddSeconds":
-					{
-						DateAddFunction newFunction = new DateAddFunction(DatePart.Second);
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Number = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "AddMilliseconds":
-					{
-						DateAddFunction newFunction = new DateAddFunction(DatePart.Millisecond);
-						this.Visit(expression.Object);
-						newFunction.Argument = this.Stack.Pop();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Number = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-				}
+				handled = VisitDateTimeMethodCall(expression);
 			}
-			else if (expression.Method.DeclaringType == typeof(Decimal))
+			else if (expression.Method.DeclaringType == typeof(decimal))
 			{
-				switch (expression.Method.Name)
-				{
-					case "Add":
-					case "Subtract":
-					case "Multiply":
-					case "Divide":
-					case "Remainder":
-					{
-						BinaryOperation newOperation = new BinaryOperation();
-						this.Visit(expression.Arguments[0]);
-						newOperation.Left = (SourceExpression)this.Stack.Pop();
-						newOperation.Operator = (BinaryOperator)Enum.Parse(typeof(BinaryOperator), expression.Method.Name);
-						this.Visit(expression.Arguments[1]);
-						newOperation.Right = (SourceExpression)this.Stack.Pop();
-						this.Stack.Push(newOperation);
-						return expression;
-					}
-					case "Negate":
-					{
-						NumberNegateFunction newFunction = new NumberNegateFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Ceiling":
-					{
-						NumberCeilingFunction newFunction = new NumberCeilingFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Floor":
-					{
-						NumberFloorFunction newFunction = new NumberFloorFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Round":
-					{
-						NumberRoundFunction newFunction = new NumberRoundFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						if (expression.Arguments.Count == 2 && expression.Arguments[1].Type == typeof(int))
-						{
-							this.Visit(expression.Arguments[1]);
-							newFunction.Precision = this.Stack.Pop();
-						}
-						else
-						{
-							// TODO: Make it consistent where these are set
-							// should they be defaults here, or in the function class, or when making the sql
-							// probably when making the sql, because the appropriate default will differ between platforms
-							newFunction.Precision = new ConstantPart(0);
-						}
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Truncate":
-					{
-						NumberTruncateFunction newFunction = new NumberTruncateFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Compare":
-					{
-						this.Visit(Expression.Condition(
-							Expression.Equal(expression.Arguments[0], expression.Arguments[1]),
-							Expression.Constant(0),
-							Expression.Condition(
-								Expression.LessThan(expression.Arguments[0], expression.Arguments[1]),
-								Expression.Constant(-1),
-								Expression.Constant(1)
-								)));
-						return expression;
-					}
-				}
+				handled = VisitDecimalMethodCall(expression);
 			}
 			else if (expression.Method.DeclaringType == typeof(Math))
 			{
-				switch (expression.Method.Name)
-				{
-					case "Log":
-					{
-						NumberLogFunction newFunction = new NumberLogFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Log10":
-					{
-						NumberLog10Function newFunction = new NumberLog10Function();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Sign":
-					{
-						NumberSignFunction newFunction = new NumberSignFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Exp":
-					{
-						NumberExponentialFunction newFunction = new NumberExponentialFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Sqrt":
-					{
-						NumberRootFunction newFunction = new NumberRootFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						newFunction.Root = new ConstantPart(2);
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Pow":
-					{
-						NumberPowerFunction newFunction = new NumberPowerFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						this.Visit(expression.Arguments[1]);
-						newFunction.Power = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Abs":
-					{
-						NumberAbsoluteFunction newFunction = new NumberAbsoluteFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Ceiling":
-					{
-						NumberCeilingFunction newFunction = new NumberCeilingFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Floor":
-					{
-						NumberFloorFunction newFunction = new NumberFloorFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Round":
-					{
-						NumberRoundFunction newFunction = new NumberRoundFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						if (expression.Arguments.Count == 2 && expression.Arguments[1].Type == typeof(int))
-						{
-							this.Visit(expression.Arguments[1]);
-							newFunction.Precision = this.Stack.Pop();
-						}
-						else
-						{
-							// TODO: Make it consistent where these are set
-							// should they be defaults here, or in the function class, or when making the sql
-							// probably when making the sql, because the appropriate default will differ between platforms
-							newFunction.Precision = new ConstantPart(0);
-						}
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Truncate":
-					{
-						NumberTruncateFunction newFunction = new NumberTruncateFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-					case "Sin":
-					case "Cos":
-					case "Tan":
-					case "Acos":
-					case "Asin":
-					case "Atan":
-					case "Atan2":
-					{
-						NumberTrigFunction newFunction = new NumberTrigFunction();
-						this.Visit(expression.Arguments[0]);
-						newFunction.Argument = this.Stack.Pop();
-						newFunction.Function = (TrigFunction)Enum.Parse(typeof(TrigFunction), expression.Method.Name);
-						this.Stack.Push(newFunction);
-						return expression;
-					}
-				}
-			}
-			if (expression.Method.Name == "ToString")
-			{
-				if (expression.Object.Type == typeof(string))
-				{
-					this.Visit(expression.Object);  // no op
-				}
-				else
-				{
-					ConvertFunction newFunction = new ConvertFunction();
-					this.Visit(expression.Arguments[0]);
-					newFunction.Expression = (SourceExpression)this.Stack.Pop();
-					this.Stack.Push(newFunction);
-					return expression;
-				}
-				return expression;
-			}
-			else if (expression.Method.Name == "Equals")
-			{
-				Condition condition = new Condition();
-				condition.Operator = SqlOperator.Equals;
-				if (expression.Method.IsStatic && expression.Method.DeclaringType == typeof(object))
-				{
-					this.Visit(expression.Arguments[0]);
-					condition.Field = this.Stack.Pop();
-					this.Visit(expression.Arguments[1]);
-					condition.Value = this.Stack.Pop();
-				}
-				else if (!expression.Method.IsStatic && expression.Arguments.Count > 1 && expression.Arguments[0].Type == expression.Object.Type)
-				{
-					// TODO: Get the other arguments, most importantly StringComparison
-					this.Visit(expression.Object);
-					condition.Field = this.Stack.Pop();
-					this.Visit(expression.Arguments[0]);
-					condition.Value = this.Stack.Pop();
-				}
-				this.Stack.Push(condition);
-				return expression;
-			}
-			else if (!expression.Method.IsStatic && expression.Method.Name == "CompareTo" && expression.Method.ReturnType == typeof(int) && expression.Arguments.Count == 1)
-			{
-				StringCompareFunction newFunction = new StringCompareFunction();
-				this.Visit(expression.Object);
-				newFunction.Argument = this.Stack.Pop();
-				this.Visit(expression.Arguments[0]);
-				newFunction.Other = this.Stack.Pop();
-				this.Stack.Push(newFunction);
-				return expression;
-			}
-			else if (expression.Method.IsStatic && expression.Method.Name == "Compare" && expression.Method.ReturnType == typeof(int) && expression.Arguments.Count == 2)
-			{
-				StringCompareFunction newFunction = new StringCompareFunction();
-				this.Visit(expression.Arguments[0]);
-				newFunction.Argument = this.Stack.Pop();
-				this.Visit(expression.Arguments[1]);
-				newFunction.Other = this.Stack.Pop();
-				this.Stack.Push(newFunction);
-				return expression;
+				handled = VisitMathMethodCall(expression);
 			}
 
-			return base.VisitMethodCall(expression);
+			if (!handled)
+			{
+				if (expression.Method.Name == "ToString")
+				{
+					handled = VisitToStringMethodCall(expression);
+				}
+				else if (expression.Method.Name == "Equals")
+				{
+					handled = VisitEqualsMethodCall(expression);
+				}
+				else if (!expression.Method.IsStatic && expression.Method.Name == "CompareTo" && expression.Method.ReturnType == typeof(int) && expression.Arguments.Count == 1)
+				{
+					handled = VisitCompareToMethodCall(expression);
+				}
+				else if (expression.Method.IsStatic && expression.Method.Name == "Compare" && expression.Method.ReturnType == typeof(int) && expression.Arguments.Count == 2)
+				{
+					handled = VisitCompareMethodCall(expression);
+				}
+			}
+
+			return handled ? expression : base.VisitMethodCall(expression);
+		}
+
+		private bool VisitStringMethodCall(MethodCallExpression expression)
+		{
+			switch (expression.Method.Name)
+			{
+				case "StartsWith":
+				{
+					Condition newCondition = new Condition();
+					newCondition.Operator = SqlOperator.StartsWith;
+					this.Visit(expression.Object);
+					newCondition.Field = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newCondition.Value = this.Stack.Pop();
+					this.Stack.Push(newCondition);
+					return true;
+				}
+				case "EndsWith":
+				{
+					Condition newCondition = new Condition();
+					newCondition.Operator = SqlOperator.EndsWith;
+					this.Visit(expression.Object);
+					newCondition.Field = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newCondition.Value = this.Stack.Pop();
+					this.Stack.Push(newCondition);
+					return true;
+				}
+				case "Contains":
+				{
+					Condition newCondition = new Condition();
+					newCondition.Operator = SqlOperator.Contains;
+					this.Visit(expression.Object);
+					newCondition.Field = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newCondition.Value = this.Stack.Pop();
+					this.Stack.Push(newCondition);
+					return true;
+				}
+				case "Concat":
+				{
+					StringConcatenateFunction newFunction = new StringConcatenateFunction();
+					IList<Expression> args = expression.Arguments;
+					if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit)
+					{
+						args = ((NewArrayExpression)args[0]).Expressions;
+					}
+					for (int i = 0; i < args.Count; i++)
+					{
+						this.Visit(args[i]);
+						newFunction.Arguments.Add(this.Stack.Pop());
+					}
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "IsNullOrEmpty":
+				{
+					ConditionCollection newCondition = new ConditionCollection();
+
+					Condition isNullCondition = new Condition();
+					this.Visit(expression.Arguments[0]);
+					isNullCondition.Field = this.Stack.Pop();
+					isNullCondition.Operator = SqlOperator.Equals;
+					isNullCondition.Value = new ConstantPart(null);
+					newCondition.Add(isNullCondition);
+
+					Condition notEqualsCondition = new Condition();
+					notEqualsCondition.Relationship = ConditionRelationship.Or;
+					this.Visit(expression.Arguments[0]);
+					notEqualsCondition.Field = this.Stack.Pop();
+					notEqualsCondition.Operator = SqlOperator.Equals;
+					notEqualsCondition.Value = new ConstantPart("");
+					newCondition.Add(notEqualsCondition);
+
+					this.Stack.Push(newCondition);
+					return true;
+				}
+				case "ToUpper":
+				case "ToUpperInvariant":
+				{
+					StringToUpperFunction newFunction = new StringToUpperFunction();
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "ToLower":
+				case "ToLowerInvariant":
+				{
+					StringToLowerFunction newFunction = new StringToLowerFunction();
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Replace":
+				{
+					StringReplaceFunction newFunction = new StringReplaceFunction();
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newFunction.OldValue = this.Stack.Pop();
+					this.Visit(expression.Arguments[1]);
+					newFunction.NewValue = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Substring":
+				{
+					SubstringFunction newFunction = new SubstringFunction();
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newFunction.StartIndex = this.Stack.Pop();
+					if (expression.Arguments.Count > 1)
+					{
+						this.Visit(expression.Arguments[1]);
+						newFunction.Length = this.Stack.Pop();
+					}
+					else
+					{
+						newFunction.Length = new ConstantPart(8000);
+					}
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Remove":
+				{
+					StringRemoveFunction newFunction = new StringRemoveFunction();
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newFunction.StartIndex = this.Stack.Pop();
+					if (expression.Arguments.Count > 1)
+					{
+						this.Visit(expression.Arguments[1]);
+						newFunction.Length = this.Stack.Pop();
+					}
+					else
+					{
+						newFunction.Length = new ConstantPart(8000);
+					}
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "IndexOf":
+				{
+					StringIndexFunction newFunction = new StringIndexFunction();
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newFunction.StringToFind = this.Stack.Pop();
+					if (expression.Arguments.Count == 2 && expression.Arguments[1].Type == typeof(int))
+					{
+						this.Visit(expression.Arguments[1]);
+						newFunction.StartIndex = this.Stack.Pop();
+					}
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Trim":
+				{
+					StringTrimFunction newFunction = new StringTrimFunction();
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		private bool VisitDateTimeMethodCall(MethodCallExpression expression)
+		{
+			switch (expression.Method.Name)
+			{
+				case "op_Subtract":
+				{
+					if (expression.Arguments[1].Type == typeof(DateTime))
+					{
+						DateDifferenceFunction newFunction = new DateDifferenceFunction();
+						this.Visit(expression.Arguments[0]);
+						newFunction.Date1 = this.Stack.Pop();
+						this.Visit(expression.Arguments[1]);
+						newFunction.Date2 = this.Stack.Pop();
+						this.Stack.Push(newFunction);
+						return true;
+					}
+					break;
+				}
+				case "AddDays":
+				{
+					DateAddFunction newFunction = new DateAddFunction(DatePart.Day);
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Number = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "AddMonths":
+				{
+					DateAddFunction newFunction = new DateAddFunction(DatePart.Month);
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Number = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "AddYears":
+				{
+					DateAddFunction newFunction = new DateAddFunction(DatePart.Year);
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Number = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "AddHours":
+				{
+					DateAddFunction newFunction = new DateAddFunction(DatePart.Hour);
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Number = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "AddMinutes":
+				{
+					DateAddFunction newFunction = new DateAddFunction(DatePart.Minute);
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Number = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "AddSeconds":
+				{
+					DateAddFunction newFunction = new DateAddFunction(DatePart.Second);
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Number = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "AddMilliseconds":
+				{
+					DateAddFunction newFunction = new DateAddFunction(DatePart.Millisecond);
+					this.Visit(expression.Object);
+					newFunction.Argument = this.Stack.Pop();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Number = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		private bool VisitDecimalMethodCall(MethodCallExpression expression)
+		{
+			switch (expression.Method.Name)
+			{
+				case "Add":
+				case "Subtract":
+				case "Multiply":
+				case "Divide":
+				case "Remainder":
+				{
+					BinaryOperation newOperation = new BinaryOperation();
+					this.Visit(expression.Arguments[0]);
+					newOperation.Left = (SourceExpression)this.Stack.Pop();
+					newOperation.Operator = (BinaryOperator)Enum.Parse(typeof(BinaryOperator), expression.Method.Name);
+					this.Visit(expression.Arguments[1]);
+					newOperation.Right = (SourceExpression)this.Stack.Pop();
+					this.Stack.Push(newOperation);
+					return true;
+				}
+				case "Negate":
+				{
+					NumberNegateFunction newFunction = new NumberNegateFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Ceiling":
+				{
+					NumberCeilingFunction newFunction = new NumberCeilingFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Floor":
+				{
+					NumberFloorFunction newFunction = new NumberFloorFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Round":
+				{
+					NumberRoundFunction newFunction = new NumberRoundFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					if (expression.Arguments.Count == 2 && expression.Arguments[1].Type == typeof(int))
+					{
+						this.Visit(expression.Arguments[1]);
+						newFunction.Precision = this.Stack.Pop();
+					}
+					else
+					{
+						// TODO: Make it consistent where these are set
+						// should they be defaults here, or in the function class, or when making the sql
+						// probably when making the sql, because the appropriate default will differ between platforms
+						newFunction.Precision = new ConstantPart(0);
+					}
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Truncate":
+				{
+					NumberTruncateFunction newFunction = new NumberTruncateFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Compare":
+				{
+					this.Visit(Expression.Condition(
+						Expression.Equal(expression.Arguments[0], expression.Arguments[1]),
+						Expression.Constant(0),
+						Expression.Condition(
+							Expression.LessThan(expression.Arguments[0], expression.Arguments[1]),
+							Expression.Constant(-1),
+							Expression.Constant(1)
+							)));
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		private bool VisitMathMethodCall(MethodCallExpression expression)
+		{
+			switch (expression.Method.Name)
+			{
+				case "Log":
+				{
+					NumberLogFunction newFunction = new NumberLogFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Log10":
+				{
+					NumberLog10Function newFunction = new NumberLog10Function();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Sign":
+				{
+					NumberSignFunction newFunction = new NumberSignFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Exp":
+				{
+					NumberExponentialFunction newFunction = new NumberExponentialFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Sqrt":
+				{
+					NumberRootFunction newFunction = new NumberRootFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					newFunction.Root = new ConstantPart(2);
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Pow":
+				{
+					NumberPowerFunction newFunction = new NumberPowerFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					this.Visit(expression.Arguments[1]);
+					newFunction.Power = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Abs":
+				{
+					NumberAbsoluteFunction newFunction = new NumberAbsoluteFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Ceiling":
+				{
+					NumberCeilingFunction newFunction = new NumberCeilingFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Floor":
+				{
+					NumberFloorFunction newFunction = new NumberFloorFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Round":
+				{
+					NumberRoundFunction newFunction = new NumberRoundFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					if (expression.Arguments.Count == 2 && expression.Arguments[1].Type == typeof(int))
+					{
+						this.Visit(expression.Arguments[1]);
+						newFunction.Precision = this.Stack.Pop();
+					}
+					else
+					{
+						// TODO: Make it consistent where these are set
+						// should they be defaults here, or in the function class, or when making the sql
+						// probably when making the sql, because the appropriate default will differ between platforms
+						newFunction.Precision = new ConstantPart(0);
+					}
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Truncate":
+				{
+					NumberTruncateFunction newFunction = new NumberTruncateFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					this.Stack.Push(newFunction);
+					return true;
+				}
+				case "Sin":
+				case "Cos":
+				case "Tan":
+				case "Acos":
+				case "Asin":
+				case "Atan":
+				case "Atan2":
+				{
+					NumberTrigFunction newFunction = new NumberTrigFunction();
+					this.Visit(expression.Arguments[0]);
+					newFunction.Argument = this.Stack.Pop();
+					if (expression.Arguments.Count > 1)
+					{
+						this.Visit(expression.Arguments[1]);
+						newFunction.Argument2 = this.Stack.Pop();
+					}
+					newFunction.Function = (TrigFunction)Enum.Parse(typeof(TrigFunction), expression.Method.Name);
+					this.Stack.Push(newFunction);
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		private bool VisitToStringMethodCall(MethodCallExpression expression)
+		{
+			if (expression.Object.Type == typeof(string))
+			{
+				this.Visit(expression.Object);
+			}
+			else
+			{
+				ConvertFunction newFunction = new ConvertFunction();
+				this.Visit(expression.Arguments[0]);
+				newFunction.Expression = (SourceExpression)this.Stack.Pop();
+				this.Stack.Push(newFunction);
+			}
+			return true;
+		}
+
+		private bool VisitEqualsMethodCall(MethodCallExpression expression)
+		{
+			Condition condition = new Condition();
+			condition.Operator = SqlOperator.Equals;
+			if (expression.Method.IsStatic && expression.Method.DeclaringType == typeof(object))
+			{
+				this.Visit(expression.Arguments[0]);
+				condition.Field = this.Stack.Pop();
+				this.Visit(expression.Arguments[1]);
+				condition.Value = this.Stack.Pop();
+			}
+			else if (!expression.Method.IsStatic && expression.Arguments.Count > 1 && expression.Arguments[0].Type == expression.Object.Type)
+			{
+				// TODO: Get the other arguments, most importantly StringComparison
+				this.Visit(expression.Object);
+				condition.Field = this.Stack.Pop();
+				this.Visit(expression.Arguments[0]);
+				condition.Value = this.Stack.Pop();
+			}
+			this.Stack.Push(condition);
+			return true;
+		}
+
+		private bool VisitCompareToMethodCall(MethodCallExpression expression)
+		{
+			StringCompareFunction newFunction = new StringCompareFunction();
+			this.Visit(expression.Object);
+			newFunction.Argument = this.Stack.Pop();
+			this.Visit(expression.Arguments[0]);
+			newFunction.Other = this.Stack.Pop();
+			this.Stack.Push(newFunction);
+			return true;
+		}
+
+		private bool VisitCompareMethodCall(MethodCallExpression expression)
+		{
+			StringCompareFunction newFunction = new StringCompareFunction();
+			this.Visit(expression.Arguments[0]);
+			newFunction.Argument = this.Stack.Pop();
+			this.Visit(expression.Arguments[1]);
+			newFunction.Other = this.Stack.Pop();
+			this.Stack.Push(newFunction);
+			return true;
 		}
 
 		protected override Expression VisitNew(NewExpression expression)
 		{
-			// If it's a new anonymous object, get its properties as columns
-			if (expression.Arguments.Count > 0)
+			if (expression.Type == typeof(DateTime))
 			{
+				// It's a date, so put its arguments into a DateNewFunction
+				DateNewFunction function = new DateNewFunction();
+				if (expression.Arguments.Count == 3)
+				{
+					this.Visit(expression.Arguments[0]);
+					function.Year = this.Stack.Pop();
+					this.Visit(expression.Arguments[1]);
+					function.Month = this.Stack.Pop();
+					this.Visit(expression.Arguments[2]);
+					function.Day = this.Stack.Pop();
+				}
+				else if (expression.Arguments.Count == 6)
+				{
+					this.Visit(expression.Arguments[0]);
+					function.Year = this.Stack.Pop();
+					this.Visit(expression.Arguments[1]);
+					function.Month = this.Stack.Pop();
+					this.Visit(expression.Arguments[2]);
+					function.Day = this.Stack.Pop();
+					this.Visit(expression.Arguments[3]);
+					function.Hour = this.Stack.Pop();
+					this.Visit(expression.Arguments[4]);
+					function.Minute = this.Stack.Pop();
+					this.Visit(expression.Arguments[5]);
+					function.Second = this.Stack.Pop();
+				}
+				this.Stack.Push(function);
+				return expression;
+			}
+			else if (expression.Arguments.Count > 0)
+			{
+				// It's a new anonymous object, so get its properties as columns
 				FieldCollection fields = new FieldCollection();
 				foreach (Expression argument in expression.Arguments)
 				{
@@ -1032,10 +1157,10 @@ namespace Watsonia.Data
 
 		protected override Expression VisitSubQuery(SubQueryExpression expression)
 		{
-			// If it's an Array.Contains, we need to convert the subquery into a condition
 			if (expression.QueryModel.ResultOperators.Count > 0 &&
 				expression.QueryModel.ResultOperators[0] is Remotion.Linq.Clauses.ResultOperators.ContainsResultOperator)
 			{
+				// It's an Array.Contains, so we need to convert the subquery into a condition
 				var newCondition = new Condition();
 				newCondition.Operator = SqlOperator.IsIn;
 
@@ -1067,12 +1192,6 @@ namespace Watsonia.Data
 		{
 			BreakpointHook();
 			return base.VisitCatchBlock(node);
-		}
-
-		protected override Expression VisitConditional(ConditionalExpression node)
-		{
-			BreakpointHook();
-			return base.VisitConditional(node);
 		}
 
 		protected override Expression VisitDebugInfo(DebugInfoExpression node)

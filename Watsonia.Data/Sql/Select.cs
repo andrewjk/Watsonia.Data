@@ -80,6 +80,18 @@ namespace Watsonia.Data
 			set;
 		}
 
+		public bool IsContains
+		{
+			get;
+			set;
+		}
+
+		public StatementPart ContainsItem
+		{
+			get;
+			set;
+		}
+
 		public bool IsDistinct
 		{
 			get;
@@ -398,6 +410,12 @@ namespace Watsonia.Data
 			if (this.IsAll)
 			{
 				b.Append("All ");
+			}
+			if (this.IsContains)
+			{
+				b.Append("Contains ");
+				b.Append(this.ContainsItem);
+				b.Append(" In ");
 			}
 			if (this.IsDistinct)
 			{

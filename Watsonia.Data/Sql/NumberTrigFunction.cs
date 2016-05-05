@@ -25,6 +25,13 @@ namespace Watsonia.Data.Sql
 			set;
 		}
 
+		// For Atan2
+		public StatementPart Argument2
+		{
+			get;
+			set;
+		}
+
 		public override string ToString()
 		{
 			return this.Function.ToString() + "(" + this.Argument.ToString() + ")";

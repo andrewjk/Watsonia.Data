@@ -223,6 +223,12 @@ namespace Watsonia.Data.SqlServer
 				return;
 			}
 
+			if (select.IsContains)
+			{
+				VisitSelectWithContains(select);
+				return;
+			}
+
 			// If any of the fields have aggregates that aren't grouped, remove the ordering as SQL Server doesn't like it
 			// TODO: Only if they aren't grouped
 			if (select.SourceFields.Any(f => f is Aggregate))
@@ -301,6 +307,10 @@ namespace Watsonia.Data.SqlServer
 			{
 				this.AppendNewLine(Indentation.Same);
 				this.CommandText.Append("WHERE ");
+				if (select.Conditions.Not)
+				{
+					this.CommandText.Append("NOT ");
+				}
 				for (int i = 0; i < select.Conditions.Count; i++)
 				{
 					if (i > 0)
@@ -398,8 +408,14 @@ namespace Watsonia.Data.SqlServer
 					outer.SourceFields.Add(new Column(inner.Alias, column.Name));
 				}
 			}
-			outer.Conditions.Add(new Condition("RowNumber", SqlOperator.IsGreaterThan, select.StartIndex));
-			outer.Conditions.Add(new Condition("RowNumber", SqlOperator.IsLessThanOrEqualTo, select.StartIndex + select.Limit));
+			if (select.StartIndex > 0)
+			{
+				outer.Conditions.Add(new Condition("RowNumber", SqlOperator.IsGreaterThan, select.StartIndex));
+			}
+			if (select.Limit > 0)
+			{
+				outer.Conditions.Add(new Condition("RowNumber", SqlOperator.IsLessThanOrEqualTo, select.StartIndex + select.Limit));
+			}
 			foreach (OrderByExpression field in select.OrderByFields)
 			{
 				Column column = field.Expression as Column;
@@ -417,7 +433,7 @@ namespace Watsonia.Data.SqlServer
 		{
 			// It's going to look something like this:
 			// SELECT CASE WHEN EXISTS (
-			//		SELECT Fields,
+			//		SELECT Fields
 			//		FROM Table
 			//		WHERE Condition
 			// ) THEN 1 ELSE 0 END
@@ -434,7 +450,7 @@ namespace Watsonia.Data.SqlServer
 		{
 			// It's going to look something like this:
 			// SELECT CASE WHEN NOT EXISTS (
-			//		SELECT Fields,
+			//		SELECT Fields
 			//		FROM Table
 			//		WHERE NOT Condition
 			// ) THEN 1 ELSE 0 END
@@ -443,6 +459,24 @@ namespace Watsonia.Data.SqlServer
 			this.Indent(Indentation.Inner);
 			select.IsAll = false;
 			select.Conditions.Not = true;
+			this.VisitSelect(select);
+			this.Indent(Indentation.Outer);
+			this.CommandText.Append(") THEN 1 ELSE 0 END");
+		}
+
+		private void VisitSelectWithContains(Select select)
+		{
+			// It's going to look something like this:
+			// SELECT CASE WHEN @0 IN (
+			//		SELECT Fields
+			//		FROM Table
+			// ) THEN 1 ELSE 0 END
+
+			this.CommandText.Append("SELECT CASE WHEN ");
+			this.VisitField(select.ContainsItem);
+			this.CommandText.Append(" IN (");
+			this.Indent(Indentation.Inner);
+			select.IsContains = false;
 			this.VisitSelect(select);
 			this.Indent(Indentation.Outer);
 			this.CommandText.Append(") THEN 1 ELSE 0 END");
@@ -1446,7 +1480,7 @@ namespace Watsonia.Data.SqlServer
 		{
 			if (function.Hour != null)
 			{
-				this.CommandText.Append("CONVERT(DateTime, ");
+				this.CommandText.Append("CONVERT(DATETIME, ");
 				this.CommandText.Append("CONVERT(NVARCHAR, ");
 				this.VisitField(function.Year);
 				this.CommandText.Append(") + '/' + ");
@@ -1468,7 +1502,7 @@ namespace Watsonia.Data.SqlServer
 			}
 			else
 			{
-				this.CommandText.Append("CONVERT(DateTime, ");
+				this.CommandText.Append("CONVERT(DATETIME, ");
 				this.CommandText.Append("CONVERT(NVARCHAR, ");
 				this.VisitField(function.Year);
 				this.CommandText.Append(") + '/' + ");
@@ -1551,7 +1585,14 @@ namespace Watsonia.Data.SqlServer
 
 		private void VisitNumberTrigFunction(NumberTrigFunction function)
 		{
-			this.VisitFunction(function.Function.ToString().ToUpperInvariant(), function.Argument);
+			if (function.Argument2 != null)
+			{
+				this.VisitFunction(function.Function.ToString().ToUpperInvariant(), function.Argument, function.Argument2);
+			}
+			else
+			{
+				this.VisitFunction(function.Function.ToString().ToUpperInvariant(), function.Argument);
+			}
 		}
 
 		private void VisitBinaryOperation(BinaryOperation operation)
@@ -1611,6 +1652,27 @@ namespace Watsonia.Data.SqlServer
 				case BinaryOperator.ExclusiveOr:
 				{
 					return "^";
+				}
+				case BinaryOperator.LeftShift:
+				{
+					return "<<";
+				}
+				case BinaryOperator.RightShift:
+				{
+					return ">>";
+				}
+				case BinaryOperator.BitwiseAnd:
+				{
+					return "&";
+				}
+				case BinaryOperator.BitwiseOr:
+				case BinaryOperator.BitwiseExclusiveOr:
+				{
+					return "|";
+				}
+				case BinaryOperator.BitwiseNot:
+				{
+					return "~";
 				}
 				default:
 				{
