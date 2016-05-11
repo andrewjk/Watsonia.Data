@@ -1,4 +1,5 @@
 ﻿using Remotion.Linq;
+using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Parsing;
 using System;
@@ -47,13 +48,20 @@ namespace Watsonia.Data
 			var visitor = new SelectSourceExpander(queryModel, selectStatement, configuration);
 			foreach (var clause in queryModel.BodyClauses)
 			{
-				if (clause is Remotion.Linq.Clauses.WhereClause)
+				if (clause is WhereClause)
 				{
-					visitor.Visit(((Remotion.Linq.Clauses.WhereClause)clause).Predicate);
+					visitor.Visit(((WhereClause)clause).Predicate);
+				}
+				else if (clause is OrderByClause)
+				{
+					foreach (Ordering order in ((OrderByClause)clause).Orderings)
+					{
+						visitor.Visit(order.Expression);
+					}
 				}
 			}
 		}
-		
+
 		protected override Expression VisitMember(MemberExpression expression)
 		{
 			if (expression.Expression != null &&
