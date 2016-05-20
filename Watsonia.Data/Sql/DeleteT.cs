@@ -67,7 +67,7 @@ namespace Watsonia.Data
 		{
 			Delete delete = new Delete();
 			delete.Target = new Table(configuration.GetTableName(this.Target));
-			delete.Conditions.Add(SelectStatementCreator.VisitStatementConditions<T>(this.Conditions, configuration));
+			delete.Conditions.Add(SelectStatementCreator.VisitStatementConditions<T>(this.Conditions, configuration, false));
 			return delete;
 		}
 	}

@@ -27,18 +27,17 @@ namespace Watsonia.Data
 
 		internal Select BuildSelectStatement(QueryModel queryModel)
 		{
-			// Create the select statement
-			Select select = SelectStatementCreator.Visit(queryModel, this.Database.Configuration);
-			select.IncludePaths.AddRange(this.Query.IncludePaths);
+            // Add joins for fields in tables that haven't been joined explicitly
+            // e.g. when using something like DB.Query<T>().Where(x => x.Item.Property == y)
+            SelectSourceExpander.Visit(queryModel, this.Database, this.Database.Configuration);
 
-			// Add joins for fields in tables that haven't been joined explicitly
-			// e.g. when using something like DB.Query<T>().Where(x => x.Item.Property == y)
-			SelectSourceExpander.Visit(queryModel, select, this.Database.Configuration);
+            // Create the select statement
+            Select select = SelectStatementCreator.Visit(queryModel, this.Database.Configuration, true);
+			select.IncludePaths.AddRange(this.Query.IncludePaths);
 
 			// Check whether we need to expand fields (if the select has no fields)
 			// This will avoid the case where selecting fields from multiple tables with non-unique field
 			// names (e.g. two tables with an ID field) fills the object with the wrong value
-			// TODO: Maybe only if there's joins?
 			if (select.SourceFields.Count == 0)
 			{
 				SelectFieldExpander.Visit(queryModel, select, this.Database.Configuration);

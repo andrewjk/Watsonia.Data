@@ -59,7 +59,7 @@ namespace Watsonia.Data.Sql
 			{
 				b.Append("Null");
 			}
-			else if (this.Value is string || this.Value is char)
+			else if (this.Value is string || this.Value is char || this.Value is DateTime)
 			{
 				b.Append("'");
 				b.Append(this.Value.ToString());
@@ -75,8 +75,14 @@ namespace Watsonia.Data.Sql
 					{
 						values.Add("Null");
 					}
-					else
-					{
+                    else if (o is string || o is char || o is DateTime)
+                    {
+                        b.Append("'");
+                        b.Append(o.ToString());
+                        b.Append("'");
+                    }
+                    else
+                    {
 						values.Add(o.ToString());
 					}
 				}

@@ -136,14 +136,14 @@ namespace Watsonia.Data
 			b.Append(" ");
 			b.Append(this.Operator.ToString());
 			b.Append(" ");
-			if (this.Value == null)
-			{
-				b.Append("Null");
-			}
-			else
-			{
-				b.Append(this.Value.ToString());
-			}
+            if (this.Value == null)
+            {
+                b.Append("Null");
+            }
+            else
+            {
+                b.Append(this.Value.ToString());
+            }
 			return b.ToString();
 		}
 	}

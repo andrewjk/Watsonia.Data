@@ -2,6 +2,7 @@
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Parsing;
+using Remotion.Linq.Parsing.Structure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,105 +14,114 @@ using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
 {
-	/// <summary>
-	/// Adds joins for fields that aren't already selected in the main source.
-	/// </summary>
-	internal class SelectSourceExpander : RelinqExpressionVisitor
-	{
-		private QueryModel QueryModel
-		{
-			get;
-			set;
-		}
+    /// <summary>
+    /// Adds joins for fields that aren't already selected in the main source.
+    /// </summary>
+    internal class SelectSourceExpander : RelinqExpressionVisitor
+    {
+        private int _newJoinNumber = 1;
 
-		private Select SelectStatement
-		{
-			get;
-			set;
-		}
+        private QueryModel QueryModel
+        {
+            get;
+            set;
+        }
+        
+        private Database Database
+        {
+            get;
+            set;
+        }
 
-		private DatabaseConfiguration Configuration
-		{
-			get;
-			set;
-		}
+        private DatabaseConfiguration Configuration
+        {
+            get;
+            set;
+        }
 
-		private SelectSourceExpander(QueryModel queryModel, Select selectStatement, DatabaseConfiguration configuration)
-		{
-			this.QueryModel = queryModel;
-			this.SelectStatement = selectStatement;
-			this.Configuration = configuration;
-		}
+        private SelectSourceExpander(QueryModel queryModel, Database database, DatabaseConfiguration configuration)
+        {
+            this.QueryModel = queryModel;
+            this.Database = database;
+            this.Configuration = configuration;
+        }
 
-		public static void Visit(QueryModel queryModel, Select selectStatement, DatabaseConfiguration configuration)
-		{
-			var visitor = new SelectSourceExpander(queryModel, selectStatement, configuration);
-			foreach (var clause in queryModel.BodyClauses)
-			{
-				if (clause is WhereClause)
-				{
-					visitor.Visit(((WhereClause)clause).Predicate);
-				}
-				else if (clause is OrderByClause)
-				{
-					foreach (Ordering order in ((OrderByClause)clause).Orderings)
-					{
-						visitor.Visit(order.Expression);
-					}
-				}
-			}
-		}
+        public static void Visit(QueryModel queryModel, Database database, DatabaseConfiguration configuration)
+        {
+            var visitor = new SelectSourceExpander(queryModel, database, configuration);
+            // Copy the body clauses list as we will be modifying it
+            foreach (var clause in queryModel.BodyClauses.ToList())
+            {
+                if (clause is WhereClause)
+                {
+                    var whereClause = (WhereClause)clause;
+                    whereClause.Predicate = visitor.Visit(whereClause.Predicate);
+                }
+                else if (clause is OrderByClause)
+                {
+                    var orderByClause = (OrderByClause)clause;
+                    foreach (Ordering order in orderByClause.Orderings)
+                    {
+                        order.Expression = visitor.Visit(order.Expression);
+                    }
+                }
+            }
+        }
 
-		protected override Expression VisitMember(MemberExpression expression)
-		{
-			if (expression.Expression != null &&
-				expression.Expression is MemberExpression &&
-				this.Configuration.ShouldMapType(expression.Expression.Type) &&
-				!expression.Expression.Type.IsEnum)
-			{
-				var subexpression = (MemberExpression)expression.Expression;
+        protected override Expression VisitMember(MemberExpression expression)
+        {
+            if (expression.Expression != null &&
+                expression.Expression is MemberExpression &&
+                this.Configuration.ShouldMapType(expression.Expression.Type) &&
+                !expression.Expression.Type.IsEnum)
+            {
+                var subexpression = (MemberExpression)expression.Expression;
 
-				string tableName = this.Configuration.GetTableName(subexpression.Type);
+                JoinClause existingJoin = null;
+                foreach (var clause in this.QueryModel.BodyClauses)
+                {
+                    if (clause is JoinClause)
+                    {
+                        var joinClause = (JoinClause)clause;
+                        // HACK: Uh, ToStrings?
+                        if (joinClause.OuterKeySelector.ToString() == subexpression.ToString())
+                        {
+                            existingJoin = joinClause;
+                            break;
+                        }
+                    }
+                }
 
-				bool foundTable = false;
+                if (existingJoin != null)
+                {
+                    // Change the expression to point to the previously existing join
+                    expression = MemberExpression.MakeMemberAccess(existingJoin.InnerKeySelector, expression.Member);
+                }
+                else
+                {
+                    // Get a new DatabaseQuery<T> by calling the Database.Query<T> method
+                    var databaseQueryMethod = typeof(Database).GetMethod("Query");
+                    var databaseQueryGeneric = databaseQueryMethod.MakeGenericMethod(subexpression.Type);
+                    var databaseQueryItem = databaseQueryGeneric.Invoke(this.Database, null);
 
-				// Check the source
-				if ((this.SelectStatement.Source is Table) &&
-					((Table)this.SelectStatement.Source).Name.Equals(tableName, StringComparison.InvariantCultureIgnoreCase))
-				{
-					foundTable = true;
-				}
+                    // Build the item name based on what's come before
+                    string itemName = string.Format("j_" + _newJoinNumber++);
 
-				// Check joins
-				if (!foundTable)
-				{
-					foreach (Join join in this.SelectStatement.SourceJoins)
-					{
-						if ((join.Left is Table) &&
-							((Table)join.Left).Name.Equals(tableName, StringComparison.InvariantCultureIgnoreCase))
-						{
-							foundTable = true;
-						}
-						if ((join.Right is Table) &&
-							((Table)join.Right).Name.Equals(tableName, StringComparison.InvariantCultureIgnoreCase))
-						{
-							foundTable = true;
-						}
-					}
-				}
+                    // Build the join sequences and keys
+                    Expression innerSequence = Expression.Constant(databaseQueryItem);
+                    Expression outerKeySelector = subexpression;
+                    Expression innerKeySelector = new QuerySourceReferenceExpression(new MainFromClause(itemName, subexpression.Type, innerSequence));
 
-				if (!foundTable)
-				{
-					// Add an outer join, so that we don't exclude any items from the source table
-					string leftTableName = this.Configuration.GetTableName(subexpression.Expression.Type);
-					string leftColumnName = this.Configuration.GetForeignKeyColumnName(subexpression.Expression.Type, subexpression.Type);
-					string rightTableName = this.Configuration.GetTableName(subexpression.Type);
-					string rightColumnName = this.Configuration.GetPrimaryKeyColumnName(subexpression.Type);
-					this.SelectStatement.SourceJoins.Add(new Join(rightTableName, leftTableName, leftColumnName, rightTableName, rightColumnName) { JoinType = JoinType.Left });
-				}
-			}
+                    // Create the join and add it to the new body clauses
+                    var newJoin = new JoinClause(itemName, expression.Expression.Type, innerSequence, outerKeySelector, innerKeySelector);
+                    this.QueryModel.BodyClauses.Add(newJoin);
 
-			return base.VisitMember(expression);
-		}
-	}
+                    // Change the expression to point to the newly created join
+                    expression = MemberExpression.MakeMemberAccess(innerKeySelector, expression.Member);
+                }
+            }
+
+            return base.VisitMember(expression);
+        }
+    }
 }

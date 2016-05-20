@@ -84,8 +84,12 @@ namespace Watsonia.Data.Sql
 		public override string ToString()
 		{
 			StringBuilder b = new StringBuilder();
-			b.Append(this.Left.ToString());
-			b.Append(" ");
+            // HACK: Should Left be able to be set to null?
+            if (this.Left != null)
+            {
+                b.Append(this.Left.ToString());
+                b.Append(" ");
+            }
 			b.Append(this.JoinType.ToString());
 			b.Append(" Join ");
 			b.Append(this.Right.ToString());

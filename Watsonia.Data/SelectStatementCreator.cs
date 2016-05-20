@@ -22,26 +22,33 @@ namespace Watsonia.Data
 			set;
 		}
 
+        private bool AliasTables
+        {
+            get;
+            set;
+        }
+
 		private Select SelectStatement
 		{
 			get;
 			set;
 		}
 
-		private SelectStatementCreator(DatabaseConfiguration configuration)
+		private SelectStatementCreator(DatabaseConfiguration configuration, bool aliasTables)
 		{
 			this.Configuration = configuration;
+            this.AliasTables = aliasTables;
 			this.SelectStatement = new Select();
 		}
 
-		public static Select Visit(QueryModel queryModel, DatabaseConfiguration configuration)
+		public static Select Visit(QueryModel queryModel, DatabaseConfiguration configuration, bool aliasTables)
 		{
-			var visitor = new SelectStatementCreator(configuration);
+			var visitor = new SelectStatementCreator(configuration, aliasTables);
 			queryModel.Accept(visitor);
 			return visitor.SelectStatement;
 		}
 
-		public static ConditionCollection VisitStatementConditions<T>(Expression<Func<T, bool>> conditions, DatabaseConfiguration configuration)
+		public static ConditionCollection VisitStatementConditions<T>(Expression<Func<T, bool>> conditions, DatabaseConfiguration configuration, bool aliasTables)
 		{
 			// Build a new query
 			var queryParser = QueryParser.CreateDefault();
@@ -54,7 +61,7 @@ namespace Watsonia.Data
 			QueryModel queryModel = queryParser.GetParsedQuery(expression);
 
 			// Get the conditions from the query model
-			var visitor = new SelectStatementCreator(configuration);
+			var visitor = new SelectStatementCreator(configuration, aliasTables);
 			visitor.SelectStatement = new Select();
 			queryModel.Accept(visitor);
 			return visitor.SelectStatement.Conditions;
@@ -64,7 +71,7 @@ namespace Watsonia.Data
 		{
 			if (selectClause.Selector.NodeType != ExpressionType.Extension)
 			{
-				StatementPart fields = StatementPartCreator.Visit(queryModel, selectClause.Selector, this.Configuration);
+				StatementPart fields = StatementPartCreator.Visit(queryModel, selectClause.Selector, this.Configuration, this.AliasTables);
 				this.SelectStatement.SourceFields.Add((SourceExpression)fields);
 			}
 
@@ -73,7 +80,9 @@ namespace Watsonia.Data
 
 		public override void VisitMainFromClause(MainFromClause fromClause, QueryModel queryModel)
 		{
-			this.SelectStatement.Source = new Table(this.Configuration.GetTableName(fromClause.ItemType));
+            string tableName = this.Configuration.GetTableName(fromClause.ItemType);
+            string alias = fromClause.ItemName.Replace("<generated>", "g");
+            this.SelectStatement.Source = new Table(tableName) { Alias = alias };
 
 			base.VisitMainFromClause(fromClause, queryModel);
 		}
@@ -82,18 +91,19 @@ namespace Watsonia.Data
 		{
 			// TODO: This seems heavy...
 			// TODO: And like it's only going to deal with certain types of joins
-			Table table = (Table)StatementPartCreator.Visit(queryModel, joinClause.InnerSequence, this.Configuration);
-			Column leftColumn = (Column)StatementPartCreator.Visit(queryModel, joinClause.OuterKeySelector, this.Configuration);
-			Column rightColumn = (Column)StatementPartCreator.Visit(queryModel, joinClause.InnerKeySelector, this.Configuration);
+			Table table = (Table)StatementPartCreator.Visit(queryModel, joinClause.InnerSequence, this.Configuration, this.AliasTables);
+            table.Alias = joinClause.ItemName.Replace("<generated>", "g");
+			Column leftColumn = (Column)StatementPartCreator.Visit(queryModel, joinClause.OuterKeySelector, this.Configuration, this.AliasTables);
+			Column rightColumn = (Column)StatementPartCreator.Visit(queryModel, joinClause.InnerKeySelector, this.Configuration, this.AliasTables);
 
-			this.SelectStatement.SourceJoins.Add(new Join(table, leftColumn, rightColumn));
+			this.SelectStatement.SourceJoins.Add(new Join(table, leftColumn, rightColumn) { JoinType = JoinType.Left });
 
 			base.VisitJoinClause(joinClause, queryModel, index);
 		}
 
 		public override void VisitOrdering(Ordering ordering, QueryModel queryModel, OrderByClause orderByClause, int index)
 		{
-			Column column = (Column)StatementPartCreator.Visit(queryModel, ordering.Expression, this.Configuration);
+			Column column = (Column)StatementPartCreator.Visit(queryModel, ordering.Expression, this.Configuration, this.AliasTables);
 
 			switch (ordering.OrderingDirection)
 			{
@@ -280,7 +290,7 @@ namespace Watsonia.Data
 
 		private void VisitPredicate(Expression predicate, QueryModel queryModel)
 		{
-			StatementPart whereStatement = StatementPartCreator.Visit(queryModel, predicate, this.Configuration);
+			StatementPart whereStatement = StatementPartCreator.Visit(queryModel, predicate, this.Configuration, this.AliasTables);
 			ConditionExpression condition;
 			if (whereStatement is ConditionExpression)
 			{

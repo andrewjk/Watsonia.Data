@@ -105,7 +105,7 @@ namespace Watsonia.Data
 			Update update = new Update();
 			update.Target = new Table(configuration.GetTableName(this.Target));
 			update.SetValues.AddRange(this.SetValues.Select(sv => new SetValue(new Column(configuration.GetColumnName(sv.Item1)), sv.Item2)));
-			update.Conditions.Add(SelectStatementCreator.VisitStatementConditions<T>(this.Conditions, configuration));
+			update.Conditions.Add(SelectStatementCreator.VisitStatementConditions<T>(this.Conditions, configuration, false));
 			return update;
 		}
 	}

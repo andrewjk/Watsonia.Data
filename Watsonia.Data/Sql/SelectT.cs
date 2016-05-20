@@ -230,7 +230,7 @@ namespace Watsonia.Data
 			select.Limit = this.Limit;
 			if (this.Conditions != null)
 			{
-				select.Conditions.Add(SelectStatementCreator.VisitStatementConditions<T>(this.Conditions, configuration));
+				select.Conditions.Add(SelectStatementCreator.VisitStatementConditions<T>(this.Conditions, configuration, true));
 			}
 			select.OrderByFields.AddRange(this.OrderByFields.Select(s => new OrderByExpression(configuration.GetColumnName(s.Item1), s.Item2)));
 			return select;

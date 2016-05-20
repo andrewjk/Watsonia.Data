@@ -29,22 +29,29 @@ namespace Watsonia.Data
 			set;
 		}
 
+        private bool AliasTables
+        {
+            get;
+            set;
+        }
+
 		private Stack<StatementPart> Stack
 		{
 			get;
 			set;
 		}
 
-		private StatementPartCreator(QueryModel queryModel, DatabaseConfiguration configuration)
+		private StatementPartCreator(QueryModel queryModel, DatabaseConfiguration configuration, bool aliasTables)
 		{
 			this.QueryModel = queryModel;
 			this.Configuration = configuration;
+            this.AliasTables = aliasTables;
 			this.Stack = new Stack<StatementPart>();
 		}
 
-		public static StatementPart Visit(QueryModel queryModel, Expression expression, DatabaseConfiguration configuration)
+		public static StatementPart Visit(QueryModel queryModel, Expression expression, DatabaseConfiguration configuration, bool aliasTables)
 		{
-			var visitor = new StatementPartCreator(queryModel, configuration);
+			var visitor = new StatementPartCreator(queryModel, configuration, aliasTables);
 			visitor.Visit(expression);
 			return visitor.Stack.Pop();
 		}
@@ -427,21 +434,43 @@ namespace Watsonia.Data
 			}
 			else if (expression.Member.MemberType == MemberTypes.Property)
 			{
-				PropertyInfo property = (PropertyInfo)expression.Member;
+                string tableName;
+                if (this.AliasTables)
+                {
+                    if (expression.Expression is UnaryExpression)
+                    {
+                        var source = (QuerySourceReferenceExpression)((UnaryExpression)expression.Expression).Operand;
+                        tableName = source.ReferencedQuerySource.ItemName.Replace("<generated>", "g");
+                    }
+                    else if (expression.Expression is MemberExpression)
+                    {
+                        var source = (QuerySourceReferenceExpression)((MemberExpression)expression.Expression).Expression;
+                        tableName = source.ReferencedQuerySource.ItemName.Replace("<generated>", "g");
+                    }
+                    else
+                    {
+                        var source = (QuerySourceReferenceExpression)expression.Expression;
+                        tableName = source.ReferencedQuerySource.ItemName.Replace("<generated>", "g");
+                    }
+                }
+                else
+                {
+                    // The property may be declared on a base type, so we can't just get DeclaringType
+                    // Instead, we get the type from the expression that was used to reference it
+                    Type propertyType = expression.Expression.Type;
 
-				// The property may be declared on a base type, so we can't just get DeclaringType
-				// Instead, we get the type from the expression that was used to reference it
-				Type propertyType = expression.Expression.Type;
+                    // HACK: Replace interfaces with actual tables
+                    //	There has to be a way of intercepting the QueryModel creation??
+                    if (propertyType.IsInterface)
+                    {
+                        propertyType = this.QueryModel.MainFromClause.ItemType;
+                    }
 
-				// HACK: Replace interfaces with actual tables
-				//	There has to be a way of intercepting the QueryModel creation??
-				if (propertyType.IsInterface)
-				{
-					propertyType = this.QueryModel.MainFromClause.ItemType;
-				}
+                    tableName = this.Configuration.GetTableName(propertyType);
+                }
 
-				string tableName = this.Configuration.GetTableName(propertyType);
-				string columnName = this.Configuration.GetColumnName(property);
+                var property = (PropertyInfo)expression.Member;
+                string columnName = this.Configuration.GetColumnName(property);
 				if (this.Configuration.IsRelatedItem(property))
 				{
 					// TODO: Should this be done here, or when converting the statement to SQL?
@@ -1147,7 +1176,7 @@ namespace Watsonia.Data
 
 		protected override Expression VisitQuerySourceReference(QuerySourceReferenceExpression expression)
 		{
-			string tableName = this.Configuration.GetTableName(expression.Type);
+            string tableName = expression.ReferencedQuerySource.ItemName.Replace("<generated>", "g");
 			string columnName = this.Configuration.GetPrimaryKeyColumnName(expression.Type);
 			var newColumn = new Column(tableName, columnName);
 			this.Stack.Push(newColumn);
