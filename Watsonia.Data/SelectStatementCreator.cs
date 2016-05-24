@@ -131,12 +131,14 @@ namespace Watsonia.Data
 			if (resultOperator is AnyResultOperator)
 			{
 				this.SelectStatement.IsAny = true;
+				this.SelectStatement.IsAggregate = true;
 				return;
 			}
 
 			if (resultOperator is AllResultOperator)
 			{
 				this.SelectStatement.IsAll = true;
+				this.SelectStatement.IsAggregate = true;
 				var predicate = ((AllResultOperator)resultOperator).Predicate;
 				if (predicate != null)
 				{
@@ -148,6 +150,7 @@ namespace Watsonia.Data
 			if (resultOperator is ContainsResultOperator)
 			{
 				this.SelectStatement.IsContains = true;
+				this.SelectStatement.IsAggregate = true;
 				var item = ((ContainsResultOperator)resultOperator).Item;
 				if (item != null && item.NodeType == ExpressionType.Constant)
 				{
@@ -190,6 +193,8 @@ namespace Watsonia.Data
 					this.SelectStatement.SourceFields[0] = new Aggregate(AggregateType.Count, (Field)this.SelectStatement.SourceFields[0]);
 				}
 
+				this.SelectStatement.IsAggregate = true;
+
 				return;
 			}
 
@@ -203,6 +208,7 @@ namespace Watsonia.Data
 
 				// Sum the first field
 				this.SelectStatement.SourceFields[0] = new Aggregate(AggregateType.Sum, (Field)this.SelectStatement.SourceFields[0]);
+				this.SelectStatement.IsAggregate = true;
 
 				return;
 			}
@@ -217,6 +223,7 @@ namespace Watsonia.Data
 
 				// Sum the first field
 				this.SelectStatement.SourceFields[0] = new Aggregate(AggregateType.Min, (Field)this.SelectStatement.SourceFields[0]);
+				this.SelectStatement.IsAggregate = true;
 
 				return;
 			}
@@ -231,6 +238,7 @@ namespace Watsonia.Data
 
 				// Sum the first field
 				this.SelectStatement.SourceFields[0] = new Aggregate(AggregateType.Max, (Field)this.SelectStatement.SourceFields[0]);
+				this.SelectStatement.IsAggregate = true;
 
 				return;
 			}

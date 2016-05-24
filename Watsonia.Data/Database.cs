@@ -542,6 +542,10 @@ namespace Watsonia.Data
 			string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(parentProperty);
 			string childIDColumnName = this.Configuration.GetPrimaryKeyColumnName(itemType);
 			Select selectChildItemIDs = Select.From(parentQuery.Source).Columns(foreignKeyColumnName);
+			if (parentQuery.SourceJoins.Count > 0)
+			{
+				selectChildItemIDs.SourceJoins.AddRange(parentQuery.SourceJoins);
+			}
 			if (parentQuery.Conditions.Count > 0)
 			{
 				selectChildItemIDs = selectChildItemIDs.Where(parentQuery.Conditions);

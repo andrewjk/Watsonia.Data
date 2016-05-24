@@ -33,7 +33,10 @@ namespace Watsonia.Data
 
             // Create the select statement
             Select select = SelectStatementCreator.Visit(queryModel, this.Database.Configuration, true);
-			select.IncludePaths.AddRange(this.Query.IncludePaths);
+			if (!select.IsAggregate)
+			{
+				select.IncludePaths.AddRange(this.Query.IncludePaths);
+			}
 
 			// Check whether we need to expand fields (if the select has no fields)
 			// This will avoid the case where selecting fields from multiple tables with non-unique field

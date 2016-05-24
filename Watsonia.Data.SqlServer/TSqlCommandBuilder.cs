@@ -350,7 +350,7 @@ namespace Watsonia.Data.SqlServer
 					this.VisitField(select.GroupByFields[i]);
 				}
 			}
-			if (select.OrderByFields.Count > 0)
+			if (select.OrderByFields.Count > 0 && !select.IsAggregate)
 			{
 				this.AppendNewLine(Indentation.Same);
 				this.CommandText.Append("ORDER BY ");

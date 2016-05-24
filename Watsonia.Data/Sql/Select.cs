@@ -140,6 +140,12 @@ namespace Watsonia.Data
 			set;
 		}
 
+		public bool IsAggregate
+		{
+			get;
+			set;
+		}
+
 		#endregion Properties
 
 		#region Constructor
