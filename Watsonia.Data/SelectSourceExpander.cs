@@ -46,29 +46,41 @@ namespace Watsonia.Data
             this.Configuration = configuration;
         }
 
-        public static void Visit(QueryModel queryModel, Database database, DatabaseConfiguration configuration)
-        {
-            var visitor = new SelectSourceExpander(queryModel, database, configuration);
-            // Copy the body clauses list as we will be modifying it
-            foreach (var clause in queryModel.BodyClauses.ToList())
-            {
-                if (clause is WhereClause)
-                {
-                    var whereClause = (WhereClause)clause;
-                    whereClause.Predicate = visitor.Visit(whereClause.Predicate);
-                }
-                else if (clause is OrderByClause)
-                {
-                    var orderByClause = (OrderByClause)clause;
-                    foreach (Ordering order in orderByClause.Orderings)
-                    {
-                        order.Expression = visitor.Visit(order.Expression);
-                    }
-                }
-            }
-        }
+		public static void Visit(QueryModel queryModel, Database database, DatabaseConfiguration configuration)
+		{
+			var visitor = new SelectSourceExpander(queryModel, database, configuration);
 
-        protected override Expression VisitMember(MemberExpression expression)
+			// Copy the body clauses list with ToList() as we will be modifying it
+			foreach (var clause in queryModel.BodyClauses.ToList())
+			{
+				if (clause is WhereClause)
+				{
+					var whereClause = (WhereClause)clause;
+					whereClause.Predicate = visitor.Visit(whereClause.Predicate);
+				}
+				else if (clause is OrderByClause)
+				{
+					var orderByClause = (OrderByClause)clause;
+					foreach (Ordering order in orderByClause.Orderings)
+					{
+						order.Expression = visitor.Visit(order.Expression);
+					}
+				}
+			}
+
+			// Do joins as well, after we've created any
+			// TODO: This needs recursion for joins that we create in this go around
+			foreach (var clause in queryModel.BodyClauses.ToList())
+			{
+				if (clause is JoinClause)
+				{
+					var joinClause = (JoinClause)clause;
+					joinClause.OuterKeySelector = visitor.Visit(joinClause.OuterKeySelector);
+				}
+			}
+		}
+
+		protected override Expression VisitMember(MemberExpression expression)
         {
             if (expression.Expression != null &&
                 expression.Expression is MemberExpression &&
@@ -113,8 +125,9 @@ namespace Watsonia.Data
                     Expression innerKeySelector = new QuerySourceReferenceExpression(new MainFromClause(itemName, subexpression.Type, innerSequence));
 
                     // Create the join and add it to the new body clauses
+					// Insert at the start in case we're creating multiple new joins for deep-nested expressions
                     var newJoin = new JoinClause(itemName, expression.Expression.Type, innerSequence, outerKeySelector, innerKeySelector);
-                    this.QueryModel.BodyClauses.Add(newJoin);
+                    this.QueryModel.BodyClauses.Insert(0, newJoin);
 
                     // Change the expression to point to the newly created join
                     expression = MemberExpression.MakeMemberAccess(innerKeySelector, expression.Member);
