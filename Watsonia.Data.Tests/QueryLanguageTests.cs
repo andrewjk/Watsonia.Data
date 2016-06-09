@@ -2129,7 +2129,7 @@ namespace Watsonia.Data.Tests
 
 #if DEBUG
 			string expected = TrimExtraWhiteSpace(baselines[baseline].Replace("\n\n", ") ("));
-			Select select = db.BuildSelectStatement(query);
+			SelectStatement select = db.BuildSelectStatement(query);
 
 			var builder = new SqlServer.TSqlCommandBuilder();
 			builder.VisitStatement(select, db.Configuration);

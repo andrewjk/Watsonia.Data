@@ -693,7 +693,7 @@ namespace Watsonia.Data.SqlServer
 						identityInsertCommand.CommandText = "SET IDENTITY_INSERT " + table.Name + " ON";
 						ExecuteSql(identityInsertCommand, doUpdate, script);
 
-						Insert insertData = Insert.Into(table.Name);
+						InsertStatement insertData = Insert.Into(table.Name);
 						foreach (string key in data.Keys)
 						{
 							insertData = insertData.Value(key, data[key]);

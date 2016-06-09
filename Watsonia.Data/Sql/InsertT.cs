@@ -9,51 +9,21 @@ using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
 {
-	public sealed class Insert<T> : Statement
+	public static partial class Insert
 	{
-		private readonly List<Tuple<PropertyInfo, object>> _setValues = new List<Tuple<PropertyInfo, object>>();
-
-		public override StatementPartType PartType
+		public static InsertStatement<T> Into<T>()
 		{
-			get
-			{
-				return StatementPartType.GenericInsert;
-			}
+			return new InsertStatement<T>();
 		}
 
-		public Type Target
+		public static InsertStatement<T> Value<T>(this InsertStatement<T> insert, Expression<Func<T, object>> property, object value)
 		{
-			get;
-			internal set;
-		}
-
-		public List<Tuple<PropertyInfo, object>> SetValues
-		{
-			get
-			{
-				return _setValues;
-			}
-		}
-
-		public Expression Conditions
-		{
-			get;
-			private set;
-		}
-
-		internal Insert()
-		{
-			this.Target = typeof(T);
-		}
-
-		public Insert<T> Value(Expression<Func<T, object>> property, object value)
-		{
-			this.SetValues.Add(new Tuple<PropertyInfo, object>(FuncToPropertyInfo(property), value));
-			return this;
+			insert.SetValues.Add(new Tuple<PropertyInfo, object>(FuncToPropertyInfo(property), value));
+			return insert;
 		}
 
 		// TODO: This should go into a helper
-		private static PropertyInfo FuncToPropertyInfo(Expression<Func<T, object>> selector)
+		private static PropertyInfo FuncToPropertyInfo<T>(Expression<Func<T, object>> selector)
 		{
 			if (selector.Body is MemberExpression)
 			{
@@ -72,14 +42,6 @@ namespace Watsonia.Data
 			}
 
 			throw new InvalidOperationException();
-		}
-
-		public Insert CreateStatement(DatabaseConfiguration configuration)
-		{
-			Insert insert = new Insert();
-			insert.Target = new Table(configuration.GetTableName(this.Target));
-			insert.SetValues.AddRange(this.SetValues.Select(sv => new SetValue(new Column(configuration.GetColumnName(sv.Item1)), sv.Item2)));
-			return insert;
 		}
 	}
 }

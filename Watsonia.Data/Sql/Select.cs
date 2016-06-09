@@ -6,513 +6,243 @@ using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
 {
-	public sealed class Select : Statement
+	public static partial class Select
 	{
-		#region Declarations
-
-		private readonly List<string> _includePaths = new List<string>();
-		private readonly List<Join> _sourceJoins = new List<Join>();
-		private readonly List<SourceExpression> _sourceFields = new List<SourceExpression>();
-		private readonly List<Table> _sourceFieldsFrom = new List<Table>();
-		private readonly ConditionCollection _conditions = new ConditionCollection();
-		private readonly List<OrderByExpression> _orderByFields = new List<OrderByExpression>();
-		private readonly List<Column> _groupByFields = new List<Column>();
-
-		#endregion Declarations
-
-		#region Properties
-
-		public override StatementPartType PartType
-		{
-			get
-			{
-				return StatementPartType.Select;
-			}
-		}
-
-		public StatementPart Source
-		{
-			get;
-			internal set;
-		}
-
-		public List<Join> SourceJoins
-		{
-			get
-			{
-				return _sourceJoins;
-			}
-		}
-
-		public List<string> IncludePaths
-		{
-			get
-			{
-				return _includePaths;
-			}
-		}
-
-		public List<SourceExpression> SourceFields
-		{
-			get
-			{
-				return _sourceFields;
-			}
-		}
-
-		public List<Table> SourceFieldsFrom
-		{
-			get
-			{
-				return _sourceFieldsFrom;
-			}
-		}
-
-		public bool IsAny
-		{
-			get;
-			set;
-		}
-
-		public bool IsAll
-		{
-			get;
-			set;
-		}
-
-		public bool IsContains
-		{
-			get;
-			set;
-		}
-
-		public StatementPart ContainsItem
-		{
-			get;
-			set;
-		}
-
-		public bool IsDistinct
-		{
-			get;
-			set;
-		}
-
-		public int StartIndex
-		{
-			get;
-			set;
-		}
-
-		public int Limit
-		{
-			get;
-			set;
-		}
-
-		public ConditionCollection Conditions
-		{
-			get
-			{
-				return _conditions;
-			}
-		}
-
-		public List<OrderByExpression> OrderByFields
-		{
-			get
-			{
-				return _orderByFields;
-			}
-		}
-
-		public List<Column> GroupByFields
-		{
-			get
-			{
-				return _groupByFields;
-			}
-		}
-
-		public string Alias
-		{
-			get;
-			set;
-		}
-
-		public bool IsAggregate
-		{
-			get;
-			set;
-		}
-
-		#endregion Properties
-
-		#region Constructor
-
-		internal Select()
-		{
-		}
-		
-		#endregion Constructor
-
-		#region Fluent Methods
-
-		public static Select From(string tableName)
+		public static SelectStatement From(string tableName)
 		{
 			return Select.From(new Table(tableName));
 		}
 
-		public static Select From(Table table)
+		public static SelectStatement From(Table table)
 		{
-			return new Select() { Source = table };
+			return new SelectStatement() { Source = table };
 		}
 
-		public static Select From(Join join)
+		public static SelectStatement From(Join join)
 		{
-			return new Select() { Source = join };
+			return new SelectStatement() { Source = join };
 		}
 
-		public static Select From(StatementPart part)
+		public static SelectStatement From(StatementPart part)
 		{
-			return new Select() { Source = part };
+			return new SelectStatement() { Source = part };
 		}
 
-		public static Select<T> From<T>()
+		public static SelectStatement Join(this SelectStatement select, string tableName, string leftTableName, string leftColumnName, string rightTableName, string rightColumnName)
 		{
-			return new Select<T>();
+			select.SourceJoins.Add(new Join(tableName, leftTableName, leftColumnName, rightTableName, rightColumnName));
+			return select;
 		}
 
-		public Select Join(string tableName, string leftTableName, string leftColumnName, string rightTableName, string rightColumnName)
+		public static SelectStatement Join(this SelectStatement select, JoinType joinType, string tableName, string leftTableName, string leftColumnName, string rightTableName, string rightColumnName)
 		{
-			this.SourceJoins.Add(new Join(tableName, leftTableName, leftColumnName, rightTableName, rightColumnName));
-			return this;
+			select.SourceJoins.Add(new Join(joinType, tableName, leftTableName, leftColumnName, rightTableName, rightColumnName));
+			return select;
 		}
 
-		public Select Join(JoinType joinType, string tableName, string leftTableName, string leftColumnName, string rightTableName, string rightColumnName)
+		public static SelectStatement Join(this SelectStatement select, Table table, Column leftColumn, Column rightColumn)
 		{
-			this.SourceJoins.Add(new Join(joinType, tableName, leftTableName, leftColumnName, rightTableName, rightColumnName));
-			return this;
+			select.SourceJoins.Add(new Join(table, leftColumn, rightColumn));
+			return select;
 		}
 
-		public Select Join(Table table, Column leftColumn, Column rightColumn)
+		public static SelectStatement Columns(this SelectStatement select, params string[] columnNames)
 		{
-			this.SourceJoins.Add(new Join(table, leftColumn, rightColumn));
-			return this;
+			select.SourceFields.AddRange(columnNames.Select(cn => new Column(cn)));
+			return select;
 		}
 
-		public Select Columns(params string[] columnNames)
+		public static SelectStatement Columns(this SelectStatement select, params Column[] columns)
 		{
-			this.SourceFields.AddRange(columnNames.Select(cn => new Column(cn)));
-			return this;
+			select.SourceFields.AddRange(columns);
+			return select;
 		}
 
-		public Select Columns(params Column[] columns)
+		public static SelectStatement ColumnsFrom(this SelectStatement select, params string[] tableNames)
 		{
-			this.SourceFields.AddRange(columns);
-			return this;
+			select.SourceFieldsFrom.AddRange(tableNames.Select(tn => new Table(tn)));
+			return select;
 		}
 
-		public Select ColumnsFrom(params string[] tableNames)
+		public static SelectStatement ColumnsFrom(this SelectStatement select, params Table[] tables)
 		{
-			this.SourceFieldsFrom.AddRange(tableNames.Select(tn => new Table(tn)));
-			return this;
+			select.SourceFieldsFrom.AddRange(tables);
+			return select;
 		}
 
-		public Select ColumnsFrom(params Table[] tables)
-		{
-			this.SourceFieldsFrom.AddRange(tables);
-			return this;
-		}
-
-		public Select Count(params string[] columnNames)
+		public static SelectStatement Count(this SelectStatement select, params string[] columnNames)
 		{
 			if (columnNames.Any())
 			{
-				this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Count, new Column(cn))));
+				select.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Count, new Column(cn))));
 			}
 			else
 			{
-				this.SourceFields.Add(new Aggregate(AggregateType.Count, new Column("*")));
+				select.SourceFields.Add(new Aggregate(AggregateType.Count, new Column("*")));
 			}
-			return this;
+			return select;
 		}
 
-		public Select Sum(params string[] columnNames)
+		public static SelectStatement Sum(this SelectStatement select, params string[] columnNames)
 		{
 			if (columnNames.Any())
 			{
-				this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Sum, new Column(cn))));
+				select.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Sum, new Column(cn))));
 			}
 			else
 			{
-				this.SourceFields.Add(new Aggregate(AggregateType.Sum, new Column("*")));
+				select.SourceFields.Add(new Aggregate(AggregateType.Sum, new Column("*")));
 			}
-			return this;
+			return select;
 		}
 
-		public Select Min(params string[] columnNames)
+		public static SelectStatement Min(this SelectStatement select, params string[] columnNames)
 		{
 			if (columnNames.Any())
 			{
-				this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Min, new Column(cn))));
+				select.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Min, new Column(cn))));
 			}
 			else
 			{
-				this.SourceFields.Add(new Aggregate(AggregateType.Min, new Column("*")));
+				select.SourceFields.Add(new Aggregate(AggregateType.Min, new Column("*")));
 			}
-			return this;
+			return select;
 		}
 
-		public Select Max(params string[] columnNames)
+		public static SelectStatement Max(this SelectStatement select, params string[] columnNames)
 		{
 			if (columnNames.Any())
 			{
-				this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Max, new Column(cn))));
+				select.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Max, new Column(cn))));
 			}
 			else
 			{
-				this.SourceFields.Add(new Aggregate(AggregateType.Max, new Column("*")));
+				select.SourceFields.Add(new Aggregate(AggregateType.Max, new Column("*")));
 			}
-			return this;
+			return select;
 		}
 
-		public Select Average(params string[] columnNames)
+		public static SelectStatement Average(this SelectStatement select, params string[] columnNames)
 		{
 			if (columnNames.Any())
 			{
-				this.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Average, new Column(cn))));
+				select.SourceFields.AddRange(columnNames.Select(cn => new Aggregate(AggregateType.Average, new Column(cn))));
 			}
 			else
 			{
-				this.SourceFields.Add(new Aggregate(AggregateType.Average, new Column("*")));
+				select.SourceFields.Add(new Aggregate(AggregateType.Average, new Column("*")));
 			}
-			return this;
+			return select;
 		}
 
-		public Select Distinct()
+		public static SelectStatement Distinct(this SelectStatement select)
 		{
-			this.IsDistinct = true;
-			return this;
+			select.IsDistinct = true;
+			return select;
 		}
 
-		public Select Skip(int startIndex)
+		public static SelectStatement Skip(this SelectStatement select, int startIndex)
 		{
-			this.StartIndex = startIndex;
-			return this;
+			select.StartIndex = startIndex;
+			return select;
 		}
 
-		public Select Take(int limit)
+		public static SelectStatement Take(this SelectStatement select, int limit)
 		{
-			this.Limit = limit;
-			return this;
+			select.Limit = limit;
+			return select;
 		}
 
-		public Select Where(string columnName, SqlOperator op, object value)
+		public static SelectStatement Where(this SelectStatement select, string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, value));
-			return this;
+			select.Conditions.Add(new Condition(columnName, op, value));
+			return select;
 		}
 
-		public Select WhereNot(string columnName, SqlOperator op, object value)
+		public static SelectStatement WhereNot(this SelectStatement select, string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, value) { Not = true });
-			return this;
+			select.Conditions.Add(new Condition(columnName, op, value) { Not = true });
+			return select;
 		}
 
-		public Select Where(params ConditionExpression[] conditions)
+		public static SelectStatement Where(this SelectStatement select, params ConditionExpression[] conditions)
 		{
-			this.Conditions.AddRange(conditions);
-			return this;
+			select.Conditions.AddRange(conditions);
+			return select;
 		}
 
-		public Select And(string columnName, SqlOperator op, object value)
+		public static SelectStatement And(this SelectStatement select, string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.And });
-			return this;
+			select.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.And });
+			return select;
 		}
 
-		public Select And(Condition condition)
+		public static SelectStatement And(this SelectStatement select, Condition condition)
 		{
 			condition.Relationship = ConditionRelationship.And;
-			this.Conditions.Add(condition);
-			return this;
+			select.Conditions.Add(condition);
+			return select;
 		}
 
-		public Select And(params Condition[] conditions)
+		public static SelectStatement And(this SelectStatement select, params Condition[] conditions)
 		{
-			this.Conditions.Add(new ConditionCollection(conditions) { Relationship = ConditionRelationship.And });
-			return this;
+			select.Conditions.Add(new ConditionCollection(conditions) { Relationship = ConditionRelationship.And });
+			return select;
 		}
 
-		public Select Or(string columnName, SqlOperator op, object value)
+		public static SelectStatement Or(this SelectStatement select, string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.Or });
-			return this;
+			select.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.Or });
+			return select;
 		}
 
-		public Select Or(Condition condition)
+		public static SelectStatement Or(this SelectStatement select, Condition condition)
 		{
 			condition.Relationship = ConditionRelationship.Or;
-			this.Conditions.Add(condition);
-			return this;
+			select.Conditions.Add(condition);
+			return select;
 		}
 
-		public Select Or(params Condition[] conditions)
+		public static SelectStatement Or(this SelectStatement select, params Condition[] conditions)
 		{
-			this.Conditions.Add(new ConditionCollection(conditions) { Relationship = ConditionRelationship.Or });
-			return this;
+			select.Conditions.Add(new ConditionCollection(conditions) { Relationship = ConditionRelationship.Or });
+			return select;
 		}
 
-		public Select OrderBy(params string[] columnNames)
+		public static SelectStatement OrderBy(this SelectStatement select, params string[] columnNames)
 		{
-			this.OrderByFields.AddRange(columnNames.Select(cn => new OrderByExpression(cn)));
-			return this;
+			select.OrderByFields.AddRange(columnNames.Select(cn => new OrderByExpression(cn)));
+			return select;
 		}
 
-		public Select OrderBy(params Column[] columns)
+		public static SelectStatement OrderBy(this SelectStatement select, params Column[] columns)
 		{
-			this.OrderByFields.AddRange(columns.Select(c => new OrderByExpression(c)));
-			return this;
+			select.OrderByFields.AddRange(columns.Select(c => new OrderByExpression(c)));
+			return select;
 		}
 
-		public Select OrderBy(params OrderByExpression[] columns)
+		public static SelectStatement OrderBy(this SelectStatement select, params OrderByExpression[] columns)
 		{
-			this.OrderByFields.AddRange(columns);
-			return this;
+			select.OrderByFields.AddRange(columns);
+			return select;
 		}
 
-		public Select OrderByDescending(params string[] columnNames)
+		public static SelectStatement OrderByDescending(this SelectStatement select, params string[] columnNames)
 		{
-			this.OrderByFields.AddRange(columnNames.Select(c => new OrderByExpression(c, OrderDirection.Descending)));
-			return this;
+			select.OrderByFields.AddRange(columnNames.Select(c => new OrderByExpression(c, OrderDirection.Descending)));
+			return select;
 		}
 
-		public Select GroupBy(params string[] columnNames)
+		public static SelectStatement GroupBy(this SelectStatement select, params string[] columnNames)
 		{
-			this.GroupByFields.AddRange(columnNames.Select(c => new Column(c)));
-			return this;
+			select.GroupByFields.AddRange(columnNames.Select(c => new Column(c)));
+			return select;
 		}
 
-		public Select Include(string path)
+		public static SelectStatement Include(this SelectStatement select, string path)
 		{
-			this.IncludePaths.Add(path);
-			return this;
+			select.IncludePaths.Add(path);
+			return select;
 		}
-
-		#endregion Fluent Methods
-
-		#region Methods
-
-		public override string ToString()
-		{
-			StringBuilder b = new StringBuilder();
-			b.Append("(");
-			b.Append("Select ");
-			if (this.IsAny)
-			{
-				b.Append("Any ");
-			}
-			if (this.IsAll)
-			{
-				b.Append("All ");
-			}
-			if (this.IsContains)
-			{
-				b.Append("Contains ");
-				b.Append(this.ContainsItem);
-				b.Append(" In ");
-			}
-			if (this.IsDistinct)
-			{
-				b.Append("Distinct ");
-			}
-			if (this.Limit == 1)
-			{
-				b.Append("(Row ");
-				b.Append(this.StartIndex);
-				b.Append(") ");
-			}
-			else if (this.StartIndex != 0 || this.Limit != 0)
-			{
-				b.Append("(Rows ");
-				b.Append(this.StartIndex);
-				if (this.Limit == 0)
-				{
-					b.Append("+");
-				}
-				else
-				{
-					b.Append("-");
-					b.Append(this.StartIndex + this.Limit);
-				}
-				b.Append(") ");
-			}
-			if (this.SourceFields.Count > 0)
-			{
-				b.Append(string.Join(", ", Array.ConvertAll(this.SourceFields.ToArray(), f => f.ToString())));
-			}
-			else
-			{
-				b.Append("* ");
-			}
-			b.AppendLine(" ");
-			if (this.Source != null)
-			{
-				b.Append("From ");
-				b.Append(this.Source.ToString());
-				b.AppendLine(" ");
-			}
-			// TODO: Do these ever get used?
-			if (this.SourceJoins.Count > 0)
-			{
-				b.Append("Join ");
-				b.Append(string.Join(" And ", Array.ConvertAll(this.SourceJoins.ToArray(), j => j.ToString())));
-				b.AppendLine(" ");
-			}
-			if (this.Conditions.Count > 0)
-			{
-				b.Append("Where ");
-				b.Append(this.Conditions.ToString());
-				b.AppendLine(" ");
-			}
-			if (this.GroupByFields.Count > 0)
-			{
-				b.Append("Group By ");
-				b.Append(string.Join(", ", Array.ConvertAll(this.GroupByFields.ToArray(), f => f.ToString())));
-			}
-			if (this.OrderByFields.Count > 0)
-			{
-				b.Append("Order By ");
-				b.Append(string.Join(", ", Array.ConvertAll(this.OrderByFields.ToArray(), f => f.ToString())));
-			}
-			b.Append(")");
-			if (!string.IsNullOrEmpty(this.Alias))
-			{
-				b.Append(" As ");
-				b.Append(this.Alias);
-			}
-			return b.ToString();
-		}
-
-		//public Select Clone()
-		//{
-		//	var clone = new Select();
-
-		//	clone.Source = this.Source;
-		//	////clone.IncludePaths.AddRange(this.IncludePaths);
-		//	clone.SourceFields.AddRange(this.SourceFields);
-		//	clone.IsDistinct = this.IsDistinct;
-		//	clone.SelectStart = this.SelectStart;
-		//	clone.SelectLimit = this.SelectLimit;
-		//	clone.Conditions.AddRange(this.Conditions);
-		//	clone.OrderByFields.AddRange(this.OrderByFields);
-		//	clone.GroupByFields.AddRange(this.GroupByFields);
-		//	clone.Alias = this.Alias;
-
-		//	return clone;
-		//}
-
-		#endregion Methods
 	}
 }

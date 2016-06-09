@@ -20,7 +20,7 @@ namespace Watsonia.Data
             set;
         }
 
-        private Select SelectStatement
+        private SelectStatement Select
         {
             get;
             set;
@@ -32,16 +32,16 @@ namespace Watsonia.Data
             set;
         }
 
-        private SelectFieldExpander(QueryModel queryModel, Select selectStatement, DatabaseConfiguration configuration)
+        private SelectFieldExpander(QueryModel queryModel, SelectStatement select, DatabaseConfiguration configuration)
         {
             this.QueryModel = queryModel;
-            this.SelectStatement = selectStatement;
+            this.Select = select;
             this.Configuration = configuration;
         }
 
-        public static void Visit(QueryModel queryModel, Select selectStatement, DatabaseConfiguration configuration)
+        public static void Visit(QueryModel queryModel, SelectStatement select, DatabaseConfiguration configuration)
         {
-            var visitor = new SelectFieldExpander(queryModel, selectStatement, configuration);
+            var visitor = new SelectFieldExpander(queryModel, select, configuration);
             queryModel.Accept(visitor);
         }
 
@@ -88,7 +88,7 @@ namespace Watsonia.Data
                 string tableName = source.ReferencedQuerySource.ItemName.Replace("<generated>", "g");
                 foreach (string columnName in columnNames)
                 {
-                    this.SelectStatement.SourceFields.Add(new Column(tableName, columnName));
+                    this.Select.SourceFields.Add(new Column(tableName, columnName));
                 }
             }
 

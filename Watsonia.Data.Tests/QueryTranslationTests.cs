@@ -2128,7 +2128,7 @@ namespace Watsonia.Data.Tests
 			}
 
 			string expected = "(" + TrimExtraWhiteSpace(baselines[baseline].Replace("\n\n", ") (")) + ")";
-			Select select = db.BuildSelectStatement(query);
+			SelectStatement select = db.BuildSelectStatement(query);
 			string actual = TrimExtraWhiteSpace(select.ToString());
 
 			Assert.AreEqual(expected, actual);

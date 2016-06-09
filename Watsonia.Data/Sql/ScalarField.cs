@@ -32,7 +32,7 @@ namespace Watsonia.Data.Sql
 		/// <value>
 		/// The select statement.
 		/// </value>
-		public Select Select
+		public SelectStatement Select
 		{
 			get;
 			internal set;
@@ -49,7 +49,7 @@ namespace Watsonia.Data.Sql
 		/// Initializes a new instance of the <see cref="ScalarField"/> class.
 		/// </summary>
 		/// <param name="select">The select statement.</param>
-		public ScalarField(Select select)
+		public ScalarField(SelectStatement select)
 		{
 			this.Select = select;
 		}

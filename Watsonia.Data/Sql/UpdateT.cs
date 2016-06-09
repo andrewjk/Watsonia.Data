@@ -9,77 +9,42 @@ using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
 {
-	public sealed class Update<T> : Statement
+	public static partial class Update
 	{
-		private readonly List<Tuple<PropertyInfo, object>> _setValues = new List<Tuple<PropertyInfo, object>>();
-
-		public override StatementPartType PartType
+		public static UpdateStatement<T> Table<T>()
 		{
-			get
-			{
-				return StatementPartType.GenericUpdate;
-			}
+			return new UpdateStatement<T>() { Target = typeof(T) };
 		}
 
-		public Type Target
+		public static UpdateStatement<T> Set<T>(this UpdateStatement<T> update, Expression<Func<T, object>> property, object value)
 		{
-			get;
-			internal set;
+			update.SetValues.Add(new Tuple<PropertyInfo, object>(FuncToPropertyInfo(property), value));
+			return update;
 		}
 
-		public List<Tuple<PropertyInfo, object>> SetValues
+		public static UpdateStatement<T> Where<T>(this UpdateStatement<T> update, Expression<Func<T, bool>> condition)
 		{
-			get
-			{
-				return _setValues;
-			}
+			update.Conditions = condition;
+			return update;
 		}
 
-		public Expression<Func<T, bool>> Conditions
+		public static UpdateStatement<T> And<T>(this UpdateStatement<T> update, Expression<Func<T, bool>> condition)
 		{
-			get;
-			private set;
-		}
-
-		internal Update()
-		{
-			this.Target = typeof(T);
-		}
-
-		public static Update<T> Table()
-		{
-			return new Update<T>() { Target = typeof(T) };
-		}
-
-		public Update<T> Set(Expression<Func<T, object>> property, object value)
-		{
-			this.SetValues.Add(new Tuple<PropertyInfo, object>(FuncToPropertyInfo(property), value));
-			return this;
-		}
-
-		public Update<T> Where(Expression<Func<T, bool>> condition)
-		{
-			this.Conditions = condition;
-			return this;
-		}
-
-		public Update<T> And(Expression<Func<T, bool>> condition)
-		{
-			Expression combined = this.Conditions.Body.AndAlso(condition.Body);
+			Expression combined = update.Conditions.Body.AndAlso(condition.Body);
 			combined = AnonymousParameterReplacer.Replace(combined, condition.Parameters);
-			this.Conditions = Expression.Lambda<Func<T, bool>>(combined, condition.Parameters);
-			return this;
+			update.Conditions = Expression.Lambda<Func<T, bool>>(combined, condition.Parameters);
+			return update;
 		}
 
-		public Update<T> Or(Expression<Func<T, bool>> condition)
+		public static UpdateStatement<T> Or<T>(this UpdateStatement<T> update, Expression<Func<T, bool>> condition)
 		{
-			Expression combined = this.Conditions.Body.OrElse(condition.Body);
+			Expression combined = update.Conditions.Body.OrElse(condition.Body);
 			combined = AnonymousParameterReplacer.Replace(combined, condition.Parameters);
-			this.Conditions = Expression.Lambda<Func<T, bool>>(combined, condition.Parameters);
-			return this;
+			update.Conditions = Expression.Lambda<Func<T, bool>>(combined, condition.Parameters);
+			return update;
 		}
 
-		private static PropertyInfo FuncToPropertyInfo(Expression<Func<T, object>> selector)
+		private static PropertyInfo FuncToPropertyInfo<T>(Expression<Func<T, object>> selector)
 		{
 			if (selector.Body is MemberExpression)
 			{
@@ -98,15 +63,6 @@ namespace Watsonia.Data
 			}
 
 			throw new InvalidOperationException();
-		}
-
-		public Update CreateStatement(DatabaseConfiguration configuration)
-		{
-			Update update = new Update();
-			update.Target = new Table(configuration.GetTableName(this.Target));
-			update.SetValues.AddRange(this.SetValues.Select(sv => new SetValue(new Column(configuration.GetColumnName(sv.Item1)), sv.Item2)));
-			update.Conditions.Add(SelectStatementCreator.VisitStatementConditions<T>(this.Conditions, configuration, false));
-			return update;
 		}
 	}
 }

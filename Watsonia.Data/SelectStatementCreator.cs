@@ -28,7 +28,7 @@ namespace Watsonia.Data
             set;
         }
 
-		private Select SelectStatement
+		private SelectStatement SelectStatement
 		{
 			get;
 			set;
@@ -38,10 +38,10 @@ namespace Watsonia.Data
 		{
 			this.Configuration = configuration;
             this.AliasTables = aliasTables;
-			this.SelectStatement = new Select();
+			this.SelectStatement = new SelectStatement();
 		}
 
-		public static Select Visit(QueryModel queryModel, DatabaseConfiguration configuration, bool aliasTables)
+		public static SelectStatement Visit(QueryModel queryModel, DatabaseConfiguration configuration, bool aliasTables)
 		{
 			var visitor = new SelectStatementCreator(configuration, aliasTables);
 			queryModel.Accept(visitor);
@@ -62,7 +62,7 @@ namespace Watsonia.Data
 
 			// Get the conditions from the query model
 			var visitor = new SelectStatementCreator(configuration, aliasTables);
-			visitor.SelectStatement = new Select();
+			visitor.SelectStatement = new SelectStatement();
 			queryModel.Accept(visitor);
 			return visitor.SelectStatement.Conditions;
 		}

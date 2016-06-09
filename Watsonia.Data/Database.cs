@@ -228,7 +228,7 @@ namespace Watsonia.Data
 			return query;
 		}
 
-		internal Select BuildSelectStatement(Expression expression)
+		internal SelectStatement BuildSelectStatement(Expression expression)
 		{
 			// For testing
 			var queryParser = QueryParser.CreateDefault();
@@ -354,16 +354,16 @@ namespace Watsonia.Data
 		/// Loads a collection of items from the database using the supplied query.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="query">The query.</param>
+		/// <param name="select">The select statement.</param>
 		/// <returns></returns>
-		public IList<T> LoadCollection<T>(Select query)
+		public IList<T> LoadCollection<T>(SelectStatement select)
 		{
-			OnBeforeLoadCollection(query);
+			OnBeforeLoadCollection(select);
 
 			var result = new ObservableCollection<T>();
 
 			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration))
+			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
@@ -377,9 +377,9 @@ namespace Watsonia.Data
 				}
 				OnAfterExecuteCommand(command);
 
-				if (result.Count > 0 && query.IncludePaths.Count > 0)
+				if (result.Count > 0 && select.IncludePaths.Count > 0)
 				{
-					LoadIncludePaths(query, result);
+					LoadIncludePaths(select, result);
 				}
 			}
 
@@ -388,14 +388,14 @@ namespace Watsonia.Data
 			return result;
 		}
 
-		private IList<IDynamicProxy> LoadCollection(Select query, Type itemType)
+		private IList<IDynamicProxy> LoadCollection(SelectStatement select, Type itemType)
 		{
-			OnBeforeLoadCollection(query);
+			OnBeforeLoadCollection(select);
 
 			var result = new ObservableCollection<IDynamicProxy>();
 
 			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration))
+			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
@@ -412,9 +412,9 @@ namespace Watsonia.Data
 				}
 				OnAfterExecuteCommand(command);
 
-				if (result.Count > 0 && query.IncludePaths.Count > 0)
+				if (result.Count > 0 && select.IncludePaths.Count > 0)
 				{
-					LoadIncludePaths(query, result);
+					LoadIncludePaths(select, result);
 				}
 			}
 
@@ -423,7 +423,7 @@ namespace Watsonia.Data
 			return result;
 		}
 
-		private void LoadIncludePaths<T>(Select query, IList<T> result)
+		private void LoadIncludePaths<T>(SelectStatement select, IList<T> result)
 		{
 			Type parentType = typeof(T);
 			if (typeof(IDynamicProxy).IsAssignableFrom(parentType))
@@ -435,7 +435,7 @@ namespace Watsonia.Data
 			// E.g. for "Books.Subject" on Author we need to remove "Books" if it's been specified
 			// Otherwise the books collection would be loaded for "Books" AND "Books.Subject"
 			List<string> pathsToRemove = new List<string>();
-			foreach (string path in query.IncludePaths)
+			foreach (string path in select.IncludePaths)
 			{
 				string[] pathParts = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
 				for (int i = 0; i < pathParts.Length - 1; i++)
@@ -445,21 +445,21 @@ namespace Watsonia.Data
 				}
 			}
 
-			IEnumerable<string> newPaths = query.IncludePaths.Except(pathsToRemove);
+			IEnumerable<string> newPaths = select.IncludePaths.Except(pathsToRemove);
 			foreach (string path in newPaths)
 			{
-				LoadIncludePath(query, result, parentType, path);
+				LoadIncludePath(select, result, parentType, path);
 			}
 		}
 
-		private void LoadIncludePath<T>(Select parentQuery, IList<T> parentCollection, Type parentType, string path)
+		private void LoadIncludePath<T>(SelectStatement parentQuery, IList<T> parentCollection, Type parentType, string path)
 		{
 			string firstProperty = path.Contains(".") ? path.Substring(0, path.IndexOf(".")) : path;
 			PropertyInfo pathProperty = parentType.GetProperty(firstProperty);
 			LoadCompoundChildItems(parentQuery, parentCollection, path, parentType, pathProperty);
 		}
 
-		private void LoadCompoundChildItems<T>(Select parentQuery, IList<T> parentCollection, string path, Type parentType, PropertyInfo pathProperty)
+		private void LoadCompoundChildItems<T>(SelectStatement parentQuery, IList<T> parentCollection, string path, Type parentType, PropertyInfo pathProperty)
 		{
 			// Create arrays for each path and its corresponding properties and collections
 			string[] pathParts = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
@@ -479,7 +479,7 @@ namespace Watsonia.Data
 
 			// Build a statement to use as a subquery to get the IDs of the parent items
 			Type itemType;
-			Select childQuery;
+			SelectStatement childQuery;
 			if (this.Configuration.IsRelatedCollection(pathProperty))
 			{
 				itemType = TypeHelper.GetElementType(pathProperty.PropertyType);
@@ -497,7 +497,7 @@ namespace Watsonia.Data
 
 			// Load the first child items
 			// E.g. SELECT * FROM Book WHERE AuthorID IN (SELECT ID FROM Author WHERE LastName LIKE 'A%')
-			MethodInfo loadCollectionMethod = this.GetType().GetMethod("LoadCollection", new Type[] { typeof(Select) });
+			MethodInfo loadCollectionMethod = this.GetType().GetMethod("LoadCollection", new Type[] { typeof(SelectStatement) });
 			MethodInfo genericLoadCollectionMethod = loadCollectionMethod.MakeGenericMethod(itemType);
 			object childCollection = genericLoadCollectionMethod.Invoke(this, new object[] { childQuery });
 			paths[0].ChildCollection = (IEnumerable)childCollection;
@@ -520,28 +520,28 @@ namespace Watsonia.Data
 			SetChildItems(parentCollection, parentType, paths, 0);
 		}
 
-		private Select GetChildCollectionSubquery(Select parentQuery, Type parentType, Type itemType)
+		private SelectStatement GetChildCollectionSubquery(SelectStatement parentQuery, Type parentType, Type itemType)
 		{
 			// Build a statement to use as a subquery to get the IDs of the parent items
 			string parentIDColumnName = this.Configuration.GetPrimaryKeyColumnName(parentType);
-			Select selectParentItemIDs = Select.From(parentQuery.Source).Columns(parentIDColumnName).Where(parentQuery.Conditions);
+			SelectStatement selectParentItemIDs = Select.From(parentQuery.Source).Columns(parentIDColumnName).Where(parentQuery.Conditions);
 
 			// Build a statement to get the child items
 			Type itemProxyType = DynamicProxyFactory.GetDynamicProxyType(itemType, this);
 			string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(itemType, parentType);
 			string childTableName = this.Configuration.GetTableName(itemType);
-			Select childQuery = Select.From(childTableName).Where(
+			SelectStatement childQuery = Select.From(childTableName).Where(
 				new Condition(foreignKeyColumnName, SqlOperator.IsIn, selectParentItemIDs));
 
 			return childQuery;
 		}
 
-		private Select GetChildItemSubquery(Select parentQuery, PropertyInfo parentProperty, Type itemType)
+		private SelectStatement GetChildItemSubquery(SelectStatement parentQuery, PropertyInfo parentProperty, Type itemType)
 		{
 			// Build a statement to use as a subquery to get the IDs of the parent items
 			string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(parentProperty);
 			string childIDColumnName = this.Configuration.GetPrimaryKeyColumnName(itemType);
-			Select selectChildItemIDs = Select.From(parentQuery.Source).Columns(foreignKeyColumnName);
+			SelectStatement selectChildItemIDs = Select.From(parentQuery.Source).Columns(foreignKeyColumnName);
 			if (parentQuery.SourceJoins.Count > 0)
 			{
 				selectChildItemIDs.SourceJoins.AddRange(parentQuery.SourceJoins);
@@ -554,13 +554,13 @@ namespace Watsonia.Data
 			// Build a statement to get the child items
 			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(itemType);
 			string childTableName = this.Configuration.GetTableName(itemType);
-			Select childQuery = Select.From(childTableName).Where(
+			SelectStatement childQuery = Select.From(childTableName).Where(
 				new Condition(primaryKeyColumnName, SqlOperator.IsIn, selectChildItemIDs));
 
 			return childQuery;
 		}
 
-		private IEnumerable LoadChildCollection(Select childQuery, Type propertyParentType, PropertyInfo pathProperty, MethodInfo loadCollectionMethod)
+		private IEnumerable LoadChildCollection(SelectStatement childQuery, Type propertyParentType, PropertyInfo pathProperty, MethodInfo loadCollectionMethod)
 		{
 			childQuery.SourceFields.Clear();
 
@@ -669,15 +669,15 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
-		/// Loads a collection of items from the database using the supplied query.
+		/// Loads a collection of items from the database using the supplied select statement.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="query">The query.</param>
+		/// <param name="select">The select statement.</param>
 		/// <returns></returns>
-		public IList<T> LoadCollection<T>(Select<T> query)
+		public IList<T> LoadCollection<T>(SelectStatement<T> select)
 		{
-			Select select = query.CreateStatement(this.Configuration);
-			return LoadCollection<T>(select);
+			SelectStatement select2 = select.CreateStatement(this.Configuration);
+			return LoadCollection<T>(select2);
 		}
 
 		/// <summary>
@@ -752,13 +752,13 @@ namespace Watsonia.Data
 			return newItem;
 		}
 
-		private void RefreshCollection(Select query, Type elementType, IList collection)
+		private void RefreshCollection(SelectStatement select, Type elementType, IList collection)
 		{
 			var result = new ObservableCollection<IDynamicProxy>();
 
 			// Load items from the database
 			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration))
+			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
@@ -810,16 +810,16 @@ namespace Watsonia.Data
 		/// <summary>
 		/// Loads the first returned value from the database using the supplied query.
 		/// </summary>
-		/// <param name="query">The query.</param>
+		/// <param name="select">The select statement.</param>
 		/// <returns></returns>
-		public object LoadValue(Select query)
+		public object LoadValue(SelectStatement select)
 		{
-			OnBeforeLoadValue(query);
+			OnBeforeLoadValue(select);
 
 			object value;
 
 			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration))
+			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
@@ -835,12 +835,12 @@ namespace Watsonia.Data
 		/// <summary>
 		/// Loads the first returned value from the database using the supplied query.
 		/// </summary>
-		/// <param name="query">The query.</param>
+		/// <param name="select">The select statement.</param>
 		/// <returns></returns>
-		public object LoadValue<T>(Select<T> query)
+		public object LoadValue<T>(SelectStatement<T> select)
 		{
-			Select select = query.CreateStatement(this.Configuration);
-			return LoadValue(select);
+			SelectStatement select2 = select.CreateStatement(this.Configuration);
+			return LoadValue(select2);
 		}
 
 		/// <summary>
@@ -1077,7 +1077,7 @@ namespace Watsonia.Data
 			// TODO: Get rid of this, it's just to stop properties like Database and HasChanges
 			bool doUpdate = false;
 
-			Update update = Update.Table(tableName);
+			UpdateStatement update = Update.Table(tableName);
 			foreach (PropertyInfo property in this.Configuration.PropertiesToLoadAndSave(proxy.GetType()))
 			{
 				if (property.Name != primaryKeyColumnName && proxy.StateTracker.ChangedFields.Contains(property.Name))
@@ -1495,13 +1495,13 @@ namespace Watsonia.Data
 		/// <summary>
 		/// Called at the start of LoadCollection.
 		/// </summary>
-		/// <param name="statement">The statement that will be used to load the collection.</param>
-		protected virtual void OnBeforeLoadCollection(Select statement)
+		/// <param name="select">The statement that will be used to load the collection.</param>
+		protected virtual void OnBeforeLoadCollection(SelectStatement select)
 		{
 			var ev = BeforeLoadCollection;
 			if (ev != null)
 			{
-				ev(this, new EventArgs<Select>(statement));
+				ev(this, new EventArgs<SelectStatement>(select));
 			}
 		}
 
@@ -1521,13 +1521,13 @@ namespace Watsonia.Data
 		/// <summary>
 		/// Called at the start of LoadValue.
 		/// </summary>
-		/// <param name="statement">The statement that will be used to load the value.</param>
-		protected virtual void OnBeforeLoadValue(Select statement)
+		/// <param name="select">The statement that will be used to load the value.</param>
+		protected virtual void OnBeforeLoadValue(SelectStatement select)
 		{
 			var ev = BeforeLoadValue;
 			if (ev != null)
 			{
-				ev(this, new EventArgs<Select>(statement));
+				ev(this, new EventArgs<SelectStatement>(select));
 			}
 		}
 

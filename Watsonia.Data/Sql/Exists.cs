@@ -13,7 +13,7 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public Select Select
+		public SelectStatement Select
 		{
 			get;
 			set;

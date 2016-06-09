@@ -9,65 +9,32 @@ using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
 {
-	public sealed class Delete<T> : Statement
+	public static partial class Delete
 	{
-		public override StatementPartType PartType
+		public static DeleteStatement<T> From<T>()
 		{
-			get
-			{
-				return StatementPartType.GenericDelete;
-			}
+			return new DeleteStatement<T>() { Target = typeof(T) };
 		}
 
-		public Type Target
+		public static DeleteStatement<T> Where<T>(this DeleteStatement<T> delete, Expression<Func<T, bool>> condition)
 		{
-			get;
-			internal set;
+			delete.Conditions = condition;
+			return delete;
 		}
 
-		public Expression<Func<T, bool>> Conditions
+		public static DeleteStatement<T> And<T>(this DeleteStatement<T> delete, Expression<Func<T, bool>> condition)
 		{
-			get;
-			private set;
-		}
-
-		internal Delete()
-		{
-			this.Target = typeof(T);
-		}
-
-		public static Delete<T> From()
-		{
-			return new Delete<T>() { Target = typeof(T) };
-		}
-
-		public Delete<T> Where(Expression<Func<T, bool>> condition)
-		{
-			this.Conditions = condition;
-			return this;
-		}
-
-		public Delete<T> And(Expression<Func<T, bool>> condition)
-		{
-			Expression combined = this.Conditions.Body.AndAlso(condition.Body);
+			Expression combined = delete.Conditions.Body.AndAlso(condition.Body);
 			combined = AnonymousParameterReplacer.Replace(combined, condition.Parameters);
-			this.Conditions = Expression.Lambda<Func<T, bool>>(combined, condition.Parameters);
-			return this;
+			delete.Conditions = Expression.Lambda<Func<T, bool>>(combined, condition.Parameters);
+			return delete;
 		}
 
-		public Delete<T> Or(Expression<Func<T, bool>> condition)
+		public static DeleteStatement<T> Or<T>(this DeleteStatement<T> delete, Expression<Func<T, bool>> condition)
 		{
-			Expression combined = this.Conditions.Body.OrElse(condition.Body);
+			Expression combined = delete.Conditions.Body.OrElse(condition.Body);
 			combined = AnonymousParameterReplacer.Replace(combined, condition.Parameters);
-			this.Conditions = Expression.Lambda<Func<T, bool>>(combined, condition.Parameters);
-			return this;
-		}
-
-		public Delete CreateStatement(DatabaseConfiguration configuration)
-		{
-			Delete delete = new Delete();
-			delete.Target = new Table(configuration.GetTableName(this.Target));
-			delete.Conditions.Add(SelectStatementCreator.VisitStatementConditions<T>(this.Conditions, configuration, false));
+			delete.Conditions = Expression.Lambda<Func<T, bool>>(combined, condition.Parameters);
 			return delete;
 		}
 	}

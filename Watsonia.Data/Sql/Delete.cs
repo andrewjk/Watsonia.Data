@@ -5,85 +5,57 @@ using System.Linq;
 
 namespace Watsonia.Data
 {
-	public sealed class Delete : Statement
+	public static partial class Delete
 	{
-		private readonly ConditionCollection _conditions = new ConditionCollection();
-
-		public override StatementPartType PartType
-		{
-			get
-			{
-				return StatementPartType.Delete;
-			}
-		}
-
-		public Table Target
-		{
-			get;
-			set;
-		}
-
-		public ConditionCollection Conditions
-		{
-			get
-			{
-				return _conditions;
-			}
-		}
-
-		internal Delete()
-		{
-		}
-
-		public static Delete From(string tableName)
+		public static DeleteStatement From(string tableName)
 		{
 			return Delete.From(new Table(tableName));
 		}
 
-		public static Delete From(Table table)
+		public static DeleteStatement From(Table table)
 		{
-			return new Delete() { Target = table };
+			return new DeleteStatement() { Target = table };
 		}
 
-		public static Delete<T> From<T>()
-		{
-			return new Delete<T>();
-		}
+		//public static Delete<T> From<T>()
+		//{
+		//	return new Delete<T>();
+		//}
 
-		public Delete Where(bool all)
+		public static DeleteStatement Where(this DeleteStatement delete, bool all)
 		{
 			if (all)
 			{
 				Condition newCondition = new Condition();
 				newCondition.Field = new ConstantPart(true);
 				newCondition.Value = new ConstantPart(true);
-				this.Conditions.Add(newCondition);
+				delete.Conditions.Add(newCondition);
 			}
-			return this;
+			return delete;
 		}
 
-		public Delete Where(string columnName, SqlOperator op, object value)
+		public static DeleteStatement Where(this DeleteStatement delete, string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, value));
-			return this;
+			delete.Conditions.Add(new Condition(columnName, op, value));
+			return delete;
 		}
 
-		public Delete WhereNot(string columnName, SqlOperator op, object value)
+		public static DeleteStatement WhereNot(this DeleteStatement delete, string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, value) { Not = true });
-			return this;
+			delete.Conditions.Add(new Condition(columnName, op, value) { Not = true });
+			return delete;
 		}
 
-		public Delete And(string columnName, SqlOperator op, object value)
+		public static DeleteStatement And(this DeleteStatement delete, string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.And });
-			return this;
+			delete.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.And });
+			return delete;
 		}
 
-		public Delete Or(string columnName, SqlOperator op, object value)
+		public static DeleteStatement Or(this DeleteStatement delete, string columnName, SqlOperator op, object value)
 		{
-			this.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.Or });
-			return this;
+			delete.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.Or });
+			return delete;
 		}
 	}
 }

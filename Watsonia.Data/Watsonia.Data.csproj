@@ -91,6 +91,8 @@
     <Compile Include="DefaultDateTimeValueAttribute.cs" />
     <Compile Include="EventArgs.cs" />
     <Compile Include="SelectFieldExpander.cs" />
+    <Compile Include="Sql\DeleteStatement.cs" />
+    <Compile Include="Sql\DeleteStatementT.cs" />
     <Compile Include="Sql\FieldCollection.cs" />
     <Compile Include="Sql\ExpressionExtensions.cs" />
     <Compile Include="IDatabaseQuery.cs" />
@@ -99,6 +101,12 @@
     <Compile Include="MappedView.cs" />
     <Compile Include="SelectStatementCreator.cs" />
     <Compile Include="SelectSourceExpander.cs" />
+    <Compile Include="Sql\InsertStatement.cs" />
+    <Compile Include="Sql\InsertStatementT.cs" />
+    <Compile Include="Sql\SelectStatement.cs" />
+    <Compile Include="Sql\SelectStatementT.cs" />
+    <Compile Include="Sql\UpdateStatement.cs" />
+    <Compile Include="Sql\UpdateStatementT.cs" />
     <Compile Include="StatementPartCreator.cs" />
     <Compile Include="MappedColumn.cs" />
     <Compile Include="MappedRelationship.cs" />

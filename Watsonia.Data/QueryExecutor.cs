@@ -25,14 +25,14 @@ namespace Watsonia.Data
 			this.Database = database;
 		}
 
-		internal Select BuildSelectStatement(QueryModel queryModel)
+		internal SelectStatement BuildSelectStatement(QueryModel queryModel)
 		{
             // Add joins for fields in tables that haven't been joined explicitly
             // e.g. when using something like DB.Query<T>().Where(x => x.Item.Property == y)
             SelectSourceExpander.Visit(queryModel, this.Database, this.Database.Configuration);
 
             // Create the select statement
-            Select select = SelectStatementCreator.Visit(queryModel, this.Database.Configuration, true);
+            SelectStatement select = SelectStatementCreator.Visit(queryModel, this.Database.Configuration, true);
 			if (!select.IsAggregate)
 			{
 				select.IncludePaths.AddRange(this.Query.IncludePaths);

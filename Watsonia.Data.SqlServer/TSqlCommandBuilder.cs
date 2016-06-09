@@ -57,54 +57,54 @@ namespace Watsonia.Data.SqlServer
 			{
 				case StatementPartType.Select:
 				{
-					VisitSelect((Select)statement);
+					VisitSelect((SelectStatement)statement);
 					break;
 				}
 				case StatementPartType.GenericSelect:
 				{
 					Type messageType = statement.GetType();
 					MethodInfo method = statement.GetType().GetMethod("CreateStatement");
-					Select select = (Select)method.Invoke(statement, new object[] { configuration });
+					SelectStatement select = (SelectStatement)method.Invoke(statement, new object[] { configuration });
 					VisitSelect(select);
 					break;
 				}
 				case StatementPartType.Insert:
 				{
-					VisitInsert((Insert)statement);
+					VisitInsert((InsertStatement)statement);
 					break;
 				}
 				case StatementPartType.GenericInsert:
 				{
 					Type messageType = statement.GetType();
 					MethodInfo method = statement.GetType().GetMethod("CreateStatement");
-					Insert select = (Insert)method.Invoke(statement, new object[] { configuration });
-					VisitInsert(select);
+					InsertStatement insert = (InsertStatement)method.Invoke(statement, new object[] { configuration });
+					VisitInsert(insert);
 					break;
 				}
 				case StatementPartType.Update:
 				{
-					VisitUpdate((Update)statement);
+					VisitUpdate((UpdateStatement)statement);
 					break;
 				}
 				case StatementPartType.GenericUpdate:
 				{
 					Type messageType = statement.GetType();
 					MethodInfo method = statement.GetType().GetMethod("CreateStatement");
-					Update select = (Update)method.Invoke(statement, new object[] { configuration });
-					VisitUpdate(select);
+					UpdateStatement update = (UpdateStatement)method.Invoke(statement, new object[] { configuration });
+					VisitUpdate(update);
 					break;
 				}
 				case StatementPartType.Delete:
 				{
-					VisitDelete((Delete)statement);
+					VisitDelete((DeleteStatement)statement);
 					break;
 				}
 				case StatementPartType.GenericDelete:
 				{
 					Type messageType = statement.GetType();
 					MethodInfo method = statement.GetType().GetMethod("CreateStatement");
-					Delete select = (Delete)method.Invoke(statement, new object[] { configuration });
-					VisitDelete(select);
+					DeleteStatement delete = (DeleteStatement)method.Invoke(statement, new object[] { configuration });
+					VisitDelete(delete);
 					break;
 				}
 				default:
@@ -202,7 +202,7 @@ namespace Watsonia.Data.SqlServer
 			this.CommandText.Append(index);
 		}
 
-		private void VisitSelect(Select select)
+		private void VisitSelect(SelectStatement select)
 		{
 			// TODO: If we're using SQL Server 2012 we should just use the OFFSET keyword
 			if (select.StartIndex > 0)
@@ -369,7 +369,7 @@ namespace Watsonia.Data.SqlServer
 			}
 		}
 
-		private void VisitSelectWithRowNumber(Select select)
+		private void VisitSelectWithRowNumber(SelectStatement select)
 		{
 			// It's going to look something like this:
 			// SELECT Fields
@@ -381,7 +381,7 @@ namespace Watsonia.Data.SqlServer
 			// ORDER BY OrderFields
 
 			// Clone the select and add the RowNumber field to it
-			Select inner = Select.From(select.Source);
+			SelectStatement inner = Select.From(select.Source);
 			inner.SourceJoins.AddRange(select.SourceJoins);
 			inner.Alias = "RowNumberTable";
 			inner.SourceFields.AddRange(select.SourceFields);
@@ -399,7 +399,7 @@ namespace Watsonia.Data.SqlServer
 			}
 
 			// Clone the select and change its source
-			Select outer = Select.From(inner);
+			SelectStatement outer = Select.From(inner);
 			foreach (SourceExpression field in select.SourceFields)
 			{
 				Column column = field as Column;
@@ -429,7 +429,7 @@ namespace Watsonia.Data.SqlServer
 			VisitSelect(outer);
 		}
 
-		private void VisitSelectWithAny(Select select)
+		private void VisitSelectWithAny(SelectStatement select)
 		{
 			// It's going to look something like this:
 			// SELECT CASE WHEN EXISTS (
@@ -446,7 +446,7 @@ namespace Watsonia.Data.SqlServer
 			this.CommandText.Append(") THEN 1 ELSE 0 END");
 		}
 
-		private void VisitSelectWithAll(Select select)
+		private void VisitSelectWithAll(SelectStatement select)
 		{
 			// It's going to look something like this:
 			// SELECT CASE WHEN NOT EXISTS (
@@ -464,7 +464,7 @@ namespace Watsonia.Data.SqlServer
 			this.CommandText.Append(") THEN 1 ELSE 0 END");
 		}
 
-		private void VisitSelectWithContains(Select select)
+		private void VisitSelectWithContains(SelectStatement select)
 		{
 			// It's going to look something like this:
 			// SELECT CASE WHEN @0 IN (
@@ -482,7 +482,7 @@ namespace Watsonia.Data.SqlServer
 			this.CommandText.Append(") THEN 1 ELSE 0 END");
 		}
 
-		private void VisitUpdate(Update update)
+		private void VisitUpdate(UpdateStatement update)
 		{
 			this.CommandText.Append("UPDATE ");
 			this.VisitTable(update.Target);
@@ -536,7 +536,7 @@ namespace Watsonia.Data.SqlServer
 			}
 		}
 
-		private void VisitInsert(Insert insert)
+		private void VisitInsert(InsertStatement insert)
 		{
 			this.CommandText.Append("INSERT INTO ");
 			this.VisitTable(insert.Target);
@@ -585,7 +585,7 @@ namespace Watsonia.Data.SqlServer
 			}
 		}
 
-		private void VisitDelete(Delete delete)
+		private void VisitDelete(DeleteStatement delete)
 		{
 			this.CommandText.Append("DELETE FROM ");
 			this.VisitTable(delete.Target);
@@ -821,7 +821,7 @@ namespace Watsonia.Data.SqlServer
 				}
 				case StatementPartType.Select:
 				{
-					this.VisitSelect((Select)field);
+					this.VisitSelect((SelectStatement)field);
 					break;
 				}
 				case StatementPartType.ConstantPart:
@@ -905,7 +905,7 @@ namespace Watsonia.Data.SqlServer
 				}
 				case StatementPartType.Select:
 				{
-					Select select = (Select)source;
+					SelectStatement select = (SelectStatement)source;
 					this.CommandText.Append("(");
 					this.AppendNewLine(Indentation.Inner);
 					this.VisitSelect(select);
