@@ -88,6 +88,8 @@ namespace Watsonia.Data
 			// Assign each relationship to the appropriate table
 			foreach (var relationshipKey in tableRelationships.Keys)
 			{
+				MappedRelationship relationship = tableRelationships[relationshipKey];
+
 				string tableName = relationshipKey.Split('.')[0];
 				string columnName = relationshipKey.Split('.')[1];
 				MappedTable table;
@@ -96,10 +98,11 @@ namespace Watsonia.Data
 					MappedColumn column = table.Columns.FirstOrDefault(c => c.Name == columnName);
 					if (column == null)
 					{
-						column = new MappedColumn(columnName, typeof(long?), "");
+						Type foreignKeyType = typeof(Nullable<>).MakeGenericType(configuration.GetPrimaryKeyColumnType(relationship.ForeignTableType));
+						column = new MappedColumn(columnName, foreignKeyType, "");
 						table.Columns.Add(column);
 					}
-					column.Relationship = tableRelationships[relationshipKey];
+					column.Relationship = relationship;
 				}
 			}
 
@@ -107,18 +110,18 @@ namespace Watsonia.Data
 			views.AddRange(viewDictionary.Values);
 		}
 
-		private void GetMappedTable(Dictionary<string, MappedTable> tableDictionary, Dictionary<string, MappedRelationship> tableRelationships, Type type,  DatabaseConfiguration configuration)
+		private void GetMappedTable(Dictionary<string, MappedTable> tableDictionary, Dictionary<string, MappedRelationship> tableRelationships, Type tableType,  DatabaseConfiguration configuration)
 		{
-			string tableName = configuration.GetTableName(type);
-			string primaryKeyColumnName = configuration.GetPrimaryKeyColumnName(type);
-			string primaryKeyConstraintName = configuration.GetPrimaryKeyConstraintName(type);
+			string tableName = configuration.GetTableName(tableType);
+			string primaryKeyColumnName = configuration.GetPrimaryKeyColumnName(tableType);
+			string primaryKeyConstraintName = configuration.GetPrimaryKeyConstraintName(tableType);
 
 			MappedTable table = new MappedTable(tableName, primaryKeyColumnName, primaryKeyConstraintName);
 
 			bool tableHasColumns = false;
 			bool tableHasRelationships = false;
 
-			foreach (PropertyInfo property in configuration.PropertiesToMap(type))
+			foreach (PropertyInfo property in configuration.PropertiesToMap(tableType))
 			{
 				string columnName = configuration.GetColumnName(property);
 				string defaultValueConstraintName = configuration.GetDefaultValueConstraintName(property);
@@ -168,6 +171,7 @@ namespace Watsonia.Data
 					column.ColumnType = typeof(int);
 					column.Relationship = new MappedRelationship(
 						configuration.GetForeignKeyConstraintName(property),
+						property.PropertyType,
 						enumTableName,
 						enumPrimaryKeyColumnName);
 
@@ -190,6 +194,7 @@ namespace Watsonia.Data
 					column.ColumnType = typeof(Nullable<>).MakeGenericType(configuration.GetPrimaryKeyColumnType(property.PropertyType));
 					column.Relationship = new MappedRelationship(
 						configuration.GetForeignKeyConstraintName(property),
+						property.PropertyType,
 						configuration.GetTableName(property.PropertyType),
 						configuration.GetPrimaryKeyColumnName(property.PropertyType));
 				}
@@ -200,12 +205,13 @@ namespace Watsonia.Data
 					{
 						// It's a collection property referencing another table so add it to the table relationships
 						// collection for wiring up when we have all tables
-						string key = string.Format("{0}.{1}", configuration.GetTableName(itemType), configuration.GetForeignKeyColumnName(itemType, type));
+						string key = string.Format("{0}.{1}", configuration.GetTableName(itemType), configuration.GetForeignKeyColumnName(itemType, tableType));
 						tableRelationships.Add(key,
 							new MappedRelationship(
-							configuration.GetForeignKeyConstraintName(itemType, type),
-							configuration.GetTableName(type),
-							configuration.GetPrimaryKeyColumnName(type)));
+								configuration.GetForeignKeyConstraintName(itemType, tableType),
+								property.PropertyType,
+								configuration.GetTableName(tableType),
+								configuration.GetPrimaryKeyColumnName(tableType)));
 						addColumn = false;
 						tableHasRelationships = true;
 					}
@@ -232,7 +238,7 @@ namespace Watsonia.Data
 				MappedColumn primaryKeyColumn = table.Columns.FirstOrDefault(c => c.Name.Equals(primaryKeyColumnName, StringComparison.InvariantCultureIgnoreCase));
 				if (primaryKeyColumn == null)
 				{
-					primaryKeyColumn = new MappedColumn(primaryKeyColumnName, configuration.GetPrimaryKeyColumnType(type), "");
+					primaryKeyColumn = new MappedColumn(primaryKeyColumnName, configuration.GetPrimaryKeyColumnType(tableType), "");
 					table.Columns.Insert(0, primaryKeyColumn);
 				}
 				else
@@ -263,15 +269,15 @@ namespace Watsonia.Data
 			}
 		}
 
-		private void GetMappedView(Dictionary<string, MappedView> viewDictionary, Type type, DatabaseConfiguration configuration)
+		private void GetMappedView(Dictionary<string, MappedView> viewDictionary, Type viewType, DatabaseConfiguration configuration)
 		{
-			string viewName = configuration.GetViewName(type);
+			string viewName = configuration.GetViewName(viewType);
 
 			MappedView view = new MappedView(viewName);
 
 			bool viewHasColumns = false;
 
-			foreach (PropertyInfo property in configuration.PropertiesToMap(type))
+			foreach (PropertyInfo property in configuration.PropertiesToMap(viewType))
 			{
 				string columnName = configuration.GetColumnName(property);
 
@@ -284,6 +290,7 @@ namespace Watsonia.Data
 					column.ColumnType = typeof(Nullable<>).MakeGenericType(configuration.GetPrimaryKeyColumnType(property.PropertyType));
 					column.Relationship = new MappedRelationship(
 						configuration.GetForeignKeyConstraintName(property),
+						property.PropertyType,
 						configuration.GetViewName(property.PropertyType),
 						configuration.GetPrimaryKeyColumnName(property.PropertyType));
 				}
@@ -304,7 +311,7 @@ namespace Watsonia.Data
 				}
 			}
 
-			PropertyInfo statementProperty = type.GetProperty("SelectStatement", BindingFlags.Public | BindingFlags.Static);
+			PropertyInfo statementProperty = viewType.GetProperty("SelectStatement", BindingFlags.Public | BindingFlags.Static);
 			if (statementProperty != null)
 			{
 				view.SelectStatement = (Statement)statementProperty.GetValue(null);

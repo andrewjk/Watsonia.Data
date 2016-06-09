@@ -23,6 +23,18 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Gets or sets the type of the foreign table.
+		/// </summary>
+		/// <value>
+		/// The type of the foreign table.
+		/// </value>
+		public Type ForeignTableType
+		{
+			get;
+			private set;
+		}
+
+		/// <summary>
 		/// Gets or sets the name of the foreign table.
 		/// </summary>
 		/// <value>
@@ -49,12 +61,14 @@ namespace Watsonia.Data
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MappedRelationship" /> class.
 		/// </summary>
-		/// <param name="constraintName">Name of the foreign key constraint.</param>
-		/// <param name="foreignTableName">Name of the foreign table.</param>
-		/// <param name="foreignTableColumnName">Name of the foreign table column.</param>
-		public MappedRelationship(string constraintName, string foreignTableName, string foreignTableColumnName)
+		/// <param name="constraintName">The name of the foreign key constraint.</param>
+		/// <param name="foreignTableType">The type of the foreign table.</param>
+		/// <param name="foreignTableName">The name of the foreign table.</param>
+		/// <param name="foreignTableColumnName">The name of the foreign table column.</param>
+		public MappedRelationship(string constraintName, Type foreignTableType, string foreignTableName, string foreignTableColumnName)
 		{
 			this.ConstraintName = constraintName;
+			this.ForeignTableType = foreignTableType;
 			this.ForeignTableName = foreignTableName;
 			this.ForeignTableColumnName = foreignTableColumnName;
 		}

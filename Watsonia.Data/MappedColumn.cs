@@ -107,7 +107,7 @@ namespace Watsonia.Data
 		/// Initializes a new instance of the <see cref="MappedColumn" /> class.
 		/// </summary>
 		/// <param name="name">The name of the column.</param>
-		/// <param name="columnType">Type of the column.</param>
+		/// <param name="columnType">The type of the column.</param>
 		public MappedColumn(string name, Type columnType, string defaultValueConstraintName)
 		{
 			this.Name = name;
