@@ -524,7 +524,15 @@ namespace Watsonia.Data
 		{
 			// Build a statement to use as a subquery to get the IDs of the parent items
 			string parentIDColumnName = this.Configuration.GetPrimaryKeyColumnName(parentType);
-			SelectStatement selectParentItemIDs = Select.From(parentQuery.Source).Columns(parentIDColumnName).Where(parentQuery.Conditions);
+			SelectStatement selectParentItemIDs = Select.From(parentQuery.Source).Columns(parentIDColumnName);
+			if (parentQuery.SourceJoins.Count > 0)
+			{
+				selectParentItemIDs.SourceJoins.AddRange(parentQuery.SourceJoins);
+			}
+			if (parentQuery.Conditions.Count > 0)
+			{
+				selectParentItemIDs = selectParentItemIDs.Where(parentQuery.Conditions);
+			}
 
 			// Build a statement to get the child items
 			Type itemProxyType = DynamicProxyFactory.GetDynamicProxyType(itemType, this);
