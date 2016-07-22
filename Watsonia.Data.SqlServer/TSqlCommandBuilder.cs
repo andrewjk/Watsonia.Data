@@ -416,14 +416,7 @@ namespace Watsonia.Data.SqlServer
 			{
 				outer.Conditions.Add(new Condition("RowNumber", SqlOperator.IsLessThanOrEqualTo, select.StartIndex + select.Limit));
 			}
-			foreach (OrderByExpression field in select.OrderByFields)
-			{
-				Column column = field.Expression as Column;
-				if (column != null)
-				{
-					outer.OrderByFields.Add(new OrderByExpression(new Column(inner.Alias, column.Name), field.Direction));
-				}
-			}
+			outer.OrderByFields.Add(new OrderByExpression("RowNumber"));
 
 			// Visit the outer select
 			VisitSelect(outer);
