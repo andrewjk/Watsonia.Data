@@ -106,6 +106,12 @@ namespace Watsonia.Data
 			private set;
 		}
 
+		public List<SelectStatement> UnionStatements
+		{
+			get;
+			private set;
+		}
+
 		public string Alias
 		{
 			get;
@@ -127,6 +133,7 @@ namespace Watsonia.Data
 			this.Conditions = new ConditionCollection();
 			this.OrderByFields = new List<OrderByExpression>();
 			this.GroupByFields = new List<Column>();
+			this.UnionStatements = new List<SelectStatement>();
 		}
 
 		public override string ToString()

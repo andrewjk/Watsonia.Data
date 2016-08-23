@@ -239,6 +239,12 @@ namespace Watsonia.Data
 			return select;
 		}
 
+		public static SelectStatement Union(this SelectStatement select, SelectStatement union)
+		{
+			select.UnionStatements.Add(union);
+			return select;
+		}
+
 		public static SelectStatement Include(this SelectStatement select, string path)
 		{
 			select.IncludePaths.Add(path);

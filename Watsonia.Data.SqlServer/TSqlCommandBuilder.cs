@@ -367,6 +367,11 @@ namespace Watsonia.Data.SqlServer
 					}
 				}
 			}
+			foreach (SelectStatement union in select.UnionStatements)
+			{
+				this.CommandText.AppendLine("UNION ALL");
+				VisitSelect(union);
+			}
 		}
 
 		private void VisitSelectWithRowNumber(SelectStatement select)
