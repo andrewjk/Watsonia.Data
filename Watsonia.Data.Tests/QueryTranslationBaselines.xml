@@ -903,8 +903,8 @@
     From Customers As c
   </baseline>
   <baseline key="TestSelectCustomerTable">
-    Select c.CustomerID, c.City, c.CompanyName, c.ContactName, c.Country, c.Phone
-    From Customers As c
+    Select g_0.CustomerID, g_0.City, g_0.CompanyName, g_0.ContactName, g_0.Country, g_0.Phone
+    From Customers As g_0
   </baseline>
   <baseline key="TestSelectCustomerIdentity">
     Select c.CustomerID, c.City, c.CompanyName, c.ContactName, c.Country, c.Phone
