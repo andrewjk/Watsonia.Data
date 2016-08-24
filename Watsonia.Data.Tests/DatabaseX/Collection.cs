@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
 
-namespace Watsonia.Data.Tests.DatabaseModels
+namespace Watsonia.Data.Tests.DatabaseX
 {
 	// Used for checking collection loading
-	public class Coll
+	public class Collection
 	{
 		public virtual int Value
 		{

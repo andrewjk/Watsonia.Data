@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Watsonia.Data.Tests.DatabaseModels
+namespace Watsonia.Data.Tests.DatabaseX
 {
-	public class Chil
+	public class Child
 	{
 		public virtual int Value
 		{
@@ -21,7 +21,7 @@ namespace Watsonia.Data.Tests.DatabaseModels
 		}
 
 		[Cascade]
-		public virtual List<SubChil> SubChils
+		public virtual List<SubChild> SubChildren
 		{
 			get;
 			set;

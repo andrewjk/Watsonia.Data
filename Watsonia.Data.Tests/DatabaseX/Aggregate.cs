@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Watsonia.Data.Tests.DatabaseModels
+namespace Watsonia.Data.Tests.DatabaseX
 {
 	// Used for testing aggregate functions
-	public class Agg
+	public class Aggregate
 	{
 		public virtual double Value
 		{
