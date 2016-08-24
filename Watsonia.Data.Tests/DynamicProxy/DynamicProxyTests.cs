@@ -2,14 +2,13 @@
 using System.ComponentModel;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Watsonia.Data.Tests.DatabaseModels;
 
-namespace Watsonia.Data.Tests
+namespace Watsonia.Data.Tests.DynamicProxy
 {
 	[TestClass]
 	public class DynamicProxyTests
 	{
-		private static Database db = new Database("", "Watsonia.Data.Tests.DatabaseModels");
+		private static Database db = new Database("", "Watsonia.Data.Tests.DynamicProxy");
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
@@ -114,7 +113,7 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestDefaultValues()
 		{
-			Def def = DynamicProxyFactory.GetDynamicProxy<Def>(db);
+			Defaults def = DynamicProxyFactory.GetDynamicProxy<Defaults>(db);
 
 			Assert.AreEqual(true, def.Bool);
 			Assert.AreEqual(10, def.Int);
@@ -129,61 +128,61 @@ namespace Watsonia.Data.Tests
 		[TestMethod]
 		public void TestDataErrorInfoMethods()
 		{
-			Bung bung = db.Create<Bung>();
-			IDataErrorInfo bungErrorInfo = (IDataErrorInfo)bung;
-			IDynamicProxy bungProxy = (IDynamicProxy)bung;
+			Invalid invalid = db.Create<Invalid>();
+			IDataErrorInfo invalidErrorInfo = (IDataErrorInfo)invalid;
+			IDynamicProxy invalidProxy = (IDynamicProxy)invalid;
 
 			// Make sure that the RequiredString doesn't have an error until its property gets changed
-			Assert.AreEqual("", bungErrorInfo["RequiredString"]);
+			Assert.AreEqual("", invalidErrorInfo["RequiredString"]);
 
-			bung.RequiredString = "Aoeu";
-			bung.RequiredString = "";
-			Assert.AreEqual("The Required string field is required.", bungErrorInfo["RequiredString"]);
-			bung.RequiredString = "A string";
-			Assert.AreEqual("", bungErrorInfo["RequiredString"]);
+			invalid.RequiredString = "Aoeu";
+			invalid.RequiredString = "";
+			Assert.AreEqual("The Required string field is required.", invalidErrorInfo["RequiredString"]);
+			invalid.RequiredString = "A string";
+			Assert.AreEqual("", invalidErrorInfo["RequiredString"]);
 
-			bung.RequiredNullable = null;
-			Assert.AreEqual("The Required nullable field is required.", bungErrorInfo["RequiredNullable"]);
-			bung.RequiredNullable = 5;
-			Assert.AreEqual("", bungErrorInfo["RequiredNullable"]);
+			invalid.RequiredNullable = null;
+			Assert.AreEqual("The Required nullable field is required.", invalidErrorInfo["RequiredNullable"]);
+			invalid.RequiredNullable = 5;
+			Assert.AreEqual("", invalidErrorInfo["RequiredNullable"]);
 
-			bung.ShortString = "Far too long";
-			Assert.AreEqual("The field Short string must be a string with a maximum length of 10.", bungErrorInfo["ShortString"]);
-			bung.ShortString = "Better";
-			Assert.AreEqual("", bungErrorInfo["ShortString"]);
+			invalid.ShortString = "Far too long";
+			Assert.AreEqual("The field Short string must be a string with a maximum length of 10.", invalidErrorInfo["ShortString"]);
+			invalid.ShortString = "Better";
+			Assert.AreEqual("", invalidErrorInfo["ShortString"]);
 
-			bung.InvalidPostCode = "30001";
-			Assert.AreEqual(@"The field Invalid post code must match the regular expression '^\d{4}$'.", bungErrorInfo["InvalidPostCode"]);
-			bung.InvalidPostCode = "3001";
-			Assert.AreEqual("", bungErrorInfo["InvalidPostCode"]);
+			invalid.InvalidPostCode = "30001";
+			Assert.AreEqual(@"The field Invalid post code must match the regular expression '^\d{4}$'.", invalidErrorInfo["InvalidPostCode"]);
+			invalid.InvalidPostCode = "3001";
+			Assert.AreEqual("", invalidErrorInfo["InvalidPostCode"]);
 	
-			bung.EmailAddress = "info.donotreply.com";
-			Assert.AreEqual("The Email address field is no good.", bungErrorInfo["EmailAddress"]);
-			bung.EmailAddress = "info@donotreply.com";
-			Assert.AreEqual("", bungErrorInfo["EmailAddress"]);
+			invalid.EmailAddress = "info.donotreply.com";
+			Assert.AreEqual("The Email address field is no good.", invalidErrorInfo["EmailAddress"]);
+			invalid.EmailAddress = "info@donotreply.com";
+			Assert.AreEqual("", invalidErrorInfo["EmailAddress"]);
 			
-			bung.ConfirmEmailAddress = "support.donotreply.com";
-			Assert.AreEqual("The Confirm email address field is no good.", bungErrorInfo["ConfirmEmailAddress"]);
-			bung.ConfirmEmailAddress = "support@donotreply.com";
-			Assert.AreEqual("", bungErrorInfo["ConfirmEmailAddress"]);
+			invalid.ConfirmEmailAddress = "support.donotreply.com";
+			Assert.AreEqual("The Confirm email address field is no good.", invalidErrorInfo["ConfirmEmailAddress"]);
+			invalid.ConfirmEmailAddress = "support@donotreply.com";
+			Assert.AreEqual("", invalidErrorInfo["ConfirmEmailAddress"]);
 
 			// Validate the whole thing
-			BungBaby baby1 = db.Create<BungBaby>();
-			bung.BungBabies.Add(baby1);
-			BungBaby baby2 = db.Create<BungBaby>();
-			bung.BungBabies.Add(baby2);
+			InvalidChild child1 = db.Create<InvalidChild>();
+			invalid.InvalidChildren.Add(child1);
+			InvalidChild child2 = db.Create<InvalidChild>();
+			invalid.InvalidChildren.Add(child2);
 
-			baby1.Name = "Good";
-			baby2.Name = "Baaaaaaaaaad";
-			Assert.IsFalse(bungProxy.IsValid);
+			child1.Name = "Good";
+			child2.Name = "Baaaaaaaaaad";
+			Assert.IsFalse(invalidProxy.IsValid);
 
-			baby1.Name = "Baaaaaaaaaad";
-			baby2.Name = "Good";
-			Assert.IsFalse(bungProxy.IsValid);
+			child1.Name = "Baaaaaaaaaad";
+			child2.Name = "Good";
+			Assert.IsFalse(invalidProxy.IsValid);
 
-			baby1.Name = "Good";
-			baby2.Name = "Yep";
-			Assert.IsTrue(bungProxy.IsValid);
+			child1.Name = "Good";
+			child2.Name = "Yep";
+			Assert.IsTrue(invalidProxy.IsValid);
 		}
 	}
 }

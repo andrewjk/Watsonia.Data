@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Watsonia.Data.Tests.PerformanceModels
+namespace Watsonia.Data.Tests.Performance
 {
 	public class Post
 	{

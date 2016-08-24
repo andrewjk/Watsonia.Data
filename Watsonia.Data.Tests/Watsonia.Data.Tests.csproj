@@ -63,39 +63,39 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DatabaseModels\BungBaby.cs" />
-    <Compile Include="DocumentationTests.cs" />
-    <Compile Include="DatabaseModels\Address.cs" />
-    <Compile Include="DocumentationModels\Author.cs" />
-    <Compile Include="DocumentationModels\Book.cs" />
-    <Compile Include="DatabaseModels\Bung.cs" />
-    <Compile Include="DatabaseModels\CardinalDirection.cs" />
-    <Compile Include="DatabaseModels\Chil.cs" />
-    <Compile Include="DatabaseModels\Coll.cs" />
-    <Compile Include="DatabaseModels\Crud.cs" />
-    <Compile Include="DatabaseModels\Agg.cs" />
-    <Compile Include="DatabaseModels\Def.cs" />
-    <Compile Include="DatabaseModels\Entity.cs" />
-    <Compile Include="DatabaseModels\Link.cs" />
-    <Compile Include="DatabaseModels\Order.cs" />
-    <Compile Include="DatabaseModels\Customer.cs" />
-    <Compile Include="DatabaseTests.cs" />
-    <Compile Include="DynamicProxyTests.cs" />
-    <Compile Include="DatabaseModels\Par.cs" />
-    <Compile Include="DatabaseModels\SubChil.cs" />
+    <Compile Include="DynamicProxy\InvalidChild.cs" />
+    <Compile Include="Documentation\DocumentationTests.cs" />
+    <Compile Include="DynamicProxy\Address.cs" />
+    <Compile Include="Documentation\Author.cs" />
+    <Compile Include="Documentation\Book.cs" />
+    <Compile Include="DynamicProxy\Invalid.cs" />
+    <Compile Include="DynamicProxy\CardinalDirection.cs" />
+    <Compile Include="DatabaseX\Child.cs" />
+    <Compile Include="DatabaseX\Collection.cs" />
+    <Compile Include="DatabaseX\Crud.cs" />
+    <Compile Include="DatabaseX\Aggregate.cs" />
+    <Compile Include="DynamicProxy\Defaults.cs" />
+    <Compile Include="DynamicProxy\Entity.cs" />
+    <Compile Include="DatabaseX\Link.cs" />
+    <Compile Include="DynamicProxy\Order.cs" />
+    <Compile Include="DynamicProxy\Customer.cs" />
+    <Compile Include="DatabaseX\DatabaseTests.cs" />
+    <Compile Include="DynamicProxy\DynamicProxyTests.cs" />
+    <Compile Include="DatabaseX\Parent.cs" />
+    <Compile Include="DatabaseX\SubChild.cs" />
     <Compile Include="Northwind\NorthwindDatabase.cs" />
     <Compile Include="Northwind\Customer.cs" />
     <Compile Include="Northwind\NorthwindConfiguration.cs" />
     <Compile Include="Northwind\Order.cs" />
     <Compile Include="Northwind\OrderDetail.cs" />
     <Compile Include="Northwind\Product.cs" />
-    <Compile Include="PerformanceModels\Post.cs" />
-    <Compile Include="PerformanceTests.cs" />
+    <Compile Include="Performance\Post.cs" />
+    <Compile Include="Performance\PerformanceTests.cs" />
     <Compile Include="PluralizeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QueryExecutionTests.cs" />
-    <Compile Include="QueryLanguageTests.cs" />
-    <Compile Include="QueryTranslationTests.cs" />
+    <Compile Include="Queries\QueryExecutionTests.cs" />
+    <Compile Include="Queries\QueryLanguageTests.cs" />
+    <Compile Include="Queries\QueryTranslationTests.cs" />
     <Compile Include="TitleCaseTests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -116,11 +116,11 @@
     <Content Include="Data\Northwind.sdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="QueryTranslationBaselines.xml">
+    <Content Include="Queries\QueryTranslationBaselines.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="QueryLanguageBaselines.xml">
+    <Content Include="Queries\QueryLanguageBaselines.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>

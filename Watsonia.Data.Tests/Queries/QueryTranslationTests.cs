@@ -11,7 +11,7 @@ using Watsonia.Data.Tests.Northwind;
 
 // TODO: Implement all double commented (////) tests
 
-namespace Watsonia.Data.Tests
+namespace Watsonia.Data.Tests.Queries
 {
 	[TestClass]
 	public class QueryTranslationTests
@@ -22,7 +22,7 @@ namespace Watsonia.Data.Tests
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
 		{
-			string fileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\QueryTranslationBaselines.xml";
+			string fileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryTranslationBaselines.xml";
 			if (!string.IsNullOrEmpty(fileName) && File.Exists(fileName))
 			{
 				XDocument doc = XDocument.Load(fileName);

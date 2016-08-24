@@ -10,23 +10,16 @@ using Watsonia.Data.Tests.Northwind;
 
 // TODO: Implement all double commented (////) tests
 
-namespace Watsonia.Data.Tests
+namespace Watsonia.Data.Tests.Queries
 {
 	[TestClass]
 	public class QueryExecutionTests
 	{
 		private static NorthwindDatabase db = new NorthwindDatabase();
-		private static Dictionary<string, string> baselines = new Dictionary<string, string>();
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
 		{
-			string fileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\SqlServerCeBaselines.xml";
-			if (!string.IsNullOrEmpty(fileName) && File.Exists(fileName))
-			{
-				XDocument doc = XDocument.Load(fileName);
-				baselines = doc.Root.Elements("baseline").ToDictionary(e => (string)e.Attribute("key"), e => e.Value);
-			}
 		}
 		
 		[TestMethod]

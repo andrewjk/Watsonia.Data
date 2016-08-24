@@ -6,10 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Watsonia.Data.Tests.PerformanceModels;
 
-namespace Watsonia.Data.Tests
+namespace Watsonia.Data.Tests.Performance
 {
+	/// <summary>
+	/// Contains tests to make sure that everything is running at an acceptable speed.
+	/// </summary>
 #if !DEBUG
 	[TestClass]
 #endif

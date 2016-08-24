@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Watsonia.Data.Tests.DocumentationModels
+namespace Watsonia.Data.Tests.Documentation
 {
 	public class Author
 	{

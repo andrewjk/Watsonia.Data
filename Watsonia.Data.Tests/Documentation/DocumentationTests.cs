@@ -4,17 +4,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Watsonia.Data.Tests.DatabaseModels;
-using Watsonia.Data.Tests.DocumentationModels;
 
-namespace Watsonia.Data.Tests
+namespace Watsonia.Data.Tests.Documentation
 {
+	/// <summary>
+	/// This contains tests for all of the things we talk about in the documentation.
+	/// </summary>
 	[TestClass]
 	public class DocumentationTests
 	{
 		public const string ConnectionString = @"Data Source=Data\DocumentationTests.sdf;Persist Security Info=False";
 
-		private readonly static Database db = new Database(DatabaseTests.ConnectionString, "Watsonia.Data.Tests.DocumentationModels");
+		private readonly static Database db = new Database(DocumentationTests.ConnectionString, "Watsonia.Data.Tests.Documentation");
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
