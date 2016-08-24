@@ -83,12 +83,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CascadeAttribute.cs" />
-    <Compile Include="ChangeType.cs" />
     <Compile Include="CascadeDeleteAttribute.cs" />
     <Compile Include="DataAccessProviders.cs" />
     <Compile Include="DatabaseQuery.cs" />
     <Compile Include="DatabaseUpdater.cs" />
-    <Compile Include="DataChange.cs" />
     <Compile Include="DefaultDateTimeValueAttribute.cs" />
     <Compile Include="EventArgs.cs" />
     <Compile Include="SelectFieldExpander.cs" />

@@ -112,14 +112,6 @@ namespace Watsonia.Data
 			// Add some methods
 			CreateSetValuesFromReaderMethod(type, members);
 
-			CreateMethodToCallStateTrackerMethod(type, "CanUndo", "CanUndo", typeof(bool), Type.EmptyTypes, members);
-			CreateMethodToCallStateTrackerMethod(type, "BuildUndoQueue", "BuildUndoQueue", typeof(IList<>).MakeGenericType(typeof(DataChange)), Type.EmptyTypes, members);
-			CreateMethodToCallStateTrackerMethod(type, "Undo", "Undo", null, Type.EmptyTypes, members);
-
-			CreateMethodToCallStateTrackerMethod(type, "CanRedo", "CanRedo", typeof(bool), Type.EmptyTypes, members);
-			CreateMethodToCallStateTrackerMethod(type, "BuildRedoQueue", "BuildRedoQueue", typeof(IList<>).MakeGenericType(typeof(DataChange)), Type.EmptyTypes, members);
-			CreateMethodToCallStateTrackerMethod(type, "Redo", "Redo", null, Type.EmptyTypes, members);
-
 			CreateMethodToCallStateTrackerMethod(type, "GetHashCode", "GetItemHashCode", typeof(int), Type.EmptyTypes, members);
 			CreateMethodToCallStateTrackerMethod(type, "Equals", "ItemEquals", typeof(bool), new Type[] { typeof(object) }, members);
 

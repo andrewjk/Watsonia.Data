@@ -10,7 +10,6 @@ Watsonia.Data is a simple object-relational mapper designed to be dropped into a
 - Lazy loading of entity properties that contain related items or collections, with eager loading via the Include method
 - Automatic implementation of INotifyPropertyChanging and INotifyPropertyChanged on entities
 - Automatic validation of entities that are decorated with System.ComponentModel.DataAnnotations.ValidationAttributes or that implement IValidatableObject
-- Automatic entity-level undo and redo
 - Hook most database operations with event handlers or method overrides
 - Support for database transactions
 - Built-in support for Microsoft SQL Server with support for other databases via a plugin architecture
@@ -380,8 +379,6 @@ public class Book
 ```
 
 If we then add a book with no title to the author, attempting to save the author or checking IsValid will cause the author to have an error for the missing book title in its ValidationErrors collection.   
-
-## Undo and Redo ##
 
 ## Other Functionality ##
 

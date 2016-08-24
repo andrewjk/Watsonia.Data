@@ -83,43 +83,5 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="source">The data reader.</param>
 		void SetValuesFromReader(DbDataReader source);
-
-		/// <summary>
-		/// Determines whether this item has changes that can be undone.
-		/// </summary>
-		/// <returns>
-		///   <c>true</c> if this instance has changes that can be undone; otherwise, <c>false</c>.
-		/// </returns>
-		bool CanUndo();
-
-		/// <summary>
-		/// Builds the queue of changes that can be undone, with the most recent first.
-		/// </summary>
-		/// <returns></returns>
-		IList<DataChange> BuildUndoQueue();
-
-		/// <summary>
-		/// Undoes the last change.
-		/// </summary>
-		void Undo();
-
-		/// <summary>
-		/// Determines whether this item has changes that can be redone.
-		/// </summary>
-		/// <returns>
-		///   <c>true</c> if this instance has changes that can be redone; otherwise, <c>false</c>.
-		/// </returns>
-		bool CanRedo();
-
-		/// <summary>
-		/// Builds the queue of changes that can be redone, with the most recent first.
-		/// </summary>
-		/// <returns></returns>
-		IList<DataChange> BuildRedoQueue();
-
-		/// <summary>
-		/// Redoes the last undone change.
-		/// </summary>
-		void Redo();
 	}
 }

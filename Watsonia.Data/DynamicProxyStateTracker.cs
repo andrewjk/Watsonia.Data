@@ -22,8 +22,6 @@ namespace Watsonia.Data
 		private readonly Dictionary<string, List<object>> _savedCollectionIDs = new Dictionary<string, List<object>>();
 		private readonly List<string> _loadedItems = new List<string>();
 		private readonly List<ValidationError> _errors = new List<ValidationError>();
-		private readonly Stack<DataChange> _undoStack = new Stack<DataChange>();
-		private readonly Stack<DataChange> _redoStack = new Stack<DataChange>();
 
 		/// <summary>
 		/// Gets or sets the database.
@@ -183,23 +181,7 @@ namespace Watsonia.Data
 				return _errors;
 			}
 		}
-
-		private Stack<DataChange> UndoStack
-		{
-			get
-			{
-				return _undoStack;
-			}
-		}
-
-		private Stack<DataChange> RedoStack
-		{
-			get
-			{
-				return _redoStack;
-			}
-		}
-
+		
 		/// <summary>
 		/// Gets or sets an action to call when a property's value is changing.
 		/// </summary>
@@ -287,25 +269,6 @@ namespace Watsonia.Data
 				}
 			}
 
-			if (typeof(INotifyCollectionChanged).IsAssignableFrom(collection.GetType()))
-			{
-				INotifyCollectionChanged notifyingCollection = (INotifyCollectionChanged)collection;
-				notifyingCollection.CollectionChanged += (sender, e) =>
-					{
-						if (!this.IsLoading)
-						{
-							if (e.Action == NotifyCollectionChangedAction.Add)
-							{
-								this.UndoStack.Push(new DataChange(ChangeType.CollectionAdd, this.Item, propertyName, null, e.NewItems[0], this.Item.HasChanges));
-							}
-							else if (e.Action == NotifyCollectionChangedAction.Remove)
-							{
-								this.UndoStack.Push(new DataChange(ChangeType.CollectionRemove, this.Item, propertyName, e.OldItems[0], null, this.Item.HasChanges));
-							}
-						}
-					};
-			}
-
 			this.SavedCollectionIDs.Add(propertyName, new List<object>());
 			for (int i = 0; i < collection.Count; i++)
 			{
@@ -387,7 +350,6 @@ namespace Watsonia.Data
 					{
 						this.ChangedFields.Add(propertyName);
 					}
-					this.UndoStack.Push(new DataChange(ChangeType.PropertyValue, this.Item, propertyName, oldValue, newValue, this.Item.HasChanges));
 				}
 				this.Item.HasChanges = true;
 			}
@@ -427,7 +389,6 @@ namespace Watsonia.Data
 					{
 						this.ChangedFields.Add(propertyName);
 					}
-					this.UndoStack.Push(new DataChange(ChangeType.PropertyValue, this.Item, propertyName, oldValue, newValue, this.Item.HasChanges));
 				}
 				this.Item.HasChanges = true;
 			}
@@ -612,93 +573,7 @@ namespace Watsonia.Data
 			}
 			return prop.Name;
 		}
-
-		/// <summary>
-		/// Determines whether this item has changes that can be undone.
-		/// </summary>
-		/// <returns>
-		///   <c>true</c> if this instance has changes that can be undone; otherwise, <c>false</c>.
-		/// </returns>
-		public bool CanUndo()
-		{
-			return RecurseRelatedItems(this.Item).Any(i => i.StateTracker.UndoStack.Count > 0);
-		}
-
-		/// <summary>
-		/// Builds the queue of changes that can be undone, with the most recent first.
-		/// </summary>
-		/// <returns></returns>
-		public IList<DataChange> BuildUndoQueue()
-		{
-			List<DataChange> queue = new List<DataChange>();
-			foreach (var item in RecurseRelatedItems(this.Item))
-			{
-				queue.AddRange(item.StateTracker.UndoStack.ToList());
-			}
-			queue.Sort();
-			return queue;
-		}
-
-		/// <summary>
-		/// Undoes the last change.
-		/// </summary>
-		public void Undo()
-		{
-			// We can't know which is the most recent undo operation until we've built and sorted the
-			// whole lot
-			IList<DataChange> allChanges = BuildUndoQueue();
-			if (allChanges.Count > 0)
-			{
-				DataChange change = allChanges[0];
-				change.Proxy.StateTracker.UndoStack.Pop();
-				change.Proxy.StateTracker.RedoStack.Push(change);
-				change.Undo();
-			}
-		}
-
-		/// <summary>
-		/// Determines whether this item has changes that can be redone.
-		/// </summary>
-		/// <returns>
-		///   <c>true</c> if this instance has changes that can be redone; otherwise, <c>false</c>.
-		/// </returns>
-		public bool CanRedo()
-		{
-			return RecurseRelatedItems(this.Item).Any(i => i.StateTracker.RedoStack.Count > 0);
-		}
-
-		/// <summary>
-		/// Builds the queue of changes that can be redone, with the most recent first.
-		/// </summary>
-		/// <returns></returns>
-		public IList<DataChange> BuildRedoQueue()
-		{
-			List<DataChange> queue = new List<DataChange>();
-			foreach (var item in RecurseRelatedItems(this.Item))
-			{
-				queue.AddRange(item.StateTracker.RedoStack.ToList());
-			}
-			queue.Sort();
-			return queue;
-		}
-
-		/// <summary>
-		/// Redoes the last undone change.
-		/// </summary>
-		public void Redo()
-		{
-			// We can't know which is the most recent undo operation until we've built and sorted the
-			// whole lot
-			IList<DataChange> allChanges = BuildRedoQueue();
-			if (allChanges.Count > 0)
-			{
-				DataChange change = allChanges[0];
-				change.Proxy.StateTracker.RedoStack.Pop();
-				change.Proxy.StateTracker.UndoStack.Push(change);
-				change.Redo();
-			}
-		}
-
+		
 		/// <summary>
 		/// Gets the item hash code.
 		/// </summary>
