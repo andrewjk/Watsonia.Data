@@ -418,6 +418,21 @@ namespace Watsonia.Data
 			}
 		}
 
+		public void BeginEdit()
+		{
+			throw new NotImplementedException();
+		}
+
+		public void CancelEdit()
+		{
+			throw new NotImplementedException();
+		}
+
+		public void EndEdit()
+		{
+			throw new NotImplementedException();
+		}
+
 		/// <summary>
 		/// Checks whether this item is in a valid state.
 		/// </summary>
