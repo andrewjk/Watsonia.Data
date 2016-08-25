@@ -8,23 +8,11 @@ namespace Watsonia.Data.Tests.DatabaseX
 {
 	public class Child
 	{
-		public virtual int Value
-		{
-			get;
-			set;
-		}
+		public virtual int Value { get; set; }
 
-		public virtual string Description
-		{
-			get;
-			set;
-		}
+		public virtual string Description { get; set; }
 
 		[Cascade]
-		public virtual List<SubChild> SubChildren
-		{
-			get;
-			set;
-		}
+		public virtual List<SubChild> SubChildren { get; set; }
 	}
 }

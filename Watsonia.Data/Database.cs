@@ -184,6 +184,7 @@ namespace Watsonia.Data
 			T newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
 			IDynamicProxy proxy = (IDynamicProxy)newItem;
 			//proxy.ID = -1;
+			proxy.ResetOriginalValues();
 			proxy.IsNew = true;
 
 			OnAfterCreate(proxy);
@@ -293,7 +294,9 @@ namespace Watsonia.Data
 						item = Create<T>();
 						proxy = (IDynamicProxy)item;
 						proxy.SetValuesFromReader(reader);
+						proxy.ResetOriginalValues();
 						proxy.IsNew = false;
+						proxy.HasChanges = false;
 					}
 					else if (throwIfNotFound)
 					{
@@ -984,7 +987,7 @@ namespace Watsonia.Data
 			else
 			{
 				// Only update the item if its fields have been changed
-				if (proxy.StateTracker.ChangedFields.Count > 0)
+				if (proxy.HasChanges)
 				{
 					UpdateItem(proxy, tableName, primaryKeyColumnName, connection, transaction);
 				}
@@ -1045,6 +1048,7 @@ namespace Watsonia.Data
 				}
 			}
 
+			proxy.ResetOriginalValues();
 			proxy.HasChanges = false;
 		}
 

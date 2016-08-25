@@ -11,19 +11,11 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		public event EventHandler AgeChanging;
 		public event EventHandler AgeChanged;
 
-		public virtual long ID
-		{
-			get;
-			set;
-		}
+		public virtual long ID { get; set; }
 
 		[Required]
 		[StringLength(100)]
-		public virtual string Name
-		{
-			get;
-			set;
-		}
+		public virtual string Name { get; set; }
 
 		protected virtual void OnNameChanging(string value)
 		{
@@ -43,11 +35,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 			}
 		}
 
-		public virtual int? Age
-		{
-			get;
-			set;
-		}
+		public virtual int? Age { get; set; }
 
 		protected virtual void OnAgeChanging(int? value)
 		{
@@ -69,31 +57,15 @@ namespace Watsonia.Data.Tests.DynamicProxy
 
 		[StringLength(100)]
 		[Display(Name = "Email address")]
-		public virtual string Email
-		{
-			get;
-			set;
-		}
+		public virtual string Email { get; set; }
 
 		[StringLength(40)]
 		[Display(Name = "ABN")]
-		public virtual string Abn
-		{
-			get;
-			set;
-		}
+		public virtual string Abn { get; set; }
 
 		[Display(Name = "License count")]
-		public virtual int LicenseCount
-		{
-			get;
-			set;
-		}
+		public virtual int LicenseCount { get; set; }
 
-		public virtual ICollection<Order> Orders
-		{
-			get;
-			set;
-		}
+		public virtual ICollection<Order> Orders { get; set; }
 	}
 }

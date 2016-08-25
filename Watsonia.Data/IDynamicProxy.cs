@@ -79,6 +79,11 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Resets the original values after loading or saving.
+		/// </summary>
+		void ResetOriginalValues();
+
+		/// <summary>
 		/// Sets the item's property values from a data reader.
 		/// </summary>
 		/// <param name="source">The data reader.</param>

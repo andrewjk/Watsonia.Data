@@ -10,51 +10,27 @@ namespace Watsonia.Data.Tests.DynamicProxy
 	{
 		[Required]
 		[Display(Name = "Required string")]
-		public virtual string RequiredString
-		{
-			get;
-			set;
-		}
+		public virtual string RequiredString { get; set; }
 
 		[Required]
 		[Display(Name = "Required nullable")]
-		public virtual int? RequiredNullable
-		{
-			get;
-			set;
-		}
+		public virtual int? RequiredNullable { get; set; }
 
 		[StringLength(10)]
 		[Display(Name = "Short string")]
-		public virtual string ShortString
-		{
-			get;
-			set;
-		}
+		public virtual string ShortString { get; set; }
 
 		[RegularExpression(@"^\d{4}$")]
 		[DisplayName("Invalid post code")]
-		public virtual string InvalidPostCode
-		{
-			get;
-			set;
-		}
+		public virtual string InvalidPostCode { get; set; }
 
 		[CustomValidation(typeof(Invalid), "ValidateEmailAddress")]
 		[DisplayName("Email address")]
-		public virtual string EmailAddress
-		{
-			get;
-			set;
-		}
+		public virtual string EmailAddress { get; set; }
 
 		[CustomValidation(typeof(Invalid), "ValidateEmailAddress")]
 		[DisplayName("Confirm email address")]
-		public virtual string ConfirmEmailAddress
-		{
-			get;
-			set;
-		}
+		public virtual string ConfirmEmailAddress { get; set; }
 
 		public static ValidationResult ValidateEmailAddress(string emailAddress)
 		{
@@ -69,10 +45,6 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		}
 
 		[Cascade]
-		public virtual List<InvalidChild> InvalidChildren
-		{
-			get;
-			set;
-		}
+		public virtual List<InvalidChild> InvalidChildren { get; set; }
 	}
 }

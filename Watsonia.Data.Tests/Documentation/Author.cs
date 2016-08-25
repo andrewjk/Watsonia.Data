@@ -9,17 +9,9 @@ namespace Watsonia.Data.Tests.Documentation
 {
 	public class Author
 	{
-		public virtual bool IsNew
-		{
-			get;
-			set;
-		}
+		public virtual bool IsNew { get; set; }
 
-		public virtual bool HasChanges
-		{
-			get;
-			set;
-		}
+		public virtual bool HasChanges { get; set; }
 
 		public virtual bool IsValid
 		{
@@ -50,11 +42,7 @@ namespace Watsonia.Data.Tests.Documentation
 
 		// Intercept this in the child class
 		[Required]
-		public virtual string FirstName
-		{
-			get;
-			set;
-		}
+		public virtual string FirstName { get; set; }
 
 		// Call this from the child class
 		protected virtual void OnFirstNameChanging(string value)
@@ -68,11 +56,7 @@ namespace Watsonia.Data.Tests.Documentation
 
 		[StringLength(200)]
 		[Required]
-		public virtual string LastName
-		{
-			get;
-			set;
-		}
+		public virtual string LastName { get; set; }
 
 		protected virtual void OnLastNameChanging(string value)
 		{
@@ -90,34 +74,14 @@ namespace Watsonia.Data.Tests.Documentation
 			}
 		}
 
-		public virtual string Email
-		{
-			get;
-			set;
-		}
+		public virtual string Email { get; set; }
 
-		public virtual DateTime? DateOfBirth
-		{
-			get;
-			set;
-		}
+		public virtual DateTime? DateOfBirth { get; set; }
 
-		public virtual int? Age
-		{
-			get;
-			set;
-		}
+		public virtual int? Age { get; set; }
 
-		public virtual int Rating
-		{
-			get;
-			set;
-		}
+		public virtual int Rating { get; set; }
 
-		public virtual IList<Book> Books
-		{
-			get;
-			set;
-		}
+		public virtual IList<Book> Books { get; set; }
 	}
 }

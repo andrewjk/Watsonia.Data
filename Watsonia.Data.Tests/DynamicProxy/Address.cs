@@ -2,16 +2,8 @@
 {
 	public class Address
 	{
-		public Customer Customer
-		{
-			get;
-			set;
-		}
+		public Customer Customer { get; set; }
 
-		public virtual CardinalDirection Direction
-		{
-			get;
-			set;
-		}
+		public virtual CardinalDirection Direction { get; set; }
 	}
 }

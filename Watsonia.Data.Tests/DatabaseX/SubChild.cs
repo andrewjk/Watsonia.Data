@@ -8,10 +8,6 @@ namespace Watsonia.Data.Tests.DatabaseX
 {
 	public class SubChild
 	{
-		public virtual string SubName
-		{
-			get;
-			set;
-		}
+		public virtual string SubName { get; set; }
 	}
 }

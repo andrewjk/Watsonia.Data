@@ -9,30 +9,14 @@ namespace Watsonia.Data.Tests.Documentation
 {
 	public class Book : IValidatableObject
 	{
-		public bool IsNew
-		{
-			get;
-			set;
-		}
+		public bool IsNew { get; set; }
 
-		public bool HasChanges
-		{
-			get;
-			set;
-		}
+		public bool HasChanges { get; set; }
 
 		[Required]
-		public virtual string Title
-		{
-			get;
-			set;
-		}
+		public virtual string Title { get; set; }
 
-		public virtual Author Author
-		{
-			get;
-			set;
-		}
+		public virtual Author Author { get; set; }
 
 		public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 		{

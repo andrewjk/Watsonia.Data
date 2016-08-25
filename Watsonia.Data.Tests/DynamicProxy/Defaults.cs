@@ -9,58 +9,26 @@ namespace Watsonia.Data.Tests.DynamicProxy
 	public class Defaults
 	{
 		[DefaultValue(true)]
-		public virtual bool Bool
-		{
-			get;
-			set;
-		}
+		public virtual bool Bool { get; set; }
 
 		[DefaultValue(10)]
-		public virtual int Int
-		{
-			get;
-			set;
-		}
+		public virtual int Int { get; set; }
 
 		[DefaultValue(12)]
-		public virtual int? NullableInt
-		{
-			get;
-			set;
-		}
+		public virtual int? NullableInt { get; set; }
 
 		[DefaultValue(20)]
-		public virtual long Long
-		{
-			get;
-			set;
-		}
+		public virtual long Long { get; set; }
 
 		[DefaultValue(30)]
-		public virtual decimal Decimal
-		{
-			get;
-			set;
-		}
+		public virtual decimal Decimal { get; set; }
 
 		[DefaultValue("Hi")]
-		public virtual string String
-		{
-			get;
-			set;
-		}
+		public virtual string String { get; set; }
 
-		public virtual string EmptyString
-		{
-			get;
-			set;
-		}
+		public virtual string EmptyString { get; set; }
 
 		[DefaultDateTimeValue(1900, 1, 1)]
-		public virtual DateTime Date
-		{
-			get;
-			set;
-		}
+		public virtual DateTime Date { get; set; }
 	}
 }

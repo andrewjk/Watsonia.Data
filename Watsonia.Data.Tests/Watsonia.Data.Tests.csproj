@@ -75,6 +75,9 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DatabaseX\CardinalDirection.cs" />
+    <Compile Include="DatabaseX\HasChangesRelated.cs" />
+    <Compile Include="DatabaseX\HasChanges.cs" />
     <Compile Include="DynamicProxy\InvalidChild.cs" />
     <Compile Include="Documentation\DocumentationTests.cs" />
     <Compile Include="DynamicProxy\Address.cs" />

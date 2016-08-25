@@ -6,34 +6,14 @@ namespace Watsonia.Data.Tests.Northwind
 {
 	public class Order
 	{
-		public virtual Customer Customer
-		{
-			get;
-			set;
-		}
+		public virtual Customer Customer { get; set; }
 
-		public virtual string CustomerID
-		{
-			get;
-			set;
-		}
+		public virtual string CustomerID { get; set; }
 
-		public virtual DateTime OrderDate
-		{
-			get;
-			set;
-		}
+		public virtual DateTime OrderDate { get; set; }
 
-		public virtual int OrderID
-		{
-			get;
-			set;
-		}
+		public virtual int OrderID { get; set; }
 
-		public List<OrderDetail> Details
-		{
-			get;
-			set;
-		}
+		public List<OrderDetail> Details { get; set; }
 	}
 }

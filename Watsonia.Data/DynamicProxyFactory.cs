@@ -80,13 +80,13 @@ namespace Watsonia.Data
 			return (T)proxy;
 		}
 
-		private static Type CreateType(string typeName, Type parent, Database database)
+		private static Type CreateType(string typeName, Type parentType, Database database)
 		{
 			System.Diagnostics.Trace.WriteLine("Creating " + typeName, "Dynamic Proxy");
 
 			DynamicProxyTypeMembers members = new DynamicProxyTypeMembers();
-			members.PrimaryKeyColumnName = database.Configuration.GetPrimaryKeyColumnName(parent);
-			members.PrimaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(parent);
+			members.PrimaryKeyColumnName = database.Configuration.GetPrimaryKeyColumnName(parentType);
+			members.PrimaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(parentType);
 
 			TypeBuilder type = _moduleBuilder.DefineType(typeName,
 				TypeAttributes.Public |
@@ -95,7 +95,7 @@ namespace Watsonia.Data
 				TypeAttributes.AnsiClass |
 				TypeAttributes.BeforeFieldInit |
 				TypeAttributes.AutoLayout,
-				parent);
+				parentType);
 			type.AddInterfaceImplementation(typeof(IDynamicProxy));
 
 			// Implement INotifyPropertyChanging
@@ -107,9 +107,10 @@ namespace Watsonia.Data
 			members.OnPropertyChangedMethod = CreateOnPropertyChangedMethod(type, propertyChangedEventField);
 
 			// Add the properties
-			AddProperties(type, parent, members, database);
+			AddProperties(type, parentType, members, database);
 
 			// Add some methods
+			CreateResetOriginalValuesMethod(type, parentType, members, database);
 			CreateSetValuesFromReaderMethod(type, members);
 
 			CreateMethodToCallStateTrackerMethod(type, "GetHashCode", "GetItemHashCode", typeof(int), Type.EmptyTypes, members);
@@ -126,16 +127,16 @@ namespace Watsonia.Data
 			CreateErrorItemProperty(type, members);
 
 			// Add the constructor
-			AddConstructor(type, parent, members);
+			AddConstructor(type, parentType, members, database);
 
 			Type t = type.CreateType();
 
 			return t;
 		}
 
-		private static void AddConstructor(TypeBuilder type, Type parent, DynamicProxyTypeMembers members)
+		private static void AddConstructor(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database)
 		{
-			ConstructorInfo c = parent.GetConstructor(
+			ConstructorInfo c = parentType.GetConstructor(
 				BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
 				null,
 				Type.EmptyTypes,
@@ -143,11 +144,11 @@ namespace Watsonia.Data
 			if (c == null || c.IsPrivate)
 			{
 				throw new InvalidOperationException(
-					string.Format("An accessible empty constructor was not found on type {0}", parent.FullName));
+					string.Format("An accessible empty constructor was not found on type {0}", parentType.FullName));
 			}
 
 			ConstructorBuilder constructor = type.DefineConstructor(
-				c.Attributes | MethodAttributes.Public,		// Make it public, dammit
+				c.Attributes | MethodAttributes.Public,     // Make it public, dammit
 				c.CallingConvention,
 				Type.EmptyTypes);
 
@@ -159,7 +160,7 @@ namespace Watsonia.Data
 
 			MethodInfo stringListContainsMethod = typeof(List<>).MakeGenericType(typeof(string)).GetMethod(
 				"Contains", new Type[] { typeof(string) });
-
+			
 			ILGenerator gen = constructor.GetILGenerator();
 
 			// base.ctor()
@@ -339,7 +340,7 @@ namespace Watsonia.Data
 
 				gen.MarkLabel(endIfShouldSetDefaultValueLabel);
 			}
-
+			
 			// this.StateTracker.IsLoading = false;
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
@@ -525,6 +526,7 @@ namespace Watsonia.Data
 			foreach (PropertyInfo property in database.Configuration.PropertiesToMap(parentType))
 			{
 				// Check whether the property is a related item
+				// TODO: Change that check to IsRelatedItem
 				if (database.Configuration.ShouldMapTypeInternal(property.PropertyType))
 				{
 					// Just store this in a list for now.  It will need to be created after we know which associated ID properties
@@ -1920,6 +1922,86 @@ namespace Watsonia.Data
 			property.SetGetMethod(getMethod);
 		}
 
+		private static void CreateResetOriginalValuesMethod(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database)
+		{
+			// TODO: Should also clear ChangedFields here rather than in SetValuesFromReader
+
+			MethodBuilder method = type.DefineMethod(
+				"ResetOriginalValues",
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+				null,
+				Type.EmptyTypes);
+			
+			MethodInfo stateTrackerGetOriginalValuesMethod = typeof(DynamicProxyStateTracker).GetMethod(
+				"get_OriginalValues", Type.EmptyTypes);
+
+			MethodInfo dictionarySetItemMethod = typeof(Dictionary<,>).MakeGenericType(typeof(string), typeof(object)).GetMethod(
+				"set_Item", new Type[] { typeof(string), typeof(object) });
+			
+			ILGenerator gen = method.GetILGenerator();
+
+			// Set the original value for the primary key
+			CreateSetOriginalValueCall(gen, members, database.Configuration.GetPrimaryKeyColumnName(parentType), database.Configuration.GetPrimaryKeyColumnType(parentType), stateTrackerGetOriginalValuesMethod, dictionarySetItemMethod);
+
+			List<string> things = new List<string>();
+			// Set the original values for each property
+			foreach (PropertyInfo property in database.Configuration.PropertiesToMap(parentType))
+			{
+				// Check whether the property is a related collection
+				if (database.Configuration.IsRelatedCollection(property))
+				{
+					continue;
+				}
+
+				string key = property.Name;
+				Type propertyType = property.PropertyType;
+
+				// Check whether the property is a related item
+				if (database.Configuration.IsRelatedItem(property))
+				{
+					key = database.Configuration.GetForeignKeyColumnName(property);
+					propertyType = database.Configuration.GetPrimaryKeyColumnType(property.PropertyType);
+					if (propertyType.IsValueType)
+					{
+						propertyType = typeof(Nullable<>).MakeGenericType(propertyType);
+					}
+				}
+
+				CreateSetOriginalValueCall(gen, members, key, propertyType, stateTrackerGetOriginalValuesMethod, dictionarySetItemMethod);
+			}
+
+			// Set the original values for the related item properties for parent-child relationships
+			// that don't exist as properties
+			if (database.ChildParentMapping.ContainsKey(parentType))
+			{
+				foreach (Type parent in database.ChildParentMapping[parentType])
+				{
+					string key = database.Configuration.GetForeignKeyColumnName(parentType, parent);
+					Type propertyType = database.Configuration.GetPrimaryKeyColumnType(parent);
+					CreateSetOriginalValueCall(gen, members, key, propertyType, stateTrackerGetOriginalValuesMethod, dictionarySetItemMethod);
+				}
+			}
+			
+			// return;
+			gen.Emit(OpCodes.Ret);
+		}
+
+		private static void CreateSetOriginalValueCall(ILGenerator gen, DynamicProxyTypeMembers members, string key, Type propertyType, MethodInfo stateTrackerGetOriginalValuesMethod, MethodInfo dictionarySetItemMethod)
+		{
+			// this.StateTracker.OriginalValues["Property"] = this.Property;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
+			gen.Emit(OpCodes.Callvirt, stateTrackerGetOriginalValuesMethod);
+			gen.Emit(OpCodes.Ldstr, key);
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Callvirt, members.GetPropertyMethods[key]);
+			if (propertyType.IsValueType)
+			{
+				gen.Emit(OpCodes.Box, propertyType);
+			}
+			gen.Emit(OpCodes.Callvirt, dictionarySetItemMethod);
+		}
+
 		private static void CreateSetValuesFromReaderMethod(TypeBuilder type, DynamicProxyTypeMembers members)
 		{
 			MethodBuilder method = type.DefineMethod(
@@ -1948,13 +2030,7 @@ namespace Watsonia.Data
 
 			MethodInfo changeTypeMethod = typeof(TypeHelper).GetMethod(
 				"ChangeType", new Type[] { typeof(Object), typeof(Type) });
-
-			MethodInfo stateTrackerGetOriginalValuesMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"get_OriginalValues", Type.EmptyTypes);
-
-			MethodInfo dictionarySetItemMethod = typeof(Dictionary<,>).MakeGenericType(typeof(string), typeof(object)).GetMethod(
-				"set_Item", new Type[] { typeof(string), typeof(object) });
-
+			
 			MethodInfo stateTrackerGetChangedFieldsMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"get_ChangedFields", Type.EmptyTypes);
 
@@ -2036,20 +2112,7 @@ namespace Watsonia.Data
 					gen.Emit(OpCodes.Unbox_Any, propertyType);
 				}
 				gen.Emit(OpCodes.Call, members.SetPropertyMethods[key]);
-
-				// this.StateTracker.OriginalValues["Property"] = this.Property;
-				gen.Emit(OpCodes.Ldarg_0);
-				gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-				gen.Emit(OpCodes.Callvirt, stateTrackerGetOriginalValuesMethod);
-				gen.Emit(OpCodes.Ldstr, key);
-				gen.Emit(OpCodes.Ldarg_0);
-				gen.Emit(OpCodes.Callvirt, members.GetPropertyMethods[key]);
-				if (propertyType.IsValueType)
-				{
-					gen.Emit(OpCodes.Box, propertyType);
-				}
-				gen.Emit(OpCodes.Callvirt, dictionarySetItemMethod);
-
+				
 				// this.StateTracker.ChangedFields.Remove("Property");
 				gen.Emit(OpCodes.Ldarg_0);
 				gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);

@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Text;
 
 namespace Watsonia.Data.Tests.DatabaseX
 {
-	public class Parent
+	public class HasChangesRelated
 	{
 		public virtual string Name { get; set; }
-
-		[Cascade]
-		public virtual IList<Child> Children { get; set; }
 	}
 }
