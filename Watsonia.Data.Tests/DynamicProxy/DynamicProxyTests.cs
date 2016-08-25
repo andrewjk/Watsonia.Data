@@ -8,7 +8,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 	[TestClass]
 	public class DynamicProxyTests
 	{
-		private static Database db = new Database("", "Watsonia.Data.Tests.DynamicProxy");
+		private static Database db = new Database(null, "", "Watsonia.Data.Tests.DynamicProxy");
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)

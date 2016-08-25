@@ -72,7 +72,6 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
@@ -96,7 +95,6 @@
   <ItemGroup>
     <Compile Include="CascadeAttribute.cs" />
     <Compile Include="CascadeDeleteAttribute.cs" />
-    <Compile Include="DataAccessProviders.cs" />
     <Compile Include="DatabaseQuery.cs" />
     <Compile Include="DatabaseUpdater.cs" />
     <Compile Include="DefaultDateTimeValueAttribute.cs" />

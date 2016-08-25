@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Watsonia.Data.SqlServerCe;
 
 namespace Watsonia.Data.Tests.Documentation
 {
@@ -15,7 +16,10 @@ namespace Watsonia.Data.Tests.Documentation
 	{
 		public const string ConnectionString = @"Data Source=Data\DocumentationTests.sdf;Persist Security Info=False";
 
-		private readonly static Database db = new Database(DocumentationTests.ConnectionString, "Watsonia.Data.Tests.Documentation");
+		private readonly static Database db = new Database(
+			new SqlServerCeDataAccessProvider(),
+			DocumentationTests.ConnectionString,
+			"Watsonia.Data.Tests.Documentation");
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
@@ -25,7 +29,6 @@ namespace Watsonia.Data.Tests.Documentation
 				File.Create(@"Data\DocumentationTests.sdf");
 			}
 
-			db.Configuration.ProviderName = "Watsonia.Data.SqlServerCe";
 			db.UpdateDatabase();
 
 			// Let's first delete all of the authors and books

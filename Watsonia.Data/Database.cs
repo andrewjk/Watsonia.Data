@@ -94,11 +94,12 @@ namespace Watsonia.Data
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Database" /> class.
 		/// </summary>
+		/// <param name="provider">The provider used to access the type of database.</param>
 		/// <param name="connectionString">The connection string used to access the database.</param>
 		/// <param name="entityNamespace">The namespace in which entity classes are located.</param>
-		public Database(string connectionString, string entityNamespace)
+		public Database(IDataAccessProvider provider, string connectionString, string entityNamespace)
 		{
-			this.Configuration = new DatabaseConfiguration(connectionString, entityNamespace);
+			this.Configuration = new DatabaseConfiguration(provider, connectionString, entityNamespace);
 			this.DatabaseName = this.GetType().Name;
 
 			LoadChildParentMapping();

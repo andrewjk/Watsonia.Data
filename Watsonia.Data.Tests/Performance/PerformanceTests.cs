@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Watsonia.Data.SqlServerCe;
 
 namespace Watsonia.Data.Tests.Performance
 {
@@ -19,7 +20,10 @@ namespace Watsonia.Data.Tests.Performance
 	{
 		public const string ConnectionString = @"Data Source=Data\PerformanceTests.sdf;Persist Security Info=False";
 
-		private static Database db = new Database(PerformanceTests.ConnectionString, "Watsonia.Data.Tests.PerformanceModels");
+		private static Database db = new Database(
+			new SqlServerCeDataAccessProvider(),
+			PerformanceTests.ConnectionString,
+			"Watsonia.Data.Tests.PerformanceModels");
 
 #if !DEBUG
 		[ClassInitialize]
@@ -31,7 +35,6 @@ namespace Watsonia.Data.Tests.Performance
 				File.Create(@"Data\PerformanceTests.sdf");
 			}
 
-			db.Configuration.ProviderName = "Watsonia.Data.SqlServerCe";
 			db.UpdateDatabase();
 
 			if (db.Query<Post>().Count() == 0)

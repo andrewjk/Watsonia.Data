@@ -5,6 +5,7 @@ using System.Data.Common;
 using Watsonia.Data.SqlServer;
 using System.IO;
 using System;
+using Watsonia.Data.SqlServerCe;
 
 namespace Watsonia.Data.Tests.DatabaseX
 {
@@ -16,7 +17,10 @@ namespace Watsonia.Data.Tests.DatabaseX
 	{
 		public const string ConnectionString = @"Data Source=Data\DatabaseTests.sdf;Persist Security Info=False";
 
-		private readonly static Database db = new Database(DatabaseTests.ConnectionString, "Watsonia.Data.Tests.DatabaseX");
+		private readonly static Database db = new Database(
+			new SqlServerCeDataAccessProvider(),
+			DatabaseTests.ConnectionString,
+			"Watsonia.Data.Tests.DatabaseX");
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
@@ -26,7 +30,6 @@ namespace Watsonia.Data.Tests.DatabaseX
 				File.Create(@"Data\DatabaseTests.sdf");
 			}
 
-			db.Configuration.ProviderName = "Watsonia.Data.SqlServerCe";
 			db.UpdateDatabase();
 		}
 
@@ -464,7 +467,7 @@ namespace Watsonia.Data.Tests.DatabaseX
 					.Value("ABN", "123 456 789")
 					.Value("LicenseCount", 5);
 
-			DatabaseConfiguration dummyConfig = new DatabaseConfiguration("", "");
+			DatabaseConfiguration dummyConfig = new DatabaseConfiguration(null, "", "");
 			IDataAccessProvider provider = new SqlServerDataAccessProvider();
 			DbCommand command = provider.BuildCommand(insert, dummyConfig);
 
@@ -488,7 +491,7 @@ namespace Watsonia.Data.Tests.DatabaseX
 				.And("ABN", SqlOperator.Equals, "123 456 789")
 				.OrderBy("Name");
 
-			DatabaseConfiguration dummyConfig = new DatabaseConfiguration("", "");
+			DatabaseConfiguration dummyConfig = new DatabaseConfiguration(null, "", "");
 			IDataAccessProvider provider = new SqlServerDataAccessProvider();
 			DbCommand command = provider.BuildCommand(select, dummyConfig);
 
@@ -513,7 +516,7 @@ namespace Watsonia.Data.Tests.DatabaseX
 					.Where("Code", SqlOperator.Equals, "HI123")
 					.And("ABN", SqlOperator.Equals, "123 456 789");
 
-			DatabaseConfiguration dummyConfig = new DatabaseConfiguration("", "");
+			DatabaseConfiguration dummyConfig = new DatabaseConfiguration(null, "", "");
 			IDataAccessProvider provider = new SqlServerDataAccessProvider();
 			DbCommand command = provider.BuildCommand(update, dummyConfig);
 
@@ -535,7 +538,7 @@ namespace Watsonia.Data.Tests.DatabaseX
 					.Where("Code", SqlOperator.Equals, "HI123")
 					.And("LicenseCount", SqlOperator.Equals, 10);
 
-			DatabaseConfiguration dummyConfig = new DatabaseConfiguration("", "");
+			DatabaseConfiguration dummyConfig = new DatabaseConfiguration(null, "", "");
 			IDataAccessProvider provider = new SqlServerDataAccessProvider();
 			DbCommand command = provider.BuildCommand(delete, dummyConfig);
 

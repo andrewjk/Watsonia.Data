@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,54 +11,13 @@ namespace Watsonia.Data
 	/// </summary>
 	public class DatabaseConfiguration
 	{
-		private IDataAccessProvider _dataAccessProvider;
-
-		/// <summary>
-		/// Gets or sets the name of the provider used to access the type of database.
-		/// </summary>
-		/// <value>
-		/// The name of the provider.
-		/// </value>
-		public virtual string ProviderName
-		{
-			get;
-			set;
-		}
-
 		/// <summary>
 		/// Gets or sets the provider used to access the type of database.
 		/// </summary>
 		/// <value>
 		/// The data access provider.
 		/// </value>
-		public IDataAccessProvider DataAccessProvider
-		{
-			get
-			{
-				if (_dataAccessProvider == null)
-				{
-					// Set the provider based on the ProviderName that the user set, or just the first provider if they
-					// didn't set anything
-					foreach (IDataAccessProvider provider in DataAccessProviders.Providers)
-					{
-						if (string.IsNullOrEmpty(this.ProviderName) || this.ProviderName == provider.ProviderName)
-						{
-							_dataAccessProvider = provider;
-							break;
-						}
-					}
-
-					// If the user passed in a name and it didn't match anything, throw an exception
-					// NOTE: We're checking this here rather than in DataAccessProviders as this gives a more meaningful
-					// exception, rather than showing the user something wrapped in a TypeInitializationException
-					if (_dataAccessProvider == null)
-					{
-						throw new InvalidOperationException("No data access provider found");
-					}
-				}
-				return _dataAccessProvider;
-			}
-		}
+		public IDataAccessProvider DataAccessProvider { get; private set; }
 
 		/// <summary>
 		/// Gets the connection string used to access the database.
@@ -67,11 +25,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The connection string.
 		/// </value>
-		public virtual string ConnectionString
-		{
-			get;
-			private set;
-		}
+		public virtual string ConnectionString { get; private set; }
 
 		/// <summary>
 		/// Gets the namespace in which entity classes are located.
@@ -79,19 +33,17 @@ namespace Watsonia.Data
 		/// <value>
 		/// The entity namespace.
 		/// </value>
-		private string EntityNamespace
-		{
-			get;
-			set;
-		}
+		public string EntityNamespace { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DatabaseConfiguration" /> class.
 		/// </summary>
+		/// <param name="provider">The provider used to access the type of database.</param>
 		/// <param name="connectionString">The connection string used to access the database.</param>
 		/// <param name="entityNamespace">The namespace in which entity classes are located.</param>
-		public DatabaseConfiguration(string connectionString, string entityNamespace)
+		public DatabaseConfiguration(IDataAccessProvider provider, string connectionString, string entityNamespace)
 		{
+			this.DataAccessProvider = provider;
 			this.ConnectionString = connectionString;
 			this.EntityNamespace = entityNamespace;
 		}

@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Linq;
+using Watsonia.Data.SqlServerCe;
 
 namespace Watsonia.Data.Tests.Northwind
 {
 	internal sealed class NorthwindConfiguration : DatabaseConfiguration
 	{
 		public NorthwindConfiguration(string connectionString, string entityNamespace)
-			: base(connectionString, entityNamespace)
+			: base(new SqlServerCeDataAccessProvider(), connectionString, entityNamespace)
 		{
-			this.ProviderName = "Watsonia.Data.SqlServerCe";
 		}
 
 		public override string GetTableName(Type type)
