@@ -126,6 +126,15 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		}
 
 		[TestMethod]
+		public void TestConstructorInitialization()
+		{
+			ConstructorInitializer initializer = DynamicProxyFactory.GetDynamicProxy<ConstructorInitializer>(db);
+
+			Assert.AreEqual("Hello", initializer.Name);
+			Assert.AreEqual("Hey", initializer.Description);
+		}
+
+		[TestMethod]
 		public void TestDataErrorInfoMethods()
 		{
 			Invalid invalid = db.Create<Invalid>();

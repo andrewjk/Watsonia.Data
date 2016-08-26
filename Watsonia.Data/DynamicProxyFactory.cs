@@ -110,7 +110,7 @@ namespace Watsonia.Data
 			AddProperties(type, parentType, members, database);
 
 			// Add some methods
-			CreateResetOriginalValuesMethod(type, parentType, members, database);
+			members.ResetOriginalValuesMethod = CreateResetOriginalValuesMethod(type, parentType, members, database);
 			CreateSetValuesFromReaderMethod(type, members);
 
 			CreateMethodToCallStateTrackerMethod(type, "GetHashCode", "GetItemHashCode", typeof(int), Type.EmptyTypes, members);
@@ -155,8 +155,10 @@ namespace Watsonia.Data
 			MethodInfo stateTrackerIsLoadingMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"set_IsLoading", new Type[] { typeof(bool) });
 
-			MethodInfo stateTrackerChangedFieldsMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"get_ChangedFields", Type.EmptyTypes);
+			// TODO: Rather than abusing the FieldsToValidate (and requiring it be public!), I should
+			// be checking whether the value == default(T)
+			MethodInfo stateTrackerFieldsToValidateMethod = typeof(DynamicProxyStateTracker).GetMethod(
+				"get_FieldsToValidate", Type.EmptyTypes);
 
 			MethodInfo stringListContainsMethod = typeof(List<>).MakeGenericType(typeof(string)).GetMethod(
 				"Contains", new Type[] { typeof(string) });
@@ -181,7 +183,7 @@ namespace Watsonia.Data
 				// if (!this.StateTracker.ChangedFields.Contains("Property"))
 				gen.Emit(OpCodes.Ldarg_0);
 				gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-				gen.Emit(OpCodes.Callvirt, stateTrackerChangedFieldsMethod);
+				gen.Emit(OpCodes.Callvirt, stateTrackerFieldsToValidateMethod);
 				gen.Emit(OpCodes.Ldstr, propertyName);
 				gen.Emit(OpCodes.Callvirt, stringListContainsMethod);
 				gen.Emit(OpCodes.Brtrue_S, endIfShouldSetDefaultValueLabel);
@@ -340,7 +342,11 @@ namespace Watsonia.Data
 
 				gen.MarkLabel(endIfShouldSetDefaultValueLabel);
 			}
-			
+
+			// this.ResetOriginalValues();
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Call, members.ResetOriginalValuesMethod);
+
 			// this.StateTracker.IsLoading = false;
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
@@ -1922,7 +1928,7 @@ namespace Watsonia.Data
 			property.SetGetMethod(getMethod);
 		}
 
-		private static void CreateResetOriginalValuesMethod(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database)
+		private static MethodBuilder CreateResetOriginalValuesMethod(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database)
 		{
 			// TODO: Should also clear ChangedFields here rather than in SetValuesFromReader
 
@@ -1984,6 +1990,8 @@ namespace Watsonia.Data
 			
 			// return;
 			gen.Emit(OpCodes.Ret);
+
+			return method;
 		}
 
 		private static void CreateSetOriginalValueCall(ILGenerator gen, DynamicProxyTypeMembers members, string key, Type propertyType, MethodInfo stateTrackerGetOriginalValuesMethod, MethodInfo dictionarySetItemMethod)
@@ -2141,6 +2149,10 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldarg_1);
 			gen.Emit(OpCodes.Callvirt, getFieldCountMethod);
 			gen.Emit(OpCodes.Blt, startFieldLoop);
+
+			// this.ResetOriginalValues();
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Call, members.ResetOriginalValuesMethod);
 
 			// this.StateTracker.IsLoading = false;
 			gen.Emit(OpCodes.Ldarg_0);

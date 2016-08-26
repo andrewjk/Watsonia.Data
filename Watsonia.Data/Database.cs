@@ -185,7 +185,6 @@ namespace Watsonia.Data
 			T newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
 			IDynamicProxy proxy = (IDynamicProxy)newItem;
 			//proxy.ID = -1;
-			proxy.ResetOriginalValues();
 			proxy.IsNew = true;
 
 			OnAfterCreate(proxy);
@@ -295,7 +294,6 @@ namespace Watsonia.Data
 						item = Create<T>();
 						proxy = (IDynamicProxy)item;
 						proxy.SetValuesFromReader(reader);
-						proxy.ResetOriginalValues();
 						proxy.IsNew = false;
 						proxy.HasChanges = false;
 					}
@@ -408,10 +406,10 @@ namespace Watsonia.Data
 					while (reader.Read())
 					{
 						Type proxyType = DynamicProxyFactory.GetDynamicProxyType(itemType, this);
-						IDynamicProxy newItem = (IDynamicProxy)proxyType.GetConstructor(Type.EmptyTypes).Invoke(Type.EmptyTypes);
-						newItem.StateTracker.Database = this;
-						newItem.SetValuesFromReader(reader);
-						result.Add(newItem);
+						IDynamicProxy proxy = (IDynamicProxy)proxyType.GetConstructor(Type.EmptyTypes).Invoke(Type.EmptyTypes);
+						proxy.StateTracker.Database = this;
+						proxy.SetValuesFromReader(reader);
+						result.Add(proxy);
 					}
 				}
 				OnAfterExecuteCommand(command);
@@ -778,9 +776,9 @@ namespace Watsonia.Data
 				{
 					while (reader.Read())
 					{
-						IDynamicProxy newItem = DynamicProxyFactory.GetDynamicProxy(elementType, this);
-						newItem.SetValuesFromReader(reader);
-						result.Add(newItem);
+						IDynamicProxy proxy = DynamicProxyFactory.GetDynamicProxy(elementType, this);
+						proxy.SetValuesFromReader(reader);
+						result.Add(proxy);
 					}
 				}
 				OnAfterExecuteCommand(command);

@@ -73,7 +73,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The fields to validate.
 		/// </value>
-		private List<string> FieldsToValidate { get; } = new List<string>();
+		public List<string> FieldsToValidate { get; } = new List<string>();
 
 		/// <summary>
 		/// Gets the loaded collections, which are saved with this item.
@@ -280,7 +280,7 @@ namespace Watsonia.Data
 				this.OnPropertyChanged(propertyName);
 				if (!this.IsLoading)
 				{
-					// Check whether the original values  contains the key. If it doesn't it must be a
+					// Check whether the original values contains the key. If it doesn't it must be a
 					// related item (e.g. Book), which will be covered when the ID value is set (e.g. BookID)
 					if (this.OriginalValues.ContainsKey(propertyName))
 					{
@@ -337,8 +337,12 @@ namespace Watsonia.Data
 				this.OnPropertyChanged(propertyName);
 				if (!this.IsLoading)
 				{
-					// Check whether the original values  contains the key. If it doesn't it must be a
-					// related item (e.g. Book), which will be covered when the ID value is set (e.g. BookID)
+					// Check whether the original values contains the key
+					// If it doesn't it must be a related item (e.g. Book), which will be covered when
+					// the ID value is set (e.g. BookID)
+					// OR this property is being set from within the constructor (where the original
+					// values haven't been created yet) or from SetValuesFromReader (where the original
+					// values have been cleared out in preparation for new ones)
 					if (this.OriginalValues.ContainsKey(propertyName))
 					{
 						// If the property is being set to its original value, clear it out of the changed fields

@@ -2,7 +2,7 @@
 
 Allow properties to be abstract as well as virtual (specifically for IsValid and ValidationErrors)?
 	And change ValidationErrors to an IList
-Implement IEditableObject
+Implement INotifyingDataError
 Have better error messages
 	When a standard overridden property is of the wrong type e.g. if HasChanges is a string
 	When a standard overridden property has the wrong access type e.g. if HasChanges only has a getter
@@ -11,12 +11,13 @@ Have better error messages
 Test using Guids for IDs
 Add async support
 Add an SQLite implementation
-Really have to tidy up the mess I've made of the LINQ stuff
 Fix up the documentation
 	Make a list of conventions
 Performance improvements!
 	Should we use the type-specific methods (GetInt32 etc) in SetValuesFromReader?
 	Should we have SetValue(propertyName) methods instead of using reflection?
+	Should we store table name and related table names in the proxy?
+	Basically, remove the using System.Reflection directive in Database and DynamicProxyStateTracker
 LoadedCollections and LoadedItems should probably be a collection of collections and items, rather than names
 Build the assembly as a PCL
 Put it up on NuGet

@@ -76,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DatabaseX\CardinalDirection.cs" />
+    <Compile Include="DynamicProxy\ConstructorInitializer.cs" />
     <Compile Include="DatabaseX\HasChangesRelated.cs" />
     <Compile Include="DatabaseX\HasChanges.cs" />
     <Compile Include="DynamicProxy\InvalidChild.cs" />
