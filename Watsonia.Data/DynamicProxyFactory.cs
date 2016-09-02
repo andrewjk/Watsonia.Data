@@ -122,10 +122,6 @@ namespace Watsonia.Data
 			//CreateEqualityOperator(type, parent, members);
 			//CreateInequalityOperator(type, parent, members);
 
-			// Implement IDataErrorInfo
-			CreateErrorProperty(type, members);
-			CreateErrorItemProperty(type, members);
-
 			// Add the constructor
 			AddConstructor(type, parentType, members, database);
 
@@ -2202,65 +2198,6 @@ namespace Watsonia.Data
 			{
 				gen.Emit(OpCodes.Ldloc_0);
 			}
-			gen.Emit(OpCodes.Ret);
-		}
-
-		private static void CreateErrorProperty(TypeBuilder type, DynamicProxyTypeMembers members)
-		{
-			MethodBuilder method = type.DefineMethod(
-				"System.ComponentModel.IDataErrorInfo.get_Error",
-				MethodAttributes.Private | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
-				typeof(string),
-				null);
-			type.DefineMethodOverride(method, typeof(IDataErrorInfo).GetMethod("get_Error"));
-
-			MethodInfo getErrorTextMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"GetErrorText", Type.EmptyTypes);
-
-			ILGenerator gen = method.GetILGenerator();
-
-			LocalBuilder local = gen.DeclareLocal(typeof(string));
-			Label exitLabel = gen.DefineLabel();
-
-			// return this.StateTracker.GetErrorText();
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-			gen.Emit(OpCodes.Callvirt, getErrorTextMethod);
-			gen.Emit(OpCodes.Stloc_0);
-			gen.Emit(OpCodes.Br_S, exitLabel);
-			gen.MarkLabel(exitLabel);
-			gen.Emit(OpCodes.Ldloc_0);
-			gen.Emit(OpCodes.Ret);
-		}
-
-		private static void CreateErrorItemProperty(TypeBuilder type, DynamicProxyTypeMembers members)
-		{
-			MethodBuilder method = type.DefineMethod(
-				"System.ComponentModel.IDataErrorInfo.get_Item",
-				MethodAttributes.Private | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
-				typeof(string),
-				new Type[] { typeof(string) });
-			type.DefineMethodOverride(method, typeof(IDataErrorInfo).GetMethod("get_Item"));
-
-			MethodInfo getErrorTextMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"GetErrorText", new Type[] { typeof(string) });
-
-			ParameterBuilder columnName = method.DefineParameter(1, ParameterAttributes.None, "columnName");
-
-			ILGenerator gen = method.GetILGenerator();
-
-			LocalBuilder local = gen.DeclareLocal(typeof(string));
-			Label exitLabel = gen.DefineLabel();
-
-			// 	return this.StateTracker.GetErrorText(columnName);
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-			gen.Emit(OpCodes.Ldarg_1);
-			gen.Emit(OpCodes.Callvirt, getErrorTextMethod);
-			gen.Emit(OpCodes.Stloc_0);
-			gen.Emit(OpCodes.Br_S, exitLabel);
-			gen.MarkLabel(exitLabel);
-			gen.Emit(OpCodes.Ldloc_0);
 			gen.Emit(OpCodes.Ret);
 		}
 	}

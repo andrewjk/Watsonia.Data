@@ -138,42 +138,41 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		public void TestDataErrorInfoMethods()
 		{
 			Invalid invalid = db.Create<Invalid>();
-			IDataErrorInfo invalidErrorInfo = (IDataErrorInfo)invalid;
 			IDynamicProxy invalidProxy = (IDynamicProxy)invalid;
 
 			// Make sure that the RequiredString doesn't have an error until its property gets changed
-			Assert.AreEqual("", invalidErrorInfo["RequiredString"]);
+			Assert.AreEqual("", invalidProxy.StateTracker.GetErrorText("RequiredString"));
 
 			invalid.RequiredString = "Aoeu";
 			invalid.RequiredString = "";
-			Assert.AreEqual("The Required string field is required.", invalidErrorInfo["RequiredString"]);
+			Assert.AreEqual("The Required string field is required.", invalidProxy.StateTracker.GetErrorText("RequiredString"));
 			invalid.RequiredString = "A string";
-			Assert.AreEqual("", invalidErrorInfo["RequiredString"]);
+			Assert.AreEqual("", invalidProxy.StateTracker.GetErrorText("RequiredString"));
 
 			invalid.RequiredNullable = null;
-			Assert.AreEqual("The Required nullable field is required.", invalidErrorInfo["RequiredNullable"]);
+			Assert.AreEqual("The Required nullable field is required.", invalidProxy.StateTracker.GetErrorText("RequiredNullable"));
 			invalid.RequiredNullable = 5;
-			Assert.AreEqual("", invalidErrorInfo["RequiredNullable"]);
+			Assert.AreEqual("", invalidProxy.StateTracker.GetErrorText("RequiredNullable"));
 
 			invalid.ShortString = "Far too long";
-			Assert.AreEqual("The field Short string must be a string with a maximum length of 10.", invalidErrorInfo["ShortString"]);
+			Assert.AreEqual("The field Short string must be a string with a maximum length of 10.", invalidProxy.StateTracker.GetErrorText("ShortString"));
 			invalid.ShortString = "Better";
-			Assert.AreEqual("", invalidErrorInfo["ShortString"]);
+			Assert.AreEqual("", invalidProxy.StateTracker.GetErrorText("ShortString"));
 
 			invalid.InvalidPostCode = "30001";
-			Assert.AreEqual(@"The field Invalid post code must match the regular expression '^\d{4}$'.", invalidErrorInfo["InvalidPostCode"]);
+			Assert.AreEqual(@"The field Invalid post code must match the regular expression '^\d{4}$'.", invalidProxy.StateTracker.GetErrorText("InvalidPostCode"));
 			invalid.InvalidPostCode = "3001";
-			Assert.AreEqual("", invalidErrorInfo["InvalidPostCode"]);
+			Assert.AreEqual("", invalidProxy.StateTracker.GetErrorText("InvalidPostCode"));
 	
 			invalid.EmailAddress = "info.donotreply.com";
-			Assert.AreEqual("The Email address field is no good.", invalidErrorInfo["EmailAddress"]);
+			Assert.AreEqual("The Email address field is no good.", invalidProxy.StateTracker.GetErrorText("EmailAddress"));
 			invalid.EmailAddress = "info@donotreply.com";
-			Assert.AreEqual("", invalidErrorInfo["EmailAddress"]);
+			Assert.AreEqual("", invalidProxy.StateTracker.GetErrorText("EmailAddress"));
 			
 			invalid.ConfirmEmailAddress = "support.donotreply.com";
-			Assert.AreEqual("The Confirm email address field is no good.", invalidErrorInfo["ConfirmEmailAddress"]);
+			Assert.AreEqual("The Confirm email address field is no good.", invalidProxy.StateTracker.GetErrorText("ConfirmEmailAddress"));
 			invalid.ConfirmEmailAddress = "support@donotreply.com";
-			Assert.AreEqual("", invalidErrorInfo["ConfirmEmailAddress"]);
+			Assert.AreEqual("", invalidProxy.StateTracker.GetErrorText("ConfirmEmailAddress"));
 
 			// Validate the whole thing
 			InvalidChild child1 = db.Create<InvalidChild>();

@@ -7,7 +7,7 @@ namespace Watsonia.Data
 	/// <summary>
 	/// The interface for a dynamic proxy created from an entity.
 	/// </summary>
-	public interface IDynamicProxy : INotifyPropertyChanging, INotifyPropertyChanged, IDataErrorInfo
+	public interface IDynamicProxy : INotifyPropertyChanging, INotifyPropertyChanged
 	{
 		/// <summary>
 		/// Gets the state tracker.

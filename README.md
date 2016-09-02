@@ -279,7 +279,7 @@ Watsonia.Data creates a proxy object for each entity class when its correspondin
 
 TODO: Very much need a diagram here
 
-Each proxy object class implements the interface Watsonia.Data.IDynamicProxy which further implements the INotifyPropertyChanging, INotifyPropertyChanged and IDataErrorInfo interfaces.  In this way an entity class can be used for databinding without having to write the tedious implementations of these interfaces.  
+Each proxy object class implements the interface Watsonia.Data.IDynamicProxy which further implements the INotifyPropertyChanging and INotifyPropertyChanged interfaces.  In this way an entity class can be used for databinding without having to write the tedious implementations of these interfaces.  
 
 TODO: Other stuff it implements e.g. equality
 
@@ -318,7 +318,7 @@ When the FirstName property is changed in the proxy object, it will do the follo
 
 ## Validation ##
 
-Each proxy object class also implements the IDataErrorInfo interface to provide error information for user interfaces.  When the proxy object is loaded or created, it will have no errors.  When each property is set by the user, any System.ComponentModel.DataAnnotations.ValidationAttributes will be checked and errors created if the property value is invalid.  When the proxy object is saved to the database, all properties will be checked to see whether they are valid and an exception will be thrown if any are invalid.  For example, we can change the author class to look like this:
+Each proxy object class provides validation error information.  When the proxy object is loaded or created, it will have no errors.  When each property is set by the user, any System.ComponentModel.DataAnnotations.ValidationAttributes will be checked and errors created if the property value is invalid.  When the proxy object is saved to the database, all properties will be checked to see whether they are valid and an exception will be thrown if any are invalid.  For example, we can change the author class to look like this:
 
 ```C#
 public class Author
@@ -347,7 +347,7 @@ and then create an author:
 Author author = db.Create<Author>();
 ```
 
-At this point the author will be considered to have no errors and won't display any errors if the UI it is bound to supports IDataErrorInfo (e.g. WPF).  If we attempt to save the author or check the author's IsValid property, however, the author will have two errors in its ValidationErrors collection.  
+At this point the author will be considered to have no errors.  If we attempt to save the author or check the author's IsValid property, however, the author will have two errors in its ValidationErrors collection.  
 
 You can also implement the IValidatableObject interface if you have more complex validation requirements and it will be called when saving to the database or checking IsValid.  
 
