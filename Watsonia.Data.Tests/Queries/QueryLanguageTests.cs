@@ -2152,6 +2152,21 @@ namespace Watsonia.Data.Tests.Queries
 			}
 #endif
 
+			// Replace parameter references with their values so that we can check they have the correct value
+			for (int i= 0; i < builder.ParameterValues.Count; i++)
+			{
+				Assert.IsTrue(actual.Contains("@" + i));
+				if (builder.ParameterValues[i] is string ||
+					builder.ParameterValues[i] is char)
+				{
+					actual = actual.Replace("@" + i, "'" + builder.ParameterValues[i].ToString() + "'");
+				}
+				else
+				{
+					actual = actual.Replace("@" + i, builder.ParameterValues[i].ToString());
+				}
+			}
+
 			Assert.AreEqual(expected, actual);
 		}
 

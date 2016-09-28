@@ -168,29 +168,6 @@ namespace Watsonia.Data
 			}
 		}
 
-		/// <summary>
-		/// Determines whether the specified type is numeric with a decimal part.
-		/// </summary>
-		/// <param name="type">The type.</param>
-		/// <returns>
-		///   <c>true</c> if the specified type is numeric with a decimal part; otherwise, <c>false</c>.
-		/// </returns>
-		public static bool IsNumericDecimal(Type type)
-		{
-			switch (Type.GetTypeCode(type))
-			{
-				case TypeCode.Double:
-				case TypeCode.Single:
-				{
-					return true;
-				}
-				default:
-				{
-					return false;
-				}
-			}
-		}
-
 		public static bool IsAnonymous(Type type)
 		{
 			// From http://stackoverflow.com/questions/2483023/how-to-test-if-a-type-is-anonymous

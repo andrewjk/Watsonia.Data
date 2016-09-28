@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlServerCe;
 using System.Linq;
 using System.Text;
@@ -61,6 +62,11 @@ namespace Watsonia.Data.SqlServerCe
 				{
 					parameter.Size = 1;
 				}
+				// HACK: Have to explicitly set the DbType for SQL Server CE for some reason
+				if (parameter.Value != null)
+				{
+					parameter.SqlDbType = DatabaseTypeFromFramework(parameter.Value.GetType());
+				}
 				command.Parameters.Add(parameter);
 			}
 		}
@@ -80,7 +86,64 @@ namespace Watsonia.Data.SqlServerCe
 				SqlCeParameter parameter = new SqlCeParameter();
 				parameter.ParameterName = "@" + i;
 				parameter.Value = parameters[i] ?? DBNull.Value;
+				// HACK: Have to explicitly set the DbType for SQL Server CE for some reason
+				if (parameter.Value != null)
+				{
+					parameter.SqlDbType = DatabaseTypeFromFramework(parameter.Value.GetType());
+				}
 				command.Parameters.Add(parameter);
+			}
+		}
+
+		private SqlDbType DatabaseTypeFromFramework(Type type)
+		{
+			if (type == typeof(bool) || type == typeof(bool?))
+			{
+				return SqlDbType.Bit;
+			}
+			else if (type == typeof(DateTime) || type == typeof(DateTime?))
+			{
+				return SqlDbType.DateTime;
+			}
+			else if (type == typeof(decimal) || type == typeof(decimal?))
+			{
+				return SqlDbType.Decimal;
+			}
+			else if (type == typeof(double) || type == typeof(double?))
+			{
+				return SqlDbType.Float;
+			}
+			else if (type == typeof(int) || type == typeof(int?))
+			{
+				return SqlDbType.Int;
+			}
+			else if (type == typeof(long) || type == typeof(long?))
+			{
+				return SqlDbType.BigInt;
+			}
+			else if (type == typeof(byte) || type == typeof(byte?))
+			{
+				return SqlDbType.TinyInt;
+			}
+			else if (type == typeof(char))
+			{
+				return SqlDbType.NChar;
+			}
+			else if (type == typeof(string))
+			{
+				return SqlDbType.NVarChar;
+			}
+			else if (type == typeof(byte[]))
+			{
+				return SqlDbType.VarBinary;
+			}
+			else if (type == typeof(Guid) || type == typeof(Guid?))
+			{
+				return SqlDbType.UniqueIdentifier;
+			}
+			else
+			{
+				throw new InvalidOperationException("Invalid column type: " + type);
 			}
 		}
 	}

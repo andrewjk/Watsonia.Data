@@ -126,10 +126,6 @@ namespace Watsonia.Data.SqlServer
 			{
 				this.CommandText.Append("NULL");
 			}
-			else if (value.GetType().IsEnum)
-			{
-				this.CommandText.Append(Convert.ToInt64(value));
-			}
 			else if (value.GetType() == typeof(bool))
 			{
 				this.CommandText.Append(((bool)value) ? "1" : "0");
@@ -137,19 +133,6 @@ namespace Watsonia.Data.SqlServer
 			else if (value.GetType() == typeof(string) && value.ToString() == "")
 			{
 				this.CommandText.Append("''");
-			}
-			else if (TypeHelper.IsNumericDecimal(value.GetType()))
-			{
-				string stringValue = value.ToString();
-				if (!stringValue.Contains('.'))
-				{
-					stringValue += ".0";
-				}
-				this.CommandText.Append(stringValue);
-			}
-			else if (TypeHelper.IsNumeric(value.GetType()))
-			{
-				this.CommandText.Append(value);
 			}
 			else if (value is IEnumerable && !(value is string) && !(value is byte[]))
 			{
@@ -173,7 +156,6 @@ namespace Watsonia.Data.SqlServer
 			}
 			else
 			{
-				// TODO: Is there any point having a parameter query part and a paremeterizer?
 				int index = this.ParameterValues.IndexOf(value);
 				if (index != -1)
 				{
@@ -184,24 +166,18 @@ namespace Watsonia.Data.SqlServer
 				{
 					this.CommandText.Append("@");
 					this.CommandText.Append(this.ParameterValues.Count);
-					this.ParameterValues.Add(value);
+					if (value.GetType().IsEnum)
+					{
+						this.ParameterValues.Add(Convert.ToInt64(value));
+					}
+					else
+					{
+						this.ParameterValues.Add(value);
+					}
 				}
 			}
 		}
-
-		private void VisitParameter(Parameter parameter)
-		{
-			int index = this.ParameterValues.IndexOf(parameter.Value);
-			if (index == -1)
-			{
-				this.ParameterValues.Add(parameter.Value);
-				index = this.ParameterValues.Count - 1;
-			}
-
-			this.CommandText.Append("@");
-			this.CommandText.Append(index);
-		}
-
+		
 		private void VisitSelect(SelectStatement select)
 		{
 			// TODO: If we're using SQL Server 2012 we should just use the OFFSET keyword
@@ -369,6 +345,7 @@ namespace Watsonia.Data.SqlServer
 			}
 			foreach (SelectStatement union in select.UnionStatements)
 			{
+				this.CommandText.AppendLine();
 				this.CommandText.AppendLine("UNION ALL");
 				VisitSelect(union);
 			}
@@ -825,11 +802,6 @@ namespace Watsonia.Data.SqlServer
 				case StatementPartType.ConstantPart:
 				{
 					this.VisitConstant((ConstantPart)field);
-					break;
-				}
-				case StatementPartType.Parameter:
-				{
-					this.VisitParameter((Parameter)field);
 					break;
 				}
 				case StatementPartType.Condition:

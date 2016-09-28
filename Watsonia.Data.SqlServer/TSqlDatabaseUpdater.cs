@@ -724,7 +724,8 @@ namespace Watsonia.Data.SqlServer
 			b.AppendLine();
 			using (var viewCommand = _configuration.DataAccessProvider.BuildCommand(view.SelectStatement, _configuration))
 			{
-				b.Append(viewCommand.CommandText);
+				var commandText = BuildViewSql(viewCommand);
+				b.Append(commandText);
 			}
 			b.AppendLine();
 			using (var command = CreateCommand(connection))
@@ -742,7 +743,8 @@ namespace Watsonia.Data.SqlServer
 			b.AppendLine();
 			using (var viewCommand = _configuration.DataAccessProvider.BuildCommand(view.SelectStatement, _configuration))
 			{
-				b.Append(viewCommand.CommandText);
+				var commandText = BuildViewSql(viewCommand);
+				b.Append(commandText);
 			}
 			b.AppendLine();
 			if (oldView.SelectStatementText != b.ToString())
@@ -754,6 +756,25 @@ namespace Watsonia.Data.SqlServer
 					ExecuteSql(command, doUpdate, script);
 				}
 			}
+		}
+
+		protected virtual string BuildViewSql(DbCommand viewCommand)
+		{
+			// Views can't have parameters, so replace all parameter calls with values
+			var commandText = viewCommand.CommandText;
+			for (int i = 0; i < viewCommand.Parameters.Count; i++)
+			{
+				if (viewCommand.Parameters[i].Value is string ||
+					viewCommand.Parameters[i].Value is char)
+				{
+					commandText = commandText.Replace("@" + i, "'" + viewCommand.Parameters[i].Value.ToString() + "'");
+				}
+				else
+				{
+					commandText = commandText.Replace("@" + i, viewCommand.Parameters[i].Value.ToString());
+				}
+			}
+			return commandText;
 		}
 
 		protected virtual void ExecuteSql(DbCommand command, bool doUpdate, StringBuilder script)

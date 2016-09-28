@@ -473,11 +473,11 @@ namespace Watsonia.Data.Tests.DatabaseX
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
-				"INSERT INTO [Customer] ([Code], [Description], [ABN], [LicenseCount]) VALUES (@0, @1, @2, 5)",
+				"INSERT INTO [Customer] ([Code], [Description], [ABN], [LicenseCount]) VALUES (@0, @1, @2, @3)",
 				TrimExtraWhiteSpace(command.CommandText));
 
 			// Make sure the parameters are correct
-			Assert.AreEqual(3, command.Parameters.Count);
+			Assert.AreEqual(4, command.Parameters.Count);
 			Assert.AreEqual("HI123", command.Parameters["@0"].Value);
 		}
 
@@ -522,11 +522,11 @@ namespace Watsonia.Data.Tests.DatabaseX
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
-				"UPDATE [Customer] SET [Code] = @0, [Description] = @1, [LicenseCount] = 10 WHERE [Code] = @2 AND [ABN] = @3",
+				"UPDATE [Customer] SET [Code] = @0, [Description] = @1, [LicenseCount] = @2 WHERE [Code] = @3 AND [ABN] = @4",
 				TrimExtraWhiteSpace(command.CommandText));
 
 			// Make sure the parameters are correct
-			Assert.AreEqual(4, command.Parameters.Count);
+			Assert.AreEqual(5, command.Parameters.Count);
 			Assert.AreEqual("HI456", command.Parameters["@0"].Value);
 		}
 
@@ -544,12 +544,13 @@ namespace Watsonia.Data.Tests.DatabaseX
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
-				"DELETE FROM [Customer] WHERE [Code] = @0 AND [LicenseCount] = 10",
+				"DELETE FROM [Customer] WHERE [Code] = @0 AND [LicenseCount] = @1",
 				TrimExtraWhiteSpace(command.CommandText));
 
 			// Make sure the parameters are correct
-			Assert.AreEqual(1, command.Parameters.Count);
+			Assert.AreEqual(2, command.Parameters.Count);
 			Assert.AreEqual("HI123", command.Parameters["@0"].Value);
+			Assert.AreEqual(10, command.Parameters["@1"].Value);
 		}
 
 		private string TrimExtraWhiteSpace(string s)
