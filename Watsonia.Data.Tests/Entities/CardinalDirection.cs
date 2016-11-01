@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Watsonia.Data.Tests.DatabaseX
+namespace Watsonia.Data.Tests.Entities
 {
 	public enum CardinalDirection
 	{

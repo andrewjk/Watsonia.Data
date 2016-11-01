@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Watsonia.Data.Tests.DatabaseX
+namespace Watsonia.Data.Tests.Entities
 {
 	// Used for testing aggregate functions
 	public class Aggregate

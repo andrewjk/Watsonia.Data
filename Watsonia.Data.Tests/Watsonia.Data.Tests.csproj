@@ -75,10 +75,10 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DatabaseX\CardinalDirection.cs" />
+    <Compile Include="Entities\CardinalDirection.cs" />
     <Compile Include="DynamicProxy\ConstructorInitializer.cs" />
-    <Compile Include="DatabaseX\HasChangesRelated.cs" />
-    <Compile Include="DatabaseX\HasChanges.cs" />
+    <Compile Include="Entities\HasChangesRelated.cs" />
+    <Compile Include="Entities\HasChanges.cs" />
     <Compile Include="DynamicProxy\InvalidChild.cs" />
     <Compile Include="Documentation\DocumentationTests.cs" />
     <Compile Include="DynamicProxy\Address.cs" />
@@ -86,19 +86,19 @@
     <Compile Include="Documentation\Book.cs" />
     <Compile Include="DynamicProxy\Invalid.cs" />
     <Compile Include="DynamicProxy\CardinalDirection.cs" />
-    <Compile Include="DatabaseX\Child.cs" />
-    <Compile Include="DatabaseX\Collection.cs" />
-    <Compile Include="DatabaseX\Crud.cs" />
-    <Compile Include="DatabaseX\Aggregate.cs" />
+    <Compile Include="Entities\Child.cs" />
+    <Compile Include="Entities\Collection.cs" />
+    <Compile Include="Entities\Crud.cs" />
+    <Compile Include="Entities\Aggregate.cs" />
     <Compile Include="DynamicProxy\Defaults.cs" />
     <Compile Include="DynamicProxy\Entity.cs" />
-    <Compile Include="DatabaseX\Link.cs" />
+    <Compile Include="Entities\Link.cs" />
     <Compile Include="DynamicProxy\Order.cs" />
     <Compile Include="DynamicProxy\Customer.cs" />
-    <Compile Include="DatabaseX\DatabaseTests.cs" />
+    <Compile Include="Entities\DatabaseTests.cs" />
     <Compile Include="DynamicProxy\DynamicProxyTests.cs" />
-    <Compile Include="DatabaseX\Parent.cs" />
-    <Compile Include="DatabaseX\SubChild.cs" />
+    <Compile Include="Entities\Parent.cs" />
+    <Compile Include="Entities\SubChild.cs" />
     <Compile Include="Northwind\NorthwindDatabase.cs" />
     <Compile Include="Northwind\Customer.cs" />
     <Compile Include="Northwind\NorthwindConfiguration.cs" />

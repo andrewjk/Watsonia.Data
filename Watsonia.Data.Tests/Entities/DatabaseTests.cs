@@ -7,7 +7,7 @@ using System.IO;
 using System;
 using Watsonia.Data.SqlServerCe;
 
-namespace Watsonia.Data.Tests.DatabaseX
+namespace Watsonia.Data.Tests.Entities
 {
 	/// <summary>
 	/// Contains general tests for the database.
@@ -20,7 +20,7 @@ namespace Watsonia.Data.Tests.DatabaseX
 		private readonly static Database db = new Database(
 			new SqlServerCeDataAccessProvider(),
 			DatabaseTests.ConnectionString,
-			"Watsonia.Data.Tests.DatabaseX");
+			"Watsonia.Data.Tests.Entities");
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
