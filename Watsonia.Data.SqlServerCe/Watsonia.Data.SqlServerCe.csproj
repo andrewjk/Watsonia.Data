@@ -7,8 +7,8 @@
     <ProjectGuid>{9701A495-AB24-44AB-8410-28AC47AF719C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Watsonia.Data.SqlCe</RootNamespace>
-    <AssemblyName>Watsonia.Data.SqlCe</AssemblyName>
+    <RootNamespace>Watsonia.Data.SqlServerCe</RootNamespace>
+    <AssemblyName>Watsonia.Data.SqlServerCe</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\Watsonia.Data\</SolutionDir>
