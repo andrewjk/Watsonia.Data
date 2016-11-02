@@ -158,7 +158,7 @@ namespace Watsonia.Data
 
 			MethodInfo stringListContainsMethod = typeof(List<>).MakeGenericType(typeof(string)).GetMethod(
 				"Contains", new Type[] { typeof(string) });
-			
+
 			ILGenerator gen = constructor.GetILGenerator();
 
 			// base.ctor()
@@ -1933,13 +1933,13 @@ namespace Watsonia.Data
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
 				null,
 				Type.EmptyTypes);
-			
+
 			MethodInfo stateTrackerGetOriginalValuesMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"get_OriginalValues", Type.EmptyTypes);
 
 			MethodInfo dictionarySetItemMethod = typeof(Dictionary<,>).MakeGenericType(typeof(string), typeof(object)).GetMethod(
 				"set_Item", new Type[] { typeof(string), typeof(object) });
-			
+
 			ILGenerator gen = method.GetILGenerator();
 
 			// Set the original value for the primary key
@@ -1983,7 +1983,7 @@ namespace Watsonia.Data
 					CreateSetOriginalValueCall(gen, members, key, propertyType, stateTrackerGetOriginalValuesMethod, dictionarySetItemMethod);
 				}
 			}
-			
+
 			// return;
 			gen.Emit(OpCodes.Ret);
 
@@ -2026,15 +2026,29 @@ namespace Watsonia.Data
 			MethodInfo stringEqualityMethod = typeof(string).GetMethod(
 				"op_Equality", new Type[] { typeof(string), typeof(string) });
 
+			MethodInfo isDBNullMethod = typeof(DbDataReader).GetMethod(
+				"IsDBNull", new Type[] { typeof(Int32) });
+
 			MethodInfo getValueMethod = typeof(DbDataReader).GetMethod(
-				"GetValue", new Type[] { typeof(int) });
+				"GetValue", new Type[] { typeof(Int32) });
 
 			MethodInfo getTypeMethod = typeof(Type).GetMethod(
-				 "GetTypeFromHandle", new Type[] { typeof(RuntimeTypeHandle) });
+				"GetTypeFromHandle", new Type[] { typeof(RuntimeTypeHandle) });
 
 			MethodInfo changeTypeMethod = typeof(TypeHelper).GetMethod(
 				"ChangeType", new Type[] { typeof(Object), typeof(Type) });
-			
+
+			MethodInfo getBooleanMethod = null;
+			MethodInfo getDateTimeMethod = null;
+			MethodInfo getDecimalMethod = null;
+			MethodInfo getDoubleMethod = null;
+			MethodInfo getInt16Method = null;
+			MethodInfo getInt32Method = null;
+			MethodInfo getInt64Method = null;
+			MethodInfo getByteMethod = null;
+			MethodInfo getStringMethod = null;
+			MethodInfo getGuidMethod = null;
+
 			MethodInfo stateTrackerGetChangedFieldsMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"get_ChangedFields", Type.EmptyTypes);
 
@@ -2051,11 +2065,34 @@ namespace Watsonia.Data
 			LocalBuilder i = gen.DeclareLocal(typeof(int));
 			LocalBuilder fieldName = gen.DeclareLocal(typeof(string));
 
+			// Define the locals for each nullable property in the switch statement
+			// These will be referred to by their index later on so we need to store that too
+			int localIndex = 2;
+			var localIndexes = new Dictionary<string, int>();
+			foreach (string key in members.SetPropertyMethods.Keys)
+			{
+				Type propertyType = members.GetPropertyMethods[key].ReturnType;
+				if (propertyType == typeof(bool?) ||
+					propertyType == typeof(DateTime?) ||
+					propertyType == typeof(decimal?) ||
+					propertyType == typeof(double?) ||
+					propertyType == typeof(short?) ||
+					propertyType == typeof(int?) ||
+					propertyType == typeof(long?) ||
+					propertyType == typeof(byte?))
+				{
+					LocalBuilder flag = gen.DeclareLocal(typeof(bool));
+					LocalBuilder nullable = gen.DeclareLocal(propertyType);
+					localIndexes.Add(key, localIndex);
+					localIndex += 2;
+				}
+			}
+			
 			Label endFieldLoop = gen.DefineLabel();
 			Label endSwitch = gen.DefineLabel();
 
 			// Define the labels for each property in the switch statement
-			Dictionary<string, Label> propertyLabels = new Dictionary<string, Label>();
+			var propertyLabels = new Dictionary<string, Label>();
 			foreach (string key in members.SetPropertyMethods.Keys)
 			{
 				Label pl = gen.DefineLabel();
@@ -2102,21 +2139,98 @@ namespace Watsonia.Data
 
 				Type propertyType = members.GetPropertyMethods[key].ReturnType;
 
-				// this.Property = source.GetValue(i);
-				gen.Emit(OpCodes.Ldarg_0);
-				gen.Emit(OpCodes.Ldarg_1);
-				gen.Emit(OpCodes.Ldloc_0);
-				gen.Emit(OpCodes.Callvirt, getValueMethod);
-				gen.Emit(OpCodes.Ldtoken, propertyType);
-				gen.Emit(OpCodes.Call, getTypeMethod);
-				gen.Emit(OpCodes.Call, changeTypeMethod);
-				// Unbox the value if it's a value type
-				if (propertyType.IsValueType)
+				if (propertyType == typeof(bool))
 				{
-					gen.Emit(OpCodes.Unbox_Any, propertyType);
+					CreateSetValueFromReaderMethod(gen, getBooleanMethod, "GetBoolean", members.SetPropertyMethods[key]);
 				}
-				gen.Emit(OpCodes.Call, members.SetPropertyMethods[key]);
-				
+				else if (propertyType == typeof(bool?))
+				{
+					CreateSetNullableValueFromReaderMethod(gen, propertyType, typeof(bool), isDBNullMethod, getBooleanMethod, "GetBoolean", members.SetPropertyMethods[key], localIndexes[key]);
+				}
+				else if (propertyType == typeof(DateTime))
+				{
+					CreateSetValueFromReaderMethod(gen, getDateTimeMethod, "GetDateTime", members.SetPropertyMethods[key]);
+				}
+				else if (propertyType == typeof(DateTime?))
+				{
+					CreateSetNullableValueFromReaderMethod(gen, propertyType, typeof(DateTime), isDBNullMethod, getDateTimeMethod, "GetDateTime", members.SetPropertyMethods[key], localIndexes[key]);
+				}
+				else if (propertyType == typeof(decimal))
+				{
+					CreateSetValueFromReaderMethod(gen, getDecimalMethod, "GetDecimal", members.SetPropertyMethods[key]);
+				}
+				else if (propertyType == typeof(decimal?))
+				{
+					CreateSetNullableValueFromReaderMethod(gen, propertyType, typeof(decimal), isDBNullMethod, getDecimalMethod, "GetDecimal", members.SetPropertyMethods[key], localIndexes[key]);
+				}
+				else if (propertyType == typeof(double))
+				{
+					CreateSetValueFromReaderMethod(gen, getDoubleMethod, "GetDouble", members.SetPropertyMethods[key]);
+				}
+				if (propertyType == typeof(double?))
+				{
+					CreateSetNullableValueFromReaderMethod(gen, propertyType, typeof(double), isDBNullMethod, getDoubleMethod, "GetDouble", members.SetPropertyMethods[key], localIndexes[key]);
+				}
+				else if (propertyType == typeof(short))
+				{
+					CreateSetValueFromReaderMethod(gen, getInt16Method, "GetInt16", members.SetPropertyMethods[key]);
+				}
+				else if (propertyType == typeof(short?))
+				{
+					CreateSetNullableValueFromReaderMethod(gen, propertyType, typeof(short), isDBNullMethod, getInt16Method, "GetInt16", members.SetPropertyMethods[key], localIndexes[key]);
+				}
+				else if (propertyType == typeof(int))
+				{
+					CreateSetValueFromReaderMethod(gen, getInt32Method, "GetInt32", members.SetPropertyMethods[key]);
+				}
+				else if (propertyType == typeof(int?))
+				{
+					CreateSetNullableValueFromReaderMethod(gen, propertyType, typeof(int), isDBNullMethod, getInt32Method, "GetInt32", members.SetPropertyMethods[key], localIndexes[key]);
+				}
+				else if (propertyType == typeof(long))
+				{
+					CreateSetValueFromReaderMethod(gen, getInt64Method, "GetInt64", members.SetPropertyMethods[key]);
+				}
+				else if (propertyType == typeof(long?))
+				{
+					CreateSetNullableValueFromReaderMethod(gen, propertyType, typeof(long), isDBNullMethod, getInt64Method, "GetInt64", members.SetPropertyMethods[key], localIndexes[key]);
+				}
+				else if (propertyType == typeof(byte))
+				{
+					CreateSetValueFromReaderMethod(gen, getByteMethod, "GetByte", members.SetPropertyMethods[key]);
+				}
+				else if (propertyType == typeof(byte?))
+				{
+					CreateSetNullableValueFromReaderMethod(gen, propertyType, typeof(byte), isDBNullMethod, getByteMethod, "GetByte", members.SetPropertyMethods[key], localIndexes[key]);
+				}
+				else if (propertyType == typeof(string))
+				{
+					CreateSetValueFromReaderMethod(gen, getStringMethod, "GetString", members.SetPropertyMethods[key]);
+				}
+				else if (propertyType == typeof(Guid))
+				{
+					CreateSetValueFromReaderMethod(gen, getGuidMethod, "GetGuid", members.SetPropertyMethods[key]);
+				}
+				else
+				{
+					// TODO: Handle enums
+
+					// this.Property = source.GetValue(i);
+					gen.Emit(OpCodes.Ldarg_0);
+					gen.Emit(OpCodes.Ldarg_1);
+					gen.Emit(OpCodes.Ldloc_0);
+					gen.Emit(OpCodes.Callvirt, getValueMethod);
+					gen.Emit(OpCodes.Ldtoken, propertyType);
+					gen.Emit(OpCodes.Call, getTypeMethod);
+					gen.Emit(OpCodes.Call, changeTypeMethod);
+					// Unbox the value if it's a value type
+					if (propertyType.IsValueType)
+					{
+						gen.Emit(OpCodes.Unbox_Any, propertyType);
+					}
+					gen.Emit(OpCodes.Call, members.SetPropertyMethods[key]);
+				}
+
 				// this.StateTracker.ChangedFields.Remove("Property");
 				gen.Emit(OpCodes.Ldarg_0);
 				gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
@@ -2158,6 +2272,61 @@ namespace Watsonia.Data
 
 			// return;
 			gen.Emit(OpCodes.Ret);
+		}
+
+		private static void CreateSetValueFromReaderMethod(ILGenerator gen, MethodInfo getTypeValueMethod, string getTypeValueMethodName, MethodBuilder setPropertyMethod)
+		{
+			// this.Property = source.Get[Type](i);
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Ldloc_0);
+			if (getTypeValueMethod == null)
+			{
+				getTypeValueMethod = typeof(DbDataReader).GetMethod(getTypeValueMethodName, new Type[] { typeof(int) });
+			}
+			gen.Emit(OpCodes.Callvirt, getTypeValueMethod);
+			gen.Emit(OpCodes.Callvirt, setPropertyMethod);
+		}
+
+		private static void CreateSetNullableValueFromReaderMethod(ILGenerator gen, Type propertyType, Type referenceType, MethodInfo isDBNullMethod, MethodInfo getTypeValueMethod, string getTypeValueMethodName, MethodBuilder setPropertyMethod, int localIndex)
+		{
+			ConstructorInfo nullableTypeConstructor = propertyType.GetConstructor(new Type[] { referenceType });
+
+			Label endIsDBNull = gen.DefineLabel();
+			Label endIsNotDBNull = gen.DefineLabel();
+
+			// if (source.IsDBNull(i))
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Ldloc_0);
+			gen.Emit(OpCodes.Callvirt, isDBNullMethod);
+			gen.Emit(OpCodes.Stloc_S, localIndex);
+			gen.Emit(OpCodes.Ldloc_S, localIndex);
+			gen.Emit(OpCodes.Brfalse_S, endIsDBNull);
+
+			// this.Property = null;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Ldloca_S, localIndex + 1);
+			gen.Emit(OpCodes.Initobj, propertyType);
+			gen.Emit(OpCodes.Ldloc_S, localIndex + 1);
+			gen.Emit(OpCodes.Callvirt, setPropertyMethod);
+			gen.Emit(OpCodes.Br_S, endIsNotDBNull);
+
+			// else
+			gen.MarkLabel(endIsDBNull);
+
+			// this.Property = source.Get[Type](i);
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Ldloc_0);
+			if (getTypeValueMethod == null)
+			{
+				getTypeValueMethod = typeof(DbDataReader).GetMethod(getTypeValueMethodName, new Type[] { typeof(int) });
+			}
+			gen.Emit(OpCodes.Callvirt, getTypeValueMethod);
+			gen.Emit(OpCodes.Newobj, nullableTypeConstructor);
+			gen.Emit(OpCodes.Callvirt, setPropertyMethod);
+
+			gen.MarkLabel(endIsNotDBNull);
 		}
 
 		private static void CreateMethodToCallStateTrackerMethod(TypeBuilder type, string methodName, string stateTrackerMethodName, Type methodReturnType, Type[] methodParameterTypes, DynamicProxyTypeMembers members)
