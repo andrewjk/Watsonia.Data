@@ -92,7 +92,7 @@ namespace Watsonia.Data.Sql
 		/// </returns>
 		public override string ToString()
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			if (this.Table != null)
 			{
 				b.Append(this.Table.ToString());

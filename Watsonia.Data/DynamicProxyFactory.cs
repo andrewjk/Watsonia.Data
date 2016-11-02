@@ -21,7 +21,7 @@ namespace Watsonia.Data
 
 		static DynamicProxyFactory()
 		{
-			AssemblyName assemblyName = new AssemblyName();
+			var assemblyName = new AssemblyName();
 			assemblyName.Name = "Watsonia.Data.DynamicProxies";
 
 			_assemblyBuilder = Thread.GetDomain().DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
@@ -33,8 +33,8 @@ namespace Watsonia.Data
 			// Remove any previously created types so that they will be re-created
 			_cachedTypes.Clear();
 
-			AssemblyName newAssemblyName = new AssemblyName();
-			newAssemblyName.Name = System.IO.Path.GetFileNameWithoutExtension(path);
+			var newAssemblyName = new AssemblyName();
+			newAssemblyName.Name = Path.GetFileNameWithoutExtension(path);
 
 			_assemblyBuilder = Thread.GetDomain().DefineDynamicAssembly(newAssemblyName, AssemblyBuilderAccess.RunAndSave);
 			string fileName = Path.GetFileName(path);
@@ -84,7 +84,7 @@ namespace Watsonia.Data
 		{
 			System.Diagnostics.Trace.WriteLine("Creating " + typeName, "Dynamic Proxy");
 
-			DynamicProxyTypeMembers members = new DynamicProxyTypeMembers();
+			var members = new DynamicProxyTypeMembers();
 			members.PrimaryKeyColumnName = database.Configuration.GetPrimaryKeyColumnName(parentType);
 			members.PrimaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(parentType);
 
@@ -1633,7 +1633,7 @@ namespace Watsonia.Data
 			MethodInfo getPropertyNameMethod = typeof(PropertyChangedEventArgs).GetMethod(
 				"get_PropertyName", Type.EmptyTypes);
 
-			MethodInfo stringEqualityMethod = typeof(String).GetMethod(
+			MethodInfo stringEqualityMethod = typeof(string).GetMethod(
 				"op_Equality", new Type[] { typeof(string), typeof(string) });
 
 			ConstructorInfo eventHandlerConstructor = typeof(PropertyChangedEventHandler).GetConstructor(
@@ -1648,7 +1648,7 @@ namespace Watsonia.Data
 			ParameterBuilder e = method.DefineParameter(2, ParameterAttributes.None, "e");
 
 			LocalBuilder thingProxy = gen.DeclareLocal(typeof(IDynamicProxy));
-			LocalBuilder flag = gen.DeclareLocal(typeof(Boolean));
+			LocalBuilder flag = gen.DeclareLocal(typeof(bool));
 
 			Label exitLabel = gen.DefineLabel();
 
@@ -1945,7 +1945,7 @@ namespace Watsonia.Data
 			// Set the original value for the primary key
 			CreateSetOriginalValueCall(gen, members, database.Configuration.GetPrimaryKeyColumnName(parentType), database.Configuration.GetPrimaryKeyColumnType(parentType), stateTrackerGetOriginalValuesMethod, dictionarySetItemMethod);
 
-			List<string> things = new List<string>();
+			var things = new List<string>();
 			// Set the original values for each property
 			foreach (PropertyInfo property in database.Configuration.PropertiesToMap(parentType))
 			{
@@ -2015,10 +2015,10 @@ namespace Watsonia.Data
 				new Type[] { typeof(DbDataReader) });
 
 			MethodInfo stateTrackerIsLoadingMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"set_IsLoading", new Type[] { typeof(Boolean) });
+				"set_IsLoading", new Type[] { typeof(bool) });
 
 			MethodInfo readerGetNameMethod = typeof(DbDataReader).GetMethod(
-				"GetName", new Type[] { typeof(Int32) });
+				"GetName", new Type[] { typeof(int) });
 
 			MethodInfo toUpperInvariantMethod = typeof(string).GetMethod(
 				"ToUpperInvariant", Type.EmptyTypes);
@@ -2027,16 +2027,16 @@ namespace Watsonia.Data
 				"op_Equality", new Type[] { typeof(string), typeof(string) });
 
 			MethodInfo isDBNullMethod = typeof(DbDataReader).GetMethod(
-				"IsDBNull", new Type[] { typeof(Int32) });
+				"IsDBNull", new Type[] { typeof(int) });
 
 			MethodInfo getValueMethod = typeof(DbDataReader).GetMethod(
-				"GetValue", new Type[] { typeof(Int32) });
+				"GetValue", new Type[] { typeof(int) });
 
 			MethodInfo getTypeMethod = typeof(Type).GetMethod(
 				"GetTypeFromHandle", new Type[] { typeof(RuntimeTypeHandle) });
 
 			MethodInfo changeTypeMethod = typeof(TypeHelper).GetMethod(
-				"ChangeType", new Type[] { typeof(Object), typeof(Type) });
+				"ChangeType", new Type[] { typeof(object), typeof(Type) });
 
 			MethodInfo getBooleanMethod = null;
 			MethodInfo getDateTimeMethod = null;

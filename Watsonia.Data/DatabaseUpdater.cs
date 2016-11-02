@@ -115,7 +115,7 @@ namespace Watsonia.Data
 			string primaryKeyColumnName = configuration.GetPrimaryKeyColumnName(tableType);
 			string primaryKeyConstraintName = configuration.GetPrimaryKeyConstraintName(tableType);
 
-			MappedTable table = new MappedTable(tableName, primaryKeyColumnName, primaryKeyConstraintName);
+			var table = new MappedTable(tableName, primaryKeyColumnName, primaryKeyConstraintName);
 
 			bool tableHasColumns = false;
 			bool tableHasRelationships = false;
@@ -125,7 +125,7 @@ namespace Watsonia.Data
 				string columnName = configuration.GetColumnName(property);
 				string defaultValueConstraintName = configuration.GetDefaultValueConstraintName(property);
 
-				MappedColumn column = new MappedColumn(columnName, property.PropertyType, defaultValueConstraintName);
+				var column = new MappedColumn(columnName, property.PropertyType, defaultValueConstraintName);
 				bool addColumn = true;
 				if (property.PropertyType == typeof(string))
 				{
@@ -153,7 +153,7 @@ namespace Watsonia.Data
 
 					if (!tableDictionary.ContainsKey(property.PropertyType.Name))
 					{
-						MappedTable enumTable = new MappedTable(enumTableName, enumPrimaryKeyColumnName, enumPrimaryKeyConstraintName);
+						var enumTable = new MappedTable(enumTableName, enumPrimaryKeyColumnName, enumPrimaryKeyConstraintName);
 						enumTable.Columns.Add(new MappedColumn(enumPrimaryKeyColumnName, typeof(int), "") { IsPrimaryKey = true });
 						enumTable.Columns.Add(new MappedColumn("Text", typeof(string), "DF_" + enumTableName + "_Text") { MaxLength = 255 });
 						foreach (object value in Enum.GetValues(property.PropertyType))
@@ -272,7 +272,7 @@ namespace Watsonia.Data
 		{
 			string viewName = configuration.GetViewName(viewType);
 
-			MappedView view = new MappedView(viewName);
+			var view = new MappedView(viewName);
 
 			bool viewHasColumns = false;
 
@@ -280,7 +280,7 @@ namespace Watsonia.Data
 			{
 				string columnName = configuration.GetColumnName(property);
 
-				MappedColumn column = new MappedColumn(columnName, property.PropertyType, "");
+				var column = new MappedColumn(columnName, property.PropertyType, "");
 				bool addColumn = true;
 				if (configuration.IsRelatedItem(property))
 				{

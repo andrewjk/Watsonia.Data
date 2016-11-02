@@ -83,7 +83,7 @@ namespace Watsonia.Data.Sql
 
 		public override string ToString()
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
             // HACK: Should Left be able to be set to null?
             if (this.Left != null)
             {

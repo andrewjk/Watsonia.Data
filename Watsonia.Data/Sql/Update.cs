@@ -27,7 +27,7 @@ namespace Watsonia.Data
 		{
 			if (all)
 			{
-				Condition newCondition = new Condition();
+				var newCondition = new Condition();
 				newCondition.Field = new ConstantPart(true);
 				newCondition.Value = new ConstantPart(true);
 				update.Conditions.Add(newCondition);

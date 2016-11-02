@@ -86,7 +86,7 @@ namespace Watsonia.Data.Sql
 		/// </returns>
 		public override string ToString()
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			b.Append(this.AggregateType.ToString());
 			b.Append("(");
 			if (this.IsDistinct)

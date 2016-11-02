@@ -61,7 +61,7 @@ namespace Watsonia.Data
 			string[] parts = text.Split(new char[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
 			// Process each part of the title (recursively if necessary to split further)
-			List<string> b = new List<string>();
+			var b = new List<string>();
 			for (int i = 0; i < parts.Length; i++)
 			{
 				char previousCharacter = (i > 0 ? parts[i - 1][parts[i - 1].Length - 1] : ' ');

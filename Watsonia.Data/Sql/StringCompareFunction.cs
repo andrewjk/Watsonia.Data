@@ -28,7 +28,7 @@ namespace Watsonia.Data.Sql
 
 		public override string ToString()
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			b.Append("Compare(");
 			b.Append(this.Argument.ToString());
 			b.Append(", ");

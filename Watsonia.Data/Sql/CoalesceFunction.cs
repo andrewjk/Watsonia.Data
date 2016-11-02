@@ -65,7 +65,7 @@ namespace Watsonia.Data.Sql
 		/// </returns>
 		public override string ToString()
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			b.Append("Coalesce(");
 			b.Append(string.Join(", ", this.Arguments.Select(a => a.ToString())));
 			b.Append(")");

@@ -127,7 +127,7 @@ namespace Watsonia.Data
 
 		public override string ToString()
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			if (this.Not)
 			{
 				b.Append("Not ");

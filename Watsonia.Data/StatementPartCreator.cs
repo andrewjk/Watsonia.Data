@@ -338,7 +338,7 @@ namespace Watsonia.Data
 				{
 					case "Length":
 					{
-						StringLengthFunction newFunction = new StringLengthFunction();
+						var newFunction = new StringLengthFunction();
 						Visit(expression.Expression);
 						newFunction.Argument = this.Stack.Pop();
 						this.Stack.Push(newFunction);
@@ -352,7 +352,7 @@ namespace Watsonia.Data
 				{
 					case "Date":
 					{
-						DatePartFunction newFunction = new DatePartFunction(DatePart.Date);
+						var newFunction = new DatePartFunction(DatePart.Date);
 						Visit(expression.Expression);
 						newFunction.Argument = this.Stack.Pop();
 						this.Stack.Push(newFunction);
@@ -360,7 +360,7 @@ namespace Watsonia.Data
 					}
 					case "Day":
 					{
-						DatePartFunction newFunction = new DatePartFunction(DatePart.Day);
+						var newFunction = new DatePartFunction(DatePart.Day);
 						Visit(expression.Expression);
 						newFunction.Argument = this.Stack.Pop();
 						this.Stack.Push(newFunction);
@@ -368,7 +368,7 @@ namespace Watsonia.Data
 					}
 					case "Month":
 					{
-						DatePartFunction newFunction = new DatePartFunction(DatePart.Month);
+						var newFunction = new DatePartFunction(DatePart.Month);
 						Visit(expression.Expression);
 						newFunction.Argument = this.Stack.Pop();
 						this.Stack.Push(newFunction);
@@ -376,7 +376,7 @@ namespace Watsonia.Data
 					}
 					case "Year":
 					{
-						DatePartFunction newFunction = new DatePartFunction(DatePart.Year);
+						var newFunction = new DatePartFunction(DatePart.Year);
 						Visit(expression.Expression);
 						newFunction.Argument = this.Stack.Pop();
 						this.Stack.Push(newFunction);
@@ -384,7 +384,7 @@ namespace Watsonia.Data
 					}
 					case "Hour":
 					{
-						DatePartFunction newFunction = new DatePartFunction(DatePart.Hour);
+						var newFunction = new DatePartFunction(DatePart.Hour);
 						Visit(expression.Expression);
 						newFunction.Argument = this.Stack.Pop();
 						this.Stack.Push(newFunction);
@@ -392,7 +392,7 @@ namespace Watsonia.Data
 					}
 					case "Minute":
 					{
-						DatePartFunction newFunction = new DatePartFunction(DatePart.Minute);
+						var newFunction = new DatePartFunction(DatePart.Minute);
 						Visit(expression.Expression);
 						newFunction.Argument = this.Stack.Pop();
 						this.Stack.Push(newFunction);
@@ -400,7 +400,7 @@ namespace Watsonia.Data
 					}
 					case "Second":
 					{
-						DatePartFunction newFunction = new DatePartFunction(DatePart.Second);
+						var newFunction = new DatePartFunction(DatePart.Second);
 						Visit(expression.Expression);
 						newFunction.Argument = this.Stack.Pop();
 						this.Stack.Push(newFunction);
@@ -408,7 +408,7 @@ namespace Watsonia.Data
 					}
 					case "Millisecond":
 					{
-						DatePartFunction newFunction = new DatePartFunction(DatePart.Millisecond);
+						var newFunction = new DatePartFunction(DatePart.Millisecond);
 						Visit(expression.Expression);
 						newFunction.Argument = this.Stack.Pop();
 						this.Stack.Push(newFunction);
@@ -416,7 +416,7 @@ namespace Watsonia.Data
 					}
 					case "DayOfWeek":
 					{
-						DatePartFunction newFunction = new DatePartFunction(DatePart.DayOfWeek);
+						var newFunction = new DatePartFunction(DatePart.DayOfWeek);
 						Visit(expression.Expression);
 						newFunction.Argument = this.Stack.Pop();
 						this.Stack.Push(newFunction);
@@ -424,7 +424,7 @@ namespace Watsonia.Data
 					}
 					case "DayOfYear":
 					{
-						DatePartFunction newFunction = new DatePartFunction(DatePart.DayOfYear);
+						var newFunction = new DatePartFunction(DatePart.DayOfYear);
 						Visit(expression.Expression);
 						newFunction.Argument = this.Stack.Pop();
 						this.Stack.Push(newFunction);
@@ -476,7 +476,7 @@ namespace Watsonia.Data
 					// TODO: Should this be done here, or when converting the statement to SQL?
 					columnName = this.Configuration.GetForeignKeyColumnName(property);
 				}
-				Column newColumn = new Column(tableName, columnName) { PropertyType = property.PropertyType };
+				var newColumn = new Column(tableName, columnName) { PropertyType = property.PropertyType };
 				this.Stack.Push(newColumn);
 				return expression;
 			}
@@ -534,7 +534,7 @@ namespace Watsonia.Data
 			{
 				case "StartsWith":
 				{
-					Condition newCondition = new Condition();
+					var newCondition = new Condition();
 					newCondition.Operator = SqlOperator.StartsWith;
 					this.Visit(expression.Object);
 					newCondition.Field = this.Stack.Pop();
@@ -545,7 +545,7 @@ namespace Watsonia.Data
 				}
 				case "EndsWith":
 				{
-					Condition newCondition = new Condition();
+					var newCondition = new Condition();
 					newCondition.Operator = SqlOperator.EndsWith;
 					this.Visit(expression.Object);
 					newCondition.Field = this.Stack.Pop();
@@ -556,7 +556,7 @@ namespace Watsonia.Data
 				}
 				case "Contains":
 				{
-					Condition newCondition = new Condition();
+					var newCondition = new Condition();
 					newCondition.Operator = SqlOperator.Contains;
 					this.Visit(expression.Object);
 					newCondition.Field = this.Stack.Pop();
@@ -567,7 +567,7 @@ namespace Watsonia.Data
 				}
 				case "Concat":
 				{
-					StringConcatenateFunction newFunction = new StringConcatenateFunction();
+					var newFunction = new StringConcatenateFunction();
 					IList<Expression> args = expression.Arguments;
 					if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit)
 					{
@@ -583,16 +583,16 @@ namespace Watsonia.Data
 				}
 				case "IsNullOrEmpty":
 				{
-					ConditionCollection newCondition = new ConditionCollection();
+					var newCondition = new ConditionCollection();
 
-					Condition isNullCondition = new Condition();
+					var isNullCondition = new Condition();
 					this.Visit(expression.Arguments[0]);
 					isNullCondition.Field = this.Stack.Pop();
 					isNullCondition.Operator = SqlOperator.Equals;
 					isNullCondition.Value = new ConstantPart(null);
 					newCondition.Add(isNullCondition);
 
-					Condition notEqualsCondition = new Condition();
+					var notEqualsCondition = new Condition();
 					notEqualsCondition.Relationship = ConditionRelationship.Or;
 					this.Visit(expression.Arguments[0]);
 					notEqualsCondition.Field = this.Stack.Pop();
@@ -606,7 +606,7 @@ namespace Watsonia.Data
 				case "ToUpper":
 				case "ToUpperInvariant":
 				{
-					StringToUpperFunction newFunction = new StringToUpperFunction();
+					var newFunction = new StringToUpperFunction();
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -615,7 +615,7 @@ namespace Watsonia.Data
 				case "ToLower":
 				case "ToLowerInvariant":
 				{
-					StringToLowerFunction newFunction = new StringToLowerFunction();
+					var newFunction = new StringToLowerFunction();
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -623,7 +623,7 @@ namespace Watsonia.Data
 				}
 				case "Replace":
 				{
-					StringReplaceFunction newFunction = new StringReplaceFunction();
+					var newFunction = new StringReplaceFunction();
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Visit(expression.Arguments[0]);
@@ -635,7 +635,7 @@ namespace Watsonia.Data
 				}
 				case "Substring":
 				{
-					SubstringFunction newFunction = new SubstringFunction();
+					var newFunction = new SubstringFunction();
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Visit(expression.Arguments[0]);
@@ -654,7 +654,7 @@ namespace Watsonia.Data
 				}
 				case "Remove":
 				{
-					StringRemoveFunction newFunction = new StringRemoveFunction();
+					var newFunction = new StringRemoveFunction();
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Visit(expression.Arguments[0]);
@@ -673,7 +673,7 @@ namespace Watsonia.Data
 				}
 				case "IndexOf":
 				{
-					StringIndexFunction newFunction = new StringIndexFunction();
+					var newFunction = new StringIndexFunction();
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Visit(expression.Arguments[0]);
@@ -688,7 +688,7 @@ namespace Watsonia.Data
 				}
 				case "Trim":
 				{
-					StringTrimFunction newFunction = new StringTrimFunction();
+					var newFunction = new StringTrimFunction();
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -707,7 +707,7 @@ namespace Watsonia.Data
 				{
 					if (expression.Arguments[1].Type == typeof(DateTime))
 					{
-						DateDifferenceFunction newFunction = new DateDifferenceFunction();
+						var newFunction = new DateDifferenceFunction();
 						this.Visit(expression.Arguments[0]);
 						newFunction.Date1 = this.Stack.Pop();
 						this.Visit(expression.Arguments[1]);
@@ -719,7 +719,7 @@ namespace Watsonia.Data
 				}
 				case "AddDays":
 				{
-					DateAddFunction newFunction = new DateAddFunction(DatePart.Day);
+					var newFunction = new DateAddFunction(DatePart.Day);
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Visit(expression.Arguments[0]);
@@ -729,7 +729,7 @@ namespace Watsonia.Data
 				}
 				case "AddMonths":
 				{
-					DateAddFunction newFunction = new DateAddFunction(DatePart.Month);
+					var newFunction = new DateAddFunction(DatePart.Month);
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Visit(expression.Arguments[0]);
@@ -739,7 +739,7 @@ namespace Watsonia.Data
 				}
 				case "AddYears":
 				{
-					DateAddFunction newFunction = new DateAddFunction(DatePart.Year);
+					var newFunction = new DateAddFunction(DatePart.Year);
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Visit(expression.Arguments[0]);
@@ -749,7 +749,7 @@ namespace Watsonia.Data
 				}
 				case "AddHours":
 				{
-					DateAddFunction newFunction = new DateAddFunction(DatePart.Hour);
+					var newFunction = new DateAddFunction(DatePart.Hour);
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Visit(expression.Arguments[0]);
@@ -759,7 +759,7 @@ namespace Watsonia.Data
 				}
 				case "AddMinutes":
 				{
-					DateAddFunction newFunction = new DateAddFunction(DatePart.Minute);
+					var newFunction = new DateAddFunction(DatePart.Minute);
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Visit(expression.Arguments[0]);
@@ -769,7 +769,7 @@ namespace Watsonia.Data
 				}
 				case "AddSeconds":
 				{
-					DateAddFunction newFunction = new DateAddFunction(DatePart.Second);
+					var newFunction = new DateAddFunction(DatePart.Second);
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Visit(expression.Arguments[0]);
@@ -779,7 +779,7 @@ namespace Watsonia.Data
 				}
 				case "AddMilliseconds":
 				{
-					DateAddFunction newFunction = new DateAddFunction(DatePart.Millisecond);
+					var newFunction = new DateAddFunction(DatePart.Millisecond);
 					this.Visit(expression.Object);
 					newFunction.Argument = this.Stack.Pop();
 					this.Visit(expression.Arguments[0]);
@@ -802,7 +802,7 @@ namespace Watsonia.Data
 				case "Divide":
 				case "Remainder":
 				{
-					BinaryOperation newOperation = new BinaryOperation();
+					var newOperation = new BinaryOperation();
 					this.Visit(expression.Arguments[0]);
 					newOperation.Left = (SourceExpression)this.Stack.Pop();
 					newOperation.Operator = (BinaryOperator)Enum.Parse(typeof(BinaryOperator), expression.Method.Name);
@@ -813,7 +813,7 @@ namespace Watsonia.Data
 				}
 				case "Negate":
 				{
-					NumberNegateFunction newFunction = new NumberNegateFunction();
+					var newFunction = new NumberNegateFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -821,7 +821,7 @@ namespace Watsonia.Data
 				}
 				case "Ceiling":
 				{
-					NumberCeilingFunction newFunction = new NumberCeilingFunction();
+					var newFunction = new NumberCeilingFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -829,7 +829,7 @@ namespace Watsonia.Data
 				}
 				case "Floor":
 				{
-					NumberFloorFunction newFunction = new NumberFloorFunction();
+					var newFunction = new NumberFloorFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -837,7 +837,7 @@ namespace Watsonia.Data
 				}
 				case "Round":
 				{
-					NumberRoundFunction newFunction = new NumberRoundFunction();
+					var newFunction = new NumberRoundFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					if (expression.Arguments.Count == 2 && expression.Arguments[1].Type == typeof(int))
@@ -857,7 +857,7 @@ namespace Watsonia.Data
 				}
 				case "Truncate":
 				{
-					NumberTruncateFunction newFunction = new NumberTruncateFunction();
+					var newFunction = new NumberTruncateFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -886,7 +886,7 @@ namespace Watsonia.Data
 			{
 				case "Log":
 				{
-					NumberLogFunction newFunction = new NumberLogFunction();
+					var newFunction = new NumberLogFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -894,7 +894,7 @@ namespace Watsonia.Data
 				}
 				case "Log10":
 				{
-					NumberLog10Function newFunction = new NumberLog10Function();
+					var newFunction = new NumberLog10Function();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -902,7 +902,7 @@ namespace Watsonia.Data
 				}
 				case "Sign":
 				{
-					NumberSignFunction newFunction = new NumberSignFunction();
+					var newFunction = new NumberSignFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -910,7 +910,7 @@ namespace Watsonia.Data
 				}
 				case "Exp":
 				{
-					NumberExponentialFunction newFunction = new NumberExponentialFunction();
+					var newFunction = new NumberExponentialFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -918,7 +918,7 @@ namespace Watsonia.Data
 				}
 				case "Sqrt":
 				{
-					NumberRootFunction newFunction = new NumberRootFunction();
+					var newFunction = new NumberRootFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					newFunction.Root = new ConstantPart(2);
@@ -927,7 +927,7 @@ namespace Watsonia.Data
 				}
 				case "Pow":
 				{
-					NumberPowerFunction newFunction = new NumberPowerFunction();
+					var newFunction = new NumberPowerFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					this.Visit(expression.Arguments[1]);
@@ -937,7 +937,7 @@ namespace Watsonia.Data
 				}
 				case "Abs":
 				{
-					NumberAbsoluteFunction newFunction = new NumberAbsoluteFunction();
+					var newFunction = new NumberAbsoluteFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -945,7 +945,7 @@ namespace Watsonia.Data
 				}
 				case "Ceiling":
 				{
-					NumberCeilingFunction newFunction = new NumberCeilingFunction();
+					var newFunction = new NumberCeilingFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -953,7 +953,7 @@ namespace Watsonia.Data
 				}
 				case "Floor":
 				{
-					NumberFloorFunction newFunction = new NumberFloorFunction();
+					var newFunction = new NumberFloorFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -961,7 +961,7 @@ namespace Watsonia.Data
 				}
 				case "Round":
 				{
-					NumberRoundFunction newFunction = new NumberRoundFunction();
+					var newFunction = new NumberRoundFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					if (expression.Arguments.Count == 2 && expression.Arguments[1].Type == typeof(int))
@@ -981,7 +981,7 @@ namespace Watsonia.Data
 				}
 				case "Truncate":
 				{
-					NumberTruncateFunction newFunction = new NumberTruncateFunction();
+					var newFunction = new NumberTruncateFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					this.Stack.Push(newFunction);
@@ -995,7 +995,7 @@ namespace Watsonia.Data
 				case "Atan":
 				case "Atan2":
 				{
-					NumberTrigFunction newFunction = new NumberTrigFunction();
+					var newFunction = new NumberTrigFunction();
 					this.Visit(expression.Arguments[0]);
 					newFunction.Argument = this.Stack.Pop();
 					if (expression.Arguments.Count > 1)
@@ -1020,7 +1020,7 @@ namespace Watsonia.Data
 			}
 			else
 			{
-				ConvertFunction newFunction = new ConvertFunction();
+				var newFunction = new ConvertFunction();
 				this.Visit(expression.Arguments[0]);
 				newFunction.Expression = (SourceExpression)this.Stack.Pop();
 				this.Stack.Push(newFunction);
@@ -1030,7 +1030,7 @@ namespace Watsonia.Data
 
 		private bool VisitEqualsMethodCall(MethodCallExpression expression)
 		{
-			Condition condition = new Condition();
+			var condition = new Condition();
 			condition.Operator = SqlOperator.Equals;
 			if (expression.Method.IsStatic && expression.Method.DeclaringType == typeof(object))
 			{
@@ -1053,7 +1053,7 @@ namespace Watsonia.Data
 
 		private bool VisitCompareToMethodCall(MethodCallExpression expression)
 		{
-			StringCompareFunction newFunction = new StringCompareFunction();
+			var newFunction = new StringCompareFunction();
 			this.Visit(expression.Object);
 			newFunction.Argument = this.Stack.Pop();
 			this.Visit(expression.Arguments[0]);
@@ -1064,7 +1064,7 @@ namespace Watsonia.Data
 
 		private bool VisitCompareMethodCall(MethodCallExpression expression)
 		{
-			StringCompareFunction newFunction = new StringCompareFunction();
+			var newFunction = new StringCompareFunction();
 			this.Visit(expression.Arguments[0]);
 			newFunction.Argument = this.Stack.Pop();
 			this.Visit(expression.Arguments[1]);
@@ -1078,7 +1078,7 @@ namespace Watsonia.Data
 			if (expression.Type == typeof(DateTime))
 			{
 				// It's a date, so put its arguments into a DateNewFunction
-				DateNewFunction function = new DateNewFunction();
+				var function = new DateNewFunction();
 				if (expression.Arguments.Count == 3)
 				{
 					this.Visit(expression.Arguments[0]);
@@ -1109,7 +1109,7 @@ namespace Watsonia.Data
 			else if (expression.Arguments.Count > 0)
 			{
 				// It's a new anonymous object, so get its properties as columns
-				FieldCollection fields = new FieldCollection();
+				var fields = new FieldCollection();
 				foreach (Expression argument in expression.Arguments)
 				{
 					this.Visit(argument);
@@ -1128,7 +1128,7 @@ namespace Watsonia.Data
 			{
 				case ExpressionType.Not:
 				{
-					UnaryOperation newOperation = new UnaryOperation();
+					var newOperation = new UnaryOperation();
 					newOperation.Operator = UnaryOperator.Not;
 					Visit(expression.Operand);
 
@@ -1149,7 +1149,7 @@ namespace Watsonia.Data
 				case ExpressionType.Negate:
 				case ExpressionType.NegateChecked:
 				{
-					UnaryOperation newOperation = new UnaryOperation();
+					var newOperation = new UnaryOperation();
 					newOperation.Operator = UnaryOperator.Negate;
 					Visit(expression.Operand);
 					newOperation.Expression = this.Stack.Pop();

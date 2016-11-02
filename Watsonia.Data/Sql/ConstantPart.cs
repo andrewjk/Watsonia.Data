@@ -54,7 +54,7 @@ namespace Watsonia.Data.Sql
 		/// </returns>
 		public override string ToString()
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			if (this.Value == null)
 			{
 				b.Append("Null");
@@ -68,7 +68,7 @@ namespace Watsonia.Data.Sql
 			else if (this.Value is IEnumerable)
 			{
 				b.Append("{ ");
-				List<string> values = new List<string>();
+				var values = new List<string>();
 				foreach (object o in (IEnumerable)this.Value)
 				{
 					if (o == null)

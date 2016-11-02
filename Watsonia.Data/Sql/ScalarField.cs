@@ -62,7 +62,7 @@ namespace Watsonia.Data.Sql
 		/// </returns>
 		public override string ToString()
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			b.Append(this.Select.ToString());
 			if (!string.IsNullOrEmpty(this.Alias))
 			{

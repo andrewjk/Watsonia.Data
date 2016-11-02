@@ -133,7 +133,7 @@ namespace Watsonia.Data
 		{
 			OnBeforeUpdateDatabase();
 
-			DatabaseUpdater updater = new DatabaseUpdater();
+			var updater = new DatabaseUpdater();
 			updater.UpdateDatabase(this.Configuration);
 
 			OnAfterUpdateDatabase();
@@ -145,7 +145,7 @@ namespace Watsonia.Data
 		/// <returns>A string containing the update script.</returns>
 		public string GetUpdateScript()
 		{
-			DatabaseUpdater updater = new DatabaseUpdater();
+			var updater = new DatabaseUpdater();
 			return updater.GetUpdateScript(this.Configuration);
 		}
 
@@ -157,7 +157,7 @@ namespace Watsonia.Data
 		/// </returns>
 		public string GetUnmappedColumns()
 		{
-			DatabaseUpdater updater = new DatabaseUpdater();
+			var updater = new DatabaseUpdater();
 			return updater.GetUnmappedColumns(this.Configuration);
 		}
 
@@ -436,7 +436,7 @@ namespace Watsonia.Data
 			// We need to ensure that paths are not loaded twice if the user has specified any compound paths
 			// E.g. for "Books.Subject" on Author we need to remove "Books" if it's been specified
 			// Otherwise the books collection would be loaded for "Books" AND "Books.Subject"
-			List<string> pathsToRemove = new List<string>();
+			var pathsToRemove = new List<string>();
 			foreach (string path in select.IncludePaths)
 			{
 				string[] pathParts = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
@@ -732,7 +732,7 @@ namespace Watsonia.Data
 			}
 			else if (TypeHelper.IsAnonymous(itemType))
 			{
-				List<object> values = new List<object>();
+				var values = new List<object>();
 				foreach (PropertyInfo p in itemType.GetProperties())
 				{
 					int ordinal = reader.GetOrdinal(p.Name);
@@ -896,7 +896,7 @@ namespace Watsonia.Data
 
 			if (!proxy.IsValid)
 			{
-				ValidationException ex = new ValidationException(
+				var ex = new ValidationException(
 					string.Format("Validation failed for {0}: {1}", item.GetType().BaseType.Name, item.ToString()));
 				ex.ValidationErrors.AddRange(proxy.ValidationErrors);
 				throw ex;
@@ -950,7 +950,7 @@ namespace Watsonia.Data
 			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(tableType);
 
 			// Insert or update all of the related items that should be saved with this item
-			List<IDynamicProxy> newRelatedItems = new List<IDynamicProxy>();
+			var newRelatedItems = new List<IDynamicProxy>();
 			foreach (string propertyName in proxy.StateTracker.LoadedItems)
 			{
 				PropertyInfo property = tableType.GetProperty(propertyName);
@@ -1687,7 +1687,7 @@ namespace Watsonia.Data
 
 		protected string GetSqlStringFromCommand(DbCommand command)
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			b.Append(Regex.Replace(command.CommandText.Replace(Environment.NewLine, " "), @"\s+", " "));
 			if (command.Parameters.Count > 0)
 			{

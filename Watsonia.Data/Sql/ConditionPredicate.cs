@@ -23,7 +23,7 @@ namespace Watsonia.Data.Sql
 
 		public override string ToString()
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			b.Append("(Case When ");
 			b.Append(this.Predicate.ToString());
 			b.Append(" Then True Else False)");

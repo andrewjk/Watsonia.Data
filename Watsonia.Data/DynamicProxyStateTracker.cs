@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -163,7 +162,7 @@ namespace Watsonia.Data
 		{
 			if (this.Item.IsNew)
 			{
-				IList<T> collection = new ObservableCollection<T>();
+				var collection = new ObservableCollection<T>();
 				SetCollection(propertyName, (IList)collection);
 				return collection;
 			}
@@ -180,15 +179,17 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
-		/// Loads the related collection of child items.
+		/// Sets the related collection of child items.
 		/// </summary>
-		/// <typeparam name="T">The type of items in the collection.</typeparam>
 		/// <param name="propertyName">The name of the property containing the collection.</param>
-		/// <returns>The loaded collection.</returns>
+		/// <param name="collection">The collection.</param>
 		public void SetCollection(string propertyName, IList collection)
 		{
 			AddLoadedCollection(propertyName);
 
+			// For each item in the collection, set the property that refers to this item
+			// E.g. if the user is setting the Books collection for an Author, set the value of the
+			// Author property for each Book
 			if (collection.Count > 0)
 			{
 				// TODO: Less reflection!  Less casting!  Less looping!
@@ -201,9 +202,10 @@ namespace Watsonia.Data
 					{
 						foreach (object item in collection)
 						{
-							((IDynamicProxy)item).StateTracker.IsLoading = true;
+							var proxyItem = (IDynamicProxy)item;
+							proxyItem.StateTracker.IsLoading = true;
 							property.SetValue(item, this.Item, null);
-							((IDynamicProxy)item).StateTracker.IsLoading = false;
+							proxyItem.StateTracker.IsLoading = false;
 						}
 					}
 				}
@@ -434,7 +436,7 @@ namespace Watsonia.Data
 					object itemID = item.PrimaryKeyValue;
 					string itemName = item.GetType().BaseType.Name;
 					string propertyName = string.Join(", ", error.MemberNames);
-					ValidationError newError = new ValidationError(itemID, itemName, propertyName, "Error", error.ErrorMessage);
+					var newError = new ValidationError(itemID, itemName, propertyName, "Error", error.ErrorMessage);
 					this.ValidationErrors.Add(newError);
 				}
 			}
@@ -524,7 +526,7 @@ namespace Watsonia.Data
 				{
 					string errorName = attribute.GetType().Name.Replace("Attribute", "");
 					string errorMessage = validation.FormatErrorMessage(PropertyName(property));
-					ValidationError newError = new ValidationError(itemID, itemName, property.Name, errorName, errorMessage);
+					var newError = new ValidationError(itemID, itemName, property.Name, errorName, errorMessage);
 
 					this.ValidationErrors.Add(newError);
 
