@@ -243,7 +243,7 @@ namespace Watsonia.Data
 
 			return queryExecutor.BuildSelectStatement(queryModel);
 		}
-		
+
 		/// <summary>
 		/// Loads the item from the database with the supplied ID.
 		/// </summary>
@@ -364,6 +364,8 @@ namespace Watsonia.Data
 
 			var result = new ObservableCollection<T>();
 
+			var itemType = GetCollectionItemType(typeof(T));
+
 			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
 			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
@@ -373,7 +375,7 @@ namespace Watsonia.Data
 				{
 					while (reader.Read())
 					{
-						T newItem = LoadItemInCollection<T>(reader);
+						T newItem = LoadItemInCollection<T>(reader, itemType);
 						result.Add(newItem);
 					}
 				}
@@ -701,6 +703,8 @@ namespace Watsonia.Data
 		{
 			var result = new ObservableCollection<T>();
 
+			var itemType = GetCollectionItemType(typeof(T));
+
 			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
 			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration, parameters))
 			{
@@ -710,7 +714,7 @@ namespace Watsonia.Data
 				{
 					while (reader.Read())
 					{
-						T newItem = LoadItemInCollection<T>(reader);
+						T newItem = LoadItemInCollection<T>(reader, itemType);
 						result.Add(newItem);
 					}
 				}
@@ -720,46 +724,71 @@ namespace Watsonia.Data
 			return result;
 		}
 
-		private T LoadItemInCollection<T>(DbDataReader reader)
+		private CollectionItemType GetCollectionItemType(Type itemType)
 		{
-			Type itemType = typeof(T);
-
-			T newItem;
-
 			if (itemType.IsValueType || itemType == typeof(string) || itemType == typeof(byte[]))
 			{
-				newItem = (T)TypeHelper.ChangeType(reader.GetValue(0), typeof(T));
+				return CollectionItemType.Value;
 			}
 			else if (TypeHelper.IsAnonymous(itemType))
 			{
-				var values = new List<object>();
-				foreach (PropertyInfo p in itemType.GetProperties())
-				{
-					int ordinal = reader.GetOrdinal(p.Name);
-					object value = TypeHelper.ChangeType(reader.GetValue(ordinal), p.PropertyType);
-					values.Add(value);
-				}
-				newItem = (T)Activator.CreateInstance(itemType, values.ToArray());
-			}
-			else if (itemType.IsSealed)
-			{
-				newItem = (T)itemType.GetConstructor(Type.EmptyTypes).Invoke(Type.EmptyTypes);
+				return CollectionItemType.Anonymous;
 			}
 			else if (typeof(IDynamicProxy).IsAssignableFrom(itemType))
 			{
-				newItem = (T)itemType.GetConstructor(Type.EmptyTypes).Invoke(Type.EmptyTypes);
-				IDynamicProxy proxy = (IDynamicProxy)newItem;
-				proxy.StateTracker.Database = this;
-				proxy.SetValuesFromReader(reader);
+				// TODO: Should this actually be whether the item should be mapped (from Configuration)?
+				return CollectionItemType.DynamicProxy;
+			}
+			else if (this.Configuration.ShouldMapType(itemType))
+			{
+				return CollectionItemType.MappedObject;
 			}
 			else
 			{
-				newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
-				IDynamicProxy proxy = (IDynamicProxy)newItem;
-				proxy.SetValuesFromReader(reader);
+				return CollectionItemType.PlainObject;
 			}
+		}
 
-			return newItem;
+		private T LoadItemInCollection<T>(DbDataReader reader, CollectionItemType itemType)
+		{
+			switch (itemType)
+			{
+				case CollectionItemType.Value:
+				{
+					return (T)TypeHelper.ChangeType(reader.GetValue(0), typeof(T));
+				}
+				case CollectionItemType.Anonymous:
+				{
+					var values = new List<object>();
+					foreach (PropertyInfo p in typeof(T).GetProperties())
+					{
+						int ordinal = reader.GetOrdinal(p.Name);
+						object value = TypeHelper.ChangeType(reader.GetValue(ordinal), p.PropertyType);
+						values.Add(value);
+					}
+					return (T)Activator.CreateInstance(typeof(T), values.ToArray());
+				}
+				case CollectionItemType.DynamicProxy:
+				{
+					T newItem = (T)typeof(T).GetConstructor(Type.EmptyTypes).Invoke(Type.EmptyTypes);
+					IDynamicProxy proxy = (IDynamicProxy)newItem;
+					proxy.StateTracker.Database = this;
+					proxy.SetValuesFromReader(reader);
+					return newItem;
+				}
+				case CollectionItemType.MappedObject:
+				{
+					T newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
+					IDynamicProxy proxy = (IDynamicProxy)newItem;
+					proxy.SetValuesFromReader(reader);
+					return newItem;
+				}
+				case CollectionItemType.PlainObject:
+				default:
+				{
+					return (T)typeof(T).GetConstructor(Type.EmptyTypes).Invoke(Type.EmptyTypes);
+				}
+			}
 		}
 
 		private void RefreshCollection(SelectStatement select, Type elementType, IList collection)
