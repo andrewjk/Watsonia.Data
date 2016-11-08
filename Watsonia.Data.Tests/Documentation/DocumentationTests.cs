@@ -14,12 +14,7 @@ namespace Watsonia.Data.Tests.Documentation
 	[TestClass]
 	public class DocumentationTests
 	{
-		public const string ConnectionString = @"Data Source=Data\DocumentationTests.sdf;Persist Security Info=False";
-
-		private readonly static Database db = new Database(
-			new SqlServerCeDataAccessProvider(),
-			DocumentationTests.ConnectionString,
-			"Watsonia.Data.Tests.Documentation");
+		private static DocumentationDatabase db = new DocumentationDatabase();
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)

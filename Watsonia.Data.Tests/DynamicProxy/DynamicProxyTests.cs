@@ -8,7 +8,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 	[TestClass]
 	public class DynamicProxyTests
 	{
-		private static Database db = new Database(null, "", "Watsonia.Data.Tests.DynamicProxy");
+		private static DynamicProxyDatabase db = new DynamicProxyDatabase();
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
@@ -33,12 +33,6 @@ namespace Watsonia.Data.Tests.DynamicProxy
 			// Test that the IsNew property is created
 			PropertyInfo isNewProperty = orderProxy.GetType().GetProperty("IsNew", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 			Assert.AreNotEqual(null, isNewProperty);
-		}
-
-		[TestMethod]
-		public void TestProxyCaching()
-		{
-			// TODO:
 		}
 
 		[TestMethod]

@@ -13,21 +13,16 @@ namespace Watsonia.Data.Tests.Entities
 	/// Contains general tests for the database.
 	/// </summary>
 	[TestClass]
-	public class DatabaseTests
+	public class EntitiesTests
 	{
-		public const string ConnectionString = @"Data Source=Data\DatabaseTests.sdf;Persist Security Info=False";
-
-		private readonly static Database db = new Database(
-			new SqlServerCeDataAccessProvider(),
-			DatabaseTests.ConnectionString,
-			"Watsonia.Data.Tests.Entities");
+		private readonly static EntitiesDatabase db = new EntitiesDatabase();
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
 		{
-			if (!File.Exists(@"Data\DatabaseTests.sdf"))
+			if (!File.Exists(@"Data\EntitiesTests.sdf"))
 			{
-				File.Create(@"Data\DatabaseTests.sdf");
+				File.Create(@"Data\EntitiesTests.sdf");
 			}
 
 			db.UpdateDatabase();
@@ -447,7 +442,7 @@ namespace Watsonia.Data.Tests.Entities
 
 		private void ExecuteNonQuery(string sql)
 		{
-			using (SqlConnection connection = new SqlConnection(DatabaseTests.ConnectionString))
+			using (SqlConnection connection = new SqlConnection(EntitiesDatabase.ConnectionString))
 			{
 				connection.Open();
 				using (SqlCommand command = new SqlCommand(sql, connection))

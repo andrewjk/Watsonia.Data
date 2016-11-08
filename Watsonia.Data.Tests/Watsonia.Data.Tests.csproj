@@ -75,6 +75,14 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cache\Author.cs" />
+    <Compile Include="Cache\Book.cs" />
+    <Compile Include="Cache\CacheTests.cs" />
+    <Compile Include="Cache\Chapter.cs" />
+    <Compile Include="Cache\CacheDatabase.cs" />
+    <Compile Include="Documentation\DocumentationDatabase.cs" />
+    <Compile Include="DynamicProxy\DynamicProxyDatabase.cs" />
+    <Compile Include="Entities\EntitiesDatabase.cs" />
     <Compile Include="Entities\CardinalDirection.cs" />
     <Compile Include="DynamicProxy\ConstructorInitializer.cs" />
     <Compile Include="Entities\HasChangesRelated.cs" />
@@ -95,7 +103,7 @@
     <Compile Include="Entities\Link.cs" />
     <Compile Include="DynamicProxy\Order.cs" />
     <Compile Include="DynamicProxy\Customer.cs" />
-    <Compile Include="Entities\DatabaseTests.cs" />
+    <Compile Include="Entities\EntitiesTests.cs" />
     <Compile Include="DynamicProxy\DynamicProxyTests.cs" />
     <Compile Include="Entities\Parent.cs" />
     <Compile Include="Entities\SubChild.cs" />
