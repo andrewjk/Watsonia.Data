@@ -88,5 +88,17 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="source">The data reader.</param>
 		void SetValuesFromReader(DbDataReader source);
+
+		/// <summary>
+		/// Sets the item's property values from a value bag.
+		/// </summary>
+		/// <param name="bag">The value bag.</param>
+		void SetValuesFromBag(IValueBag bag);
+
+		/// <summary>
+		/// Gets a value bag from the item's property values.
+		/// </summary>
+		/// <returns></returns>
+		IValueBag GetBagFromValues();
 	}
 }

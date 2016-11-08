@@ -636,6 +636,27 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Gets the length of time in milliseconds to store items in the cache for the table with the supplied name.
+		/// </summary>
+		/// <param name="tableName">Name of the table.</param>
+		/// <returns></returns>
+		public virtual int GetCacheExpiryLength(string tableName)
+		{
+			// 15 minutes
+			return 900000;
+		}
+
+		/// <summary>
+		/// Gets the maximum number of items to store in the cache for the table with the supplied name.
+		/// </summary>
+		/// <param name="tableName">Name of the table.</param>
+		/// <returns></returns>
+		public virtual int GetCacheMaxItems(string tableName)
+		{
+			return 10000;
+		}
+
+		/// <summary>
 		/// Gets a custom attribute with type T on the supplied member if it exists.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>

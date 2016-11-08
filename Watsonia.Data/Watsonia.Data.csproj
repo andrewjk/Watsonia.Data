@@ -96,10 +96,13 @@
     <Compile Include="CascadeAttribute.cs" />
     <Compile Include="CascadeDeleteAttribute.cs" />
     <Compile Include="CollectionItemType.cs" />
+    <Compile Include="DatabaseItemCache.cs" />
     <Compile Include="DatabaseQuery.cs" />
     <Compile Include="DatabaseUpdater.cs" />
     <Compile Include="DefaultDateTimeValueAttribute.cs" />
     <Compile Include="EventArgs.cs" />
+    <Compile Include="ItemCache.cs" />
+    <Compile Include="IValueBag.cs" />
     <Compile Include="SelectFieldExpander.cs" />
     <Compile Include="Sql\DeleteStatement.cs" />
     <Compile Include="Sql\DeleteStatementT.cs" />

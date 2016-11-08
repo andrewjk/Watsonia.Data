@@ -339,40 +339,45 @@ namespace Watsonia.Data
 				this.OnPropertyChanged(propertyName);
 				if (!this.IsLoading)
 				{
-					// Check whether the original values contains the key
-					// If it doesn't it must be a related item (e.g. Book), which will be covered when
-					// the ID value is set (e.g. BookID)
-					// OR this property is being set from within the constructor (where the original
-					// values haven't been created yet) or from SetValuesFromReader (where the original
-					// values have been cleared out in preparation for new ones)
-					if (this.OriginalValues.ContainsKey(propertyName))
-					{
-						// If the property is being set to its original value, clear it out of the changed fields
-						// Otherwise, add it to the changed fields
-						T originalValue = (T)TypeHelper.ChangeType(this.OriginalValues[propertyName], typeof(T));
-						if (EqualityComparer<T>.Default.Equals(originalValue, newValue))
-						{
-							if (this.ChangedFields.Contains(propertyName))
-							{
-								this.ChangedFields.Remove(propertyName);
-							}
-						}
-						else
-						{
-							if (!this.ChangedFields.Contains(propertyName))
-							{
-								this.ChangedFields.Add(propertyName);
-							}
-						}
-						this.Item.HasChanges = (this.ChangedFields.Count > 0);
-					}
+					CheckOriginalValue<T>(propertyName, newValue);
+				}
+			}
+		}
 
-					// It's been changed now, so it should be validated
-					if (!this.FieldsToValidate.Contains(propertyName))
+		private void CheckOriginalValue<T>(string propertyName, T newValue)
+		{
+			// Check whether the original values contains the key
+			// If it doesn't it must be a related item (e.g. Book), which will be covered when
+			// the ID value is set (e.g. BookID)
+			// OR this property is being set from within the constructor (where the original
+			// values haven't been created yet) or from SetValuesFromReader (where the original
+			// values have been cleared out in preparation for new ones)
+			if (this.OriginalValues.ContainsKey(propertyName))
+			{
+				// If the property is being set to its original value, clear it out of the changed fields
+				// Otherwise, add it to the changed fields
+				T originalValue = (T)TypeHelper.ChangeType(this.OriginalValues[propertyName], typeof(T));
+				if (EqualityComparer<T>.Default.Equals(originalValue, newValue))
+				{
+					if (this.ChangedFields.Contains(propertyName))
 					{
-						this.FieldsToValidate.Add(propertyName);
+						this.ChangedFields.Remove(propertyName);
 					}
 				}
+				else
+				{
+					if (!this.ChangedFields.Contains(propertyName))
+					{
+						this.ChangedFields.Add(propertyName);
+					}
+				}
+				this.Item.HasChanges = (this.ChangedFields.Count > 0);
+			}
+
+			// It's been changed now, so it should be validated
+			if (!this.FieldsToValidate.Contains(propertyName))
+			{
+				this.FieldsToValidate.Add(propertyName);
 			}
 		}
 

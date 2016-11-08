@@ -13,6 +13,8 @@ namespace Watsonia.Data
 {
 	internal static class DynamicProxyFactory
 	{
+		private const string ProxyAssemblyName = "Watsonia.Data.DynamicProxies";
+
 		private static AssemblyBuilder _assemblyBuilder = null;
 		private static ModuleBuilder _moduleBuilder = null;
 		private static string _exportPath = null;
@@ -22,7 +24,7 @@ namespace Watsonia.Data
 		static DynamicProxyFactory()
 		{
 			var assemblyName = new AssemblyName();
-			assemblyName.Name = "Watsonia.Data.DynamicProxies";
+			assemblyName.Name = ProxyAssemblyName;
 
 			_assemblyBuilder = Thread.GetDomain().DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
 			_moduleBuilder = _assemblyBuilder.DefineDynamicModule(_assemblyBuilder.GetName().Name, false);
@@ -61,8 +63,9 @@ namespace Watsonia.Data
 		{
 			// A new type needs to be made for each type in each database
 			// This is because each database may have different naming conventions and primary/foreign key types
-			string proxyTypeName = database.DatabaseName + parentType.Name + "Proxy";
-			return _cachedTypes.GetOrAdd(proxyTypeName, (string s) => CreateType(proxyTypeName, parentType, database));
+			string proxyTypeName = ProxyAssemblyName + "." + database.DatabaseName + parentType.Name + "Proxy";
+			return _cachedTypes.GetOrAdd(proxyTypeName,
+				(string s) => CreateType(proxyTypeName, parentType, database));
 		}
 
 		internal static IDynamicProxy GetDynamicProxy(Type parentType, Database database)
@@ -88,15 +91,16 @@ namespace Watsonia.Data
 			members.PrimaryKeyColumnName = database.Configuration.GetPrimaryKeyColumnName(parentType);
 			members.PrimaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(parentType);
 
-			TypeBuilder type = _moduleBuilder.DefineType(typeName,
+			TypeBuilder type = _moduleBuilder.DefineType(
+				typeName,
 				TypeAttributes.Public |
 				TypeAttributes.Class |
 				TypeAttributes.AutoClass |
 				TypeAttributes.AnsiClass |
 				TypeAttributes.BeforeFieldInit |
 				TypeAttributes.AutoLayout,
-				parentType);
-			type.AddInterfaceImplementation(typeof(IDynamicProxy));
+				parentType,
+				new Type[] { typeof(IDynamicProxy) });
 
 			// Implement INotifyPropertyChanging
 			FieldBuilder propertyChangingEventField = CreatePropertyChangingEvent(type);
@@ -109,9 +113,16 @@ namespace Watsonia.Data
 			// Add the properties
 			AddProperties(type, parentType, members, database);
 
+			// Create the ValueBag type, now that we know what properties there will be
+			string valueBagTypeName = ProxyAssemblyName + "." + database.DatabaseName + parentType.Name + "ValueBag";
+			members.ValueBagType = _cachedTypes.GetOrAdd(valueBagTypeName,
+				(string s) => CreateValueBagType(valueBagTypeName, members));
+
 			// Add some methods
 			members.ResetOriginalValuesMethod = CreateResetOriginalValuesMethod(type, parentType, members, database);
 			CreateSetValuesFromReaderMethod(type, members);
+			CreateSetValuesFromBagMethod(type, members);
+			CreateGetBagFromValuesMethod(type, members);
 
 			CreateMethodToCallStateTrackerMethod(type, "GetHashCode", "GetItemHashCode", typeof(int), Type.EmptyTypes, members);
 			CreateMethodToCallStateTrackerMethod(type, "Equals", "ItemEquals", typeof(bool), new Type[] { typeof(object) }, members);
@@ -125,9 +136,7 @@ namespace Watsonia.Data
 			// Add the constructor
 			AddConstructor(type, parentType, members, database);
 
-			Type t = type.CreateType();
-
-			return t;
+			return type.CreateType();
 		}
 
 		private static void AddConstructor(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database)
@@ -849,6 +858,8 @@ namespace Watsonia.Data
 			}
 
 			CheckCreatedProperty(property, getMethod, setMethod, false, members, database);
+
+			members.ValueBagPropertyNames.Add(propertyName);
 		}
 
 		private static MethodBuilder CreateFieldPropertyGetMethod(TypeBuilder type, string propertyName, Type propertyType, FieldBuilder privateField)
@@ -955,7 +966,8 @@ namespace Watsonia.Data
 
 			// Check whether the property is a related collection
 			Type enumeratedType;
-			if (database.Configuration.IsRelatedCollection(property, out enumeratedType))
+			bool isRelatedCollection = database.Configuration.IsRelatedCollection(property, out enumeratedType);
+			if (isRelatedCollection)
 			{
 				getMethod = CreateOverriddenCollectionPropertyGetMethod(type, property, enumeratedType, members);
 				if (!isReadOnly)
@@ -982,6 +994,11 @@ namespace Watsonia.Data
 			}
 
 			CheckCreatedProperty(property, getMethod, setMethod, true, members, database);
+
+			if (!isRelatedCollection)
+			{
+				members.ValueBagPropertyNames.Add(property.Name);
+			}
 		}
 
 		private static MethodBuilder CreateOverriddenCollectionPropertyGetMethod(TypeBuilder type, PropertyInfo property, Type enumeratedType, DynamicProxyTypeMembers members)
@@ -1924,6 +1941,117 @@ namespace Watsonia.Data
 			property.SetGetMethod(getMethod);
 		}
 
+		private static Type CreateValueBagType(string typeName, DynamicProxyTypeMembers members)
+		{
+			TypeBuilder type = _moduleBuilder.DefineType(
+				typeName,
+				TypeAttributes.Public,
+				typeof(object),
+				new Type[] { typeof(IValueBag) });
+
+			//////////////AddValueBagConstructor(type, members);
+
+			foreach (string key in members.ValueBagPropertyNames)
+			{
+				CreateValueBagProperty(type, key, members.GetPropertyMethods[key].ReturnType, members);
+			}
+
+			members.ValueBagType = type;
+
+			return type.CreateType();
+		}
+
+		private static void AddValueBagConstructor(TypeBuilder type, DynamicProxyTypeMembers members)
+		{
+			ConstructorBuilder constructor = type.DefineConstructor(
+				MethodAttributes.Public | MethodAttributes.HideBySig,
+				CallingConventions.Standard,
+				Type.EmptyTypes);
+
+			// Preparing Reflection instances
+			ConstructorInfo ctor1 = typeof(object).GetConstructor(
+				BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+				null,
+				Type.EmptyTypes,
+				null);
+
+			// Adding parameters
+			ILGenerator gen = constructor.GetILGenerator();
+
+			// Writing body
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Call, ctor1);
+			gen.Emit(OpCodes.Ret);
+		}
+
+		private static void CreateValueBagProperty(TypeBuilder type, string propertyName, Type propertyType, DynamicProxyTypeMembers members)
+		{
+			FieldBuilder field = type.DefineField(
+				"_" + propertyName,
+				propertyType,
+				FieldAttributes.Private);
+
+			PropertyBuilder property = type.DefineProperty(
+				propertyName,
+				PropertyAttributes.None,
+				propertyType,
+				null);
+
+			MethodBuilder getMethod = CreateValueBagPropertyGetMethod(type, propertyName, propertyType, field);
+			MethodBuilder setMethod = CreateValueBagPropertySetMethod(type, propertyName, propertyType, field);
+
+			// Map the get and set methods created above to their corresponding property methods
+			property.SetGetMethod(getMethod);
+			property.SetSetMethod(setMethod);
+
+			// Add the get and set methods to the members class so that we can access them while building the proxy
+			members.GetValueBagPropertyMethods.Add(property.Name, getMethod);
+			members.SetValueBagPropertyMethods.Add(property.Name, setMethod);
+		}
+
+		private static MethodBuilder CreateValueBagPropertyGetMethod(TypeBuilder type, string propertyName, Type propertyType, FieldBuilder privateField)
+		{
+			MethodBuilder method = type.DefineMethod(
+				"get_" + propertyName,
+				MethodAttributes.Public | MethodAttributes.HideBySig,
+				propertyType,
+				Type.EmptyTypes);
+
+			ILGenerator gen = method.GetILGenerator();
+
+			LocalBuilder value = gen.DeclareLocal(propertyType);
+
+			// return _property;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Ldfld, privateField);
+			//gen.Emit(OpCodes.Stloc_0);
+			//gen.Emit(OpCodes.Ldloc_0);
+			gen.Emit(OpCodes.Ret);
+
+			return method;
+		}
+
+		private static MethodBuilder CreateValueBagPropertySetMethod(TypeBuilder type, string propertyName, Type propertyType, FieldBuilder privateField)
+		{
+			MethodBuilder method = type.DefineMethod(
+				"set_" + propertyName,
+				MethodAttributes.Public | MethodAttributes.HideBySig,
+				null,
+				new Type[] { propertyType });
+			
+			ParameterBuilder value = method.DefineParameter(1, ParameterAttributes.None, "value");
+
+			ILGenerator gen = method.GetILGenerator();
+
+			// _property = value;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Stfld, privateField);
+			gen.Emit(OpCodes.Ret);
+
+			return method;
+		}
+
 		private static MethodBuilder CreateResetOriginalValuesMethod(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database)
 		{
 			// TODO: Should also clear ChangedFields here rather than in SetValuesFromReader
@@ -2079,7 +2207,8 @@ namespace Watsonia.Data
 					propertyType == typeof(short?) ||
 					propertyType == typeof(int?) ||
 					propertyType == typeof(long?) ||
-					propertyType == typeof(byte?))
+					propertyType == typeof(byte?) ||
+					propertyType == typeof(string))
 				{
 					LocalBuilder flag = gen.DeclareLocal(typeof(bool));
 					LocalBuilder nullable = gen.DeclareLocal(propertyType);
@@ -2205,7 +2334,7 @@ namespace Watsonia.Data
 				}
 				else if (propertyType == typeof(string))
 				{
-					CreateSetValueFromReaderMethod(gen, getStringMethod, "GetString", members.SetPropertyMethods[key]);
+					CreateSetNullableValueFromReaderMethod(gen, propertyType, typeof(string), isDBNullMethod, getStringMethod, "GetString", members.SetPropertyMethods[key], localIndexes[key]);
 				}
 				else if (propertyType == typeof(Guid))
 				{
@@ -2322,11 +2451,116 @@ namespace Watsonia.Data
 			{
 				getTypeValueMethod = typeof(DbDataReader).GetMethod(getTypeValueMethodName, new Type[] { typeof(int) });
 			}
-			gen.Emit(OpCodes.Callvirt, getTypeValueMethod);
-			gen.Emit(OpCodes.Newobj, nullableTypeConstructor);
-			gen.Emit(OpCodes.Callvirt, setPropertyMethod);
+			if (propertyType == typeof(string))
+			{
+				gen.Emit(OpCodes.Callvirt, getTypeValueMethod);
+				gen.Emit(OpCodes.Callvirt, setPropertyMethod);
+			}
+			else
+			{
+				gen.Emit(OpCodes.Callvirt, getTypeValueMethod);
+				gen.Emit(OpCodes.Newobj, nullableTypeConstructor);
+				gen.Emit(OpCodes.Callvirt, setPropertyMethod);
+			}
 
 			gen.MarkLabel(endIsNotDBNull);
+		}
+
+		private static void CreateSetValuesFromBagMethod(TypeBuilder type, DynamicProxyTypeMembers members)
+		{
+			MethodBuilder method = type.DefineMethod(
+				"SetValuesFromBag",
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+				null,
+				new Type[] { typeof(IValueBag) });
+
+			MethodInfo stateTrackerIsLoadingMethod = typeof(DynamicProxyStateTracker).GetMethod(
+				"set_IsLoading", new Type[] { typeof(bool) });
+
+			ILGenerator gen = method.GetILGenerator();
+
+			ParameterBuilder bag = method.DefineParameter(1, ParameterAttributes.None, "bag");
+			
+			// Preparing locals
+			LocalBuilder itemBag = gen.DeclareLocal(members.ValueBagType);
+
+			// this.StateTracker.IsLoading = true;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
+			gen.Emit(OpCodes.Ldc_I4_1);
+			gen.Emit(OpCodes.Callvirt, stateTrackerIsLoadingMethod);
+
+			// var itemBag = (ValueBagType)bag;
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Castclass, members.ValueBagType);
+			gen.Emit(OpCodes.Stloc_0);
+
+			foreach (string key in members.ValueBagPropertyNames)
+			{
+				// this.Property = itemBag.Property;
+				gen.Emit(OpCodes.Ldarg_0);
+				gen.Emit(OpCodes.Ldloc_0);
+				gen.Emit(OpCodes.Callvirt, members.GetValueBagPropertyMethods[key]);
+				gen.Emit(OpCodes.Callvirt, members.SetPropertyMethods[key]);
+			}
+
+			// this.ResetOriginalValues();
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Call, members.ResetOriginalValuesMethod);
+
+			// this.StateTracker.IsLoading = false;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
+			gen.Emit(OpCodes.Ldc_I4_0);
+			gen.Emit(OpCodes.Callvirt, stateTrackerIsLoadingMethod);
+
+			// return;
+			gen.Emit(OpCodes.Ret);
+		}
+
+		private static void CreateGetBagFromValuesMethod(TypeBuilder type, DynamicProxyTypeMembers members)
+		{
+			MethodBuilder method = type.DefineMethod(
+				"GetBagFromValues",
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+				typeof(IValueBag),
+				Type.EmptyTypes);
+
+			ConstructorInfo valueBagConstructor = members.ValueBagType.GetConstructor(Type.EmptyTypes);
+
+			ILGenerator gen = method.GetILGenerator();
+
+			// Preparing locals
+			LocalBuilder itemBag = gen.DeclareLocal(members.ValueBagType);
+			LocalBuilder bag2 = gen.DeclareLocal(typeof(IValueBag));
+
+			//// Preparing labels
+			//Label label271 = gen.DefineLabel();
+
+			// var itemBag = new ValueBagType();
+			gen.Emit(OpCodes.Newobj, valueBagConstructor);
+			gen.Emit(OpCodes.Stloc_0);
+
+			foreach (string key in members.ValueBagPropertyNames)
+			{
+				// itemBag.Property = this.Property;
+				gen.Emit(OpCodes.Ldloc_0);
+				gen.Emit(OpCodes.Ldarg_0);
+				gen.Emit(OpCodes.Callvirt, members.GetPropertyMethods[key]);
+				gen.Emit(OpCodes.Callvirt, members.SetValueBagPropertyMethods[key]);
+			}
+
+			//// Not really sure what this is doing...
+			//gen.Emit(OpCodes.Ldloc_0);
+			//gen.Emit(OpCodes.Stloc_1);
+			//gen.Emit(OpCodes.Br_S, label271);
+
+			//// End of method
+			//gen.MarkLabel(label271);
+
+			// return itemBag;
+			gen.Emit(OpCodes.Ldloc_0);
+			gen.Emit(OpCodes.Ret);
 		}
 
 		private static void CreateMethodToCallStateTrackerMethod(TypeBuilder type, string methodName, string stateTrackerMethodName, Type methodReturnType, Type[] methodParameterTypes, DynamicProxyTypeMembers members)

@@ -43,6 +43,7 @@ namespace Watsonia.Data
 		public event EventHandler AfterExecuteCommand;
 
 		private static ConcurrentDictionary<Type, ConcurrentStack<Type>> _childParentMapping = null;
+		private static DatabaseItemCache _cache = new DatabaseItemCache();
 
 		/// <summary>
 		/// Gets the configuration options used for mapping to and accessing the database.
@@ -280,29 +281,54 @@ namespace Watsonia.Data
 			string tableName = this.Configuration.GetTableName(typeof(T));
 			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(typeof(T));
 
-			var select = Select.From(tableName).Where(primaryKeyColumnName, SqlOperator.Equals, id);
-
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
+			// First, check the cache
+			ItemCache cache = _cache.GetOrAdd(
+				tableName,
+				(string s) => new ItemCache(this.Configuration.GetCacheExpiryLength(tableName), this.Configuration.GetCacheMaxItems(tableName)));
+			if (cache.ContainsKey(id))
 			{
-				command.Connection = connection;
-				OnBeforeExecuteCommand(command);
-				using (DbDataReader reader = command.ExecuteReader())
+				// It's in there
+				System.Diagnostics.Trace.WriteLine("Getting " + tableName + " with ID " + id + " from the cache", "Dynamic Proxy");
+
+				item = Create<T>();
+				proxy = (IDynamicProxy)item;
+				proxy.SetValuesFromBag(cache.GetValues(id));
+				proxy.IsNew = false;
+				proxy.HasChanges = false;
+			}
+			else
+			{
+				// It's not in the cache, going to have to load it from the database
+				var select = Select.From(tableName).Where(primaryKeyColumnName, SqlOperator.Equals, id);
+
+				using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+				using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 				{
-					if (reader.Read())
+					command.Connection = connection;
+					OnBeforeExecuteCommand(command);
+					using (DbDataReader reader = command.ExecuteReader())
 					{
-						item = Create<T>();
-						proxy = (IDynamicProxy)item;
-						proxy.SetValuesFromReader(reader);
-						proxy.IsNew = false;
-						proxy.HasChanges = false;
+						if (reader.Read())
+						{
+							item = Create<T>();
+							proxy = (IDynamicProxy)item;
+							proxy.SetValuesFromReader(reader);
+							proxy.IsNew = false;
+							proxy.HasChanges = false;
+
+							// Add or update it in the cache
+							cache.AddOrUpdate(
+								id,
+								proxy.GetBagFromValues(),
+								(key, existingValue) => proxy.GetBagFromValues());
+						}
+						else if (throwIfNotFound)
+						{
+							throw new ItemNotFoundException(string.Format("The {0} with ID {1} was not found in the database", typeof(T).Name, id), id);
+						}
 					}
-					else if (throwIfNotFound)
-					{
-						throw new ItemNotFoundException(string.Format("The {0} with ID {1} was not found in the database", typeof(T).Name, id), id);
-					}
+					OnAfterExecuteCommand(command);
 				}
-				OnAfterExecuteCommand(command);
 			}
 
 			if (proxy != null)
@@ -1020,6 +1046,15 @@ namespace Watsonia.Data
 					UpdateItem(proxy, tableName, primaryKeyColumnName, connection, transaction);
 				}
 			}
+
+			// Add or update it in the cache
+			ItemCache cache = _cache.GetOrAdd(
+				tableName,
+				(string s) => new ItemCache(this.Configuration.GetCacheExpiryLength(tableName), this.Configuration.GetCacheMaxItems(tableName)));
+			cache.AddOrUpdate(
+				proxy.PrimaryKeyValue,
+				proxy.GetBagFromValues(),
+				(key, existingValue) => proxy.GetBagFromValues());
 
 			// Clear any changed fields
 			proxy.StateTracker.ChangedFields.Clear();
