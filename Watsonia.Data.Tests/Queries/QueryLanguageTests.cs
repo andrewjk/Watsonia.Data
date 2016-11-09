@@ -2129,7 +2129,6 @@ namespace Watsonia.Data.Tests.Queries
 				query = ((UnaryExpression)query).Operand;
 			}
 
-#if DEBUG
 			string expected = TrimExtraWhiteSpace(baselines[baseline].Replace("\n\n", ") ("));
 			SelectStatement select = db.BuildSelectStatement(query);
 
@@ -2137,20 +2136,6 @@ namespace Watsonia.Data.Tests.Queries
 			builder.VisitStatement(select, db.Configuration);
 
 			string actual = TrimExtraWhiteSpace(builder.CommandText.ToString());
-#else
-			string expected = "";
-			string actual = "";
-			try
-			{
-				expected = "(" + TrimExtraWhiteSpace(baselines[baseline].Replace("\n\n", ") (")) + ")";
-				Select select = db.Compile(query);
-				actual = TrimExtraWhiteSpace(select.ToString());
-			}
-			catch (Exception ex)
-			{
-				Assert.Fail("Failed to get query text: {0}", ex.Message);
-			}
-#endif
 
 			// Replace parameter references with their values so that we can check they have the correct value
 			for (int i= 0; i < builder.ParameterValues.Count; i++)
