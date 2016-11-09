@@ -6,54 +6,13 @@ namespace Watsonia.Data.Tests.DynamicProxy
 {
 	public class Customer : Entity
 	{
-		public event EventHandler NameChanging;
-		public event EventHandler NameChanged;
-		public event EventHandler AgeChanging;
-		public event EventHandler AgeChanged;
-
 		public virtual long ID { get; set; }
 
 		[Required]
 		[StringLength(100)]
 		public virtual string Name { get; set; }
-
-		protected virtual void OnNameChanging(string value)
-		{
-			var changing = NameChanging;
-			if (changing != null)
-			{
-				changing(this, EventArgs.Empty);
-			}
-		}
-
-		protected virtual void OnNameChanged()
-		{
-			var changed = NameChanged;
-			if (changed != null)
-			{
-				changed(this, EventArgs.Empty);
-			}
-		}
-
+		
 		public virtual int? Age { get; set; }
-
-		protected virtual void OnAgeChanging(int? value)
-		{
-			var changing = AgeChanging;
-			if (changing != null)
-			{
-				changing(this, EventArgs.Empty);
-			}
-		}
-
-		protected virtual void OnAgeChanged()
-		{
-			var changed = AgeChanged;
-			if (changed != null)
-			{
-				changed(this, EventArgs.Empty);
-			}
-		}
 
 		[StringLength(100)]
 		[Display(Name = "Email address")]
@@ -65,6 +24,25 @@ namespace Watsonia.Data.Tests.DynamicProxy
 
 		[Display(Name = "License count")]
 		public virtual int LicenseCount { get; set; }
+
+		private DateTime _dateOfBirth;
+		public virtual DateTime DateOfBirth
+		{
+			get
+			{
+				return _dateOfBirth;
+			}
+			set
+			{
+				if (_dateOfBirth != value)
+				{
+					_dateOfBirth = value;
+					this.BirthdayMessage = DateTime.Today.DayOfYear == value.DayOfYear ? string.Format("Happy birthday, {0}!", this.Name) : "It's not your birthday...";
+				}
+			}
+		}
+
+		public virtual string BirthdayMessage { get; set; }
 
 		public virtual ICollection<Order> Orders { get; set; }
 	}

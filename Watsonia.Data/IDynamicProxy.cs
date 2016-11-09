@@ -7,8 +7,13 @@ namespace Watsonia.Data
 	/// <summary>
 	/// The interface for a dynamic proxy created from an entity.
 	/// </summary>
-	public interface IDynamicProxy : INotifyPropertyChanging, INotifyPropertyChanged
+	public interface IDynamicProxy
 	{
+		/// <summary>
+		/// Occurs when the value of the primary key value has changed.
+		/// </summary>
+		event PrimaryKeyValueChangedEventHandler PrimaryKeyValueChanged;
+
 		/// <summary>
 		/// Gets the state tracker.
 		/// </summary>

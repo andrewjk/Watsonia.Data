@@ -103,6 +103,8 @@
     <Compile Include="EventArgs.cs" />
     <Compile Include="ItemCache.cs" />
     <Compile Include="IValueBag.cs" />
+    <Compile Include="PrimaryKeyChangedEventHandler.cs" />
+    <Compile Include="PrimaryKeyValueChangedEventArgs.cs" />
     <Compile Include="SelectFieldExpander.cs" />
     <Compile Include="Sql\DeleteStatement.cs" />
     <Compile Include="Sql\DeleteStatementT.cs" />

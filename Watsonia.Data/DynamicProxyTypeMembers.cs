@@ -39,8 +39,6 @@ namespace Watsonia.Data
 
 		public MethodBuilder ResetOriginalValuesMethod { get; set; }
 
-		public MethodBuilder OnPropertyChangingMethod { get; set; }
-
-		public MethodBuilder OnPropertyChangedMethod { get; set; }
+		public MethodBuilder OnPrimaryKeyValueChangedMethod { get; set; }
 	}
 }

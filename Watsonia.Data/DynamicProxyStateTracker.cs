@@ -128,22 +128,6 @@ namespace Watsonia.Data
 		/// The validation errors.
 		/// </value>
 		public List<ValidationError> ValidationErrors { get; } = new List<ValidationError>();
-		
-		/// <summary>
-		/// Gets or sets an action to call when a property's value is changing.
-		/// </summary>
-		/// <value>
-		/// The action.
-		/// </value>
-		public Action<string> OnPropertyChanging { get; set; }
-
-		/// <summary>
-		/// Gets or sets an action to call when a property's value has changed.
-		/// </summary>
-		/// <value>
-		/// The action.
-		/// </value>
-		public Action<string> OnPropertyChanged { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DynamicProxyStateTracker"/> class.
@@ -275,42 +259,12 @@ namespace Watsonia.Data
 			if (!EqualityComparer<T>.Default.Equals(propertyValueField, newValue))
 			{
 				onChanging?.Invoke(newValue);
-				this.OnPropertyChanging(propertyName);
 				T oldValue = propertyValueField;
 				propertyValueField = newValue;
 				onChanged?.Invoke();
-				this.OnPropertyChanged(propertyName);
 				if (!this.IsLoading)
 				{
-					// Check whether the original values contains the key. If it doesn't it must be a
-					// related item (e.g. Book), which will be covered when the ID value is set (e.g. BookID)
-					if (this.OriginalValues.ContainsKey(propertyName))
-					{
-						// If the property is being set to its original value, clear it out of the changed fields
-						// Otherwise, add it to the changed fields
-						T originalValue = (T)TypeHelper.ChangeType(this.OriginalValues[propertyName], typeof(T));
-						if (EqualityComparer<T>.Default.Equals(originalValue, newValue))
-						{
-							if (this.ChangedFields.Contains(propertyName))
-							{
-								this.ChangedFields.Remove(propertyName);
-							}
-						}
-						else
-						{
-							if (!this.ChangedFields.Contains(propertyName))
-							{
-								this.ChangedFields.Add(propertyName);
-							}
-						}
-						this.Item.HasChanges = (this.ChangedFields.Count > 0);
-					}
-
-					// It's been changed now, so it should be validated
-					if (!this.FieldsToValidate.Contains(propertyName))
-					{
-						this.FieldsToValidate.Add(propertyName);
-					}
+					CheckOriginalValue<T>(propertyName, newValue);
 				}
 			}
 		}
@@ -333,10 +287,8 @@ namespace Watsonia.Data
 			if (!EqualityComparer<T>.Default.Equals(oldValue, newValue) || newValue == null)
 			{
 				onChanging?.Invoke(newValue);
-				this.OnPropertyChanging(propertyName);
 				setValue(newValue);
 				onChanged?.Invoke();
-				this.OnPropertyChanged(propertyName);
 				if (!this.IsLoading)
 				{
 					CheckOriginalValue<T>(propertyName, newValue);

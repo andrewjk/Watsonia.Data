@@ -75,33 +75,53 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		}
 
 		[TestMethod]
-		public void TestPropertyChangeEvents()
+		public void TestOverriddenPropertyWithSideEffect()
 		{
-			IDynamicProxy customerProxy = (IDynamicProxy)DynamicProxyFactory.GetDynamicProxy<Customer>(db);
+			var customer = db.Create<Customer>();
+			customer.Name = "Harold";
+			customer.DateOfBirth = DateTime.Today.AddYears(-21).AddDays(-7);
+			Assert.AreEqual("It's not your birthday...", customer.BirthdayMessage);
 
-			// Test that PropertyChanging, PropertyChanged and OnNameChanged are called correctly
-			bool propertyChanging = false;
-			bool propertyChanged = false;
-			bool nameChanged = false;
-			customerProxy.PropertyChanging += delegate(object sender, PropertyChangingEventArgs e)
-			{
-				Assert.AreEqual("Name", e.PropertyName);
-				propertyChanging = true;
-			};
-			customerProxy.PropertyChanged += delegate(object sender, PropertyChangedEventArgs e)
-			{
-				Assert.AreEqual("Name", e.PropertyName);
-				propertyChanged = true;
-			};
-			((Customer)customerProxy).NameChanged += delegate(object sender, EventArgs e)
-			{
-				nameChanged = true;
-			};
+			customer.DateOfBirth = new DateTime(1980, DateTime.Today.Month, DateTime.Today.Day);
+			Assert.AreEqual("Happy birthday, Harold!", customer.BirthdayMessage);
 
-			((Customer)customerProxy).Name = "Barry";
-			Assert.AreEqual(true, propertyChanging);
-			Assert.AreEqual(true, propertyChanged);
-			Assert.AreEqual(true, nameChanged);
+			customer.DateOfBirth = DateTime.Today.AddYears(-21).AddMonths(-1);
+			Assert.AreEqual("It's not your birthday...", customer.BirthdayMessage);
+		}
+
+		[TestMethod]
+		public void TestPrimaryKeyValueChangeEvent()
+		{
+			var winston = db.Create<Customer>();
+			winston.ID = 500;
+			winston.Name = "Winston";
+
+			var jerry = db.Create<Customer>();
+			jerry.ID = -501;
+			jerry.Name = "Jerry";
+
+			var address = db.Create<Address>();
+			var property = address.GetType().GetProperty("CustomerID");
+
+			address.Customer = winston;
+			Assert.AreEqual(500, (long)property.GetValue(address));
+
+			address.Customer = jerry;
+			Assert.AreEqual(-501, (long)property.GetValue(address));
+
+			// Updating Jerry's ID (like, for instance, when saving a new customer) should update the CustomerID too
+			bool eventIsFiringOk = false;
+			((IDynamicProxy)jerry).PrimaryKeyValueChanged += delegate
+			{
+				eventIsFiringOk = true;
+			};
+			jerry.ID = 1000;
+			Assert.IsTrue(eventIsFiringOk);
+			Assert.AreEqual(1000, (long)property.GetValue(address));
+
+			// Updating Winston's ID should no longer update the CustomerID
+			winston.ID = 2000;
+			Assert.AreEqual(1000, (long)property.GetValue(address));
 		}
 
 		[TestMethod]
