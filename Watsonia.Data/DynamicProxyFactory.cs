@@ -20,6 +20,7 @@ namespace Watsonia.Data
 		private static string _exportPath = null;
 
 		private static readonly ConcurrentDictionary<string, Type> _cachedTypes = new ConcurrentDictionary<string, Type>();
+		private static readonly ConcurrentDictionary<string, ChildParentMapping> _cachedChildParentMappings = new ConcurrentDictionary<string, ChildParentMapping>();
 
 		static DynamicProxyFactory()
 		{
@@ -34,6 +35,7 @@ namespace Watsonia.Data
 		{
 			// Remove any previously created types so that they will be re-created
 			_cachedTypes.Clear();
+			_cachedChildParentMappings.Clear();
 
 			var newAssemblyName = new AssemblyName();
 			newAssemblyName.Name = Path.GetFileNameWithoutExtension(path);
@@ -59,11 +61,16 @@ namespace Watsonia.Data
 			File.Move(fileName, _exportPath);
 		}
 
-		internal static Type GetDynamicProxyType(Type parentType, Database database)
+		private static string GetDynamicTypeName(Type parentType, Database database, string suffix = "Proxy")
 		{
 			// A new type needs to be made for each type in each database
 			// This is because each database may have different naming conventions and primary/foreign key types
-			string proxyTypeName = ProxyAssemblyName + "." + database.DatabaseName + parentType.Name + "Proxy";
+			return DynamicProxyFactory.ProxyAssemblyName + "." + database.DatabaseName + parentType.Name + suffix;
+		}
+
+		internal static Type GetDynamicProxyType(Type parentType, Database database)
+		{
+			string proxyTypeName = GetDynamicTypeName(parentType, database);
 			return _cachedTypes.GetOrAdd(proxyTypeName,
 				(string s) => CreateType(proxyTypeName, parentType, database));
 		}
@@ -87,6 +94,11 @@ namespace Watsonia.Data
 		{
 			System.Diagnostics.Trace.WriteLine("Creating " + typeName, "Dynamic Proxy");
 
+			// Get the child parent mapping
+			string childParentMappingName = GetDynamicTypeName(parentType, database, "ChildParentMapping");
+			ChildParentMapping childParentMapping = _cachedChildParentMappings.GetOrAdd(childParentMappingName,
+				(string s) => LoadChildParentMapping(database));
+
 			var members = new DynamicProxyTypeMembers();
 			members.PrimaryKeyColumnName = database.Configuration.GetPrimaryKeyColumnName(parentType);
 			members.PrimaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(parentType);
@@ -107,15 +119,15 @@ namespace Watsonia.Data
 			members.OnPrimaryKeyValueChangedMethod = CreateOnPrimaryKeyValueChangedMethod(type, primaryKeyValueChangedEventField);
 
 			// Add the properties
-			AddProperties(type, parentType, members, database);
+			AddProperties(type, parentType, members, database, childParentMapping);
 
 			// Create the ValueBag type, now that we know what properties there will be
-			string valueBagTypeName = ProxyAssemblyName + "." + database.DatabaseName + parentType.Name + "ValueBag";
+			string valueBagTypeName = GetDynamicTypeName(parentType, database, "ValueBag");
 			members.ValueBagType = _cachedTypes.GetOrAdd(valueBagTypeName,
 				(string s) => CreateValueBagType(valueBagTypeName, members));
 
 			// Add some methods
-			members.ResetOriginalValuesMethod = CreateResetOriginalValuesMethod(type, parentType, members, database);
+			members.ResetOriginalValuesMethod = CreateResetOriginalValuesMethod(type, parentType, members, database, childParentMapping);
 			CreateSetValuesFromReaderMethod(type, members);
 			CreateSetValuesFromBagMethod(type, members);
 			CreateGetBagFromValuesMethod(type, members);
@@ -465,7 +477,7 @@ namespace Watsonia.Data
 			return onPrimaryKeyValueChangedMethod;
 		}
 
-		private static void AddProperties(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database)
+		private static void AddProperties(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database, ChildParentMapping childParentMapping)
 		{
 			// The StateTracker property must be created first as it is called by the overridden properties
 			CreateStateTrackerProperty(type, members);
@@ -559,9 +571,9 @@ namespace Watsonia.Data
 			}
 
 			// Create the related item properties for parent-child relationships that don't exist as properties
-			if (database.ChildParentMapping.ContainsKey(parentType))
+			if (childParentMapping.ContainsKey(parentType))
 			{
-				foreach (Type parent in database.ChildParentMapping[parentType])
+				foreach (Type parent in childParentMapping[parentType])
 				{
 					// If the ID property doesn't exist, create it
 					string relatedItemIDPropertyName = database.Configuration.GetForeignKeyColumnName(parentType, parent);
@@ -1909,7 +1921,7 @@ namespace Watsonia.Data
 			return method;
 		}
 
-		private static MethodBuilder CreateResetOriginalValuesMethod(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database)
+		private static MethodBuilder CreateResetOriginalValuesMethod(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database, ChildParentMapping childParentMapping)
 		{
 			// TODO: Should also clear ChangedFields here rather than in SetValuesFromReader
 
@@ -1959,9 +1971,9 @@ namespace Watsonia.Data
 
 			// Set the original values for the related item properties for parent-child relationships
 			// that don't exist as properties
-			if (database.ChildParentMapping.ContainsKey(parentType))
+			if (childParentMapping.ContainsKey(parentType))
 			{
-				foreach (Type parent in database.ChildParentMapping[parentType])
+				foreach (Type parent in childParentMapping[parentType])
 				{
 					string key = database.Configuration.GetForeignKeyColumnName(parentType, parent);
 					Type propertyType = database.Configuration.GetPrimaryKeyColumnType(parent);
@@ -2459,6 +2471,42 @@ namespace Watsonia.Data
 				gen.Emit(OpCodes.Ldloc_0);
 			}
 			gen.Emit(OpCodes.Ret);
+		}
+
+		/// <summary>
+		/// Loads the child parent mapping.
+		/// </summary>
+		/// <param name="database">The database.</param>
+		/// <returns>
+		/// The child parent mapping.
+		/// </returns>
+		/// <remarks>
+		/// Before we can build any proxies we first need to scan through the mapped types and build
+		/// lists of types that exist in a one-to-many relationship in a parent type with a collection.
+		/// </remarks>
+		private static ChildParentMapping LoadChildParentMapping(Database database)
+		{
+			var result = new ChildParentMapping();
+			foreach (Type parentType in database.Configuration.TypesToMap())
+			{
+				foreach (PropertyInfo childProperty in database.Configuration.PropertiesToMap(parentType))
+				{
+					if (database.Configuration.IsRelatedCollection(childProperty))
+					{
+						// E.g. given Author.Books, Author is the parent and Book is the child
+						// We will add Book as the key for the dictionary as we will want to add
+						// the AuthorID column when creating its proxy
+						Type childPropertyType = TypeHelper.GetElementType(childProperty.PropertyType);
+						if (!result.ContainsKey(childPropertyType))
+						{
+							result.Add(childPropertyType, new Stack<Type>());
+						}
+						Stack<Type> childTypes = result[childPropertyType];
+						childTypes.Push(parentType);
+					}
+				}
+			}
+			return result;
 		}
 	}
 }

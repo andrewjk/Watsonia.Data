@@ -42,7 +42,6 @@ namespace Watsonia.Data
 		public event EventHandler BeforeExecuteCommand;
 		public event EventHandler AfterExecuteCommand;
 
-		private static ConcurrentDictionary<Type, ConcurrentStack<Type>> _childParentMapping = null;
 		private static DatabaseItemCache _cache = new DatabaseItemCache();
 
 		/// <summary>
@@ -71,28 +70,6 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
-		/// Gets the child parent mapping.
-		/// </summary>
-		/// <remarks>
-		/// Before we can build any proxies we first need to scan through the mapped types and build
-		/// lists of types that exist in a one-to-many relationship in a parent type with a collection.
-		/// </remarks>
-		/// <value>
-		/// The child parent mapping.
-		/// </value>
-		internal ConcurrentDictionary<Type, ConcurrentStack<Type>> ChildParentMapping
-		{
-			get
-			{
-				if (_childParentMapping == null)
-				{
-					LoadChildParentMapping();
-				}
-				return _childParentMapping;
-			}
-		}
-
-		/// <summary>
 		/// Initializes a new instance of the <see cref="Database" /> class.
 		/// </summary>
 		/// <param name="provider">The provider used to access the type of database.</param>
@@ -102,8 +79,6 @@ namespace Watsonia.Data
 		{
 			this.Configuration = new DatabaseConfiguration(provider, connectionString, entityNamespace);
 			this.DatabaseName = this.GetType().Name;
-
-			LoadChildParentMapping();
 		}
 
 		/// <summary>
@@ -114,8 +89,6 @@ namespace Watsonia.Data
 		{
 			this.Configuration = configuration;
 			this.DatabaseName = this.GetType().Name;
-
-			LoadChildParentMapping();
 		}
 
 		/// <summary>
@@ -1459,26 +1432,6 @@ namespace Watsonia.Data
 			}
 
 			destination.StateTracker.IsLoading = false;
-		}
-
-		private void LoadChildParentMapping()
-		{
-			_childParentMapping = new ConcurrentDictionary<Type, ConcurrentStack<Type>>();
-			foreach (Type parentType in this.Configuration.TypesToMap())
-			{
-				foreach (PropertyInfo childProperty in this.Configuration.PropertiesToMap(parentType))
-				{
-					if (this.Configuration.IsRelatedCollection(childProperty))
-					{
-						// E.g. given Author.Books, Author is the parent and Book is the child
-						// We will add Book as the key for the dictionary as we will want to add
-						// the AuthorID column when creating its proxy
-						Type childPropertyType = TypeHelper.GetElementType(childProperty.PropertyType);
-						ConcurrentStack<Type> childTypes = _childParentMapping.GetOrAdd(childPropertyType, (Type t) => new ConcurrentStack<Type>());
-						childTypes.Push(parentType);
-					}
-				}
-			}
 		}
 
 		/// <summary>
