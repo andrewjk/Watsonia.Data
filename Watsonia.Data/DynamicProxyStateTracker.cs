@@ -27,14 +27,6 @@ namespace Watsonia.Data
 		internal Database Database { get; set; }
 
 		/// <summary>
-		/// Gets or sets a value indicating whether this item needs to be loaded from the database.
-		/// </summary>
-		/// <value>
-		///   <c>true</c> if this item needs to be loaded; otherwise, <c>false</c>.
-		/// </value>
-		public bool NeedsLoad { get; set; }
-
-		/// <summary>
 		/// Gets or sets a value indicating whether this instance is currently being loaded from the database.
 		/// </summary>
 		/// <value>
@@ -43,7 +35,7 @@ namespace Watsonia.Data
 		public bool IsLoading { get; set; }
 
 		/// <summary>
-		/// Gets or sets the item.
+		/// Gets or sets the item that this DynamicProxyStateTracker is tracking.
 		/// </summary>
 		/// <value>
 		/// The item.
@@ -83,8 +75,8 @@ namespace Watsonia.Data
 		public List<string> LoadedCollections { get; } = new List<string>();
 
 		/// <summary>
-		/// Gets the saved collection IDs, which are used to determine whether items in those collections should be inserted
-		/// into or deleted from the database.
+		/// Gets the saved collection IDs, which are used to determine whether items in those collections
+		/// should be inserted into or deleted from the database.
 		/// </summary>
 		/// <value>
 		/// The saved collection IDs.
@@ -98,15 +90,7 @@ namespace Watsonia.Data
 		/// The loaded items.
 		/// </value>
 		public List<string> LoadedItems { get; } = new List<string>();
-
-		/// <summary>
-		/// Gets or sets a value indicating whether to validate all fields.
-		/// </summary>
-		/// <value>
-		///   <c>true</c> if fields should be validated; otherwise, <c>false</c>.
-		/// </value>
-		private bool ValidateAllFields { get; set; }
-
+		
 		/// <summary>
 		/// Gets a value indicating whether this instance is valid.
 		/// </summary>
@@ -179,6 +163,7 @@ namespace Watsonia.Data
 				// TODO: Less reflection!  Less casting!  Less looping!
 				// TODO: Need to only be setting the one property that points to this item when there
 				// are two properties that point to different items e.g. in LearningUserNotes
+				// Should come from ChildParentMapping?
 				foreach (PropertyInfo property in collection[0].GetType().GetProperties())
 				{
 					if (property.PropertyType.IsAssignableFrom(this.Item.GetType()) &&
@@ -363,9 +348,8 @@ namespace Watsonia.Data
 		///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.
 		public bool Validate()
 		{
-			this.ValidateAllFields = true;
 			this.ValidationErrors.Clear();
-			foreach (IDynamicProxy item in RecurseRelatedItems(this.Item))
+			foreach (IDynamicProxy item in this.RecurseRelatedItems(this.Item))
 			{
 				ValidateItem(item);
 			}
@@ -453,13 +437,6 @@ namespace Watsonia.Data
 		{
 			// Don't check errors if we're in the middle of loading the item from the database
 			if (this.IsLoading)
-			{
-				return null;
-			}
-
-			// Don't check errors if the user hasn't yet called Validate() and the property hasn't changed
-			// TODO: Should this be a ViewModel thing rather than data access?
-			if (!this.ValidateAllFields && !this.FieldsToValidate.Contains(property.Name))
 			{
 				return null;
 			}

@@ -154,10 +154,11 @@ namespace Watsonia.Data.Tests.DynamicProxy
 			Invalid invalid = db.Create<Invalid>();
 			IDynamicProxy invalidProxy = (IDynamicProxy)invalid;
 
-			// Make sure that the RequiredString doesn't have an error until its property gets changed
-			Assert.AreEqual("", invalidProxy.StateTracker.GetErrorText("RequiredString"));
+			Assert.AreEqual("The Required string field is required.", invalidProxy.StateTracker.GetErrorText("RequiredString"));
 
 			invalid.RequiredString = "Aoeu";
+			Assert.AreEqual("", invalidProxy.StateTracker.GetErrorText("RequiredString"));
+
 			invalid.RequiredString = "";
 			Assert.AreEqual("The Required string field is required.", invalidProxy.StateTracker.GetErrorText("RequiredString"));
 			invalid.RequiredString = "A string";
