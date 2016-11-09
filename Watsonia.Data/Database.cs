@@ -371,7 +371,7 @@ namespace Watsonia.Data
 				string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(elementType, typeof(T));
 				var select = Select.From(tableName).Where(foreignKeyColumnName, SqlOperator.Equals, proxy.PrimaryKeyValue);
 
-				// We know that this is an IList because we created it as an ObservableCollection in the DynamicProxyFactory
+				// We know that this is an IList because we created it as an List in the DynamicProxyFactory
 				RefreshCollection(select, elementType, (IList)property.GetValue(item, null));
 			}
 
@@ -388,7 +388,7 @@ namespace Watsonia.Data
 		{
 			OnBeforeLoadCollection(select);
 
-			var result = new ObservableCollection<T>();
+			var result = new List<T>();
 
 			var itemType = GetCollectionItemType(typeof(T));
 
@@ -422,7 +422,7 @@ namespace Watsonia.Data
 		{
 			OnBeforeLoadCollection(select);
 
-			var result = new ObservableCollection<IDynamicProxy>();
+			var result = new List<IDynamicProxy>();
 
 			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
 			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
@@ -654,7 +654,7 @@ namespace Watsonia.Data
 				foreach (IDynamicProxy parent in parentCollection)
 				{
 					var children = propertyToLoad.PropertyType.IsInterface ?
-						(IList)Activator.CreateInstance(typeof(ObservableCollection<>).MakeGenericType(itemType)) :
+						(IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(itemType)) :
 						(IList)Activator.CreateInstance(propertyToLoad.PropertyType);
 					foreach (object child in childCollection)
 					{
@@ -727,7 +727,7 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IList<T> LoadCollection<T>(string query, params object[] parameters)
 		{
-			var result = new ObservableCollection<T>();
+			var result = new List<T>();
 
 			var itemType = GetCollectionItemType(typeof(T));
 
@@ -819,7 +819,7 @@ namespace Watsonia.Data
 
 		private void RefreshCollection(SelectStatement select, Type elementType, IList collection)
 		{
-			var result = new ObservableCollection<IDynamicProxy>();
+			var result = new List<IDynamicProxy>();
 
 			// Load items from the database
 			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))

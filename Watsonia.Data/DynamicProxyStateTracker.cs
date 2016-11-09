@@ -146,7 +146,7 @@ namespace Watsonia.Data
 		{
 			if (this.Item.IsNew)
 			{
-				var collection = new ObservableCollection<T>();
+				var collection = new List<T>();
 				SetCollection(propertyName, (IList)collection);
 				return collection;
 			}
