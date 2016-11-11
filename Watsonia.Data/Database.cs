@@ -255,10 +255,11 @@ namespace Watsonia.Data
 			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(typeof(T));
 
 			// First, check the cache
-			ItemCache cache = _cache.GetOrAdd(
+			ItemCache cache = this.Configuration.ShouldCacheType(typeof(T)) ?
+				_cache.GetOrAdd(
 				tableName,
-				(string s) => new ItemCache(this.Configuration.GetCacheExpiryLength(tableName), this.Configuration.GetCacheMaxItems(tableName)));
-			if (cache.ContainsKey(id))
+				(string s) => new ItemCache(this.Configuration.GetCacheExpiryLength(typeof(T)), this.Configuration.GetCacheMaxItems(typeof(T)))) : null;
+			if (cache != null && cache.ContainsKey(id))
 			{
 				// It's in there
 				System.Diagnostics.Trace.WriteLine("Getting " + tableName + " with ID " + id + " from the cache", "Dynamic Proxy");
@@ -290,10 +291,13 @@ namespace Watsonia.Data
 							proxy.HasChanges = false;
 
 							// Add or update it in the cache
-							cache.AddOrUpdate(
-								id,
-								proxy.GetBagFromValues(),
-								(key, existingValue) => proxy.GetBagFromValues());
+							if (cache != null)
+							{
+								cache.AddOrUpdate(
+									id,
+									proxy.GetBagFromValues(),
+									(key, existingValue) => proxy.GetBagFromValues());
+							}
 						}
 						else if (throwIfNotFound)
 						{
@@ -1021,13 +1025,16 @@ namespace Watsonia.Data
 			}
 
 			// Add or update it in the cache
-			ItemCache cache = _cache.GetOrAdd(
-				tableName,
-				(string s) => new ItemCache(this.Configuration.GetCacheExpiryLength(tableName), this.Configuration.GetCacheMaxItems(tableName)));
-			cache.AddOrUpdate(
-				proxy.PrimaryKeyValue,
-				proxy.GetBagFromValues(),
-				(key, existingValue) => proxy.GetBagFromValues());
+			if (this.Configuration.ShouldCacheType(tableType))
+			{
+				ItemCache cache = _cache.GetOrAdd(
+					tableName,
+					(string s) => new ItemCache(this.Configuration.GetCacheExpiryLength(tableType), this.Configuration.GetCacheMaxItems(tableType)));
+				cache.AddOrUpdate(
+					proxy.PrimaryKeyValue,
+					proxy.GetBagFromValues(),
+					(key, existingValue) => proxy.GetBagFromValues());
+			}
 
 			// Clear any changed fields
 			proxy.StateTracker.ChangedFields.Clear();

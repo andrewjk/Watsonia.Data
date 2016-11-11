@@ -636,11 +636,21 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Gets whether items with the supplied type should be stored in the item cache.
+		/// </summary>
+		/// <param name="type">The type.</param>
+		/// <returns></returns>
+		public virtual bool ShouldCacheType(Type type)
+		{
+			return true;
+		}
+
+		/// <summary>
 		/// Gets the length of time in milliseconds to store items in the cache for the table with the supplied name.
 		/// </summary>
-		/// <param name="tableName">Name of the table.</param>
+		/// <param name="type">The type.</param>
 		/// <returns></returns>
-		public virtual int GetCacheExpiryLength(string tableName)
+		public virtual int GetCacheExpiryLength(Type type)
 		{
 			// 15 minutes
 			return 900000;
@@ -649,9 +659,9 @@ namespace Watsonia.Data
 		/// <summary>
 		/// Gets the maximum number of items to store in the cache for the table with the supplied name.
 		/// </summary>
-		/// <param name="tableName">Name of the table.</param>
+		/// <param name="type">The type.</param>
 		/// <returns></returns>
-		public virtual int GetCacheMaxItems(string tableName)
+		public virtual int GetCacheMaxItems(Type type)
 		{
 			return 10000;
 		}
