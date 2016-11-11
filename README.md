@@ -8,7 +8,6 @@ Watsonia.Data is a simple object-relational mapper designed to be dropped into a
 - Load entities with LINQ, a fluent SQL API or (if you must...) with SQL strings
 - Update and delete entities in bulk
 - Lazy loading of entity properties that contain related items or collections, with eager loading via the Include method
-- Automatic implementation of INotifyPropertyChanging and INotifyPropertyChanged on entities
 - Automatic validation of entities that are decorated with System.ComponentModel.DataAnnotations.ValidationAttributes or that implement IValidatableObject
 - Hook most database operations with event handlers or method overrides
 - Support for database transactions
@@ -279,42 +278,9 @@ Watsonia.Data creates a proxy object for each entity class when its correspondin
 
 TODO: Very much need a diagram here
 
-Each proxy object class implements the interface Watsonia.Data.IDynamicProxy which further implements the INotifyPropertyChanging and INotifyPropertyChanged interfaces.  In this way an entity class can be used for databinding without having to write the tedious implementations of these interfaces.  
+Each proxy object class implements the interface Watsonia.Data.IDynamicProxy.  
 
 TODO: Other stuff it implements e.g. equality
-
-## Property Change Notification ##
-
-Consider the Author class and FirstName property introduced above.  We can expand on this property in the following way:
-
-```C#
-public class Author
-{
-	public virtual string FirstName
-	{
-		get;
-		set;
-	}
-
-	protected void OnFirstNameChanging(string newValue)
-	{
-	}
-
-	protected void OnFirstNameChanged()
-	{
-	}
-
-	...
-}
-```
-
-When the FirstName property is changed in the proxy object, it will do the following:
-
-- Raise the NotifyPropertyChanging event with "FirstName"
-- Call OnFirstNameChanging
-- Set the property's value
-- Raise the NotifyPropertyChanged event with "FirstName"
-- Call OnFirstNameChanged
 
 ## Validation ##
 
