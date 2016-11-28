@@ -168,10 +168,11 @@ namespace Watsonia.Data
 			MethodInfo stateTrackerIsLoadingMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"set_IsLoading", new Type[] { typeof(bool) });
 
-			// TODO: Rather than abusing the FieldsToValidate (and requiring it be public!), I should
-			// be checking whether the value == default(T)
-			MethodInfo stateTrackerFieldsToValidateMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"get_FieldsToValidate", Type.EmptyTypes);
+			// TODO: Rather than abusing the SetFields (and requiring it be public!), I could
+			// be checking whether the value == the default value? (In this case, I might need
+			// to take the DefaultValue attribute into account)
+			MethodInfo stateTrackerSetFieldsMethod = typeof(DynamicProxyStateTracker).GetMethod(
+				"get_SetFields", Type.EmptyTypes);
 
 			MethodInfo stringListContainsMethod = typeof(List<>).MakeGenericType(typeof(string)).GetMethod(
 				"Contains", new Type[] { typeof(string) });
@@ -196,7 +197,7 @@ namespace Watsonia.Data
 				// if (!this.StateTracker.ChangedFields.Contains("Property"))
 				gen.Emit(OpCodes.Ldarg_0);
 				gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-				gen.Emit(OpCodes.Callvirt, stateTrackerFieldsToValidateMethod);
+				gen.Emit(OpCodes.Callvirt, stateTrackerSetFieldsMethod);
 				gen.Emit(OpCodes.Ldstr, propertyName);
 				gen.Emit(OpCodes.Callvirt, stringListContainsMethod);
 				gen.Emit(OpCodes.Brtrue_S, endIfShouldSetDefaultValueLabel);
@@ -872,15 +873,13 @@ namespace Watsonia.Data
 
 			ILGenerator gen = method.GetILGenerator();
 
-			// this.StateTracker.SetPropertyValueByRef(ref _thing, value, "Thing", null, null);
+			// this.StateTracker.SetPropertyValueByRef(ref _thing, value, "Thing");
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Ldflda, privateField);
 			gen.Emit(OpCodes.Ldarg_1);
 			gen.Emit(OpCodes.Ldstr, propertyName);
-			gen.Emit(OpCodes.Ldnull);
-			gen.Emit(OpCodes.Ldnull);
 			gen.Emit(OpCodes.Callvirt, setPropertyValueMethod);
 
 			// TODO: Ugh, this should only be fired if its value has changed
@@ -1049,7 +1048,7 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldstr, property.Name);
 			gen.Emit(OpCodes.Callvirt, addLoadedCollectionMethod);
 
-			// this.StateTracker.SetPropertyValueWithFunction(base.Thing, value, "Thing", SetThing, base.OnThingChanging, base.OnThingChanged);
+			// this.StateTracker.SetPropertyValueWithFunction(base.Thing, value, "Thing", SetThing);
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
 			gen.Emit(OpCodes.Ldarg_0);
@@ -1059,8 +1058,6 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Ldftn, setValueMethod);
 			gen.Emit(OpCodes.Newobj, setValueActionConstructor);
-			gen.Emit(OpCodes.Ldnull);
-			gen.Emit(OpCodes.Ldnull);
 			gen.Emit(OpCodes.Callvirt, setPropertyValueMethod);
 
 			gen.Emit(OpCodes.Ret);
@@ -1110,7 +1107,7 @@ namespace Watsonia.Data
 
 			LocalBuilder tempVariable = gen.DeclareLocal(property.PropertyType);
 
-			// this.StateTracker.SetPropertyValueWithFunction(base.Thing, value, "Thing", SetThing, base.OnThingChanging, base.OnThingChanged);
+			// this.StateTracker.SetPropertyValueWithFunction(base.Thing, value, "Thing", SetThing);
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
 			gen.Emit(OpCodes.Ldarg_0);
@@ -1120,8 +1117,6 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Ldftn, setValueMethod);
 			gen.Emit(OpCodes.Newobj, setValueActionConstructor);
-			gen.Emit(OpCodes.Ldnull);
-			gen.Emit(OpCodes.Ldnull);
 			gen.Emit(OpCodes.Callvirt, setPropertyValueMethod);
 
 			// TODO: Ugh, this should only be fired if its value has changed
@@ -1317,7 +1312,7 @@ namespace Watsonia.Data
 			//gen.Emit(OpCodes.Ldstr, property.Name);
 			//gen.Emit(OpCodes.Callvirt, addLoadedItemMethod);
 
-			// this.StateTracker.SetPropertyValueWithFunction(base.Thing, value, "Thing", SetThing, base.OnThingChanging, base.OnThingChanged);
+			// this.StateTracker.SetPropertyValueWithFunction(base.Thing, value, "Thing", SetThing);
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
 			gen.Emit(OpCodes.Ldarg_0);
@@ -1327,8 +1322,6 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Ldftn, setValueMethod);
 			gen.Emit(OpCodes.Newobj, setValueActionConstructor);
-			gen.Emit(OpCodes.Ldnull);
-			gen.Emit(OpCodes.Ldnull);
 			gen.Emit(OpCodes.Callvirt, setPropertyValueMethod);
 
 			gen.Emit(OpCodes.Ret);

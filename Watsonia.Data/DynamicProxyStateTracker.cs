@@ -59,12 +59,12 @@ namespace Watsonia.Data
 		public List<string> ChangedFields { get; } = new List<string>();
 
 		/// <summary>
-		/// Gets the fields that have been changed and should be validated.
+		/// Gets the fields with values that have been set.
 		/// </summary>
 		/// <value>
-		/// The fields to validate.
+		/// The set fields.
 		/// </value>
-		public List<string> FieldsToValidate { get; } = new List<string>();
+		public List<string> SetFields { get; } = new List<string>();
 
 		/// <summary>
 		/// Gets the loaded collections, which are saved with this item.
@@ -235,18 +235,12 @@ namespace Watsonia.Data
 		/// <param name="propertyValueField">The field containing the property value.</param>
 		/// <param name="newValue">The new value.</param>
 		/// <param name="propertyName">The name of the property.</param>
-		/// <param name="onChanging">An action to call when the value is changing or null if no action should be called.</param>
-		/// <param name="onChanged">An action to call when the value has changed or null if no action should be called.</param>
-		public void SetPropertyValueByRef<T>(ref T propertyValueField, T newValue, string propertyName, Action<T> onChanging, Action onChanged)
+		public void SetPropertyValueByRef<T>(ref T propertyValueField, T newValue, string propertyName)
 		{
-			// TODO: Something like this would be much nicer but doesn't quite work:
-			//SetPropertyValue(propertyValue, newValue, propertyName, delegate(T value) { propertyValue = newValue; }, onChanging, onChanged);
 			if (!EqualityComparer<T>.Default.Equals(propertyValueField, newValue))
 			{
-				onChanging?.Invoke(newValue);
 				T oldValue = propertyValueField;
 				propertyValueField = newValue;
-				onChanged?.Invoke();
 				if (!this.IsLoading)
 				{
 					CheckOriginalValue<T>(propertyName, newValue);
@@ -262,18 +256,14 @@ namespace Watsonia.Data
 		/// <param name="newValue">The new value.</param>
 		/// <param name="propertyName">The name of the property.</param>
 		/// <param name="setValue">The action to call to set the property's value.</param>
-		/// <param name="onChanging">An action to call when the value is changing or null if no action should be called.</param>
-		/// <param name="onChanged">An action to call when the value has changed or null if no action should be called.</param>
-		public void SetPropertyValueWithFunction<T>(T oldValue, T newValue, string propertyName, Action<T> setValue, Action<T> onChanging, Action onChanged)
+		public void SetPropertyValueWithFunction<T>(T oldValue, T newValue, string propertyName, Action<T> setValue)
 		{
 			// This is the method that gets called when an item is set.  If the item is set to null
 			// but hasn't been loaded, we still need to do all of the changing stuff to ensure that
 			// it is cleared.  This means we will have extra notification events but can't be avoided
 			if (!EqualityComparer<T>.Default.Equals(oldValue, newValue) || newValue == null)
 			{
-				onChanging?.Invoke(newValue);
 				setValue(newValue);
-				onChanged?.Invoke();
 				if (!this.IsLoading)
 				{
 					CheckOriginalValue<T>(propertyName, newValue);
@@ -312,9 +302,9 @@ namespace Watsonia.Data
 			}
 
 			// It's been changed now, so it should be validated
-			if (!this.FieldsToValidate.Contains(propertyName))
+			if (!this.SetFields.Contains(propertyName))
 			{
-				this.FieldsToValidate.Add(propertyName);
+				this.SetFields.Add(propertyName);
 			}
 		}
 
