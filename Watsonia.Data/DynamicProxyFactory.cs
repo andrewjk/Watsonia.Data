@@ -20,6 +20,7 @@ namespace Watsonia.Data
 		private static string _exportPath = null;
 
 		private static readonly ConcurrentDictionary<string, Type> _cachedTypes = new ConcurrentDictionary<string, Type>();
+		private static readonly ConcurrentDictionary<string, ConstructorInfo> _cachedConstructors = new ConcurrentDictionary<string, ConstructorInfo>();
 		private static readonly ConcurrentDictionary<string, ChildParentMapping> _cachedChildParentMappings = new ConcurrentDictionary<string, ChildParentMapping>();
 
 		static DynamicProxyFactory()
@@ -75,10 +76,20 @@ namespace Watsonia.Data
 				(string s) => CreateType(proxyTypeName, parentType, database));
 		}
 
+		internal static ConstructorInfo GetDynamicProxyConstructor(Type parentType, Database database)
+		{
+			string proxyTypeName = GetDynamicTypeName(parentType, database);
+			return _cachedConstructors.GetOrAdd(proxyTypeName,
+				(string s) => {
+					Type proxyType = GetDynamicProxyType(parentType, database);
+					return proxyType.GetConstructor(Type.EmptyTypes);
+				});
+		}
+
 		internal static IDynamicProxy GetDynamicProxy(Type parentType, Database database)
 		{
-			Type proxyType = GetDynamicProxyType(parentType, database);
-			IDynamicProxy proxy = (IDynamicProxy)proxyType.GetConstructor(Type.EmptyTypes).Invoke(Type.EmptyTypes);
+			ConstructorInfo proxyConstructor = GetDynamicProxyConstructor(parentType, database);
+			IDynamicProxy proxy = (IDynamicProxy)proxyConstructor.Invoke(Type.EmptyTypes);
 			proxy.StateTracker.Database = database;
 			return proxy;
 		}
@@ -2024,7 +2035,7 @@ namespace Watsonia.Data
 				{
 					CreateSetValueFromReaderMethod(gen, getDoubleMethod, "GetDouble", members.SetPropertyMethods[key]);
 				}
-				if (propertyType == typeof(double?))
+				else if (propertyType == typeof(double?))
 				{
 					CreateSetNullableValueFromReaderMethod(gen, propertyType, typeof(double), isDBNullMethod, getDoubleMethod, "GetDouble", members.SetPropertyMethods[key], localIndexes[key]);
 				}

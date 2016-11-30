@@ -410,8 +410,8 @@ namespace Watsonia.Data
 				{
 					while (reader.Read())
 					{
-						Type proxyType = DynamicProxyFactory.GetDynamicProxyType(itemType, this);
-						IDynamicProxy proxy = (IDynamicProxy)proxyType.GetConstructor(Type.EmptyTypes).Invoke(Type.EmptyTypes);
+						ConstructorInfo proxyConstructor = DynamicProxyFactory.GetDynamicProxyConstructor(itemType, this);
+						IDynamicProxy proxy = (IDynamicProxy)proxyConstructor.Invoke(Type.EmptyTypes);
 						proxy.StateTracker.Database = this;
 						proxy.SetValuesFromReader(reader);
 						result.Add(proxy);
@@ -545,7 +545,6 @@ namespace Watsonia.Data
 			}
 
 			// Build a statement to get the child items
-			Type itemProxyType = DynamicProxyFactory.GetDynamicProxyType(itemType, this);
 			string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(itemType, parentType);
 			string childTableName = this.Configuration.GetTableName(itemType);
 			SelectStatement childQuery = Select.From(childTableName).Where(
