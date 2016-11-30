@@ -530,8 +530,11 @@ namespace Watsonia.Data
 		private SelectStatement GetChildCollectionSubquery(SelectStatement parentQuery, Type parentType, Type itemType)
 		{
 			// Build a statement to use as a subquery to get the IDs of the parent items
-			string parentIDColumnName = this.Configuration.GetPrimaryKeyColumnName(parentType);
-			SelectStatement selectParentItemIDs = Select.From(parentQuery.Source).Columns(parentIDColumnName);
+			var parentTable = (Sql.Table)parentQuery.Source;
+			var parentIDColumn = new Sql.Column(
+				!string.IsNullOrEmpty(parentTable.Alias) ? parentTable.Alias : parentTable.Name,
+				this.Configuration.GetPrimaryKeyColumnName(parentType));
+			SelectStatement selectParentItemIDs = Select.From(parentQuery.Source).Columns(parentIDColumn);
 			if (parentQuery.SourceJoins.Count > 0)
 			{
 				selectParentItemIDs.SourceJoins.AddRange(parentQuery.SourceJoins);
@@ -554,9 +557,11 @@ namespace Watsonia.Data
 		private SelectStatement GetChildItemSubquery(SelectStatement parentQuery, PropertyInfo parentProperty, Type itemType)
 		{
 			// Build a statement to use as a subquery to get the IDs of the parent items
-			string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(parentProperty);
-			string childIDColumnName = this.Configuration.GetPrimaryKeyColumnName(itemType);
-			SelectStatement selectChildItemIDs = Select.From(parentQuery.Source).Columns(foreignKeyColumnName);
+			var foreignTable = (Sql.Table)parentQuery.Source;
+			var foreignKeyColumn = new Sql.Column(
+				!string.IsNullOrEmpty(foreignTable.Alias) ? foreignTable.Alias : foreignTable.Name,
+				this.Configuration.GetForeignKeyColumnName(parentProperty));
+			SelectStatement selectChildItemIDs = Select.From(parentQuery.Source).Columns(foreignKeyColumn);
 			if (parentQuery.SourceJoins.Count > 0)
 			{
 				selectChildItemIDs.SourceJoins.AddRange(parentQuery.SourceJoins);
