@@ -865,22 +865,25 @@ namespace Watsonia.Data
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
 				null,
 				new Type[] { propertyType });
-			
-			MethodInfo setPropertyValueMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"SetPropertyValueByRef").MakeGenericMethod(propertyType);
+
+			MethodInfo checkOriginalValueMethod = typeof(DynamicProxyStateTracker).GetMethod(
+				"CheckOriginalValue").MakeGenericMethod(propertyType);
 
 			ParameterBuilder value = method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			ILGenerator gen = method.GetILGenerator();
 
-			// this.StateTracker.SetPropertyValueByRef(ref _thing, value, "Thing");
+			// _thing = value;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Stfld, privateField);
+
+			// this.StateTracker.CheckOriginalValue("Thing", value);
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Ldflda, privateField);
-			gen.Emit(OpCodes.Ldarg_1);
 			gen.Emit(OpCodes.Ldstr, propertyName);
-			gen.Emit(OpCodes.Callvirt, setPropertyValueMethod);
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Callvirt, checkOriginalValueMethod);
 
 			// TODO: Ugh, this should only be fired if its value has changed
 			if (propertyName == members.PrimaryKeyColumnName)
@@ -1017,8 +1020,6 @@ namespace Watsonia.Data
 
 		private static MethodBuilder CreateOverriddenCollectionPropertySetMethod(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members)
 		{
-			MethodBuilder setValueMethod = CreateSetValueMethod(type, property);
-
 			MethodBuilder method = type.DefineMethod(
 				"set_" + property.Name,
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
@@ -1027,39 +1028,22 @@ namespace Watsonia.Data
 
 			MethodInfo addLoadedCollectionMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"AddLoadedCollection", new Type[] { typeof(string) });
-
-			ConstructorInfo setValueActionConstructor = typeof(Action<>).MakeGenericType(property.PropertyType).GetConstructor(
-				new Type[] { typeof(object), typeof(IntPtr) });
-
-			MethodInfo setPropertyValueMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"SetPropertyValueWithFunction").MakeGenericMethod(property.PropertyType);
-
+			
 			ParameterBuilder value = method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			ILGenerator gen = method.GetILGenerator();
 
-			Label exitLabel = gen.DefineLabel();
-
-			LocalBuilder tempVariable = gen.DeclareLocal(property.PropertyType);
+			// base.Thing = value;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Call, property.GetSetMethod());
 
 			// this.StateTracker.AddLoadedCollection("Thing");
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
 			gen.Emit(OpCodes.Ldstr, property.Name);
 			gen.Emit(OpCodes.Callvirt, addLoadedCollectionMethod);
-
-			// this.StateTracker.SetPropertyValueWithFunction(base.Thing, value, "Thing", SetThing);
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, property.GetGetMethod());
-			gen.Emit(OpCodes.Ldarg_1);
-			gen.Emit(OpCodes.Ldstr, property.Name);
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Ldftn, setValueMethod);
-			gen.Emit(OpCodes.Newobj, setValueActionConstructor);
-			gen.Emit(OpCodes.Callvirt, setPropertyValueMethod);
-
+			
 			gen.Emit(OpCodes.Ret);
 
 			return method;
@@ -1085,40 +1069,31 @@ namespace Watsonia.Data
 
 		private static MethodBuilder CreateOverriddenFieldPropertySetMethod(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members)
 		{
-			MethodBuilder setValueMethod = CreateSetValueMethod(type, property);
-
 			MethodBuilder method = type.DefineMethod(
 				"set_" + property.Name,
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
 				null,
 				new Type[] { property.PropertyType });
-
-			ConstructorInfo setValueActionConstructor = typeof(Action<>).MakeGenericType(property.PropertyType).GetConstructor(
-				new Type[] { typeof(object), typeof(IntPtr) });
-
-			MethodInfo setPropertyValueMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"SetPropertyValueWithFunction").MakeGenericMethod(property.PropertyType);
+			
+			MethodInfo checkOriginalValueMethod = typeof(DynamicProxyStateTracker).GetMethod(
+				"CheckOriginalValue").MakeGenericMethod(property.PropertyType);
 
 			ParameterBuilder value = method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			ILGenerator gen = method.GetILGenerator();
 
-			Label exitLabel = gen.DefineLabel();
+			// base.Thing = value;
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Call, property.GetSetMethod());
 
-			LocalBuilder tempVariable = gen.DeclareLocal(property.PropertyType);
-
-			// this.StateTracker.SetPropertyValueWithFunction(base.Thing, value, "Thing", SetThing);
+			// this.StateTracker.CheckOriginalValue("Thing", value);
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, property.GetGetMethod());
-			gen.Emit(OpCodes.Ldarg_1);
 			gen.Emit(OpCodes.Ldstr, property.Name);
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Ldftn, setValueMethod);
-			gen.Emit(OpCodes.Newobj, setValueActionConstructor);
-			gen.Emit(OpCodes.Callvirt, setPropertyValueMethod);
-
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Callvirt, checkOriginalValueMethod);
+			
 			// TODO: Ugh, this should only be fired if its value has changed
 			if (property.Name == members.PrimaryKeyColumnName)
 			{
@@ -1135,27 +1110,7 @@ namespace Watsonia.Data
 
 			return method;
 		}
-
-		private static MethodBuilder CreateSetValueMethod(TypeBuilder type, PropertyInfo property)
-		{
-			MethodBuilder method = type.DefineMethod(
-				"Set" + property.Name,
-				MethodAttributes.Private | MethodAttributes.HideBySig,
-				null,
-				new Type[] { property.PropertyType });
-
-			ILGenerator gen = method.GetILGenerator();
-
-			ParameterBuilder value = method.DefineParameter(1, ParameterAttributes.None, "value");
-
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Ldarg_1);
-			gen.Emit(OpCodes.Call, property.GetSetMethod());
-			gen.Emit(OpCodes.Ret);
-
-			return method;
-		}
-
+		
 		private static void CreateOverriddenItemProperty(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members, Database database)
 		{
 			// If the ID property doesn't exist, create it
@@ -1288,56 +1243,13 @@ namespace Watsonia.Data
 
 		private static MethodBuilder CreateOverriddenItemPropertySetMethod(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members, Database database)
 		{
-			MethodBuilder setValueMethod = CreateItemSetValueMethod(type, property, members, database);
+			MethodInfo setItemIDMethod = CreateItemSetIDMethod(type, property, members, database);
+
+			MethodInfo itemPrimaryKeyValueChangedHandler = CreateItemPrimaryKeyValueChangedEventHandler(type, property, setItemIDMethod, members, database);
 
 			MethodBuilder method = type.DefineMethod(
 				"set_" + property.Name,
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
-				null,
-				new Type[] { property.PropertyType });
-
-			ConstructorInfo setValueActionConstructor = typeof(Action<>).MakeGenericType(property.PropertyType).GetConstructor(
-				new Type[] { typeof(object), typeof(IntPtr) });
-
-			MethodInfo setPropertyValueMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"SetPropertyValueWithFunction").MakeGenericMethod(property.PropertyType);
-
-			ParameterBuilder value = method.DefineParameter(1, ParameterAttributes.None, "value");
-
-			ILGenerator gen = method.GetILGenerator();
-
-			//// this.StateTracker.AddLoadedItem("Thing");
-			//gen.Emit(OpCodes.Ldarg_0);
-			//gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-			//gen.Emit(OpCodes.Ldstr, property.Name);
-			//gen.Emit(OpCodes.Callvirt, addLoadedItemMethod);
-
-			// this.StateTracker.SetPropertyValueWithFunction(base.Thing, value, "Thing", SetThing);
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, property.GetGetMethod());
-			gen.Emit(OpCodes.Ldarg_1);
-			gen.Emit(OpCodes.Ldstr, property.Name);
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Ldftn, setValueMethod);
-			gen.Emit(OpCodes.Newobj, setValueActionConstructor);
-			gen.Emit(OpCodes.Callvirt, setPropertyValueMethod);
-
-			gen.Emit(OpCodes.Ret);
-
-			return method;
-		}
-
-		private static MethodBuilder CreateItemSetValueMethod(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members, Database database)
-		{
-			MethodInfo setItemIDMethod = CreateItemSetIDMethod(type, property, members, database);
-
-			MethodInfo itemPrimaryKeyValueChangedHandler = CreateItemPrimaryKeyValueChangedEventHandler(type, property, setItemIDMethod, members, database);
-			
-			MethodBuilder method = type.DefineMethod(
-				"Set" + property.Name,
-				MethodAttributes.Private | MethodAttributes.HideBySig,
 				null,
 				new Type[] { property.PropertyType });
 
@@ -1364,9 +1276,9 @@ namespace Watsonia.Data
 				"add_PrimaryKeyValueChanged",
 				new Type[] { typeof(PrimaryKeyValueChangedEventHandler) });
 
-			ILGenerator gen = method.GetILGenerator();
-
 			ParameterBuilder value = method.DefineParameter(1, ParameterAttributes.None, "value");
+
+			ILGenerator gen = method.GetILGenerator();
 
 			Type primaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(property.PropertyType);
 			if (primaryKeyColumnType.IsValueType)
@@ -1709,66 +1621,20 @@ namespace Watsonia.Data
 
 			ParameterBuilder value = method.DefineParameter(1, ParameterAttributes.None, "value");
 
-			////// this.ID = (long)Convert.ChangeType(value, typeof(long));
-			////gen.Emit(OpCodes.Ldarg_0);
-			////gen.Emit(OpCodes.Ldarg_1);
-			////gen.Emit(OpCodes.Ldtoken, members.PrimaryKeyColumnType);
-			////gen.Emit(OpCodes.Call, typeOfMethod);
-			////gen.Emit(OpCodes.Call, changeTypeMethod);
-			////// Unbox the value if it's a value type
-			////if (members.PrimaryKeyColumnType.IsValueType)
-			////{
-			////	gen.Emit(OpCodes.Unbox_Any, members.PrimaryKeyColumnType);
-			////}
-			////gen.Emit(OpCodes.Call, members.SetPrimaryKeyMethod);
-			////gen.Emit(OpCodes.Ret);
-
-			// Preparing locals
-			LocalBuilder num = gen.DeclareLocal(members.PrimaryKeyColumnType);
-			LocalBuilder flag = gen.DeclareLocal(typeof(Boolean));
-
-			// Preparing labels
-			Label label62 = gen.DefineLabel();
-
-			// var idvalue = (long)Convert.ChangeType(value, typeof(long));
+			// this.ID = (long)Convert.ChangeType(value, typeof(long));
+			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Ldarg_1);
 			gen.Emit(OpCodes.Ldtoken, members.PrimaryKeyColumnType);
 			gen.Emit(OpCodes.Call, typeOfMethod);
 			gen.Emit(OpCodes.Call, changeTypeMethod);
+			// Unbox the value if it's a value type
 			if (members.PrimaryKeyColumnType.IsValueType)
 			{
 				gen.Emit(OpCodes.Unbox_Any, members.PrimaryKeyColumnType);
 			}
-
-			// if (this.ID != idvalue)
-			gen.Emit(OpCodes.Stloc_0);
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.GetPrimaryKeyMethod);
-			gen.Emit(OpCodes.Ldloc_0);
-			gen.Emit(OpCodes.Ceq);
-			gen.Emit(OpCodes.Ldc_I4_0);
-			gen.Emit(OpCodes.Ceq);
-			gen.Emit(OpCodes.Stloc_1);
-			gen.Emit(OpCodes.Ldloc_1);
-			gen.Emit(OpCodes.Brfalse_S, label62);
-
-			// this.ID = idvalue
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Ldloc_0);
 			gen.Emit(OpCodes.Call, members.SetPrimaryKeyMethod);
-
-			// OnPrimaryKeyValueChanged(idvalue);
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Ldloc_0);
-			if (members.PrimaryKeyColumnType.IsValueType)
-			{
-				gen.Emit(OpCodes.Box, members.PrimaryKeyColumnType);
-			}
-			gen.Emit(OpCodes.Call, members.OnPrimaryKeyValueChangedMethod);
-
-			gen.MarkLabel(label62);
 			gen.Emit(OpCodes.Ret);
-
+			
 			return method;
 		}
 

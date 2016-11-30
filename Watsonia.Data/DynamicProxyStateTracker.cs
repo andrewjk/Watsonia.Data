@@ -228,51 +228,14 @@ namespace Watsonia.Data
 			}
 		}
 
-		/// <summary>
-		/// Sets the value of a property by reference.
-		/// </summary>
-		/// <typeparam name="T">The property type.</typeparam>
-		/// <param name="propertyValueField">The field containing the property value.</param>
-		/// <param name="newValue">The new value.</param>
-		/// <param name="propertyName">The name of the property.</param>
-		public void SetPropertyValueByRef<T>(ref T propertyValueField, T newValue, string propertyName)
+		// TODO: That shouldn't be public
+		public void CheckOriginalValue<T>(string propertyName, T newValue)
 		{
-			if (!EqualityComparer<T>.Default.Equals(propertyValueField, newValue))
+			if (this.IsLoading)
 			{
-				T oldValue = propertyValueField;
-				propertyValueField = newValue;
-				if (!this.IsLoading)
-				{
-					CheckOriginalValue<T>(propertyName, newValue);
-				}
+				return;
 			}
-		}
 
-		/// <summary>
-		/// Sets the value of a property by calling a function.
-		/// </summary>
-		/// <typeparam name="T">The property type.</typeparam>
-		/// <param name="oldValue">The old value.</param>
-		/// <param name="newValue">The new value.</param>
-		/// <param name="propertyName">The name of the property.</param>
-		/// <param name="setValue">The action to call to set the property's value.</param>
-		public void SetPropertyValueWithFunction<T>(T oldValue, T newValue, string propertyName, Action<T> setValue)
-		{
-			// This is the method that gets called when an item is set.  If the item is set to null
-			// but hasn't been loaded, we still need to do all of the changing stuff to ensure that
-			// it is cleared.  This means we will have extra notification events but can't be avoided
-			if (!EqualityComparer<T>.Default.Equals(oldValue, newValue) || newValue == null)
-			{
-				setValue(newValue);
-				if (!this.IsLoading)
-				{
-					CheckOriginalValue<T>(propertyName, newValue);
-				}
-			}
-		}
-
-		private void CheckOriginalValue<T>(string propertyName, T newValue)
-		{
 			// Check whether the original values contains the key
 			// If it doesn't it must be a related item (e.g. Book), which will be covered when
 			// the ID value is set (e.g. BookID)
