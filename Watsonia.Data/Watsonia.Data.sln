@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data.SqlServerCe",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data.TestPerformance", "..\Watsonia.Data.TestPerformance\Watsonia.Data.TestPerformance.csproj", "{44A112E6-D15B-4C30-8992-9EC3A8FEFF0E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data.Junk", "..\Watsonia.Data.Junk\Watsonia.Data.Junk.csproj", "{E6FA24BB-E050-40EC-9CC6-A9E91C2A6C16}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data.Reference", "..\Watsonia.Data.Reference\Watsonia.Data.Reference.csproj", "{E6FA24BB-E050-40EC-9CC6-A9E91C2A6C16}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
