@@ -29,11 +29,7 @@ namespace Watsonia.Data.Sql
 		/// <value>
 		/// <c>true</c> if this aggregate operation is distinct; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsDistinct
-		{
-			get;
-			set;
-		}
+		public bool IsDistinct { get; set; }
 
 		/// <summary>
 		/// Gets or sets the type of the aggregate (e.g. sum, or count).

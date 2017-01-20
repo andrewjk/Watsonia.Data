@@ -13,23 +13,11 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public StatementPart Argument
-		{
-			get;
-			set;
-		}
+		public StatementPart Argument { get; set; }
 
-		public StatementPart StartIndex
-		{
-			get;
-			set;
-		}
+		public StatementPart StartIndex { get; set; }
 
-		public StatementPart Length
-		{
-			get;
-			set;
-		}
+		public StatementPart Length { get; set; }
 
 		public override string ToString()
 		{

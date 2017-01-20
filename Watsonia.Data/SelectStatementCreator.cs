@@ -16,11 +16,7 @@ namespace Watsonia.Data
 	/// </summary>
 	internal class SelectStatementCreator : QueryModelVisitorBase
 	{
-		private DatabaseConfiguration Configuration
-		{
-			get;
-			set;
-		}
+		private DatabaseConfiguration Configuration { get; set; }
 
         private bool AliasTables
         {
@@ -28,11 +24,7 @@ namespace Watsonia.Data
             set;
         }
 
-		private SelectStatement SelectStatement
-		{
-			get;
-			set;
-		}
+		private SelectStatement SelectStatement { get; set; }
 
 		private SelectStatementCreator(DatabaseConfiguration configuration, bool aliasTables)
 		{

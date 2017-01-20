@@ -17,17 +17,9 @@ namespace Watsonia.Data
 	/// </summary>
 	internal class StatementPartCreator : RelinqExpressionVisitor
 	{
-		private QueryModel QueryModel
-		{
-			get;
-			set;
-		}
+		private QueryModel QueryModel { get; set; }
 
-		private DatabaseConfiguration Configuration
-		{
-			get;
-			set;
-		}
+		private DatabaseConfiguration Configuration { get; set; }
 
         private bool AliasTables
         {
@@ -35,11 +27,7 @@ namespace Watsonia.Data
             set;
         }
 
-		private Stack<StatementPart> Stack
-		{
-			get;
-			set;
-		}
+		private Stack<StatementPart> Stack { get; set; }
 
 		private StatementPartCreator(QueryModel queryModel, DatabaseConfiguration configuration, bool aliasTables)
 		{

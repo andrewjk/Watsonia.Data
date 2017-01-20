@@ -13,11 +13,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The name of the view.
 		/// </value>
-		public string Name
-		{
-			get;
-			private set;
-		}
+		public string Name { get; private set; }
 
 		/// <summary>
 		/// Gets or sets the select statement that the view is built from.
@@ -25,11 +21,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The select statement.
 		/// </value>
-		public Statement SelectStatement
-		{
-			get;
-			set;
-		}
+		public Statement SelectStatement { get; set; }
 
 		/// <summary>
 		/// Gets or sets the select statement command text that exists for the view.
@@ -37,11 +29,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The select statement command text.
 		/// </value>
-		public string SelectStatementText
-		{
-			get;
-			set;
-		}
+		public string SelectStatementText { get; set; }
 	
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MappedView" /> class.

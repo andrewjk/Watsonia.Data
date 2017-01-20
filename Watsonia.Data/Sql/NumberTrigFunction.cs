@@ -13,24 +13,12 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public TrigFunction Function
-		{
-			get;
-			set;
-		}
+		public TrigFunction Function { get; set; }
 
-		public StatementPart Argument
-		{
-			get;
-			set;
-		}
+		public StatementPart Argument { get; set; }
 
 		// For Atan2
-		public StatementPart Argument2
-		{
-			get;
-			set;
-		}
+		public StatementPart Argument2 { get; set; }
 
 		public override string ToString()
 		{

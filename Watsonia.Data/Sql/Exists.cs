@@ -13,11 +13,7 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public SelectStatement Select
-		{
-			get;
-			set;
-		}
+		public SelectStatement Select { get; set; }
 
 		public override string ToString()
 		{

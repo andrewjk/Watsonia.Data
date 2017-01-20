@@ -16,11 +16,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The name of the table.
 		/// </value>
-		public string Name
-		{
-			get;
-			private set;
-		}
+		public string Name { get; private set; }
 
 		/// <summary>
 		/// Gets or sets the name of the primary key column.
@@ -28,11 +24,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The name of the primary key column.
 		/// </value>
-		public string PrimaryKeyColumnName
-		{
-			get;
-			set;
-		}
+		public string PrimaryKeyColumnName { get; set; }
 
 		/// <summary>
 		/// Gets or sets the name of the primary key constraint.
@@ -40,11 +32,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The name of the primary key constraint.
 		/// </value>
-		public string PrimaryKeyConstraintName
-		{
-			get;
-			set;
-		}
+		public string PrimaryKeyConstraintName { get; set; }
 
 		/// <summary>
 		/// Gets the columns in the table.

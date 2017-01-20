@@ -26,66 +26,27 @@ namespace Watsonia.Data
 			internal set;
 		}
 
-		public List<PropertyInfo> SourceFields
-		{
-			get;
-			private set;
-		}
+		public List<PropertyInfo> SourceFields { get; } = new List<PropertyInfo>();
 
-		public List<Tuple<PropertyInfo, AggregateType>> AggregateFields
-		{
-			get;
-			private set;
-		}
+		public List<Tuple<PropertyInfo, AggregateType>> AggregateFields { get; } = new List<Tuple<PropertyInfo, AggregateType>>();
 
-		public bool IsAny
-		{
-			get;
-			set;
-		}
+		public bool IsAny { get; set; }
 
-		public bool IsAll
-		{
-			get;
-			set;
-		}
+		public bool IsAll { get; set; }
 
-		public bool IsDistinct
-		{
-			get;
-			set;
-		}
+		public bool IsDistinct { get; set; }
 
-		public int StartIndex
-		{
-			get;
-			set;
-		}
+		public int StartIndex { get; set; }
 
-		public int Limit
-		{
-			get;
-			set;
-		}
+		public int Limit { get; set; }
 
-		public Expression<Func<T, bool>> Conditions
-		{
-			get;
-			internal set;
-		}
+		public Expression<Func<T, bool>> Conditions { get; internal set; }
 
-		public List<Tuple<PropertyInfo, OrderDirection>> OrderByFields
-		{
-			get;
-			internal set;
-		}
+		public List<Tuple<PropertyInfo, OrderDirection>> OrderByFields { get; internal set; } = new List<Tuple<PropertyInfo, OrderDirection>>();
 
 		internal SelectStatement()
 		{
 			this.Source = typeof(T);
-			this.SourceFields = new List<PropertyInfo>();
-			this.AggregateFields = new List<Tuple<PropertyInfo, AggregateType>>();
-			this.OrderByFields = new List<Tuple<PropertyInfo, OrderDirection>>();
 		}
 
 		public SelectStatement CreateStatement(DatabaseConfiguration configuration)

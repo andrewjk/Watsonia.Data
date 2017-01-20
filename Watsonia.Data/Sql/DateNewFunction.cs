@@ -13,41 +13,17 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public StatementPart Year
-		{
-			get;
-			set;
-		}
+		public StatementPart Year { get; set; }
 
-		public StatementPart Month
-		{
-			get;
-			set;
-		}
+		public StatementPart Month { get; set; }
 
-		public StatementPart Day
-		{
-			get;
-			set;
-		}
+		public StatementPart Day { get; set; }
 
-		public StatementPart Hour
-		{
-			get;
-			set;
-		}
+		public StatementPart Hour { get; set; }
 
-		public StatementPart Minute
-		{
-			get;
-			set;
-		}
+		public StatementPart Minute { get; set; }
 
-		public StatementPart Second
-		{
-			get;
-			set;
-		}
+		public StatementPart Second { get; set; }
 
 		public DateNewFunction()
 		{

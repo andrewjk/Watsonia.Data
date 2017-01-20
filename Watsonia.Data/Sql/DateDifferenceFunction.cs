@@ -13,16 +13,8 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public StatementPart Date1
-		{
-			get;
-			set;
-		}
+		public StatementPart Date1 { get; set; }
 
-		public StatementPart Date2
-		{
-			get;
-			set;
-		}
+		public StatementPart Date2 { get; set; }
 	}
 }

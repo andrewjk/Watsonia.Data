@@ -31,11 +31,7 @@ namespace Watsonia.Data.Sql
 		/// <value>
 		/// The constant value.
 		/// </value>
-		public object Value
-		{
-			get;
-			private set;
-		}
+		public object Value { get; private set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ConstantPart" /> class.

@@ -13,11 +13,7 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public string Value
-		{
-			get;
-			private set;
-		}
+		public string Value { get; private set; }
 
 		public LiteralPart(string value)
 		{

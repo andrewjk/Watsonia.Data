@@ -12,11 +12,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The ID of the item.
 		/// </value>
-		public object ItemID
-		{
-			get;
-			set;
-		}
+		public object ItemID { get; set; }
 
 		/// <summary>
 		/// Gets or sets the name of the item that is invalid.
@@ -24,11 +20,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The name of the item.
 		/// </value>
-		public string ItemName
-		{
-			get;
-			set;
-		}
+		public string ItemName { get; set; }
 
 		/// <summary>
 		/// Gets or sets the name of the property that is invalid.
@@ -36,11 +28,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The name of the property.
 		/// </value>
-		public string PropertyName
-		{
-			get;
-			set;
-		}
+		public string PropertyName { get; set; }
 
 		/// <summary>
 		/// Gets or sets the name of the error.
@@ -48,11 +36,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The name of the error.
 		/// </value>
-		public string ErrorName
-		{
-			get;
-			set;
-		}
+		public string ErrorName { get; set; }
 
 		/// <summary>
 		/// Gets or sets an error message to display to the end user.
@@ -60,11 +44,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The error message.
 		/// </value>
-		public string ErrorMessage
-		{
-			get;
-			set;
-		}
+		public string ErrorMessage { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ValidationError" /> class.

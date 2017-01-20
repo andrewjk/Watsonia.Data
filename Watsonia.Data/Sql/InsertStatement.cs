@@ -15,34 +15,16 @@ namespace Watsonia.Data
 			}
 		}
 
-		public Table Target
-		{
-			get;
-			set;
-		}
+		public Table Target { get; set; }
 
-		public List<SetValue> SetValues
-		{
-			get;
-			private set;
-		}
+		public List<SetValue> SetValues { get; } = new List<SetValue>();
 
-		public List<Column> TargetFields
-		{
-			get;
-			private set;
-		}
+		public List<Column> TargetFields { get; } = new List<Column>();
 
-		public SelectStatement Source
-		{
-			get;
-			set;
-		}
+		public SelectStatement Source { get; set; }
 
 		internal InsertStatement()
 		{
-			this.SetValues = new List<SetValue>();
-			this.TargetFields = new List<Column>();
 		}
 	}
 }

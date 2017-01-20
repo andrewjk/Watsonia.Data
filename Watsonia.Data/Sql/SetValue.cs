@@ -5,17 +5,9 @@ namespace Watsonia.Data.Sql
 {
 	public sealed class SetValue
 	{
-		public Column Column
-		{
-			get;
-			set;
-		}
+		public Column Column { get; set; }
 
-		public StatementPart Value
-		{
-			get;
-			set;
-		}
+		public StatementPart Value { get; set; }
 
 		public SetValue()
 		{

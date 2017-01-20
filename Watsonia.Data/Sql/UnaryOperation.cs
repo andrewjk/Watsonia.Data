@@ -28,11 +28,7 @@ namespace Watsonia.Data.Sql
 		/// <value>
 		/// The operator.
 		/// </value>
-		public UnaryOperator Operator
-		{
-			get;
-			set;
-		}
+		public UnaryOperator Operator { get; set; }
 
 		/// <summary>
 		/// Gets or sets the expression.
@@ -40,11 +36,7 @@ namespace Watsonia.Data.Sql
 		/// <value>
 		/// The expression.
 		/// </value>
-		public StatementPart Expression
-		{
-			get;
-			set;
-		}
+		public StatementPart Expression { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="UnaryOperation" /> class.

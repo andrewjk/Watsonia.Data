@@ -25,11 +25,7 @@ namespace Watsonia.Data
 			internal set;
 		}
 
-		public List<Tuple<PropertyInfo, object>> SetValues
-		{
-			get;
-			private set;
-		}
+		public List<Tuple<PropertyInfo, object>> SetValues { get; } = new List<Tuple<PropertyInfo, object>>();
 
 		public Expression<Func<T, bool>> Conditions
 		{
@@ -40,7 +36,6 @@ namespace Watsonia.Data
 		internal UpdateStatement()
 		{
 			this.Target = typeof(T);
-			this.SetValues = new List<Tuple<PropertyInfo, object>>();
 		}
 
 		public UpdateStatement CreateStatement(DatabaseConfiguration configuration)

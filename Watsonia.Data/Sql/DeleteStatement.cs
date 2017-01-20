@@ -15,17 +15,9 @@ namespace Watsonia.Data
 			}
 		}
 
-		public Table Target
-		{
-			get;
-			set;
-		}
+		public Table Target { get; set; }
 
-		public ConditionCollection Conditions
-		{
-			get;
-			private set;
-		}
+		public ConditionCollection Conditions { get; private set; }
 
 		internal DeleteStatement()
 		{

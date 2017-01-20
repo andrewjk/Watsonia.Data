@@ -8,10 +8,6 @@ namespace Watsonia.Data.Sql
 	/// </summary>
 	public abstract class SourceExpression : StatementPart
 	{
-		public string Alias
-		{
-			get;
-			set;
-		}
+		public string Alias { get; set; }
 	}
 }

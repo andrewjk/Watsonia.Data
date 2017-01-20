@@ -22,118 +22,42 @@ namespace Watsonia.Data
 			internal set;
 		}
 
-		public List<Join> SourceJoins
-		{
-			get;
-			private set;
-		}
+		public List<Join> SourceJoins { get; } = new List<Join>();
 
-		public List<string> IncludePaths
-		{
-			get;
-			private set;
-		}
+		public List<string> IncludePaths { get; } = new List<string>();
 
-		public List<SourceExpression> SourceFields
-		{
-			get;
-			private set;
-		}
+		public List<SourceExpression> SourceFields { get; } = new List<SourceExpression>();
 
-		public List<Table> SourceFieldsFrom
-		{
-			get;
-			private set;
-		}
+		public List<Table> SourceFieldsFrom { get; } = new List<Table>();
 
-		public bool IsAny
-		{
-			get;
-			set;
-		}
+		public bool IsAny { get; set; }
 
-		public bool IsAll
-		{
-			get;
-			set;
-		}
+		public bool IsAll { get; set; }
 
-		public bool IsContains
-		{
-			get;
-			set;
-		}
+		public bool IsContains { get; set; }
 
-		public StatementPart ContainsItem
-		{
-			get;
-			set;
-		}
+		public StatementPart ContainsItem { get; set; }
 
-		public bool IsDistinct
-		{
-			get;
-			set;
-		}
+		public bool IsDistinct { get; set; }
 
-		public int StartIndex
-		{
-			get;
-			set;
-		}
+		public int StartIndex { get; set; }
 
-		public int Limit
-		{
-			get;
-			set;
-		}
+		public int Limit { get; set; }
 
-		public ConditionCollection Conditions
-		{
-			get;
-			private set;
-		}
+		public ConditionCollection Conditions { get; } = new ConditionCollection();
 
-		public List<OrderByExpression> OrderByFields
-		{
-			get;
-			private set;
-		}
+		public List<OrderByExpression> OrderByFields { get; } = new List<OrderByExpression>();
 
-		public List<Column> GroupByFields
-		{
-			get;
-			private set;
-		}
+		public List<Column> GroupByFields { get; } = new List<Column>();
 
-		public List<SelectStatement> UnionStatements
-		{
-			get;
-			private set;
-		}
+		public List<SelectStatement> UnionStatements { get; } = new List<SelectStatement>();
 
-		public string Alias
-		{
-			get;
-			set;
-		}
+		public string Alias { get; set; }
 
-		public bool IsAggregate
-		{
-			get;
-			set;
-		}
+		public bool IsAggregate { get; set; }
 
 		internal SelectStatement()
 		{
-			this.IncludePaths = new List<string>();
-			this.SourceJoins = new List<Join>();
-			this.SourceFields = new List<SourceExpression>();
-			this.SourceFieldsFrom = new List<Table>();
-			this.Conditions = new ConditionCollection();
-			this.OrderByFields = new List<OrderByExpression>();
-			this.GroupByFields = new List<Column>();
-			this.UnionStatements = new List<SelectStatement>();
 		}
 
 		public override string ToString()

@@ -13,11 +13,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The name of the column.
 		/// </value>
-		public string Name
-		{
-			get;
-			set;
-		}
+		public string Name { get; set; }
 
 		/// <summary>
 		/// Gets or sets the CLR type of the column.
@@ -25,11 +21,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The CLR type of the column.
 		/// </value>
-		public Type ColumnType
-		{
-			get;
-			set;
-		}
+		public Type ColumnType { get; set; }
 
 		/// <summary>
 		/// Gets or sets the maximum length of data in the column.
@@ -37,11 +29,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The maximum length of data in the column.
 		/// </value>
-		public int MaxLength
-		{
-			get;
-			set;
-		}
+		public int MaxLength { get; set; }
 
 		/// <summary>
 		/// Gets or sets the relationship.
@@ -49,11 +37,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The relationship.
 		/// </value>
-		public MappedRelationship Relationship
-		{
-			get;
-			set;
-		}
+		public MappedRelationship Relationship { get; set; }
 
 		/// <summary>
 		/// Gets or sets the default value.
@@ -61,11 +45,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The default value.
 		/// </value>
-		public object DefaultValue
-		{
-			get;
-			set;
-		}
+		public object DefaultValue { get; set; }
 
 		/// <summary>
 		/// Gets or sets the name of the default value constraint.
@@ -73,11 +53,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The name of the default value constraint.
 		/// </value>
-		public string DefaultValueConstraintName
-		{
-			get;
-			set;
-		}
+		public string DefaultValueConstraintName { get; set; }
 
 		/// <summary>
 		/// Gets or sets a value indicating whether this column is the primary key.
@@ -85,11 +61,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// <c>true</c> if this column is the primary key; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsPrimaryKey
-		{
-			get;
-			set;
-		}
+		public bool IsPrimaryKey { get; set; }
 
 		/// <summary>
 		/// Gets a value indicating whether this column allows null values.
@@ -97,11 +69,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// <c>true</c> if this column allows nulls; otherwise, <c>false</c>.
 		/// </value>
-		public bool AllowNulls
-		{
-			get;
-			set;
-		}
+		public bool AllowNulls { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MappedColumn" /> class.

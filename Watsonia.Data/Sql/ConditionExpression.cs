@@ -11,16 +11,8 @@ namespace Watsonia.Data.Sql
 	/// </summary>
 	public abstract class ConditionExpression : StatementPart
 	{
-		public ConditionRelationship Relationship
-		{
-			get;
-			set;
-		}
+		public ConditionRelationship Relationship { get; set; }
 
-		public bool Not
-		{
-			get;
-			set;
-		}
+		public bool Not { get; set; }
 	}
 }

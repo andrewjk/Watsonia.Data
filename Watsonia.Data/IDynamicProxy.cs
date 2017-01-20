@@ -31,11 +31,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The primary key value.
 		/// </value>
-		object PrimaryKeyValue
-		{
-			get;
-			set;
-		}
+		object PrimaryKeyValue { get; set; }
 
 		/// <summary>
 		/// Gets or sets a value indicating whether this instance is new (i.e. doesn't exist in the database).
@@ -43,11 +39,7 @@ namespace Watsonia.Data
 		/// <value>
 		///   <c>true</c> if this instance is new; otherwise, <c>false</c>.
 		/// </value>
-		bool IsNew
-		{
-			get;
-			set;
-		}
+		bool IsNew { get; set; }
 
 		/// <summary>
 		/// Gets or sets a value indicating whether this instance has changes.
@@ -55,11 +47,7 @@ namespace Watsonia.Data
 		/// <value>
 		///	  <c>true</c> if this instance has changes; otherwise, <c>false</c>.
 		/// </value>
-		bool HasChanges
-		{
-			get;
-			set;
-		}
+		bool HasChanges { get; set; }
 
 		/// <summary>
 		/// Gets a value indicating whether this instance is in a valid state.

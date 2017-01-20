@@ -14,17 +14,9 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public string Name
-		{
-			get;
-			private set;
-		}
+		public string Name { get; private set; }
 
-		public object Value
-		{
-			get;
-			private set;
-		}
+		public object Value { get; private set; }
 
 		public Parameter(string name, object value)
 		{

@@ -29,11 +29,7 @@ namespace Watsonia.Data.Sql
 		/// <value>
 		/// The table.
 		/// </value>
-		public Table Table
-		{
-			get;
-			set;
-		}
+		public Table Table { get; set; }
 
 		/// <summary>
 		/// Gets the name of the column.
@@ -41,17 +37,9 @@ namespace Watsonia.Data.Sql
 		/// <value>
 		/// The name of the column.
 		/// </value>
-		public string Name
-		{
-			get;
-			private set;
-		}
+		public string Name { get; private set; }
 
-		internal Type PropertyType
-		{
-			get;
-			set;
-		}
+		internal Type PropertyType { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Column" /> class.

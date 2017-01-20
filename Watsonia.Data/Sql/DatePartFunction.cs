@@ -13,17 +13,9 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public DatePart DatePart
-		{
-			get;
-			set;
-		}
+		public DatePart DatePart { get; set; }
 
-		public StatementPart Argument
-		{
-			get;
-			set;
-		}
+		public StatementPart Argument { get; set; }
 
 		internal DatePartFunction(DatePart datePart)
 		{

@@ -8,11 +8,7 @@ namespace Watsonia.Data
 {
 	internal class QueryExecutor<T> : IQueryExecutor
 	{
-		public Database Database
-		{
-			get;
-			private set;
-		}
+		public Database Database { get; private set; }
 
 		public DatabaseQuery<T> Query
 		{

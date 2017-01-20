@@ -8,11 +8,7 @@ namespace Watsonia.Data
 {
 	public sealed class PrimaryKeyValueChangedEventArgs : EventArgs
 	{
-		public object Value
-		{
-			get;
-			private set;
-		}
+		public object Value { get; private set; }
 
 		public PrimaryKeyValueChangedEventArgs(object value)
 		{

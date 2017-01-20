@@ -50,11 +50,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The configuration.
 		/// </value>
-		internal DatabaseConfiguration Configuration
-		{
-			get;
-			private set;
-		}
+		internal DatabaseConfiguration Configuration { get; private set; }
 
 		/// <summary>
 		/// Gets or sets the name of the database to use when creating proxy objects to avoid the same
@@ -63,11 +59,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The name of the database.
 		/// </value>
-		internal string DatabaseName
-		{
-			get;
-			set;
-		}
+		internal string DatabaseName { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Database" /> class.

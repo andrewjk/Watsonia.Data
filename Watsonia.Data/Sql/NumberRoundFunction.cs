@@ -13,17 +13,9 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public StatementPart Argument
-		{
-			get;
-			set;
-		}
+		public StatementPart Argument { get; set; }
 
-		public StatementPart Precision
-		{
-			get;
-			set;
-		}
+		public StatementPart Precision { get; set; }
 
 		public override string ToString()
 		{

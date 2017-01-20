@@ -15,28 +15,14 @@ namespace Watsonia.Data
 			}
 		}
 
-		public Table Target
-		{
-			get;
-			set;
-		}
+		public Table Target { get; set; }
 
-		public List<SetValue> SetValues
-		{
-			get;
-			private set;
-		}
+		public List<SetValue> SetValues { get; } = new List<SetValue>();
 
-		public List<ConditionExpression> Conditions
-		{
-			get;
-			private set;
-		}
+		public List<ConditionExpression> Conditions { get; } = new List<ConditionExpression>();
 
 		internal UpdateStatement()
 		{
-			this.SetValues = new List<SetValue>();
-			this.Conditions = new List<ConditionExpression>();
 		}
 	}
 }

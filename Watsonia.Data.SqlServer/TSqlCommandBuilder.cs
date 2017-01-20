@@ -39,17 +39,9 @@ namespace Watsonia.Data.SqlServer
 			}
 		}
 
-		private int Depth
-		{
-			get;
-			set;
-		}
+		private int Depth { get; set; }
 
-		private bool IsNested
-		{
-			get;
-			set;
-		}
+		private bool IsNested { get; set; }
 
 		public void VisitStatement(Statement statement, DatabaseConfiguration configuration)
 		{

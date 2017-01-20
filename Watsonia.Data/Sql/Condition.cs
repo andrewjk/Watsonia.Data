@@ -16,23 +16,11 @@ namespace Watsonia.Data
 			}
 		}
 
-		public StatementPart Field
-		{
-			get;
-			set;
-		}
+		public StatementPart Field { get; set; }
 
-		public SqlOperator Operator
-		{
-			get;
-			set;
-		}
+		public SqlOperator Operator { get; set; }
 
-		public StatementPart Value
-		{
-			get;
-			set;
-		}
+		public StatementPart Value { get; set; }
 
 		internal Condition()
 		{

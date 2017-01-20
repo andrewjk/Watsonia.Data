@@ -15,11 +15,7 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public StatementPart Predicate
-		{
-			get;
-			set;
-		}
+		public StatementPart Predicate { get; set; }
 
 		public override string ToString()
 		{

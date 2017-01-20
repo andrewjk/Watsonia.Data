@@ -17,11 +17,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The parameter.
 		/// </value>
-		public T Parameter
-		{
-			get;
-			set;
-		}
+		public T Parameter { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="EventArgs{T}" /> class.

@@ -14,23 +14,11 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public StatementPart Test
-		{
-			get;
-			set;
-		}
+		public StatementPart Test { get; set; }
 
-		public StatementPart IfTrue
-		{
-			get;
-			set;
-		}
+		public StatementPart IfTrue { get; set; }
 
-		public StatementPart IfFalse
-		{
-			get;
-			set;
-		}
+		public StatementPart IfFalse { get; set; }
 
 		public override string ToString()
 		{

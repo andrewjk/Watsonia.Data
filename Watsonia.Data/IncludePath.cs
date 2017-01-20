@@ -10,23 +10,11 @@ namespace Watsonia.Data
 {
 	internal sealed class IncludePath
 	{
-		public string Path
-		{
-			get;
-			private set;
-		}
+		public string Path { get; private set; }
 
-		public PropertyInfo Property
-		{
-			get;
-			set;
-		}
+		public PropertyInfo Property { get; set; }
 
-		public IEnumerable ChildCollection
-		{
-			get;
-			set;
-		}
+		public IEnumerable ChildCollection { get; set; }
 
 		public IncludePath(string path)
 		{

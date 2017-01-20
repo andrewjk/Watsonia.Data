@@ -15,11 +15,7 @@ namespace Watsonia.Data
 		/// Gets or sets the ID of the item that was not found.
 		/// </summary>
 		/// <value>The ID of the item.</value>
-		public object ID
-		{
-			get;
-			set;
-		}
+		public object ID { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ItemNotFoundException"/> class.
