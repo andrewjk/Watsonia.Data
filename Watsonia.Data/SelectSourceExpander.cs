@@ -95,8 +95,7 @@ namespace Watsonia.Data
                     if (clause is JoinClause)
                     {
                         var joinClause = (JoinClause)clause;
-                        // HACK: Uh, ToStrings?
-                        if (joinClause.OuterKeySelector.ToString() == subexpression.ToString())
+                        if (joinClause.OuterKeySelector.Type == subexpression.Type)
                         {
                             existingJoin = joinClause;
                             break;
