@@ -62,7 +62,7 @@ namespace Watsonia.Data
 			File.Move(fileName, _exportPath);
 		}
 
-		private static string GetDynamicTypeName(Type parentType, Database database, string suffix = "Proxy")
+		internal static string GetDynamicTypeName(Type parentType, Database database, string suffix = "Proxy")
 		{
 			// A new type needs to be made for each type in each database
 			// This is because each database may have different naming conventions and primary/foreign key types

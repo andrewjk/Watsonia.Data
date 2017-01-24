@@ -247,9 +247,10 @@ namespace Watsonia.Data
 			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(typeof(T));
 
 			// First, check the cache
+			string cacheKey = DynamicProxyFactory.GetDynamicTypeName(typeof(T), this);
 			ItemCache cache = this.Configuration.ShouldCacheType(typeof(T)) ?
 				_cache.GetOrAdd(
-				tableName,
+				cacheKey,
 				(string s) => new ItemCache(this.Configuration.GetCacheExpiryLength(typeof(T)), this.Configuration.GetCacheMaxItems(typeof(T)))) : null;
 			if (cache != null && cache.ContainsKey(id))
 			{
@@ -1023,8 +1024,9 @@ namespace Watsonia.Data
 			// Add or update it in the cache
 			if (this.Configuration.ShouldCacheType(tableType))
 			{
+				string cacheKey = DynamicProxyFactory.GetDynamicTypeName(tableType, this);
 				ItemCache cache = _cache.GetOrAdd(
-					tableName,
+					cacheKey,
 					(string s) => new ItemCache(this.Configuration.GetCacheExpiryLength(tableType), this.Configuration.GetCacheMaxItems(tableType)));
 				cache.AddOrUpdate(
 					proxy.PrimaryKeyValue,
