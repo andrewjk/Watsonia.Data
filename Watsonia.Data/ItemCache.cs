@@ -83,8 +83,7 @@ namespace Watsonia.Data
 				}
 				foreach (object removeKey in keysToRemove)
 				{
-					IValueBag value;
-					this.Items.TryRemove(removeKey, out value);
+					RemoveItemFromLists(removeKey);
 				}
 
 				// Return whether this item exists
@@ -123,17 +122,7 @@ namespace Watsonia.Data
 				// Remove items if we've got too many
 				while (this.Items.Count > this.MaxItems)
 				{
-					IValueBag value;
-					this.Items.TryRemove(this.ItemsByAccessedTime[0], out value);
-					for (int i = 0; i < this.ItemsByLoadedTime.Count; i++)
-					{
-						if (this.ItemsByLoadedTime[i].Item1 == this.ItemsByAccessedTime[i])
-						{
-							this.ItemsByLoadedTime.RemoveAt(i);
-							break;
-						}
-					}
-					this.ItemsByAccessedTime.RemoveAt(0);
+					RemoveItemFromLists(this.ItemsByAccessedTime[0]);
 				}
 			}
 		}
@@ -151,7 +140,21 @@ namespace Watsonia.Data
 				this.ItemsByAccessedTime.Add(key);
 				this.ItemsByLoadedTime.Add(new Tuple<object, DateTime>(key, DateTime.Now));
 			}
+		}
 
+		private void RemoveItemFromLists(object key)
+		{
+			IValueBag value;
+			this.Items.TryRemove(key, out value);
+			for (int i = 0; i < this.ItemsByLoadedTime.Count; i++)
+			{
+				if (this.ItemsByLoadedTime[i].Item1 == key)
+				{
+					this.ItemsByLoadedTime.RemoveAt(i);
+					break;
+				}
+			}
+			this.ItemsByAccessedTime.Remove(key);
 		}
 	}
 }
