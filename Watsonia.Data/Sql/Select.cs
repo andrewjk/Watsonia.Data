@@ -28,6 +28,12 @@ namespace Watsonia.Data
 			return new SelectStatement() { Source = part };
 		}
 
+		public static SelectStatement Join(this SelectStatement select, Join join)
+		{
+			select.SourceJoins.Add(join);
+			return select;
+		}
+
 		public static SelectStatement Join(this SelectStatement select, string tableName, string leftTableName, string leftColumnName, string rightTableName, string rightColumnName)
 		{
 			select.SourceJoins.Add(new Join(tableName, leftTableName, leftColumnName, rightTableName, rightColumnName));

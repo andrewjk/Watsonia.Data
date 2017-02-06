@@ -21,14 +21,8 @@ namespace Watsonia.Data.Sql
 			get;
 			internal set;
 		}
-
-		public StatementPart Left
-		{
-			get;
-			internal set;
-		}
-
-		public StatementPart Right
+		
+		public StatementPart Table
 		{
 			get;
 			internal set;
@@ -46,11 +40,10 @@ namespace Watsonia.Data.Sql
 		{
 		}
 
-		public Join(JoinType joinType, StatementPart left, StatementPart right, ConditionExpression condition)
+		public Join(JoinType joinType, StatementPart right, ConditionExpression condition)
 		{
 			this.JoinType = joinType;
-			this.Left = left;
-			this.Right = right;
+			this.Table = right;
 			this.Conditions.Add(condition);
 		}
 
@@ -60,7 +53,7 @@ namespace Watsonia.Data.Sql
 			// TODO: Fix this pug fugly syntax
 			// TODO: Change field => column in all the SQL stuff?  Column if it's a column, field if it's a statement part
 			//this.Left = new Table(leftTableName);
-			this.Right = new Table(tableName);
+			this.Table = new Table(tableName);
 			this.Conditions.Add(new Condition(leftTableName, leftColumnName, SqlOperator.Equals, new Column(rightTableName, rightColumnName)));
 		}
 
@@ -70,29 +63,23 @@ namespace Watsonia.Data.Sql
 			// TODO: Fix this pug fugly syntax
 			// TODO: Change field => column in all the SQL stuff?  Column if it's a column, field if it's a statement part
 			//this.Left = new Table(leftTableName);
-			this.Right = new Table(tableName);
+			this.Table = new Table(tableName);
 			this.Conditions.Add(new Condition(leftTableName, leftColumnName, SqlOperator.Equals, new Column(rightTableName, rightColumnName)));
 		}
 
 		public Join(Table table, Column leftColumn, Column rightColumn)
 		{
 			this.JoinType = JoinType.Inner;
-			this.Right = table;
+			this.Table = table;
 			this.Conditions.Add(new Condition(leftColumn, SqlOperator.Equals, rightColumn));
 		}
 
 		public override string ToString()
 		{
 			var b = new StringBuilder();
-            // HACK: Should Left be able to be set to null?
-            if (this.Left != null)
-            {
-                b.Append(this.Left.ToString());
-                b.Append(" ");
-            }
 			b.Append(this.JoinType.ToString());
 			b.Append(" Join ");
-			b.Append(this.Right.ToString());
+			b.Append(this.Table.ToString());
 			if (this.Conditions.Count > 0)
 			{
 				b.Append(" On ");

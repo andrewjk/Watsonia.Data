@@ -27,7 +27,7 @@ namespace Watsonia.Data
 				return StatementPartType.ConditionCollection;
 			}
 		}
-		
+
 		public int Count
 		{
 			get

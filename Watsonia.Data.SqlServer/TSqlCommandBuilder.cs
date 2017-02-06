@@ -904,12 +904,6 @@ namespace Watsonia.Data.SqlServer
 
 		private void VisitJoin(Join join)
 		{
-			// TODO: Why would you have a left??
-			if (join.Left != null)
-			{
-				this.VisitSource(join.Left);
-				this.AppendNewLine(Indentation.Same);
-			}
 			switch (join.JoinType)
 			{
 				case JoinType.Inner:
@@ -938,7 +932,7 @@ namespace Watsonia.Data.SqlServer
 					break;
 				}
 			}
-			this.VisitSource(join.Right);
+			this.VisitSource(join.Table);
 			if (join.Conditions.Count > 0)
 			{
 				this.CommandText.Append(" ON ");
