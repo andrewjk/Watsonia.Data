@@ -83,7 +83,7 @@ namespace Watsonia.Data
 				}
 				foreach (object removeKey in keysToRemove)
 				{
-					RemoveItemFromLists(removeKey);
+					Remove(removeKey);
 				}
 
 				// Return whether this item exists
@@ -122,7 +122,7 @@ namespace Watsonia.Data
 				// Remove items if we've got too many
 				while (this.Items.Count > this.MaxItems)
 				{
-					RemoveItemFromLists(this.ItemsByAccessedTime[0]);
+					Remove(this.ItemsByAccessedTime[0]);
 				}
 			}
 		}
@@ -142,7 +142,11 @@ namespace Watsonia.Data
 			}
 		}
 
-		private void RemoveItemFromLists(object key)
+		/// <summary>
+		/// Removes the item with the specified key.
+		/// </summary>
+		/// <param name="key">The key.</param>
+		public void Remove(object key)
 		{
 			IValueBag value;
 			this.Items.TryRemove(key, out value);

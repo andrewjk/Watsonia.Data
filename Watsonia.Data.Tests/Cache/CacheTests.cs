@@ -239,6 +239,48 @@ namespace Watsonia.Data.Tests.Cache
 			Assert.AreEqual(19, cache.ItemsByLoadedTime[18].Item1);
 		}
 
+		[TestMethod]
+		public void TestLoadAndRemove()
+		{
+			var db = new Northwind.NorthwindDatabase();
+
+			var syrup = db.Query<Northwind.Product>().FirstOrDefault(p => p.ProductName == "Aniseed Syrup");
+
+			// Check that the product can be loaded
+			var syrup1 = db.LoadOrDefault<Northwind.Product>(syrup.ProductID);
+			Assert.IsNotNull(syrup1);
+			Assert.AreEqual(10, syrup1.UnitPrice);
+
+			string cacheKey = DynamicProxyFactory.GetDynamicTypeName(typeof(Northwind.Product), db);
+
+			// Check that the product is in the cache and can be removed
+			Assert.IsTrue(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
+			Database.Cache.RemoveItemByKey(cacheKey, syrup.ProductID);
+			Assert.IsFalse(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
+
+			// Get the product back in the cache
+			var syrup2 = db.Load<Northwind.Product>(syrup.ProductID);
+			Assert.IsTrue(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
+
+			// Update the product's price in the database and test that it doesn't get updated until
+			// we remove and re-load the item
+			db.Execute("UPDATE Products SET UnitPrice = 11 WHERE ProductName = @0", "Aniseed Syrup");
+
+			var syrup3 = db.Load<Northwind.Product>(syrup.ProductID);
+			Assert.AreEqual(10, syrup3.UnitPrice);
+
+			Database.Cache.RemoveItemByKey(cacheKey, syrup.ProductID);
+			Assert.IsFalse(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
+
+			var syrup4 = db.Load<Northwind.Product>(syrup.ProductID);
+			Assert.AreEqual(11, syrup4.UnitPrice);
+
+			// Check that clearing works
+			Assert.IsTrue(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
+			Database.Cache.Clear();
+			Assert.IsFalse(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
+		}
+
 		private class TestValueBag : IValueBag
 		{
 			public int ID;

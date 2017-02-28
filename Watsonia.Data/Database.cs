@@ -42,7 +42,10 @@ namespace Watsonia.Data
 		public event EventHandler BeforeExecuteCommand;
 		public event EventHandler AfterExecuteCommand;
 
-		private static DatabaseItemCache _cache = new DatabaseItemCache();
+		/// <summary>
+		/// The cache.
+		/// </summary>
+		internal static DatabaseItemCache Cache { get; } = new DatabaseItemCache();
 
 		/// <summary>
 		/// Gets the configuration options used for mapping to and accessing the database.
@@ -249,9 +252,11 @@ namespace Watsonia.Data
 			// First, check the cache
 			string cacheKey = DynamicProxyFactory.GetDynamicTypeName(typeof(T), this);
 			ItemCache cache = this.Configuration.ShouldCacheType(typeof(T)) ?
-				_cache.GetOrAdd(
+				Database.Cache.GetOrAdd(
 				cacheKey,
-				(string s) => new ItemCache(this.Configuration.GetCacheExpiryLength(typeof(T)), this.Configuration.GetCacheMaxItems(typeof(T)))) : null;
+				(string s) => new ItemCache(
+					this.Configuration.GetCacheExpiryLength(typeof(T)),
+					this.Configuration.GetCacheMaxItems(typeof(T)))) : null;
 			if (cache != null && cache.ContainsKey(id))
 			{
 				// It's in there
@@ -1025,9 +1030,11 @@ namespace Watsonia.Data
 			if (this.Configuration.ShouldCacheType(tableType))
 			{
 				string cacheKey = DynamicProxyFactory.GetDynamicTypeName(tableType, this);
-				ItemCache cache = _cache.GetOrAdd(
+				ItemCache cache = Database.Cache.GetOrAdd(
 					cacheKey,
-					(string s) => new ItemCache(this.Configuration.GetCacheExpiryLength(tableType), this.Configuration.GetCacheMaxItems(tableType)));
+					(string s) => new ItemCache(
+						this.Configuration.GetCacheExpiryLength(tableType),
+						this.Configuration.GetCacheMaxItems(tableType)));
 				cache.AddOrUpdate(
 					proxy.PrimaryKeyValue,
 					proxy.GetBagFromValues(),
