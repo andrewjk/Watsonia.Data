@@ -52,7 +52,7 @@ namespace Watsonia.Data
 		/// Initializes a new instance of the <see cref="ConditionCollection"/> class.
 		/// </summary>
 		/// <param name="conditions">The conditions.</param>
-		public ConditionCollection(params Condition[] conditions)
+		public ConditionCollection(params ConditionExpression[] conditions)
 		{
 			_conditions.AddRange(conditions);
 		}

@@ -183,14 +183,14 @@ namespace Watsonia.Data
 			return select;
 		}
 
-		public static SelectStatement And(this SelectStatement select, Condition condition)
+		public static SelectStatement And(this SelectStatement select, ConditionExpression condition)
 		{
 			condition.Relationship = ConditionRelationship.And;
 			select.Conditions.Add(condition);
 			return select;
 		}
 
-		public static SelectStatement And(this SelectStatement select, params Condition[] conditions)
+		public static SelectStatement And(this SelectStatement select, params ConditionExpression[] conditions)
 		{
 			select.Conditions.Add(new ConditionCollection(conditions) { Relationship = ConditionRelationship.And });
 			return select;
@@ -202,14 +202,14 @@ namespace Watsonia.Data
 			return select;
 		}
 
-		public static SelectStatement Or(this SelectStatement select, Condition condition)
+		public static SelectStatement Or(this SelectStatement select, ConditionExpression condition)
 		{
 			condition.Relationship = ConditionRelationship.Or;
 			select.Conditions.Add(condition);
 			return select;
 		}
 
-		public static SelectStatement Or(this SelectStatement select, params Condition[] conditions)
+		public static SelectStatement Or(this SelectStatement select, params ConditionExpression[] conditions)
 		{
 			select.Conditions.Add(new ConditionCollection(conditions) { Relationship = ConditionRelationship.Or });
 			return select;
