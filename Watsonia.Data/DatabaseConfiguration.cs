@@ -334,6 +334,12 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		internal bool ShouldMapTypeInternal(Type type)
 		{
+			// This can happen when there's a problem loading the types in an assembly
+			if (type == null)
+			{
+				return false;
+			}
+
 			// Only map classes and don't map the database or configuration
 			if (!type.IsClass ||
 				typeof(Database).IsAssignableFrom(type) ||
@@ -393,7 +399,17 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		internal IEnumerable<Type> TypesToMap(Assembly assembly)
 		{
-			foreach (Type type in assembly.GetTypes())
+			// HACK: This is hiding exceptions, should we have this be hidden behind a configuration switch?
+			Type[] typesInAssembly;
+			try
+			{
+				typesInAssembly = assembly.GetTypes();
+			}
+			catch (ReflectionTypeLoadException ex)
+			{
+				typesInAssembly = ex.Types;
+			}
+			foreach (Type type in typesInAssembly)
 			{
 				if (ShouldMapTypeInternal(type))
 				{
