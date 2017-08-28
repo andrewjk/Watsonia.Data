@@ -42,6 +42,17 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Pluralizes the specified text according to your rules.
+		/// </summary>
+		/// <param name="text">The text.</param>
+		/// <param name="number">The number.</param>
+		/// <returns></returns>
+		public static string Pluralize(string text, string pluralText, int number = 2)
+		{
+			return number == 1 ? text : pluralText;
+		}
+
+		/// <summary>
 		/// Attempts to pluralize the specified text according to the rules of the English language.
 		/// </summary>
 		/// <remarks>
