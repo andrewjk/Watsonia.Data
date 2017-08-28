@@ -67,11 +67,18 @@ namespace Watsonia.Data.Sql
 			this.Conditions.Add(new Condition(leftTableName, leftColumnName, SqlOperator.Equals, new Column(rightTableName, rightColumnName)));
 		}
 
-		public Join(Table table, Column leftColumn, Column rightColumn)
+		public Join(Table table, SourceExpression leftColumn, SourceExpression rightColumn)
 		{
 			this.JoinType = JoinType.Inner;
 			this.Table = table;
 			this.Conditions.Add(new Condition(leftColumn, SqlOperator.Equals, rightColumn));
+		}
+
+		public Join(Table table, ConditionCollection conditions)
+		{
+			this.JoinType = JoinType.Inner;
+			this.Table = table;
+			this.Conditions.AddRange(conditions);
 		}
 
 		public override string ToString()

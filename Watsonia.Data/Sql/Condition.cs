@@ -41,7 +41,7 @@ namespace Watsonia.Data
 			AddValue(value);
 		}
 
-		public Condition(Column column, SqlOperator op, object value)
+		public Condition(SourceExpression column, SqlOperator op, object value)
 		{
 			this.Field = column;
 			this.Operator = op;

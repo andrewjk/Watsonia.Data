@@ -83,12 +83,26 @@ namespace Watsonia.Data
 		{
 			// TODO: This seems heavy...
 			// TODO: And like it's only going to deal with certain types of joins
-			Table table = (Table)StatementPartCreator.Visit(queryModel, joinClause.InnerSequence, this.Configuration, this.AliasTables);
+			var table = (Table)StatementPartCreator.Visit(queryModel, joinClause.InnerSequence, this.Configuration, this.AliasTables);
             table.Alias = joinClause.ItemName.Replace("<generated>", "g");
-			Column leftColumn = (Column)StatementPartCreator.Visit(queryModel, joinClause.OuterKeySelector, this.Configuration, this.AliasTables);
-			Column rightColumn = (Column)StatementPartCreator.Visit(queryModel, joinClause.InnerKeySelector, this.Configuration, this.AliasTables);
+			var leftColumn = (SourceExpression)StatementPartCreator.Visit(queryModel, joinClause.OuterKeySelector, this.Configuration, this.AliasTables);
+			var rightColumn = (SourceExpression)StatementPartCreator.Visit(queryModel, joinClause.InnerKeySelector, this.Configuration, this.AliasTables);
 
-			this.SelectStatement.SourceJoins.Add(new Join(table, leftColumn, rightColumn) { JoinType = JoinType.Left });
+			if (leftColumn is FieldCollection && rightColumn is FieldCollection)
+			{
+				var leftColumnCollection = (FieldCollection)leftColumn;
+				var rightColumnCollection = (FieldCollection)rightColumn;
+				var joinConditions = new ConditionCollection();
+				for (int i = 0; i < leftColumnCollection.Count; i++)
+				{
+					joinConditions.Add(new Condition(leftColumnCollection[i], SqlOperator.Equals, rightColumnCollection[i]));
+				}
+				this.SelectStatement.SourceJoins.Add(new Join(table, joinConditions) { JoinType = JoinType.Left });
+			}
+			else
+			{
+				this.SelectStatement.SourceJoins.Add(new Join(table, leftColumn, rightColumn) { JoinType = JoinType.Left });
+			}
 
 			base.VisitJoinClause(joinClause, queryModel, index);
 		}
@@ -230,6 +244,21 @@ namespace Watsonia.Data
 
 				// Sum the first field
 				this.SelectStatement.SourceFields[0] = new Aggregate(AggregateType.Max, (Field)this.SelectStatement.SourceFields[0]);
+				this.SelectStatement.IsAggregate = true;
+
+				return;
+			}
+
+			if (resultOperator is AverageResultOperator)
+			{
+				// Throw an exception if there is not one field
+				if (this.SelectStatement.SourceFields.Count != 1)
+				{
+					throw new InvalidOperationException("can't average multiple or no fields");
+				}
+
+				// Sum the first field
+				this.SelectStatement.SourceFields[0] = new Aggregate(AggregateType.Average, (Field)this.SelectStatement.SourceFields[0]);
 				this.SelectStatement.IsAggregate = true;
 
 				return;
