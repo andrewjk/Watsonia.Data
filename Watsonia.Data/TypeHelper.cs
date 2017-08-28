@@ -240,6 +240,8 @@ namespace Watsonia.Data
 			if (value == null || value == DBNull.Value)
 			{
 				// TODO: Maybe not...
+				// It would be better to make this generic and pass in the default value
+				// But that would involve changing emitted code
 				return null;
 			}
 

@@ -760,7 +760,8 @@ namespace Watsonia.Data
 			{
 				case CollectionItemType.Value:
 				{
-					return (T)TypeHelper.ChangeType(reader.GetValue(0), typeof(T));
+					object value = TypeHelper.ChangeType(reader.GetValue(0), typeof(T));
+					return value != null ? (T)value : default(T);
 				}
 				case CollectionItemType.Anonymous:
 				{
