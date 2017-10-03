@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using Watsonia.Data.Sql;
 
 namespace Watsonia.Data.SqlServer
@@ -997,58 +996,87 @@ namespace Watsonia.Data.SqlServer
 			}
 			else
 			{
-				this.VisitField(condition.Field);
-
 				switch (condition.Operator)
 				{
 					case SqlOperator.Equals:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" = ");
 						this.VisitField(condition.Value);
 						break;
 					}
 					case SqlOperator.NotEquals:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" <> ");
 						this.VisitField(condition.Value);
 						break;
 					}
 					case SqlOperator.IsLessThan:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" < ");
 						this.VisitField(condition.Value);
 						break;
 					}
 					case SqlOperator.IsLessThanOrEqualTo:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" <= ");
 						this.VisitField(condition.Value);
 						break;
 					}
 					case SqlOperator.IsGreaterThan:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" > ");
 						this.VisitField(condition.Value);
 						break;
 					}
 					case SqlOperator.IsGreaterThanOrEqualTo:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" >= ");
 						this.VisitField(condition.Value);
 						break;
 					}
 					case SqlOperator.IsIn:
 					{
-						this.CommandText.Append(" IN (");
-						this.AppendNewLine(Indentation.Inner);
-						this.VisitField(condition.Value);
-						this.AppendNewLine(Indentation.Same);
-						this.CommandText.Append(")");
-						this.AppendNewLine(Indentation.Outer);
+						// If it's in an empty list, just check against false
+						bool handled = false;
+						if (condition.Value.PartType == StatementPartType.ConstantPart)
+						{
+							 var value = ((ConstantPart)condition.Value).Value;
+							if (value is IEnumerable && !(value is string) && !(value is byte[]))
+							{
+								// HACK: Ugh
+								bool hasThings = false;
+								foreach (var thing in (IEnumerable)value)
+								{
+									hasThings = true;
+								}
+								if (!hasThings)
+								{
+									handled = true;
+									this.CommandText.Append(" 0 <> 0");
+								}
+							}
+						}
+						if (!handled)
+						{
+							this.VisitField(condition.Field);
+							this.CommandText.Append(" IN (");
+							this.AppendNewLine(Indentation.Inner);
+							this.VisitField(condition.Value);
+							this.AppendNewLine(Indentation.Same);
+							this.CommandText.Append(")");
+							this.AppendNewLine(Indentation.Outer);
+						}
 						break;
 					}
 					case SqlOperator.Contains:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" LIKE '%' + ");
 						this.VisitField(condition.Value);
 						this.CommandText.Append(" + '%'");
@@ -1056,6 +1084,7 @@ namespace Watsonia.Data.SqlServer
 					}
 					case SqlOperator.StartsWith:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" LIKE ");
 						this.VisitField(condition.Value);
 						this.CommandText.Append(" + '%'");
@@ -1063,6 +1092,7 @@ namespace Watsonia.Data.SqlServer
 					}
 					case SqlOperator.EndsWith:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" LIKE '%' + ");
 						this.VisitField(condition.Value);
 						break;

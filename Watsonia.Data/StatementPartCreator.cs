@@ -1185,8 +1185,25 @@ namespace Watsonia.Data
 				Visit(contains.Item);
 				newCondition.Field = this.Stack.Pop();
 
-				Visit(expression.QueryModel.MainFromClause.FromExpression);
-				newCondition.Value = this.Stack.Pop();
+				if (TypeHelper.IsGenericType(expression.QueryModel.MainFromClause.FromExpression.Type, typeof(IQueryable<>)))
+				{
+					// Create the sub-select statement
+					var subselect = SelectStatementCreator.Visit(expression.QueryModel, this.Configuration, true);
+					subselect.IsContains = false;
+					if (subselect.SourceFields.Count == 0)
+					{
+						var subselectField = expression.QueryModel.SelectClause.Selector;
+						Visit(subselectField);
+						subselect.SourceFields.Add((SourceExpression)this.Stack.Pop());
+					}
+					newCondition.Value = subselect;
+				}
+				else
+				{
+					// Just check in the array that was passed
+					Visit(expression.QueryModel.MainFromClause.FromExpression);
+					newCondition.Value = this.Stack.Pop();
+				}
 
 				this.Stack.Push(newCondition);
 			}

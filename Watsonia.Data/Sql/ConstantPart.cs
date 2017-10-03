@@ -73,9 +73,7 @@ namespace Watsonia.Data.Sql
 					}
                     else if (o is string || o is char || o is DateTime)
                     {
-                        b.Append("'");
-                        b.Append(o.ToString());
-                        b.Append("'");
+						values.Add("'" + o.ToString() + "'");
                     }
                     else
                     {

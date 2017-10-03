@@ -1062,14 +1062,14 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void TestContainsWithSubquery()
-		////{
-		////	TestQuery(
-		////		"TestContainsWithSubquery",
-		////		db.Customers.Where(c => db.Orders.Select(o => o.CustomerID).Contains(c.CustomerID))
-		////		);
-		////}
+		[TestMethod]
+		public void TestContainsWithSubquery()
+		{
+			TestQuery(
+				"TestContainsWithSubquery",
+				db.Customers.Where(c => db.Orders.Select(o => o.CustomerID).Contains(c.CustomerID))
+				);
+		}
 
 		[TestMethod]
 		public void TestContainsWithLocalCollection()
@@ -2032,7 +2032,7 @@ namespace Watsonia.Data.Tests.Queries
 		////		where o.Customer.Phone != "555 555 5555"
 		////		select new { A = o.Customer, B = o.Customer });
 		////}
-		
+
 		////[TestMethod]
 		////public void TestSingletonAssociationWithMemberAccess()
 		////{
@@ -2057,30 +2057,30 @@ namespace Watsonia.Data.Tests.Queries
 		////		);
 		////}
 
-		////[TestMethod]
-		////public void TestContainsWithEmptyLocalList()
-		////{
-		////	var ids = new string[0];
-		////	TestQuery(
-		////		"TestContainsWithEmptyLocalList",
-		////		from c in db.Customers
-		////		where ids.Contains(c.CustomerID)
-		////		select c
-		////		);
-		////}
+		[TestMethod]
+		public void TestContainsWithEmptyLocalList()
+		{
+			var ids = new string[0];
+			TestQuery(
+				"TestContainsWithEmptyLocalList",
+				from c in db.Customers
+				where ids.Contains(c.CustomerID)
+				select c
+				);
+		}
 
-		////[TestMethod]
-		////public void TestContainsWithSubquery2()
-		////{
-		////	var custsInLondon = db.Customers.Where(c => c.City == "London").Select(c => c.CustomerID);
+		[TestMethod]
+		public void TestContainsWithSubquery2()
+		{
+			var custsInLondon = db.Customers.Where(c => c.City == "London").Select(c => c.CustomerID);
 
-		////	TestQuery(
-		////		"TestContainsWithSubquery2",
-		////		from c in db.Customers
-		////		where custsInLondon.Contains(c.CustomerID)
-		////		select c
-		////		);
-		////}
+			TestQuery(
+				"TestContainsWithSubquery2",
+				from c in db.Customers
+				where custsInLondon.Contains(c.CustomerID)
+				select c
+				);
+		}
 
 		////[TestMethod]
 		////public void TestCombineQueriesDeepNesting()

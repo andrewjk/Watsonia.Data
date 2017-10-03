@@ -1062,24 +1062,24 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void TestContainsWithSubquery()
-		////{
-		////	TestQuery(
-		////		"TestContainsWithSubquery",
-		////		db.Customers.Where(c => db.Orders.Select(o => o.CustomerID).Contains(c.CustomerID))
-		////		);
-		////}
+		[TestMethod]
+		public void TestContainsWithSubquery()
+		{
+			TestQuery(
+				"TestContainsWithSubquery",
+				db.Customers.Where(c => db.Orders.Select(o => o.CustomerID).Contains(c.CustomerID))
+				);
+		}
 
-		////[TestMethod]
-		////public void TestContainsWithLocalCollection()
-		////{
-		////	string[] ids = new[] { "ABCDE", "ALFKI" };
-		////	TestQuery(
-		////		"TestContainsWithLocalCollection",
-		////		db.Customers.Where(c => ids.Contains(c.CustomerID))
-		////		);
-		////}
+		[TestMethod]
+		public void TestContainsWithLocalCollection()
+		{
+			string[] ids = new[] { "ABCDE", "ALFKI" };
+			TestQuery(
+				"TestContainsWithLocalCollection",
+				db.Customers.Where(c => ids.Contains(c.CustomerID))
+				);
+		}
 
 		[TestMethod]
 		public void TestContainsTopLevel()
@@ -2069,18 +2069,18 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void TestContainsWithSubquery2()
-		////{
-		////	var custsInLondon = db.Customers.Where(c => c.City == "London").Select(c => c.CustomerID);
+		[TestMethod]
+		public void TestContainsWithSubquery2()
+		{
+			var custsInLondon = db.Customers.Where(c => c.City == "London").Select(c => c.CustomerID);
 
-		////	TestQuery(
-		////		"TestContainsWithSubquery2",
-		////		from c in db.Customers
-		////		where custsInLondon.Contains(c.CustomerID)
-		////		select c
-		////		);
-		////}
+			TestQuery(
+				"TestContainsWithSubquery2",
+				from c in db.Customers
+				where custsInLondon.Contains(c.CustomerID)
+				select c
+				);
+		}
 
 		////[TestMethod]
 		////public void TestCombineQueriesDeepNesting()
