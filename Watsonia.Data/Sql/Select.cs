@@ -8,9 +8,9 @@ namespace Watsonia.Data
 {
 	public static partial class Select
 	{
-		public static SelectStatement From(string tableName)
+		public static SelectStatement From(string tableName, string alias = null)
 		{
-			return Select.From(new Table(tableName));
+			return Select.From(new Table(tableName, alias));
 		}
 
 		public static SelectStatement From(Table table)
@@ -58,7 +58,7 @@ namespace Watsonia.Data
 			return select;
 		}
 
-		public static SelectStatement Columns(this SelectStatement select, params Column[] columns)
+		public static SelectStatement Columns(this SelectStatement select, params SourceExpression[] columns)
 		{
 			select.SourceFields.AddRange(columns);
 			return select;
@@ -244,6 +244,13 @@ namespace Watsonia.Data
 			select.GroupByFields.AddRange(columnNames.Select(c => new Column(c)));
 			return select;
 		}
+
+		public static SelectStatement GroupBy(this SelectStatement select, params Column[] columns)
+		{
+			select.GroupByFields.AddRange(columns);
+			return select;
+		}
+
 
 		public static SelectStatement Union(this SelectStatement select, SelectStatement union)
 		{

@@ -37,6 +37,12 @@ namespace Watsonia.Data.Sql
 			internal set;
 		}
 
+		/// <summary>
+		/// Gets the alias to use for the table.
+		/// </summary>
+		/// <value>
+		/// The alias.
+		/// </value>
 		public string Alias
 		{
 			get;
@@ -68,9 +74,11 @@ namespace Watsonia.Data.Sql
 		/// Initializes a new instance of the <see cref="Table" /> class.
 		/// </summary>
 		/// <param name="name">The name of the table.</param>
-		public Table(string name)
+		/// <param name="alias">The alias to use for the table.</param>
+		public Table(string name, string alias = null)
 		{
 			this.Name = name;
+			this.Alias = alias;
 		}
 
 		/// <summary>

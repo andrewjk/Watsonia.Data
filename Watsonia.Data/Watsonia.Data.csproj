@@ -112,6 +112,7 @@
     <Compile Include="Sql\InsertStatementT.cs" />
     <Compile Include="Sql\SelectStatement.cs" />
     <Compile Include="Sql\SelectStatementT.cs" />
+    <Compile Include="Sql\SelectExpression.cs" />
     <Compile Include="Sql\UpdateStatement.cs" />
     <Compile Include="Sql\UpdateStatementT.cs" />
     <Compile Include="StatementPartCreator.cs" />

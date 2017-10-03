@@ -60,18 +60,7 @@ namespace Watsonia.Data.Sql
 			this.Table = new Table(tableName);
 			this.Name = name;
 		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="Column" /> class.
-		/// </summary>
-		/// <param name="table">The table.</param>
-		/// <param name="name">The name of the column.</param>
-		public Column(Table table, string name)
-		{
-			this.Table = table;
-			this.Name = name;
-		}
-
+		
 		/// <summary>
 		/// Returns a <see cref="System.String" /> that represents this instance.
 		/// </summary>

@@ -814,6 +814,11 @@ namespace Watsonia.Data.SqlServer
 					}
 					break;
 				}
+				case StatementPartType.SelectExpression:
+				{
+					this.VisitSelectExpression((SelectExpression)field);
+					break;
+				}
 				default:
 				{
 					// TODO: Words for all exceptions
@@ -1667,6 +1672,22 @@ namespace Watsonia.Data.SqlServer
 		private void VisitLiteralPart(LiteralPart literalPart)
 		{
 			this.CommandText.Append(literalPart.Value);
+		}
+
+		private void VisitSelectExpression(SelectExpression select)
+		{
+			this.CommandText.Append("(");
+			this.AppendNewLine(Indentation.Inner);
+			this.VisitSelect(select.Select);
+			this.AppendNewLine(Indentation.Same);
+			this.CommandText.Append(")");
+			if (!string.IsNullOrEmpty(select.Alias))
+			{
+				this.CommandText.Append(" AS [");
+				this.CommandText.Append(select.Alias);
+				this.CommandText.Append("]");
+			}
+			this.Indent(Indentation.Outer);
 		}
 
 		private void AppendNewLine(Indentation style)
