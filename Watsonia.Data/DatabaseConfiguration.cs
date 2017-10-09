@@ -196,9 +196,9 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="property">The property.</param>
 		/// <returns></returns>
-		public virtual string GetDefaultValueConstraintName(PropertyInfo property)
+		public virtual string GetDefaultValueConstraintName(string tableName, PropertyInfo property)
 		{
-			return "DF_" + property.DeclaringType.Name + "_" + property.Name;
+			return "DF_" + tableName + "_" + property.Name;
 		}
 
 		/// <summary>

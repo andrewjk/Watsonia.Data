@@ -123,7 +123,7 @@ namespace Watsonia.Data
 			foreach (PropertyInfo property in configuration.PropertiesToMap(tableType))
 			{
 				string columnName = configuration.GetColumnName(property);
-				string defaultValueConstraintName = configuration.GetDefaultValueConstraintName(property);
+				string defaultValueConstraintName = configuration.GetDefaultValueConstraintName(tableName, property);
 
 				var column = new MappedColumn(columnName, property.PropertyType, defaultValueConstraintName);
 				bool addColumn = true;
