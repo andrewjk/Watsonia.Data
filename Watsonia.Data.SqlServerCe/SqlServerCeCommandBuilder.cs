@@ -23,7 +23,7 @@ namespace Watsonia.Data.SqlServerCe
 			TSqlCommandBuilder builder = new TSqlCommandBuilder();
 			builder.VisitStatement(statement, configuration);
 
-			SqlCeCommand command = new SqlCeCommand();
+			var command = new SqlCeCommand();
 			command.CommandText = builder.CommandText.ToString();
 			AddParameters(builder, command);
 			return command;
@@ -33,7 +33,7 @@ namespace Watsonia.Data.SqlServerCe
 		{
 			for (int i = 0; i < builder.ParameterValues.Count; i++)
 			{
-				SqlCeParameter parameter = new SqlCeParameter();
+				var parameter = new SqlCeParameter();
 				parameter.ParameterName = "@" + i;
 				parameter.Value = builder.ParameterValues[i] ?? DBNull.Value;
 				// HACK: Ugh, something's not quite working with SQL Server CE
@@ -73,7 +73,7 @@ namespace Watsonia.Data.SqlServerCe
 
 		public SqlCeCommand BuildCommand(string statement, params object[] parameters)
 		{
-			SqlCeCommand command = new SqlCeCommand();
+			var command = new SqlCeCommand();
 			command.CommandText = statement;
 			AddParameters(command, parameters);
 			return command;
@@ -83,9 +83,34 @@ namespace Watsonia.Data.SqlServerCe
 		{
 			for (int i = 0; i < parameters.Length; i++)
 			{
-				SqlCeParameter parameter = new SqlCeParameter();
+				var parameter = new SqlCeParameter();
 				parameter.ParameterName = "@" + i;
 				parameter.Value = parameters[i] ?? DBNull.Value;
+				// HACK: Have to explicitly set the DbType for SQL Server CE for some reason
+				if (parameter.Value != null)
+				{
+					parameter.SqlDbType = DatabaseTypeFromFramework(parameter.Value.GetType());
+				}
+				command.Parameters.Add(parameter);
+			}
+		}
+
+		public SqlCeCommand BuildProcedureCommand(string procedureName, params ProcedureParameter[] parameters)
+		{
+			var command = new SqlCeCommand();
+			command.CommandType = CommandType.StoredProcedure;
+			command.CommandText = procedureName;
+			AddProcedureParameters(command, parameters);
+			return command;
+		}
+
+		private void AddProcedureParameters(SqlCeCommand command, params ProcedureParameter[] parameters)
+		{
+			for (int i = 0; i < parameters.Length; i++)
+			{
+				var parameter = new SqlCeParameter();
+				parameter.ParameterName = parameters[i].Name;
+				parameter.Value = parameters[i].Value ?? DBNull.Value;
 				// HACK: Have to explicitly set the DbType for SQL Server CE for some reason
 				if (parameter.Value != null)
 				{

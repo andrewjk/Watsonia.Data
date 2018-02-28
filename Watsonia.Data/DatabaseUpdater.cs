@@ -19,8 +19,9 @@ namespace Watsonia.Data
 
 			var tables = new List<MappedTable>();
 			var views = new List<MappedView>();
-			GetMappedTablesAndViews(tables, views, configuration);
-			configuration.DataAccessProvider.UpdateDatabase(tables, views, configuration);
+			var procedures = new List<MappedProcedure>();
+			GetMappedTablesAndViews(tables, views, procedures, configuration);
+			configuration.DataAccessProvider.UpdateDatabase(tables, views, procedures, configuration);
 		}
 
 		public string GetUpdateScript(DatabaseConfiguration configuration)
@@ -32,8 +33,9 @@ namespace Watsonia.Data
 
 			var tables = new List<MappedTable>();
 			var views = new List<MappedView>();
-			GetMappedTablesAndViews(tables, views, configuration);
-			return configuration.DataAccessProvider.GetUpdateScript(tables, views, configuration);
+			var procedures = new List<MappedProcedure>();
+			GetMappedTablesAndViews(tables, views, procedures, configuration);
+			return configuration.DataAccessProvider.GetUpdateScript(tables, views, procedures, configuration);
 		}
 
 		public string GetUnmappedColumns(DatabaseConfiguration configuration)
@@ -45,11 +47,12 @@ namespace Watsonia.Data
 
 			var tables = new List<MappedTable>();
 			var views = new List<MappedView>();
-			GetMappedTablesAndViews(tables, views, configuration);
+			var procedures = new List<MappedProcedure>();
+			GetMappedTablesAndViews(tables, views, procedures, configuration);
 			return configuration.DataAccessProvider.GetUnmappedColumns(tables, views, configuration);
 		}
 
-		private void GetMappedTablesAndViews(List<MappedTable> tables, List<MappedView> views, DatabaseConfiguration configuration)
+		private void GetMappedTablesAndViews(List<MappedTable> tables, List<MappedView> views, List<MappedProcedure> procedures, DatabaseConfiguration configuration)
 		{
 			if (tables == null)
 			{
@@ -59,6 +62,11 @@ namespace Watsonia.Data
 			if (views == null)
 			{
 				throw new ArgumentNullException("views");
+			}
+
+			if (procedures == null)
+			{
+				throw new ArgumentNullException("procedures");
 			}
 
 			if (configuration == null)
@@ -72,6 +80,7 @@ namespace Watsonia.Data
 			var tableDictionary = new Dictionary<string, MappedTable>();
 			var tableRelationships = new Dictionary<string, MappedRelationship>();
 			var viewDictionary = new Dictionary<string, MappedView>();
+			var procedureDictionary = new Dictionary<string, MappedProcedure>();
 			foreach (Type type in configuration.TypesToMap())
 			{
 				if (configuration.IsTable(type))
@@ -81,6 +90,10 @@ namespace Watsonia.Data
 				else if (configuration.IsView(type))
 				{
 					GetMappedView(viewDictionary, type, configuration);
+				}
+				else if (configuration.IsProcedure(type))
+				{
+					GetMappedProcedure(procedureDictionary, type, configuration);
 				}
 			}
 
@@ -107,9 +120,10 @@ namespace Watsonia.Data
 
 			tables.AddRange(tableDictionary.Values);
 			views.AddRange(viewDictionary.Values);
+			procedures.AddRange(procedureDictionary.Values);
 		}
 
-		private void GetMappedTable(Dictionary<string, MappedTable> tableDictionary, Dictionary<string, MappedRelationship> tableRelationships, Type tableType,  DatabaseConfiguration configuration)
+		private void GetMappedTable(Dictionary<string, MappedTable> tableDictionary, Dictionary<string, MappedRelationship> tableRelationships, Type tableType, DatabaseConfiguration configuration)
 		{
 			string tableName = configuration.GetTableName(tableType);
 			string primaryKeyColumnName = configuration.GetPrimaryKeyColumnName(tableType);
@@ -158,7 +172,7 @@ namespace Watsonia.Data
 						enumTable.Columns.Add(new MappedColumn("Text", typeof(string), "DF_" + enumTableName + "_Text") { MaxLength = 255 });
 						foreach (object value in Enum.GetValues(property.PropertyType))
 						{
-							enumTable.Values.Add(new Dictionary<string, object>() { 
+							enumTable.Values.Add(new Dictionary<string, object>() {
 										{ "ID", (int)value },
 										{ "Text", Enum.GetName(property.PropertyType, value) }
 									});
@@ -320,6 +334,53 @@ namespace Watsonia.Data
 			{
 				// Add the view to the dictionary
 				viewDictionary.Add(view.Name, view);
+			}
+		}
+
+		private void GetMappedProcedure(Dictionary<string, MappedProcedure> procedureDictionary, Type procedureType, DatabaseConfiguration configuration)
+		{
+			string procedureName = configuration.GetProcedureName(procedureType);
+
+			var procedure = new MappedProcedure(procedureName);
+
+			PropertyInfo statementProperty = procedureType.GetProperty("Statement", BindingFlags.Public | BindingFlags.Static);
+			if (statementProperty != null)
+			{
+				procedure.Statement = (Statement)statementProperty.GetValue(null);
+			}
+
+			// Get the parameters from the statement property
+			if (procedure.Statement is SelectStatement)
+			{
+				GatherProcedureParameters(procedure.Parameters, ((SelectStatement)procedure.Statement).Conditions);
+			}
+
+			// Add the procedure to the dictionary
+			procedureDictionary.Add(procedure.Name, procedure);
+		}
+
+		private void GatherProcedureParameters(ICollection<MappedProcedureParameter> parameters, ConditionCollection conditions)
+		{
+			foreach (var condition in conditions)
+			{
+				if (condition is ConditionCollection)
+				{
+					GatherProcedureParameters(parameters, (ConditionCollection)condition);
+				}
+				else if (condition is Condition)
+				{
+					GatherProcedureParametersFromCondition(parameters, (Condition)condition);
+				}
+			}
+		}
+
+		private void GatherProcedureParametersFromCondition(ICollection<MappedProcedureParameter> parameters, Condition condition)
+		{
+			if (condition.Value is Sql.ConstantPart &&
+				((Sql.ConstantPart)condition.Value).Value is MappedProcedureParameter)
+			{
+				var parameterValue = ((Sql.ConstantPart)condition.Value).Value;
+				parameters.Add((MappedProcedureParameter)parameterValue);
 			}
 		}
 	}

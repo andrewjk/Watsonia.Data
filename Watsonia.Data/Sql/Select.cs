@@ -165,9 +165,9 @@ namespace Watsonia.Data
 			return select;
 		}
 
-		public static SelectStatement WhereNot(this SelectStatement select, string columnName, SqlOperator op, object value)
+		public static SelectStatement Where(this SelectStatement select, SourceExpression column, SqlOperator op, object value)
 		{
-			select.Conditions.Add(new Condition(columnName, op, value) { Not = true });
+			select.Conditions.Add(new Condition(column, op, value));
 			return select;
 		}
 
@@ -177,9 +177,27 @@ namespace Watsonia.Data
 			return select;
 		}
 
+		public static SelectStatement WhereNot(this SelectStatement select, string columnName, SqlOperator op, object value)
+		{
+			select.Conditions.Add(new Condition(columnName, op, value) { Not = true });
+			return select;
+		}
+
+		public static SelectStatement WhereNot(this SelectStatement select, SourceExpression column, SqlOperator op, object value)
+		{
+			select.Conditions.Add(new Condition(column, op, value) { Not = true });
+			return select;
+		}
+		
 		public static SelectStatement And(this SelectStatement select, string columnName, SqlOperator op, object value)
 		{
 			select.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.And });
+			return select;
+		}
+
+		public static SelectStatement And(this SelectStatement select, SourceExpression column, SqlOperator op, object value)
+		{
+			select.Conditions.Add(new Condition(column, op, value) { Relationship = ConditionRelationship.And });
 			return select;
 		}
 
@@ -199,6 +217,12 @@ namespace Watsonia.Data
 		public static SelectStatement Or(this SelectStatement select, string columnName, SqlOperator op, object value)
 		{
 			select.Conditions.Add(new Condition(columnName, op, value) { Relationship = ConditionRelationship.Or });
+			return select;
+		}
+
+		public static SelectStatement Or(this SelectStatement select, SourceExpression column, SqlOperator op, object value)
+		{
+			select.Conditions.Add(new Condition(column, op, value) { Relationship = ConditionRelationship.Or });
 			return select;
 		}
 

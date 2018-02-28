@@ -33,19 +33,21 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
+		/// <param name="procedures">The stored procedures that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, DatabaseConfiguration configuration);
+		void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Gets the update script for any changes that have been made to tables and columns.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
+		/// <param name="procedures">The stored procedures that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, DatabaseConfiguration configuration);
+		string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Gets columns that exist in the database but are not mapped.
@@ -87,5 +89,13 @@ namespace Watsonia.Data
 		/// A database command that can be used to execute the provided statement.
 		/// </returns>
 		DbCommand BuildCommand(string statement, DatabaseConfiguration configuration, params object[] parameters);
+
+		/// <summary>
+		/// Builds a command to execute a stored procedure against the database.
+		/// </summary>
+		/// <param name="procedureName">The name of the procedure.</param>
+		/// <param name="parameters">Any parameters that need to be passed to the stored procedure.</param>
+		/// <returns></returns>
+		DbCommand BuildProcedureCommand(string procedureName, params ProcedureParameter[] parameters);
 	}
 }

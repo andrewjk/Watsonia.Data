@@ -54,11 +54,12 @@ namespace Watsonia.Data.SqlServerCe
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
+		/// <param name="procedures">The stored procedures that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, DatabaseConfiguration configuration)
+		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerCeDatabaseUpdater(this, configuration);
-			updater.UpdateDatabase(tables, views);
+			updater.UpdateDatabase(tables, views, procedures);
 		}
 
 		/// <summary>
@@ -66,14 +67,15 @@ namespace Watsonia.Data.SqlServerCe
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
+		/// <param name="procedures">The stored procedures that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, DatabaseConfiguration configuration)
+		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerCeDatabaseUpdater(this, configuration);
-			return updater.GetUpdateScript(tables, views);
+			return updater.GetUpdateScript(tables, views, procedures);
 		}
 
 		/// <summary>
@@ -120,10 +122,24 @@ namespace Watsonia.Data.SqlServerCe
 		}
 
 		/// <summary>
+		/// Builds a command to execute a stored procedure against the database.
+		/// </summary>
+		/// <param name="procedureName">The name of the procedure.</param>
+		/// <param name="parameters">Any parameters that need to be passed to the stored procedure.</param>
+		/// <returns></returns>
+		/// <exception cref="NotImplementedException"></exception>
+		public DbCommand BuildProcedureCommand(string procedureName, params ProcedureParameter[] parameters)
+		{
+			var builder = new SqlServerCeCommandBuilder();
+			return builder.BuildProcedureCommand(procedureName, parameters);
+		}
+
+		/// <summary>
 		/// Gets columns that exist in the database but are not mapped.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
+		/// <param name="procedures">The stored procedures that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the unmapped columns.

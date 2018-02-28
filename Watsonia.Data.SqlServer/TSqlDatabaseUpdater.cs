@@ -33,19 +33,19 @@ namespace Watsonia.Data.SqlServer
 			_configuration = configuration;
 		}
 
-		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views)
+		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures)
 		{
-			UpdateDatabase(tables, views, true);
+			UpdateDatabase(tables, views, procedures, true);
 		}
 
-		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views)
+		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures)
 		{
 			StringBuilder script = new StringBuilder();
-			UpdateDatabase(tables, views, false, script);
+			UpdateDatabase(tables, views, procedures, false, script);
 			return script.ToString();
 		}
 
-		protected virtual void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, bool doUpdate, StringBuilder script = null)
+		protected virtual void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, bool doUpdate, StringBuilder script = null)
 		{
 			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
 			{
@@ -53,6 +53,7 @@ namespace Watsonia.Data.SqlServer
 				var existingTables = LoadExistingTables(connection);
 				var existingColumns = LoadExistingColumns(connection);
 				var existingViews = LoadExistingViews(connection);
+				var existingProcedures = LoadExistingProcedures(connection);
 
 				// First pass - create or update tables and columns
 				foreach (MappedTable table in tables)
@@ -116,6 +117,22 @@ namespace Watsonia.Data.SqlServer
 					{
 						// The view doesn't exist so it needs to be created
 						CreateView(view, connection, doUpdate, script);
+					}
+				}
+
+				// Fifth pass - create procedures
+				foreach (MappedProcedure procedure in procedures)
+				{
+					string key = procedure.Name.ToUpperInvariant();
+					if (existingProcedures.ContainsKey(key))
+					{
+						// The procedure exists so we need to check whether it should be updated
+						UpdateProcedure(procedure, existingProcedures[key], connection, doUpdate, script);
+					}
+					else
+					{
+						// The procedure doesn't exist so it needs to be created
+						CreateProcedure(procedure, connection, doUpdate, script);
 					}
 				}
 			}
@@ -206,6 +223,32 @@ namespace Watsonia.Data.SqlServer
 			return existingViews;
 		}
 
+		protected virtual Dictionary<string, MappedProcedure> LoadExistingProcedures(DbConnection connection)
+		{
+			var existingProcedures = new Dictionary<string, MappedProcedure>();
+			if (!this.CompactEdition)
+			{
+				using (var existingProceduresCommand = CreateCommand(connection))
+				{
+					existingProceduresCommand.CommandText = "SELECT ROUTINE_NAME, ROUTINE_DEFINITION FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_TYPE = 'PROCEDURE'";
+					existingProceduresCommand.Connection = connection;
+					using (var reader = existingProceduresCommand.ExecuteReader())
+					{
+						while (reader.Read())
+						{
+							string procedureName = reader.GetString(reader.GetOrdinal("ROUTINE_NAME"));
+							string statementText = reader.GetString(reader.GetOrdinal("ROUTINE_DEFINITION"));
+							MappedProcedure procedure = new MappedProcedure(procedureName);
+							procedure.StatementText = statementText;
+							string key = procedureName.ToUpperInvariant();
+							existingProcedures.Add(key, procedure);
+						}
+					}
+				}
+			}
+			return existingProcedures;
+		}
+
 		protected virtual Type FrameworkTypeFromDatabase(string databaseTypeName, bool allowNulls)
 		{
 			switch (databaseTypeName.ToUpperInvariant())
@@ -288,7 +331,7 @@ namespace Watsonia.Data.SqlServer
 
 		protected virtual void CreateTable(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			b.AppendFormat("CREATE TABLE [{0}] (", table.Name);
 			b.AppendLine();
 			b.Append(string.Join(", ", Array.ConvertAll(table.Columns.ToArray(), c => ColumnText(table, c, true, true))));
@@ -316,7 +359,7 @@ namespace Watsonia.Data.SqlServer
 
 		protected virtual string ColumnText(MappedTable table, MappedColumn column, bool includeDefault, bool includeIdentity)
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			b.AppendFormat("[{0}] ", column.Name);
 			b.Append(ColumnTypeText(column));
 			if (column.Name.Equals(table.PrimaryKeyColumnName, StringComparison.InvariantCultureIgnoreCase))
@@ -356,37 +399,42 @@ namespace Watsonia.Data.SqlServer
 
 		protected virtual string ColumnTypeText(MappedColumn column)
 		{
-			if (column.ColumnType == typeof(bool) || column.ColumnType == typeof(bool?))
+			return ColumnTypeText(column.ColumnType, column.MaxLength);
+		}
+
+		protected virtual string ColumnTypeText(Type columnType, int maxLength)
+		{
+			if (columnType == typeof(bool) || columnType == typeof(bool?))
 			{
 				return "BIT";
 			}
-			else if (column.ColumnType == typeof(DateTime) || column.ColumnType == typeof(DateTime?))
+			else if (columnType == typeof(DateTime) || columnType == typeof(DateTime?))
 			{
 				return "DATETIME";
 			}
-			else if (column.ColumnType == typeof(decimal) || column.ColumnType == typeof(decimal?))
+			else if (columnType == typeof(decimal) || columnType == typeof(decimal?))
 			{
 				return "DECIMAL(19,5)";
 			}
-			else if (column.ColumnType == typeof(double) || column.ColumnType == typeof(double?))
+			else if (columnType == typeof(double) || columnType == typeof(double?))
 			{
 				return "FLOAT";
 			}
-			else if (column.ColumnType == typeof(int) || column.ColumnType == typeof(int?))
+			else if (columnType == typeof(int) || columnType == typeof(int?))
 			{
 				return "INT";
 			}
-			else if (column.ColumnType == typeof(long) || column.ColumnType == typeof(long?))
+			else if (columnType == typeof(long) || columnType == typeof(long?))
 			{
 				return "BIGINT";
 			}
-			else if (column.ColumnType == typeof(byte) || column.ColumnType == typeof(byte?))
+			else if (columnType == typeof(byte) || columnType == typeof(byte?))
 			{
 				return "TINYINT";
 			}
-			else if (column.ColumnType == typeof(string))
+			else if (columnType == typeof(string))
 			{
-				if (column.MaxLength >= 4000)
+				if (maxLength >= 4000)
 				{
 					if (this.CompactEdition)
 					{
@@ -399,12 +447,12 @@ namespace Watsonia.Data.SqlServer
 				}
 				else
 				{
-					return string.Format("NVARCHAR({0})", column.MaxLength);
+					return string.Format("NVARCHAR({0})", maxLength);
 				}
 			}
-			else if (column.ColumnType == typeof(byte[]))
+			else if (columnType == typeof(byte[]))
 			{
-				if (column.MaxLength == 0)
+				if (maxLength == 0)
 				{
 					if (this.CompactEdition)
 					{
@@ -419,16 +467,16 @@ namespace Watsonia.Data.SqlServer
 				}
 				else
 				{
-					return string.Format("VARBINARY({0})", column.MaxLength);
+					return string.Format("VARBINARY({0})", maxLength);
 				}
 			}
-			else if (column.ColumnType == typeof(Guid) || column.ColumnType == typeof(Guid?))
+			else if (columnType == typeof(Guid) || columnType == typeof(Guid?))
 			{
 				return "UNIQUEIDENTIFIER";
 			}
 			else
 			{
-				throw new InvalidOperationException("Invalid column type: " + column.ColumnType);
+				throw new InvalidOperationException("Invalid column type: " + columnType);
 			}
 		}
 
@@ -719,18 +767,10 @@ namespace Watsonia.Data.SqlServer
 				return;
 			}
 
-			StringBuilder b = new StringBuilder();
-			b.AppendFormat("CREATE VIEW [{0}] AS", view.Name);
-			b.AppendLine();
-			using (var viewCommand = _configuration.DataAccessProvider.BuildCommand(view.SelectStatement, _configuration))
-			{
-				var commandText = BuildViewSql(viewCommand);
-				b.Append(commandText);
-			}
-			b.AppendLine();
+			var commandText = BuildViewSql(view);
 			using (var command = CreateCommand(connection))
 			{
-				command.CommandText = b.ToString();
+				command.CommandText = commandText;
 				command.Connection = connection;
 				ExecuteSql(command, doUpdate, script);
 			}
@@ -738,43 +778,123 @@ namespace Watsonia.Data.SqlServer
 
 		protected virtual void UpdateView(MappedView view, MappedView oldView, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
-			StringBuilder b = new StringBuilder();
-			b.AppendFormat("CREATE VIEW [{0}] AS", view.Name);
-			b.AppendLine();
-			using (var viewCommand = _configuration.DataAccessProvider.BuildCommand(view.SelectStatement, _configuration))
-			{
-				var commandText = BuildViewSql(viewCommand);
-				b.Append(commandText);
-			}
-			b.AppendLine();
-			if (oldView.SelectStatementText != b.ToString())
+			var commandText = BuildViewSql(view);
+			if (oldView.SelectStatementText != commandText)
 			{
 				using (var command = CreateCommand(connection))
 				{
-					command.CommandText = b.ToString().Replace("CREATE VIEW", "ALTER VIEW");
+					command.CommandText = commandText.Replace("CREATE VIEW", "ALTER VIEW");
 					command.Connection = connection;
 					ExecuteSql(command, doUpdate, script);
 				}
 			}
 		}
 
-		protected virtual string BuildViewSql(DbCommand viewCommand)
+		protected virtual string BuildViewSql(MappedView view)
 		{
-			// Views can't have parameters, so replace all parameter calls with values
-			var commandText = viewCommand.CommandText;
-			for (int i = 0; i < viewCommand.Parameters.Count; i++)
+			var b = new StringBuilder();
+			b.AppendFormat("CREATE VIEW [{0}] AS", view.Name);
+			b.AppendLine();
+
+			using (var viewCommand = _configuration.DataAccessProvider.BuildCommand(view.SelectStatement, _configuration))
 			{
-				if (viewCommand.Parameters[i].Value is string ||
-					viewCommand.Parameters[i].Value is char)
+				// Views can't have parameters, so replace all parameter calls with values
+				var commandText = viewCommand.CommandText;
+				for (int i = 0; i < viewCommand.Parameters.Count; i++)
 				{
-					commandText = commandText.Replace("@" + i, "'" + viewCommand.Parameters[i].Value.ToString() + "'");
+					if (viewCommand.Parameters[i].Value is string ||
+						viewCommand.Parameters[i].Value is char)
+					{
+						commandText = commandText.Replace("@" + i, "'" + viewCommand.Parameters[i].Value.ToString() + "'");
+					}
+					else
+					{
+						commandText = commandText.Replace("@" + i, viewCommand.Parameters[i].Value.ToString());
+					}
 				}
-				else
+				b.AppendLine(commandText);
+			}
+
+			return b.ToString();
+		}
+
+		protected virtual void CreateProcedure(MappedProcedure procedure, DbConnection connection, bool doUpdate, StringBuilder script)
+		{
+			if (this.CompactEdition)
+			{
+				// No procedures in CE
+				return;
+			}
+
+			var commandText = BuildProcedureSql(procedure);
+			using (var command = CreateCommand(connection))
+			{
+				command.CommandText = commandText;
+				command.Connection = connection;
+				ExecuteSql(command, doUpdate, script);
+			}
+		}
+
+		protected virtual void UpdateProcedure(MappedProcedure procedure, MappedProcedure oldProcedure, DbConnection connection, bool doUpdate, StringBuilder script)
+		{
+			var commandText = BuildProcedureSql(procedure);
+			if (oldProcedure.StatementText != commandText)
+			{
+				using (var command = CreateCommand(connection))
 				{
-					commandText = commandText.Replace("@" + i, viewCommand.Parameters[i].Value.ToString());
+					command.CommandText = commandText.Replace("CREATE PROCEDURE", "ALTER PROCEDURE");
+					command.Connection = connection;
+					ExecuteSql(command, doUpdate, script);
 				}
 			}
-			return commandText;
+		}
+
+		protected virtual string BuildProcedureSql(MappedProcedure procedure)
+		{
+			var b = new StringBuilder();
+			b.AppendFormat("CREATE PROCEDURE [{0}]", procedure.Name);
+			b.AppendLine();
+			for (int i = 0; i < procedure.Parameters.Count; i++)
+			{
+				var parameter = procedure.Parameters[i];
+				b.AppendFormat("{0} {1}", procedure.Parameters[i].Name, ColumnTypeText(parameter.ParameterType, parameter.MaxLength));
+				if (i < procedure.Parameters.Count - 1)
+				{
+					b.Append(",");
+				}
+				b.AppendLine();
+			}
+			b.AppendLine("AS");
+			b.AppendLine("BEGIN");
+			b.AppendLine("SET NOCOUNT ON;");
+			b.AppendLine();
+			using (var procedureCommand = _configuration.DataAccessProvider.BuildCommand(procedure.Statement, _configuration))
+			{
+				// Procedures can't have parameters, so replace all parameter calls with values
+				var commandText = procedureCommand.CommandText;
+				for (int i = 0; i < procedureCommand.Parameters.Count; i++)
+				{
+					if (procedureCommand.Parameters[i].Value is MappedProcedureParameter)
+					{
+						var parameter = (MappedProcedureParameter)procedureCommand.Parameters[i].Value;
+						commandText = commandText.Replace("@" + i, parameter.Name);
+					}
+					else if (procedureCommand.Parameters[i].Value is string ||
+						procedureCommand.Parameters[i].Value is char)
+					{
+						commandText = commandText.Replace("@" + i, "'" + procedureCommand.Parameters[i].Value.ToString() + "'");
+					}
+					else
+					{
+						commandText = commandText.Replace("@" + i, procedureCommand.Parameters[i].Value.ToString());
+					}
+				}
+				b.AppendLine(commandText);
+			}
+			b.AppendLine();
+			b.AppendLine("END");
+
+			return b.ToString();
 		}
 
 		protected virtual void ExecuteSql(DbCommand command, bool doUpdate, StringBuilder script)

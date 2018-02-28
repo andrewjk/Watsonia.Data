@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
@@ -21,7 +22,7 @@ namespace Watsonia.Data.SqlServer
 			TSqlCommandBuilder builder = new TSqlCommandBuilder();
 			builder.VisitStatement(statement, configuration);
 
-			SqlCommand command = new SqlCommand();
+			var command = new SqlCommand();
 			command.CommandText = builder.CommandText.ToString();
 			AddParameters(builder, command);
 			return command;
@@ -31,7 +32,7 @@ namespace Watsonia.Data.SqlServer
 		{
 			for (int i = 0; i < builder.ParameterValues.Count; i++)
 			{
-				SqlParameter parameter = new SqlParameter();
+				var parameter = new SqlParameter();
 				parameter.ParameterName = "@" + i;
 				parameter.Value = builder.ParameterValues[i] ?? DBNull.Value;
 				command.Parameters.Add(parameter);
@@ -40,7 +41,7 @@ namespace Watsonia.Data.SqlServer
 
 		public SqlCommand BuildCommand(string statement, params object[] parameters)
 		{
-			SqlCommand command = new SqlCommand();
+			var command = new SqlCommand();
 			command.CommandText = statement;
 			AddParameters(command, parameters);
 			return command;
@@ -50,9 +51,29 @@ namespace Watsonia.Data.SqlServer
 		{
 			for (int i = 0; i < parameters.Length; i++)
 			{
-				SqlParameter parameter = new SqlParameter();
+				var parameter = new SqlParameter();
 				parameter.ParameterName = "@" + i;
 				parameter.Value = parameters[i] ?? DBNull.Value;
+				command.Parameters.Add(parameter);
+			}
+		}
+
+		public SqlCommand BuildProcedureCommand(string procedureName, params ProcedureParameter[] parameters)
+		{
+			var command = new SqlCommand();
+			command.CommandType = System.Data.CommandType.StoredProcedure;
+			command.CommandText = procedureName;
+			AddProcedureParameters(command, parameters);
+			return command;
+		}
+
+		private void AddProcedureParameters(SqlCommand command, params ProcedureParameter[] parameters)
+		{
+			for (int i = 0; i < parameters.Length; i++)
+			{
+				var parameter = new SqlParameter();
+				parameter.ParameterName = parameters[i].Name;
+				parameter.Value = parameters[i].Value ?? DBNull.Value;
 				command.Parameters.Add(parameter);
 			}
 		}

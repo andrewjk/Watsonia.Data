@@ -1409,6 +1409,28 @@ namespace Watsonia.Data
 			}
 		}
 
+		/// <summary>
+		/// Executes a stored procedure against the database.
+		/// </summary>
+		/// <param name="procedureName">The name of the stored procedure.</param>
+		/// <param name="parameters">Any parameters that need to be passed to the stored procedure.</param>
+		/// <returns>Any value returned by the stored procedure.</returns>
+		public object ExecuteProcedure(string procedureName, params ProcedureParameter[] parameters)
+		{
+			object value;
+
+			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (DbCommand command = this.Configuration.DataAccessProvider.BuildProcedureCommand(procedureName, parameters))
+			{
+				command.Connection = connection;
+				OnBeforeExecuteCommand(command);
+				value = command.ExecuteScalar();
+				OnAfterExecuteCommand(command);
+			}
+
+			return value;
+		}
+
 		private void LoadValues(object source, IDynamicProxy destination)
 		{
 			if (!destination.IsNew)

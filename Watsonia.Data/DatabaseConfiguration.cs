@@ -75,6 +75,19 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Gets the name of the procedure for the supplied type.
+		/// </summary>
+		/// <remarks>
+		/// For a Book item, this would return "Book" by default but might be overridden to return "Books" or something different.
+		/// </remarks>
+		/// <param name="type">The type.</param>
+		/// <returns></returns>
+		public virtual string GetProcedureName(Type type)
+		{
+			return type.Name.Replace("Procedure", "");
+		}
+
+		/// <summary>
 		/// Gets the name of the column for the supplied property.
 		/// </summary>
 		/// <param name="property">The property.</param>
@@ -210,7 +223,8 @@ namespace Watsonia.Data
 		/// </returns>
 		public bool IsTable(Type type)
 		{
-			return !type.Name.EndsWith("View");
+			return !type.Name.EndsWith("View") &&
+				!type.Name.EndsWith("Procedure");
 		}
 		
 		/// <summary>
@@ -223,6 +237,18 @@ namespace Watsonia.Data
 		public bool IsView(Type type)
 		{
 			return type.Name.EndsWith("View");
+		}
+
+		/// <summary>
+		/// Determines whether the supplied type is a stored procedure.
+		/// </summary>
+		/// <param name="type">The type.</param>
+		/// <returns>
+		///   <c>true</c> if the supplied type is a stored procedure; otherwise, <c>false</c>.
+		/// </returns>
+		public bool IsProcedure(Type type)
+		{
+			return type.Name.EndsWith("Procedure");
 		}
 
 		/// <summary>
