@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.SqlClient;
@@ -332,12 +332,12 @@ namespace Watsonia.Data.SqlServer
 		protected virtual void CreateTable(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var b = new StringBuilder();
-			b.AppendFormat("CREATE TABLE [{0}] (", table.Name);
-			b.AppendLine();
+			b.AppendLine($"CREATE TABLE [{table.Name}] (");
 			b.Append(string.Join(", ", Array.ConvertAll(table.Columns.ToArray(), c => ColumnText(table, c, true, true))));
 			b.AppendLine(",");
-			b.AppendFormat("CONSTRAINT [{0}] PRIMARY KEY {1} ([{2}]{3})", table.PrimaryKeyConstraintName, (this.CompactEdition ? "" : "CLUSTERED"), table.PrimaryKeyColumnName, (this.CompactEdition ? "" : " ASC"));
-			b.AppendLine();
+			string maybeClustered = (this.CompactEdition ? "" : "CLUSTERED");
+			string direction = (this.CompactEdition ? "" : " ASC");
+			b.AppendLine($"CONSTRAINT [{table.PrimaryKeyConstraintName}] PRIMARY KEY {maybeClustered} ([{table.PrimaryKeyColumnName}]{direction})");
 			b.Append(")");
 			using (var command = CreateCommand(connection))
 			{
@@ -351,7 +351,7 @@ namespace Watsonia.Data.SqlServer
 		{
 			using (var command = CreateCommand(connection))
 			{
-				command.CommandText = string.Format("ALTER TABLE [{0}] ADD {1}", table.Name, ColumnText(table, column, true, true));
+				command.CommandText = $"ALTER TABLE [{table.Name}] ADD {ColumnText(table, column, true, true)}";
 				command.Connection = connection;
 				ExecuteSql(command, doUpdate, script);
 			}
@@ -360,8 +360,7 @@ namespace Watsonia.Data.SqlServer
 		protected virtual string ColumnText(MappedTable table, MappedColumn column, bool includeDefault, bool includeIdentity)
 		{
 			var b = new StringBuilder();
-			b.AppendFormat("[{0}] ", column.Name);
-			b.Append(ColumnTypeText(column));
+			b.Append($"[{column.Name}] {ColumnTypeText(column)}");
 			if (column.Name.Equals(table.PrimaryKeyColumnName, StringComparison.InvariantCultureIgnoreCase))
 			{
 				if (includeIdentity)
@@ -447,7 +446,7 @@ namespace Watsonia.Data.SqlServer
 				}
 				else
 				{
-					return string.Format("NVARCHAR({0})", maxLength);
+					return $"NVARCHAR({maxLength})";
 				}
 			}
 			else if (columnType == typeof(byte[]))
@@ -467,7 +466,7 @@ namespace Watsonia.Data.SqlServer
 				}
 				else
 				{
-					return string.Format("VARBINARY({0})", maxLength);
+					return $"VARBINARY({maxLength})";
 				}
 			}
 			else if (columnType == typeof(Guid) || columnType == typeof(Guid?))
@@ -489,7 +488,7 @@ namespace Watsonia.Data.SqlServer
 			}
 			else if (column.ColumnType == typeof(DateTime) || column.ColumnType == typeof(DateTime?))
 			{
-				return column.DefaultValue != null ? string.Format("'{0:d-MMM-yyyy}'", (DateTime)column.DefaultValue) : "'1-JAN-1753'";
+				return column.DefaultValue != null ? $"'{(DateTime)column.DefaultValue:d-MMM-yyyy}'" : "'1-JAN-1753'";
 			}
 			else if (column.ColumnType == typeof(decimal) || column.ColumnType == typeof(decimal?))
 			{
@@ -517,7 +516,7 @@ namespace Watsonia.Data.SqlServer
 			}
 			else if (column.ColumnType == typeof(Guid))
 			{
-				return column.DefaultValue != null ? string.Format("'{0:D}'", column.DefaultValue) : "'00000000-0000-0000-0000-000000000000'";
+				return column.DefaultValue != null ? $"'{column.DefaultValue:D}'" : "'00000000-0000-0000-0000-000000000000'";
 			}
 			else
 			{
@@ -529,9 +528,11 @@ namespace Watsonia.Data.SqlServer
 		{
 			using (var command = CreateCommand(connection))
 			{
-				command.CommandText = string.Format(
-					"ALTER TABLE [{0}] {1} ADD CONSTRAINT [{2}] FOREIGN KEY ([{3}]) REFERENCES [{4}] ({5})",
-					table.Name, (this.CompactEdition ? "" : "WITH CHECK"), column.Relationship.ConstraintName, column.Name, column.Relationship.ForeignTableName, column.Relationship.ForeignTableColumnName);
+				string maybeCheck = (this.CompactEdition ? "" : "WITH CHECK");
+				string constraintName = column.Relationship.ConstraintName;
+				string foreignTableName = column.Relationship.ForeignTableName;
+				string foreignTableColumnName = column.Relationship.ForeignTableColumnName;
+				command.CommandText = $"ALTER TABLE [{table.Name}] {maybeCheck} ADD CONSTRAINT [{constraintName}] FOREIGN KEY ([{column.Name}]) REFERENCES [{foreignTableName}] ({foreignTableColumnName})";
 				command.Connection = connection;
 				ExecuteSql(command, doUpdate, script);
 			}
@@ -545,9 +546,7 @@ namespace Watsonia.Data.SqlServer
 				// values with the default value
 				using (var command = CreateCommand(connection))
 				{
-					command.CommandText = string.Format(
-						"UPDATE [{0}] SET {1} = {2} WHERE {3} IS NULL",
-						table.Name, column.Name, ColumnDefaultText(column), column.Name);
+					command.CommandText = $"UPDATE [{table.Name}] SET {column.Name} = {ColumnDefaultText(column)} WHERE {column.Name} IS NULL";
 					command.Connection = connection;
 					ExecuteSql(command, doUpdate, script);
 				}
@@ -574,20 +573,20 @@ namespace Watsonia.Data.SqlServer
 					}
 
 					// Update the column
-					command.CommandText = string.Format("ALTER TABLE [{0}] ALTER COLUMN {1}", table.Name, ColumnText(table, column, false, false));
+					command.CommandText = $"ALTER TABLE [{table.Name}] ALTER COLUMN {ColumnText(table, column, false, false)}";
 					ExecuteSql(command, doUpdate, script);
 
 					// If the column is the primary key, add that constraint back now
 					if (column.IsPrimaryKey)
 					{
-						command.CommandText = string.Format("ALTER TABLE [{0}] ADD CONSTRAINT [{1}] PRIMARY KEY {2} ([{3}]{4})", table.Name, table.PrimaryKeyConstraintName, (this.CompactEdition ? "" : "CLUSTERED"), table.PrimaryKeyColumnName, (this.CompactEdition ? "" : " ASC"));
+						command.CommandText = $"ALTER TABLE [{table.Name}] ADD CONSTRAINT [{table.PrimaryKeyConstraintName}] PRIMARY KEY {((this.CompactEdition ? "" : "CLUSTERED"))} ([{table.PrimaryKeyColumnName}]{((this.CompactEdition ? "" : " ASC"))})";
 						ExecuteSql(command, doUpdate, script);
 					}
 
 					// If the column has a default value, add that constraint back now
 					if (column.DefaultValue != null)
 					{
-						command.CommandText = string.Format("ALTER TABLE [{0}] ADD CONSTRAINT [{1}] DEFAULT {2} FOR [{3}]", table.Name, column.DefaultValueConstraintName, ColumnDefaultText(column), column.Name);
+						command.CommandText = $"ALTER TABLE [{table.Name}] ADD CONSTRAINT [{column.DefaultValueConstraintName}] DEFAULT {ColumnDefaultText(column)} FOR [{column.Name}]";
 						ExecuteSql(command, doUpdate, script);
 					}
 				}
@@ -612,7 +611,7 @@ namespace Watsonia.Data.SqlServer
 			// Get foreign key constraints on this column or that reference this column
 			using (var command = CreateCommand(connection))
 			{
-				command.CommandText = string.Format("" +
+				command.CommandText = "" +
 					"SELECT FK.TABLE_NAME, C.CONSTRAINT_NAME " +
 					"FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS C " +
 					"INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS FK ON C.CONSTRAINT_NAME = FK.CONSTRAINT_NAME " +
@@ -625,17 +624,16 @@ namespace Watsonia.Data.SqlServer
 					"            WHERE i1.CONSTRAINT_TYPE = 'PRIMARY KEY' " +
 					"           ) PT " +
 					"    ON PT.TABLE_NAME = PK.TABLE_NAME " +
-					"WHERE (PK.TABLE_NAME = '{0}' AND PT.COLUMN_NAME = '{1}') " +
-					"	OR (FK.TABLE_NAME = '{0}' AND CU.COLUMN_NAME = '{1}')", table.Name, column.Name);
+					$"WHERE (PK.TABLE_NAME = '{table.Name}' AND PT.COLUMN_NAME = '{column.Name}') " +
+					$"	OR (FK.TABLE_NAME = '{table.Name}' AND CU.COLUMN_NAME = '{column.Name}')";
 				command.Connection = connection;
 				using (var reader = command.ExecuteReader())
 				{
 					while (reader.Read())
 					{
-						constraints.Add(string.Format(
-							"ALTER TABLE [{0}] DROP CONSTRAINT [{1}];",
-							reader.GetString(reader.GetOrdinal("TABLE_NAME")),
-							reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"))));
+						string tableName = reader.GetString(reader.GetOrdinal("TABLE_NAME"));
+						string constraintName = reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"));
+						constraints.Add($"ALTER TABLE [{tableName}] DROP CONSTRAINT [{constraintName}];");
 					}
 				}
 			}
@@ -650,21 +648,19 @@ namespace Watsonia.Data.SqlServer
 			// Get primary key constraints for this column
 			using (var command = CreateCommand(connection))
 			{
-				command.CommandText = string.Format("" +
+				command.CommandText = "" +
 					"SELECT C.CONSTRAINT_NAME " +
 					"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS C " +
 					"	INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU ON C.CONSTRAINT_NAME = CU.CONSTRAINT_NAME " +
 					"WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' " +
-					"	AND C.TABLE_NAME = '{0}' AND CU.COLUMN_NAME = '{1}' ", table.Name, column.Name);
+					$"	AND C.TABLE_NAME = '{table.Name}' AND CU.COLUMN_NAME = '{column.Name}' ";
 				command.Connection = connection;
 				using (var reader = command.ExecuteReader())
 				{
 					while (reader.Read())
 					{
-						constraints.Add(string.Format(
-							"ALTER TABLE [{0}] DROP CONSTRAINT [{1}];",
-							table.Name,
-							reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"))));
+						string constraintName = reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"));
+						constraints.Add($"ALTER TABLE [{table.Name}] DROP CONSTRAINT [{constraintName}];");
 					}
 				}
 			}
@@ -685,21 +681,19 @@ namespace Watsonia.Data.SqlServer
 			// Get default value constraints for this column
 			using (var command = CreateCommand(connection))
 			{
-				command.CommandText = string.Format("" +
+				command.CommandText = "" +
 					"SELECT c.name " +
 					"FROM sys.all_columns a " +
 					"	INNER JOIN sys.tables b on a.object_id = b.object_id " +
 					"	INNER JOIN sys.default_constraints c on a.default_object_id = c.object_id " +
-					"WHERE b.name = '{0}' AND a.name = '{1}' ", table.Name, column.Name);
+					$"WHERE b.name = '{table.Name}' AND a.name = '{column.Name}' ";
 				command.Connection = connection;
 				using (var reader = command.ExecuteReader())
 				{
 					while (reader.Read())
 					{
-						constraints.Add(string.Format(
-							"ALTER TABLE [{0}] DROP CONSTRAINT [{1}];",
-							table.Name,
-							reader.GetString(reader.GetOrdinal("name"))));
+						string constraintName = reader.GetString(reader.GetOrdinal("name"));
+						constraints.Add($"ALTER TABLE [{table.Name}] DROP CONSTRAINT [{constraintName}];");
 					}
 				}
 			}
@@ -793,8 +787,7 @@ namespace Watsonia.Data.SqlServer
 		protected virtual string BuildViewSql(MappedView view)
 		{
 			var b = new StringBuilder();
-			b.AppendFormat("CREATE VIEW [{0}] AS", view.Name);
-			b.AppendLine();
+			b.AppendLine($"CREATE VIEW [{view.Name}] AS");
 
 			using (var viewCommand = _configuration.DataAccessProvider.BuildCommand(view.SelectStatement, _configuration))
 			{
@@ -852,12 +845,12 @@ namespace Watsonia.Data.SqlServer
 		protected virtual string BuildProcedureSql(MappedProcedure procedure)
 		{
 			var b = new StringBuilder();
-			b.AppendFormat("CREATE PROCEDURE [{0}]", procedure.Name);
-			b.AppendLine();
+			b.AppendLine($"CREATE PROCEDURE [{procedure.Name}]");
 			for (int i = 0; i < procedure.Parameters.Count; i++)
 			{
 				var parameter = procedure.Parameters[i];
-				b.AppendFormat("{0} {1}", procedure.Parameters[i].Name, ColumnTypeText(parameter.ParameterType, parameter.MaxLength));
+				string parameterText = ColumnTypeText(parameter.ParameterType, parameter.MaxLength);
+				b.Append($"{parameter.Name} {parameterText}");
 				if (i < procedure.Parameters.Count - 1)
 				{
 					b.Append(",");

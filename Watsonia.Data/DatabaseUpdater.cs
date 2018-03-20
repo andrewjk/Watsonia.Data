@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -218,7 +218,7 @@ namespace Watsonia.Data
 					{
 						// It's a collection property referencing another table so add it to the table relationships
 						// collection for wiring up when we have all tables
-						string key = string.Format("{0}.{1}", configuration.GetTableName(itemType), configuration.GetForeignKeyColumnName(itemType, tableType));
+						string key = $"{configuration.GetTableName(itemType)}.{configuration.GetForeignKeyColumnName(itemType, tableType)}";
 						tableRelationships.Add(key,
 							new MappedRelationship(
 								configuration.GetForeignKeyConstraintName(itemType, tableType),

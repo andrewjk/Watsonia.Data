@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -168,7 +168,7 @@ namespace Watsonia.Data
 			if (c == null || c.IsPrivate)
 			{
 				throw new InvalidOperationException(
-					string.Format("An accessible empty constructor was not found on type {0}", parentType.FullName));
+					$"An accessible empty constructor was not found on type {parentType.FullName}");
 			}
 
 			ConstructorBuilder constructor = type.DefineConstructor(
@@ -362,7 +362,7 @@ namespace Watsonia.Data
 					// Not much we can do here, we just have to silently ignore the troublesome default value
 					// We don't want to throw an exception because then users would have to remove the default value attribute
 					// to get things to work
-					System.Diagnostics.Trace.WriteLine(string.Format("Unsupported default value type for {0}: {1}", propertyName, propertyType));
+					System.Diagnostics.Trace.WriteLine($"Unsupported default value type for {propertyName}: {propertyType}");
 				}
 
 				gen.MarkLabel(endIfShouldSetDefaultValueLabel);
@@ -527,7 +527,7 @@ namespace Watsonia.Data
 				if (isNewProperty.PropertyType != typeof(bool))
 				{
 					throw new InvalidOperationException(
-						string.Format("The IsNew property on {0} must be of type {1}", parentType.FullName, typeof(bool).FullName));
+						$"The IsNew property on {parentType.FullName} must be of type {typeof(bool).FullName}");
 				}
 				CreateOverriddenProperty(type, isNewProperty, members, database);
 			}
@@ -543,7 +543,7 @@ namespace Watsonia.Data
 				if (hasChangesProperty.PropertyType != typeof(bool))
 				{
 					throw new InvalidOperationException(
-						string.Format("The HasChanges property on {0} must be of type {1}", parentType.FullName, typeof(bool).FullName));
+						$"The HasChanges property on {parentType.FullName} must be of type {typeof(bool).FullName}");
 				}
 				CreateOverriddenProperty(type, hasChangesProperty, members, database);
 			}
@@ -559,7 +559,7 @@ namespace Watsonia.Data
 				if (isValidProperty.PropertyType != typeof(bool))
 				{
 					throw new InvalidOperationException(
-						string.Format("The IsValid property on {0} must be of type {1}", parentType.FullName, typeof(bool).FullName));
+						$"The IsValid property on {parentType.FullName} must be of type {typeof(bool).FullName}");
 				}
 			}
 			CreateIsValidProperty(type, members);
@@ -571,7 +571,7 @@ namespace Watsonia.Data
 				if (validationErrorsProperty.PropertyType != typeof(IList<ValidationError>))
 				{
 					throw new InvalidOperationException(
-						string.Format("The ValidationErrors property on {0} must be of type {1}", parentType.FullName, "IList<ValidationError>"));
+						$"The ValidationErrors property on {parentType.FullName} must be of type {"IList<ValidationError>"}");
 				}
 			}
 			CreateValidationErrorsProperty(type, members);
@@ -629,7 +629,7 @@ namespace Watsonia.Data
 				if (property.PropertyType != members.PrimaryKeyColumnType)
 				{
 					throw new InvalidOperationException(
-						string.Format("The {0} property on {1} must be of type {2}", members.PrimaryKeyColumnName, property.DeclaringType.FullName, members.PrimaryKeyColumnType.FullName));
+						$"The {members.PrimaryKeyColumnName} property on {property.DeclaringType.FullName} must be of type {members.PrimaryKeyColumnType.FullName}");
 				}
 
 				members.GetPrimaryKeyMethod = getMethod;

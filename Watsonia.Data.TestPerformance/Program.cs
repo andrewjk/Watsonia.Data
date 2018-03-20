@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -142,33 +142,18 @@ namespace Watsonia.Data.TestPerformance
 				var orderedResults = group.OrderBy(x => x.Number);
 				foreach (var orderResult in orderedResults)
 				{
-					lines.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}", 
-						orderResult.Number,
-						orderResult.AllPostsMilliseconds,
-						orderResult.PlayerByIDMilliseconds,
-						orderResult.PlayersForTeamMilliseconds,
-						orderResult.TeamsForSportMilliseconds));
+					lines.Add($"{orderResult.Number}\t{orderResult.AllPostsMilliseconds}\t{orderResult.PlayerByIDMilliseconds}\t{orderResult.PlayersForTeamMilliseconds}\t{orderResult.TeamsForSportMilliseconds}");
 				}
 				double averageAllPosts = group.Average(x => x.AllPostsMilliseconds);
 				double averagePlayerByID = group.Average(x => x.PlayerByIDMilliseconds);
 				double averagePlayersForTeam = group.Average(x => x.PlayersForTeamMilliseconds);
 				double averageTeamsForSport = group.Average(x => x.TeamsForSportMilliseconds);
-				lines.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}",
-					"Avg",
-					averageAllPosts,
-					averagePlayerByID,
-					averagePlayersForTeam,
-					averageTeamsForSport));
+				lines.Add($"{"Avg"}\t{averageAllPosts}\t{averagePlayerByID}\t{averagePlayersForTeam}\t{averageTeamsForSport}");
 				baselineAllPosts = baselineAllPosts == 0 ? averageAllPosts : baselineAllPosts;
 				baselinePlayerByID = baselinePlayerByID == 0 ? averagePlayerByID : baselinePlayerByID;
 				baselinePlayersForTeam = baselinePlayersForTeam == 0 ? averagePlayersForTeam : baselinePlayersForTeam;
 				baselineTeamsForSport = baselineTeamsForSport == 0 ? averageTeamsForSport : baselineTeamsForSport;
-				lines.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}",
-					"%",
-					(averageAllPosts / baselineAllPosts).ToString("p"),
-					(averagePlayerByID / baselinePlayerByID).ToString("p"),
-					(averagePlayersForTeam / baselinePlayersForTeam).ToString("p"),
-					(averageTeamsForSport / baselineTeamsForSport).ToString("p")));
+				lines.Add($"{"%"}\t{(averageAllPosts / baselineAllPosts).ToString("p")}\t{(averagePlayerByID / baselinePlayerByID).ToString("p")}\t{(averagePlayersForTeam / baselinePlayersForTeam).ToString("p")}\t{(averageTeamsForSport / baselineTeamsForSport).ToString("p")}");
 			}
 
 			foreach (string line in lines)
@@ -176,7 +161,7 @@ namespace Watsonia.Data.TestPerformance
 				Console.WriteLine(line);
 			}
 
-			var logFile = string.Format(@"Data\Log {0:yyyy-MM-dd-HH-mm-ss}.txt", DateTime.Now);
+			var logFile = $@"Data\Log {DateTime.Now:yyyy-MM-dd-HH-mm-ss}.txt";
 			using (var writer = new StreamWriter(logFile))
 			{
 				foreach (string line in lines)

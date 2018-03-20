@@ -1,4 +1,4 @@
-﻿using Remotion.Linq;
+using Remotion.Linq;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Parsing;
@@ -116,7 +116,7 @@ namespace Watsonia.Data
                     var databaseQueryItem = databaseQueryGeneric.Invoke(this.Database, null);
 
                     // Build the item name based on what's come before
-                    string itemName = string.Format("j_" + _newJoinNumber++);
+                    string itemName = $"j_" + _newJoinNumber++;
 
                     // Build the join sequences and keys
                     Expression innerSequence = Expression.Constant(databaseQueryItem);

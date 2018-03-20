@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -21,7 +21,7 @@ namespace Watsonia.Data.Reference
 		{
 			get
 			{
-				return string.Format("{0} {1}", this.FirstName, this.LastName);
+				return $"{this.FirstName} {this.LastName}";
 			}
 		}
 

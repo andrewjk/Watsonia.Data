@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -17,7 +17,7 @@ namespace Watsonia.Data.Tests.Cache
 		{
 			get
 			{
-				return string.Format("{0} {1}", this.FirstName, this.LastName);
+				return $"{this.FirstName} {this.LastName}";
 			}
 		}
 

@@ -1,4 +1,4 @@
-﻿using Remotion.Linq;
+using Remotion.Linq;
 using Remotion.Linq.Parsing.Structure;
 using System;
 using System.Collections;
@@ -299,7 +299,7 @@ namespace Watsonia.Data
 						}
 						else if (throwIfNotFound)
 						{
-							throw new ItemNotFoundException(string.Format("The {0} with ID {1} was not found in the database", typeof(T).Name, id), id);
+							throw new ItemNotFoundException($"The {typeof(T).Name} with ID {id} was not found in the database", id);
 						}
 					}
 					OnAfterExecuteCommand(command);
@@ -324,7 +324,7 @@ namespace Watsonia.Data
 		{
 			if ((item as IDynamicProxy) == null)
 			{
-				string message = string.Format("item must be an IDynamicProxy (not {0})", item.GetType().Name);
+				string message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
 				throw new ArgumentException(message, "item");
 			}
 
@@ -921,7 +921,7 @@ namespace Watsonia.Data
 		{
 			if ((item as IDynamicProxy) == null)
 			{
-				string message = string.Format("item must be an IDynamicProxy (not {0})", item.GetType().Name);
+				string message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
 				throw new ArgumentException(message, "item");
 			}
 
@@ -932,7 +932,7 @@ namespace Watsonia.Data
 			if (!proxy.IsValid)
 			{
 				var ex = new ValidationException(
-					string.Format("Validation failed for {0}: {1}", item.GetType().BaseType.Name, item.ToString()));
+					$"Validation failed for {item.GetType().BaseType.Name}: {item.ToString()}");
 				ex.ValidationErrors.AddRange(proxy.ValidationErrors);
 				throw ex;
 			}
@@ -1007,7 +1007,7 @@ namespace Watsonia.Data
 					}
 					else if (relatedItem.IsNew)
 					{
-						string message = string.Format("The related item '{0}.{1}' must be saved before the parent '{0}'.", tableType.Name, propertyName);
+						string message = $"The related item '{tableType.Name}.{propertyName}' must be saved before the parent '{tableType.Name}'.";
 						throw new InvalidOperationException(message);
 					}
 				}
@@ -1169,7 +1169,7 @@ namespace Watsonia.Data
 		{
 			if ((item as IDynamicProxy) == null)
 			{
-				string message = string.Format("item must be an IDynamicProxy (not {0})", item.GetType().Name);
+				string message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
 				throw new ArgumentException(message, "item");
 			}
 
@@ -1241,7 +1241,7 @@ namespace Watsonia.Data
 		{
 			if ((item as IDynamicProxy) == null)
 			{
-				string message = string.Format("item must be an IDynamicProxy (not {0})", item.GetType().Name);
+				string message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
 				throw new ArgumentException(message, "item");
 			}
 

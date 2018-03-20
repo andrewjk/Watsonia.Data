@@ -1,4 +1,4 @@
-﻿using Remotion.Linq;
+using Remotion.Linq;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Parsing;
 using System;
@@ -469,7 +469,7 @@ namespace Watsonia.Data
 				return expression;
 			}
 
-			throw new NotSupportedException(string.Format("The member access '{0}' is not supported", expression.Member));
+			throw new NotSupportedException($"The member access '{expression.Member}' is not supported");
 		}
 
 		protected override Expression VisitMethodCall(MethodCallExpression expression)
@@ -1157,7 +1157,7 @@ namespace Watsonia.Data
 				}
 				default:
 				{
-					throw new NotSupportedException(string.Format("The unary operator '{0}' is not supported", expression.NodeType));
+					throw new NotSupportedException($"The unary operator '{expression.NodeType}' is not supported");
 				}
 			}
 		}

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 
 namespace Watsonia.Data.Sql
@@ -26,7 +26,7 @@ namespace Watsonia.Data.Sql
 
 		public override string ToString()
 		{
-			return string.Format("DateAdd({0}, {1}, {2})", this.DatePart, this.Argument, this.Number);
+			return $"DateAdd({this.DatePart}, {this.Argument}, {this.Number})";
 		}
 	}
 }

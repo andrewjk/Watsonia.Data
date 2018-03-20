@@ -1,4 +1,4 @@
-﻿using Remotion.Linq;
+using Remotion.Linq;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.ResultOperators;
 using Remotion.Linq.Parsing.Structure;
@@ -125,7 +125,7 @@ namespace Watsonia.Data
 				}
 				default:
 				{
-					throw new InvalidOperationException(string.Format("Invalid ordering direction: {0}", ordering.OrderingDirection));
+					throw new InvalidOperationException($"Invalid ordering direction: {ordering.OrderingDirection}");
 				}
 			}
 

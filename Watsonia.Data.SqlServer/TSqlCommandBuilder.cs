@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -1246,7 +1246,7 @@ namespace Watsonia.Data.SqlServer
 				}
 				default:
 				{
-					throw new Exception(string.Format("Unknown aggregate type: {0}", aggregateType));
+					throw new Exception($"Unknown aggregate type: {aggregateType}");
 				}
 			}
 		}

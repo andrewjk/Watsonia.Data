@@ -1,4 +1,4 @@
-﻿
+
 namespace Watsonia.Data
 {
 	/// <summary>
@@ -70,7 +70,7 @@ namespace Watsonia.Data
 		/// </returns>
 		public override string ToString()
 		{
-			return string.Format("{0}.{1}: {2} ({3})", this.ItemName, this.PropertyName, this.ErrorName, this.ErrorMessage);
+			return $"{this.ItemName}.{this.PropertyName}: {this.ErrorName} ({this.ErrorMessage})";
 		}
 	}
 }
