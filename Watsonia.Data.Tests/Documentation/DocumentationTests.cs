@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Watsonia.Data.SqlServerCe;
+using Watsonia.Data.SqlServer;
 
 namespace Watsonia.Data.Tests.Documentation
 {
@@ -19,9 +19,9 @@ namespace Watsonia.Data.Tests.Documentation
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
 		{
-			if (!File.Exists(@"Data\DocumentationTests.sdf"))
+			if (!File.Exists(@"Data\DocumentationTests.sqlite"))
 			{
-				File.Create(@"Data\DocumentationTests.sdf");
+				File.Create(@"Data\DocumentationTests.sqlite");
 			}
 
 			db.UpdateDatabase();
@@ -84,11 +84,11 @@ namespace Watsonia.Data.Tests.Documentation
 
 			// Test loading a scalar value
 			var query4 = Select.From("Author").Count("*").Where("LastName", SqlOperator.StartsWith, "P");
-			int count = (int)db.LoadValue(query4);
+			int count = Convert.ToInt32(db.LoadValue(query4));
 			Assert.AreEqual(2, count);
 
 			var query44 = Select.From<Author>().Count().Where(a => a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase));
-			int count44 = (int)db.LoadValue(query44);
+			int count44 = Convert.ToInt32(db.LoadValue(query44));
 			Assert.AreEqual(2, count44);
 
 			// Test loading an item

@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Configuration;
 using System.Linq;
-using Watsonia.Data.SqlServerCe;
+using Watsonia.Data.SQLite;
 
 namespace Watsonia.Data.Tests.Northwind
 {
 	internal sealed class NorthwindConfiguration : DatabaseConfiguration
 	{
 		public NorthwindConfiguration(string connectionString, string entityNamespace)
-			: base(new SqlServerCeDataAccessProvider(), connectionString, entityNamespace)
+			: base(new SQLiteDataAccessProvider(), connectionString, entityNamespace)
 		{
 		}
 

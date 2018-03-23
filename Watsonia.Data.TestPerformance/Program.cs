@@ -41,9 +41,9 @@ namespace Watsonia.Data.TestPerformance
 			{
 				Directory.CreateDirectory("Data");
 			}
-			if (!File.Exists(@"Data\Performance.sdf"))
+			if (!File.Exists(@"Data\Performance.sqlite"))
 			{
-				File.Create(@"Data\Performance.sdf");
+				File.Create(@"Data\Performance.sqlite");
 			}
 			db.UpdateDatabase();
 
@@ -121,7 +121,7 @@ namespace Watsonia.Data.TestPerformance
 			}
 			result.TeamsForSportMilliseconds = Math.Round(teamsForSportResults.Average(), 2);
 			results.Add(result);
-			
+
 			return results;
 		}
 
@@ -138,22 +138,63 @@ namespace Watsonia.Data.TestPerformance
 			foreach (var group in groupedResults)
 			{
 				lines.Add(group.Key.ToString() + " Results");
-				lines.Add("Run\tAll Posts\tPlayer by ID\tPlayers per Team\tTeams per Sport");
+
+				var lineParts = new List<string[]>();
+				var lineWidths = new List<int>();
+
+				lineParts.Add(new string[] { "Run", "All Posts", "Player by ID", "Players per Team", "Teams per Sport" });
 				var orderedResults = group.OrderBy(x => x.Number);
 				foreach (var orderResult in orderedResults)
 				{
-					lines.Add($"{orderResult.Number}\t{orderResult.AllPostsMilliseconds}\t{orderResult.PlayerByIDMilliseconds}\t{orderResult.PlayersForTeamMilliseconds}\t{orderResult.TeamsForSportMilliseconds}");
+					lineParts.Add(new string[] {
+						orderResult.Number.ToString(),
+						orderResult.AllPostsMilliseconds.ToString(),
+						orderResult.PlayerByIDMilliseconds.ToString(),
+						orderResult.PlayersForTeamMilliseconds.ToString(),
+						orderResult.TeamsForSportMilliseconds.ToString()
+					});
 				}
 				double averageAllPosts = group.Average(x => x.AllPostsMilliseconds);
 				double averagePlayerByID = group.Average(x => x.PlayerByIDMilliseconds);
 				double averagePlayersForTeam = group.Average(x => x.PlayersForTeamMilliseconds);
 				double averageTeamsForSport = group.Average(x => x.TeamsForSportMilliseconds);
-				lines.Add($"{"Avg"}\t{averageAllPosts}\t{averagePlayerByID}\t{averagePlayersForTeam}\t{averageTeamsForSport}");
+				lineParts.Add(new string[] {
+					"Avg",
+					averageAllPosts.ToString(),
+					averagePlayerByID.ToString(),
+					averagePlayersForTeam.ToString(),
+					averageTeamsForSport.ToString()
+				});
 				baselineAllPosts = baselineAllPosts == 0 ? averageAllPosts : baselineAllPosts;
 				baselinePlayerByID = baselinePlayerByID == 0 ? averagePlayerByID : baselinePlayerByID;
 				baselinePlayersForTeam = baselinePlayersForTeam == 0 ? averagePlayersForTeam : baselinePlayersForTeam;
 				baselineTeamsForSport = baselineTeamsForSport == 0 ? averageTeamsForSport : baselineTeamsForSport;
-				lines.Add($"{"%"}\t{(averageAllPosts / baselineAllPosts).ToString("p")}\t{(averagePlayerByID / baselinePlayerByID).ToString("p")}\t{(averagePlayersForTeam / baselinePlayersForTeam).ToString("p")}\t{(averageTeamsForSport / baselineTeamsForSport).ToString("p")}");
+				lineParts.Add(new string[] {
+					"%",
+					(averageAllPosts / baselineAllPosts).ToString("p"),
+					(averagePlayerByID / baselinePlayerByID).ToString("p"),
+					(averagePlayersForTeam / baselinePlayersForTeam).ToString("p"),
+					(averageTeamsForSport / baselineTeamsForSport).ToString("p")
+				});
+
+				for (var i = 0; i < lineParts[0].Length; i++)
+				{
+					lineWidths.Add(0);
+					foreach (var part in lineParts)
+					{
+						lineWidths[i] = Math.Max(lineWidths[i], part[i].Length);
+					}
+				}
+
+				foreach (var part in lineParts)
+				{
+					for (var i = 0; i < part.Length; i++)
+					{
+						part[i]  = part[i].PadRight(lineWidths[i] + 2);
+					}
+
+					lines.Add(string.Join("", part));
+				}
 			}
 
 			foreach (string line in lines)

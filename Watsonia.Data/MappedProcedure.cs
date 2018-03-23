@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿﻿using System.Collections.Generic;
 using System.Data.Common;
 
 namespace Watsonia.Data
@@ -39,7 +39,7 @@ namespace Watsonia.Data
 		/// The statement command text.
 		/// </value>
 		public string StatementText { get; set; }
-	
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MappedProcedure" /> class.
 		/// </summary>

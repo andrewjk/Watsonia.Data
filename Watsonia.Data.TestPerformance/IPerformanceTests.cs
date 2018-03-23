@@ -10,8 +10,8 @@ namespace Watsonia.Data.TestPerformance
 	{
 		List<string> LoadedItems { get; }
 		long GetAllPosts();
-		long GetPlayerByID(int id);
-		long GetPlayersForTeam(int teamId);
-		long GetTeamsForSport(int sportId);
+		long GetPlayerByID(long id);
+		long GetPlayersForTeam(long teamId);
+		long GetTeamsForSport(long sportId);
 	}
 }

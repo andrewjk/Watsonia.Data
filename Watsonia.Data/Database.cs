@@ -130,19 +130,21 @@ namespace Watsonia.Data
 			return updater.GetUnmappedColumns(this.Configuration);
 		}
 
-		/// <summary>
-		/// Exports all mapped entity proxies to an assembly.
-		/// </summary>
-		/// <param name="path">The assembly path.</param>
-		public void ExportProxies(string path)
-		{
-			DynamicProxyFactory.SetAssemblyPath(path);
-			foreach (Type type in this.Configuration.TypesToMap())
-			{
-				DynamicProxyFactory.GetDynamicProxyType(type, this);
-			}
-			DynamicProxyFactory.SaveAssembly();
-		}
+		// NOTE: This is not supported as of .Net Standard 2.0:
+
+		///// <summary>
+		///// Exports all mapped entity proxies to an assembly.
+		///// </summary>
+		///// <param name="path">The assembly path.</param>
+		//public void ExportProxies(string path)
+		//{
+		//	DynamicProxyFactory.SetAssemblyPath(path);
+		//	foreach (Type type in this.Configuration.TypesToMap())
+		//	{
+		//		DynamicProxyFactory.GetDynamicProxyType(type, this);
+		//	}
+		//	DynamicProxyFactory.SaveAssembly();
+		//}
 
 		/// <summary>
 		/// Creates a proxy object for the type T.

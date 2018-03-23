@@ -5,7 +5,6 @@ using System.Data.Common;
 using Watsonia.Data.SqlServer;
 using System.IO;
 using System;
-using Watsonia.Data.SqlServerCe;
 
 namespace Watsonia.Data.Tests.Entities
 {
@@ -20,9 +19,9 @@ namespace Watsonia.Data.Tests.Entities
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
 		{
-			if (!File.Exists(@"Data\EntitiesTests.sdf"))
+			if (!File.Exists(@"Data\EntitiesTests.sqlite"))
 			{
-				File.Create(@"Data\EntitiesTests.sdf");
+				File.Create(@"Data\EntitiesTests.sqlite");
 			}
 
 			db.UpdateDatabase();
@@ -42,13 +41,13 @@ namespace Watsonia.Data.Tests.Entities
 
 			// Check that the delete worked
 			var countCruds = Select.From("Crud").Count("*");
-			Assert.AreEqual(0, db.LoadValue(countCruds));
+			Assert.AreEqual(0, Convert.ToInt32(db.LoadValue(countCruds)));
 
 			// Insert a crud and check that the insert worked and the new ID is correctly set
 			Crud newCrud = db.Create<Crud>();
 			newCrud.Name = "ABC";
 			db.Save(newCrud);
-			Assert.AreEqual(1, db.LoadValue(countCruds));
+			Assert.AreEqual(1, Convert.ToInt32(db.LoadValue(countCruds)));
 			Assert.IsTrue(newCrud.ID > 0);
 
 			// Load the inserted crud
@@ -65,7 +64,7 @@ namespace Watsonia.Data.Tests.Entities
 
 			// And delete it
 			db.Delete(updatedCrud);
-			Assert.AreEqual(0, db.LoadValue(countCruds));
+			Assert.AreEqual(0, Convert.ToInt32(db.LoadValue(countCruds)));
 		}
 
 		[TestMethod]
@@ -79,9 +78,9 @@ namespace Watsonia.Data.Tests.Entities
 
 			// Check that the delete worked
 			var countHasChanges = Select.From("HasChanges").Count("*");
-			Assert.AreEqual(0, db.LoadValue(countHasChanges));
+			Assert.AreEqual(0, Convert.ToInt32(db.LoadValue(countHasChanges)));
 			var countHasChangesRelated = Select.From("HasChangesRelated").Count("*");
-			Assert.AreEqual(0, db.LoadValue(countHasChangesRelated));
+			Assert.AreEqual(0, Convert.ToInt32(db.LoadValue(countHasChangesRelated)));
 
 			// Create a HasChanges and check that it has no changes
 			HasChanges newHasChanges = db.Create<HasChanges>();
@@ -111,7 +110,7 @@ namespace Watsonia.Data.Tests.Entities
 			// Insert it and check that the insert worked
 			newHasChanges.String = "ABC";
 			db.Save(newHasChanges);
-			Assert.AreEqual(1, db.LoadValue(countHasChanges));
+			Assert.AreEqual(1, Convert.ToInt32(db.LoadValue(countHasChanges)));
 			Assert.IsFalse(((IDynamicProxy)newHasChanges).IsNew);
 			Assert.IsFalse(((IDynamicProxy)newHasChanges).HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)newHasChanges).StateTracker.ChangedFields.Count);
@@ -421,28 +420,28 @@ namespace Watsonia.Data.Tests.Entities
 
 			// Test count
 			var selectCount = Select.From("Aggregate").Count("*");
-			Assert.AreEqual(5, db.LoadValue(selectCount));
+			Assert.AreEqual(5, Convert.ToInt32(db.LoadValue(selectCount)));
 
 			// Test sum
 			var selectSum = Select.From("Aggregate").Sum("Value");
-			Assert.AreEqual(27d, db.LoadValue(selectSum));
+			Assert.AreEqual(27d, Convert.ToDouble(db.LoadValue(selectSum)));
 
 			// Test average
 			var selectAverage = Select.From("Aggregate").Average("Value");
-			Assert.AreEqual(5.4, db.LoadValue(selectAverage));
+			Assert.AreEqual(5.4, Convert.ToDouble(db.LoadValue(selectAverage)));
 
 			// Test minimum
 			var selectMin = Select.From("Aggregate").Min("Value");
-			Assert.AreEqual(1d, db.LoadValue(selectMin));
+			Assert.AreEqual(1d, Convert.ToDouble(db.LoadValue(selectMin)));
 
 			// Test maximum
 			var selectMax = Select.From("Aggregate").Max("Value");
-			Assert.AreEqual(11d, db.LoadValue(selectMax));
+			Assert.AreEqual(11d, Convert.ToDouble(db.LoadValue(selectMax)));
 		}
 
 		private void ExecuteNonQuery(string sql)
 		{
-			using (SqlConnection connection = new SqlConnection(EntitiesDatabase.ConnectionString))
+			using (SqlConnection connection = new SqlConnection(db.Configuration.ConnectionString))
 			{
 				connection.Open();
 				using (SqlCommand command = new SqlCommand(sql, connection))

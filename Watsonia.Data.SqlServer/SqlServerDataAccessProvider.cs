@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Reflection;
@@ -11,7 +10,6 @@ namespace Watsonia.Data.SqlServer
 	/// <summary>
 	/// Provides access to a Microsoft SQL Server database and builds commands to execute against that database for statements.
 	/// </summary>
-	[Export(typeof(IDataAccessProvider))]
 	public sealed class SqlServerDataAccessProvider : IDataAccessProvider
 	{
 		/// <summary>
@@ -139,12 +137,13 @@ namespace Watsonia.Data.SqlServer
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
+		/// <param name="procedures">The stored procedures that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the unmapped columns.
 		/// </returns>
 		/// <exception cref="System.NotImplementedException"></exception>
-		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, DatabaseConfiguration configuration)
+		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
 			return updater.GetUnmappedColumns(tables, views);

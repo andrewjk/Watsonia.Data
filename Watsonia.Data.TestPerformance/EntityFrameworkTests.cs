@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Watsonia.Data.TestPerformance
 {
@@ -28,7 +28,7 @@ namespace Watsonia.Data.TestPerformance
 			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetPlayerByID(int id)
+		public long GetPlayerByID(long id)
 		{
 			var watch = new Stopwatch();
 			watch.Start();
@@ -41,7 +41,7 @@ namespace Watsonia.Data.TestPerformance
 			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetPlayersForTeam(int teamID)
+		public long GetPlayersForTeam(long teamID)
 		{
 			var watch = new Stopwatch();
 			watch.Start();
@@ -57,7 +57,7 @@ namespace Watsonia.Data.TestPerformance
 			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetTeamsForSport(int sportID)
+		public long GetTeamsForSport(long sportID)
 		{
 			var watch = new Stopwatch();
 			watch.Start();

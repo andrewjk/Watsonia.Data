@@ -49,7 +49,7 @@ namespace Watsonia.Data
 			var views = new List<MappedView>();
 			var procedures = new List<MappedProcedure>();
 			GetMappedTablesAndViews(tables, views, procedures, configuration);
-			return configuration.DataAccessProvider.GetUnmappedColumns(tables, views, configuration);
+			return configuration.DataAccessProvider.GetUnmappedColumns(tables, views, procedures, configuration);
 		}
 
 		private void GetMappedTablesAndViews(List<MappedTable> tables, List<MappedView> views, List<MappedProcedure> procedures, DatabaseConfiguration configuration)
@@ -123,7 +123,7 @@ namespace Watsonia.Data
 			procedures.AddRange(procedureDictionary.Values);
 		}
 
-		private void GetMappedTable(Dictionary<string, MappedTable> tableDictionary, Dictionary<string, MappedRelationship> tableRelationships, Type tableType, DatabaseConfiguration configuration)
+		private void GetMappedTable(Dictionary<string, MappedTable> tableDictionary, Dictionary<string, MappedRelationship> tableRelationships, Type tableType,  DatabaseConfiguration configuration)
 		{
 			string tableName = configuration.GetTableName(tableType);
 			string primaryKeyColumnName = configuration.GetPrimaryKeyColumnName(tableType);
@@ -172,7 +172,7 @@ namespace Watsonia.Data
 						enumTable.Columns.Add(new MappedColumn("Text", typeof(string), "DF_" + enumTableName + "_Text") { MaxLength = 255 });
 						foreach (object value in Enum.GetValues(property.PropertyType))
 						{
-							enumTable.Values.Add(new Dictionary<string, object>() {
+							enumTable.Values.Add(new Dictionary<string, object>() { 
 										{ "ID", (int)value },
 										{ "Text", Enum.GetName(property.PropertyType, value) }
 									});
@@ -336,7 +336,7 @@ namespace Watsonia.Data
 				viewDictionary.Add(view.Name, view);
 			}
 		}
-
+		
 		private void GetMappedProcedure(Dictionary<string, MappedProcedure> procedureDictionary, Type procedureType, DatabaseConfiguration configuration)
 		{
 			string procedureName = configuration.GetProcedureName(procedureType);

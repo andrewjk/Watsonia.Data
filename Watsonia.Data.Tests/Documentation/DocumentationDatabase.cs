@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Watsonia.Data.SqlServerCe;
+using Watsonia.Data.SQLite;
 
 namespace Watsonia.Data.Tests.Documentation
 {
 	public class DocumentationDatabase : Database
 	{
-		public const string ConnectionString = @"Data Source=Data\DocumentationTests.sdf;Persist Security Info=False";
+		private const string ConnectionString = @"Data Source=Data\DocumentationTests.sqlite";
 
 		public DocumentationDatabase()
-			: base(new SqlServerCeDataAccessProvider(), DocumentationDatabase.ConnectionString, "Watsonia.Data.Tests.Documentation")
+			: base(new SQLiteDataAccessProvider(), DocumentationDatabase.ConnectionString, "Watsonia.Data.Tests.Documentation")
 		{
 		}
 	}

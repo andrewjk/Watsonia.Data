@@ -2,14 +2,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>Watsonia.Data.SqlServer</PackageId>
+    <PackageId>Watsonia.Data.SQLite</PackageId>
     <Authors>Watsonia Publishing</Authors>
-    <Company>Watsonia Publishing</Company>
-    <Product>Watsonia.Data.SqlServer</Product>
+    <Product>Watsonia.Data.SQLite</Product>
     <Copyright>© Watsonia Publishing</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
+    <PackageReference Include="Microsoft.Data.SQLite" Version="2.0.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Watsonia.Data\Watsonia.Data.csproj" />

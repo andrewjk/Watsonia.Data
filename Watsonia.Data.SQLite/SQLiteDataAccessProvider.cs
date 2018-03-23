@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Data.Common;
-using System.Data.SqlServerCe;
+using Microsoft.Data.Sqlite;
 using System.Reflection;
 using System.Text;
 
-namespace Watsonia.Data.SqlServerCe
+namespace Watsonia.Data.SQLite
 {
 	/// <summary>
-	/// Provides access to a Microsoft SQL Server Compact Edition database and builds commands to execute against that database for statements.
+	/// Provides access to an SQLite database and builds commands to execute against that database for statements.
 	/// </summary>
-	[Export(typeof(IDataAccessProvider))]
-	public sealed class SqlServerCeDataAccessProvider : IDataAccessProvider
+	public sealed class SQLiteDataAccessProvider : IDataAccessProvider
 	{
 		/// <summary>
 		/// Gets the name of the provider, which the user can use to specify which provider a database should use.
@@ -24,14 +22,14 @@ namespace Watsonia.Data.SqlServerCe
 		{
 			get
 			{
-				return "Watsonia.Data.SqlServerCe";
+				return "Watsonia.Data.SQLite";
 			}
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="SqlServerCeDataAccessProvider" /> class.
+		/// Initializes a new instance of the <see cref="SQLiteDataAccessProvider" /> class.
 		/// </summary>
-		public SqlServerCeDataAccessProvider()
+		public SQLiteDataAccessProvider()
 		{
 		}
 
@@ -44,7 +42,7 @@ namespace Watsonia.Data.SqlServerCe
 		/// </returns>
 		public DbConnection OpenConnection(DatabaseConfiguration configuration)
 		{
-			var connection = new SqlCeConnection(configuration.ConnectionString);
+			var connection = new SqliteConnection(configuration.ConnectionString);
 			connection.Open();
 			return connection;
 		}
@@ -54,11 +52,10 @@ namespace Watsonia.Data.SqlServerCe
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
-		/// <param name="procedures">The stored procedures that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration)
 		{
-			var updater = new SqlServerCeDatabaseUpdater(this, configuration);
+			var updater = new SQLiteDatabaseUpdater(this, configuration);
 			updater.UpdateDatabase(tables, views, procedures);
 		}
 
@@ -72,9 +69,9 @@ namespace Watsonia.Data.SqlServerCe
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration)
+		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration  configuration)
 		{
-			var updater = new SqlServerCeDatabaseUpdater(this, configuration);
+			var updater = new SQLiteDatabaseUpdater(this, configuration);
 			return updater.GetUpdateScript(tables, views, procedures);
 		}
 
@@ -87,8 +84,8 @@ namespace Watsonia.Data.SqlServerCe
 		/// </returns>
 		public DbCommand BuildInsertedIDCommand(DatabaseConfiguration configuration)
 		{
-			var command = new SqlCeCommand();
-			command.CommandText = "SELECT @@IDENTITY";
+			var command = new SqliteCommand();
+			command.CommandText = "SELECT last_insert_rowid();";
 			return command;
 		}
 
@@ -102,7 +99,7 @@ namespace Watsonia.Data.SqlServerCe
 		/// </returns>
 		public DbCommand BuildCommand(Statement statement, DatabaseConfiguration configuration)
 		{
-			var builder = new SqlServerCeCommandBuilder();
+			var builder = new SQLiteCommandBuilder();
 			return builder.BuildCommand(statement, configuration);
 		}
 
@@ -117,7 +114,7 @@ namespace Watsonia.Data.SqlServerCe
 		/// </returns>
 		public DbCommand BuildCommand(string statement, DatabaseConfiguration configuration, params object[] parameters)
 		{
-			var builder = new SqlServerCeCommandBuilder();
+			var builder = new SQLiteCommandBuilder();
 			return builder.BuildCommand(statement, parameters);
 		}
 
@@ -130,7 +127,7 @@ namespace Watsonia.Data.SqlServerCe
 		/// <exception cref="NotImplementedException"></exception>
 		public DbCommand BuildProcedureCommand(string procedureName, params ProcedureParameter[] parameters)
 		{
-			var builder = new SqlServerCeCommandBuilder();
+			var builder = new SQLiteCommandBuilder();
 			return builder.BuildProcedureCommand(procedureName, parameters);
 		}
 
@@ -145,9 +142,9 @@ namespace Watsonia.Data.SqlServerCe
 		/// A string containing the unmapped columns.
 		/// </returns>
 		/// <exception cref="System.NotImplementedException"></exception>
-		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, DatabaseConfiguration configuration)
+		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration)
 		{
-			var updater = new SqlServerCeDatabaseUpdater(this, configuration);
+			var updater = new SQLiteDatabaseUpdater(this, configuration);
 			return updater.GetUnmappedColumns(tables, views);
 		}
 	}

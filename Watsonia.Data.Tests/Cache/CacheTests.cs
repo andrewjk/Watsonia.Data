@@ -244,6 +244,10 @@ namespace Watsonia.Data.Tests.Cache
 		{
 			var db = new Northwind.NorthwindDatabase();
 
+			// Make sure the price is correct initially
+			string sql = "UPDATE Products SET UnitPrice = @0 WHERE ProductName = 'Aniseed Syrup'";
+			db.Execute(sql, 10);
+
 			var syrup = db.Query<Northwind.Product>().FirstOrDefault(p => p.ProductName == "Aniseed Syrup");
 
 			// Check that the product can be loaded
@@ -264,7 +268,7 @@ namespace Watsonia.Data.Tests.Cache
 
 			// Update the product's price in the database and test that it doesn't get updated until
 			// we remove and re-load the item
-			db.Execute("UPDATE Products SET UnitPrice = 11 WHERE ProductName = @0", "Aniseed Syrup");
+			db.Execute(sql, 11);
 
 			var syrup3 = db.Load<Northwind.Product>(syrup.ProductID);
 			Assert.AreEqual(10, syrup3.UnitPrice);
@@ -279,6 +283,9 @@ namespace Watsonia.Data.Tests.Cache
 			Assert.IsTrue(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
 			Database.Cache.Clear();
 			Assert.IsFalse(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
+
+			// Set the price back to what it was
+			db.Execute(sql, 10);
 		}
 
 		private class TestValueBag : IValueBag

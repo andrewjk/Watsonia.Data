@@ -17,7 +17,7 @@ namespace Watsonia.Data
 
 		private static AssemblyBuilder _assemblyBuilder = null;
 		private static ModuleBuilder _moduleBuilder = null;
-		private static string _exportPath = null;
+		//private static string _exportPath = null;
 
 		private static readonly ConcurrentDictionary<string, Type> _cachedTypes = new ConcurrentDictionary<string, Type>();
 		private static readonly ConcurrentDictionary<string, ConstructorInfo> _cachedConstructors = new ConcurrentDictionary<string, ConstructorInfo>();
@@ -25,42 +25,41 @@ namespace Watsonia.Data
 
 		static DynamicProxyFactory()
 		{
-			var assemblyName = new AssemblyName();
-			assemblyName.Name = ProxyAssemblyName;
-
-			_assemblyBuilder = Thread.GetDomain().DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-			_moduleBuilder = _assemblyBuilder.DefineDynamicModule(_assemblyBuilder.GetName().Name, false);
+			var assemblyName = new AssemblyName(DynamicProxyFactory.ProxyAssemblyName);
+			_assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+			_moduleBuilder = _assemblyBuilder.DefineDynamicModule(_assemblyBuilder.GetName().Name/*, false*/);	// NOTE: emit was previously false
 		}
 
-		internal static void SetAssemblyPath(string path)
-		{
-			// Remove any previously created types so that they will be re-created
-			_cachedTypes.Clear();
-			_cachedChildParentMappings.Clear();
+		// NOTE: This is not supported as of .Net Standard 2.0:
 
-			var newAssemblyName = new AssemblyName();
-			newAssemblyName.Name = Path.GetFileNameWithoutExtension(path);
+		//internal static void SetAssemblyPath(string path)
+		//{
+		//	// Remove any previously created types so that they will be re-created
+		//	_cachedTypes.Clear();
+		//	_cachedChildParentMappings.Clear();
 
-			_assemblyBuilder = Thread.GetDomain().DefineDynamicAssembly(newAssemblyName, AssemblyBuilderAccess.RunAndSave);
-			string fileName = Path.GetFileName(path);
-			_moduleBuilder = _assemblyBuilder.DefineDynamicModule(_assemblyBuilder.GetName().Name, fileName);
+		//	var assemblyName = new AssemblyName(Path.GetFileNameWithoutExtension(path));
+		//	_assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
 
-			_exportPath = path;
-		}
+		//	string fileName = Path.GetFileName(path);
+		//	_moduleBuilder = _assemblyBuilder.DefineDynamicModule(_assemblyBuilder.GetName().Name, fileName);
 
-		internal static void SaveAssembly()
-		{
-			string folder = Path.GetDirectoryName(_exportPath);
-			string fileName = Path.GetFileName(_exportPath);
+		//	_exportPath = path;
+		//}
 
-			_assemblyBuilder.Save(fileName);
+		//internal static void SaveAssembly()
+		//{
+		//	string folder = Path.GetDirectoryName(_exportPath);
+		//	string fileName = Path.GetFileName(_exportPath);
 
-			if (!Directory.Exists(folder))
-			{
-				Directory.CreateDirectory(folder);
-			}
-			File.Move(fileName, _exportPath);
-		}
+		//	_assemblyBuilder.Save(fileName);
+
+		//	if (!Directory.Exists(folder))
+		//	{
+		//		Directory.CreateDirectory(folder);
+		//	}
+		//	File.Move(fileName, _exportPath);
+		//}
 
 		internal static string GetDynamicTypeName(Type parentType, Database database, string suffix = "Proxy")
 		{
@@ -155,7 +154,7 @@ namespace Watsonia.Data
 			// Add the constructor
 			AddConstructor(type, parentType, members, database);
 
-			return type.CreateType();
+			return type.CreateTypeInfo();
 		}
 
 		private static void AddConstructor(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database)
@@ -1720,7 +1719,7 @@ namespace Watsonia.Data
 
 			members.ValueBagType = type;
 
-			return type.CreateType();
+			return type.CreateTypeInfo();
 		}
 
 		private static void CreateValueBagProperty(TypeBuilder type, string propertyName, Type propertyType, DynamicProxyTypeMembers members)

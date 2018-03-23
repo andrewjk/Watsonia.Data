@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using Watsonia.Data.TestPerformance.Entities;
-using System.Data.SqlServerCe;
+using Microsoft.Data.Sqlite;
 
 namespace Watsonia.Data.TestPerformance
 {
@@ -31,7 +31,7 @@ namespace Watsonia.Data.TestPerformance
 			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetPlayerByID(int id)
+		public long GetPlayerByID(long id)
 		{
 			var watch = new Stopwatch();
 			watch.Start();
@@ -45,7 +45,7 @@ namespace Watsonia.Data.TestPerformance
 			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetPlayersForTeam(int teamID)
+		public long GetPlayersForTeam(long teamID)
 		{
 			var watch = new Stopwatch();
 			watch.Start();
@@ -61,7 +61,7 @@ namespace Watsonia.Data.TestPerformance
 			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetTeamsForSport(int sportID)
+		public long GetTeamsForSport(long sportID)
 		{
 			var watch = new Stopwatch();
 			watch.Start();

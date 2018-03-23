@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using Watsonia.Data.SqlServerCe;
+using Watsonia.Data.SQLite;
 
 namespace Watsonia.Data.TestPerformance
 {
 	internal sealed class WatsoniaConfiguration : DatabaseConfiguration
 	{
 		public WatsoniaConfiguration(string connectionString, string entityNamespace)
-			: base(new SqlServerCeDataAccessProvider(), connectionString, entityNamespace)
+			: base(new SQLiteDataAccessProvider(), connectionString, entityNamespace)
 		{
 		}
 

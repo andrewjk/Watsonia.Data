@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Data.SqlServerCe;
+using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -18,16 +18,15 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqlCeConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
 			{
 				conn.Open();
-				using (var adapter = new SqlCeDataAdapter("SELECT ID, Text, DateCreated, DateModified FROM Posts", conn))
+				using (var command = new SqliteCommand("SELECT ID, Text, DateCreated, DateModified FROM Posts", conn))
+				using (var reader = command.ExecuteReader())
 				{
-					var table = new DataTable();
-					adapter.Fill(table);
-					foreach (DataRow p in table.Rows)
+					while (reader.Read())
 					{
-						this.LoadedItems.Add("Post: " + p["ID"]);
+						this.LoadedItems.Add("Post: " + reader["ID"]);
 					}
 				}
 			}
@@ -35,40 +34,22 @@ namespace Watsonia.Data.TestPerformance
 			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetPlayerByID(int id)
+		public long GetPlayerByID(long id)
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqlCeConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
 			{
 				conn.Open();
-				using (var adapter = new SqlCeDataAdapter("SELECT ID, FirstName, LastName, DateOfBirth, TeamID FROM Players WHERE ID = @ID", conn))
+				using (var command = new SqliteCommand("SELECT ID, FirstName, LastName, DateOfBirth, TeamID FROM Players WHERE ID = @ID", conn))
 				{
-					adapter.SelectCommand.Parameters.Add(new SqlCeParameter("@ID", id));
-					var table = new DataTable();
-					adapter.Fill(table);
-					this.LoadedItems.Add("Player: " + table.Rows[0]["ID"]);
-				}
-			}
-			watch.Stop();
-			return watch.ElapsedMilliseconds;
-		}
-
-		public long GetPlayersForTeam(int teamID)
-		{
-			var watch = new Stopwatch();
-			watch.Start();
-			using (var conn = new SqlCeConnection(WatsoniaDatabase.ConnectionString))
-			{
-				conn.Open();
-				using (var adapter = new SqlCeDataAdapter("SELECT ID, FirstName, LastName, DateOfBirth, TeamID FROM Players WHERE TeamID = @ID", conn))
-				{
-					adapter.SelectCommand.Parameters.Add(new SqlCeParameter("@ID", teamID));
-					var table = new DataTable();
-					adapter.Fill(table);
-					foreach (DataRow p in table.Rows)
+					command.Parameters.Add(new SqliteParameter("@ID", id));
+					using (var reader = command.ExecuteReader())
 					{
-						this.LoadedItems.Add("Player: " + p["ID"]);
+						while (reader.Read())
+						{
+							this.LoadedItems.Add("Player: " + reader["ID"]);
+						}
 					}
 				}
 			}
@@ -76,11 +57,34 @@ namespace Watsonia.Data.TestPerformance
 			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetTeamsForSport(int sportID)
+		public long GetPlayersForTeam(long teamID)
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqlCeConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
+			{
+				conn.Open();
+				using (var command = new SqliteCommand("SELECT ID, FirstName, LastName, DateOfBirth, TeamID FROM Players WHERE TeamID = @ID", conn))
+				{
+					command.Parameters.Add(new SqliteParameter("@ID", teamID));
+					using (var reader = command.ExecuteReader())
+					{
+						while (reader.Read())
+						{
+							this.LoadedItems.Add("Player: " + reader["ID"]);
+						}
+					}
+				}
+			}
+			watch.Stop();
+			return watch.ElapsedMilliseconds;
+		}
+
+		public long GetTeamsForSport(long sportID)
+		{
+			var watch = new Stopwatch();
+			watch.Start();
+			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
 			{
 				conn.Open();
 				string query = "" +
@@ -88,14 +92,15 @@ namespace Watsonia.Data.TestPerformance
 					"FROM Players p " +
 					"INNER JOIN Teams t ON p.TeamID = t.ID " +
 					"WHERE t.SportID = @ID";
-				using (var adapter = new SqlCeDataAdapter(query, conn))
+				using (var command = new SqliteCommand(query, conn))
 				{
-					adapter.SelectCommand.Parameters.Add(new SqlCeParameter("@ID", sportID));
-					var table = new DataTable();
-					adapter.Fill(table);
-					foreach (DataRow p in table.Rows)
+					command.Parameters.Add(new SqliteParameter("@ID", sportID));
+					using (var reader = command.ExecuteReader())
 					{
-						this.LoadedItems.Add("Team Player: " + p["ID"]);
+						while (reader.Read())
+						{
+							this.LoadedItems.Add("Team Player: " + reader["ID"]);
+						}
 					}
 				}
 			}

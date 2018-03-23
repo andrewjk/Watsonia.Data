@@ -8,7 +8,7 @@ using Watsonia.Data.Sql;
 
 namespace Watsonia.Data.SqlServer
 {
-	public class TSqlCommandBuilder
+	internal class SqlCommandBuilder
 	{
 		private const int IndentationWidth = 2;
 

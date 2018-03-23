@@ -1,153 +1,41 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>
-    </ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{95D24ED5-B6DE-4C55-B671-486B01825E21}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Watsonia.Data.Tests</RootNamespace>
-    <AssemblyName>Watsonia.Data.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>Watsonia.snk</AssemblyOriginatorKeyFile>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <PackageId>Watsonia.Data.Tests</PackageId>
+    <Authors>Watsonia Publishing</Authors>
+    <Product>Watsonia.Data.Tests</Product>
+    <Copyright>© Watsonia Publishing</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Remotion.Linq, Version=2.2.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\Remotion.Linq.2.2.0\lib\net45\Remotion.Linq.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Core">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Data" />
-    <Reference Include="System.Reflection" />
-    <Reference Include="System.Runtime" />
-    <Reference Include="System.Runtime.Extensions" />
-    <Reference Include="System.XML" />
-    <Reference Include="System.Xml.Linq" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.6.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.2.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.2.0" />
   </ItemGroup>
   <ItemGroup>
-    <CodeAnalysisDependentAssemblyPaths Condition=" '$(VS100COMNTOOLS)' != '' " Include="$(VS100COMNTOOLS)..\IDE\PrivateAssemblies">
-      <Visible>False</Visible>
-    </CodeAnalysisDependentAssemblyPaths>
+    <ProjectReference Include="..\Watsonia.Data.SQLite\Watsonia.Data.SQLite.csproj" />
+    <ProjectReference Include="..\Watsonia.Data.SqlServer\Watsonia.Data.SqlServer.csproj" />
+    <ProjectReference Include="..\Watsonia.Data\Watsonia.Data.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cache\Author.cs" />
-    <Compile Include="Cache\Book.cs" />
-    <Compile Include="Cache\CacheTests.cs" />
-    <Compile Include="Cache\Chapter.cs" />
-    <Compile Include="Cache\CacheDatabase.cs" />
-    <Compile Include="Documentation\DocumentationDatabase.cs" />
-    <Compile Include="DynamicProxy\DynamicProxyDatabase.cs" />
-    <Compile Include="Entities\EntitiesDatabase.cs" />
-    <Compile Include="Entities\CardinalDirection.cs" />
-    <Compile Include="DynamicProxy\ConstructorInitializer.cs" />
-    <Compile Include="Entities\HasChangesRelated.cs" />
-    <Compile Include="Entities\HasChanges.cs" />
-    <Compile Include="DynamicProxy\InvalidChild.cs" />
-    <Compile Include="Documentation\DocumentationTests.cs" />
-    <Compile Include="DynamicProxy\Address.cs" />
-    <Compile Include="Documentation\Author.cs" />
-    <Compile Include="Documentation\Book.cs" />
-    <Compile Include="DynamicProxy\Invalid.cs" />
-    <Compile Include="DynamicProxy\CardinalDirection.cs" />
-    <Compile Include="Entities\Child.cs" />
-    <Compile Include="Entities\Collection.cs" />
-    <Compile Include="Entities\Crud.cs" />
-    <Compile Include="Entities\Aggregate.cs" />
-    <Compile Include="DynamicProxy\Defaults.cs" />
-    <Compile Include="DynamicProxy\Entity.cs" />
-    <Compile Include="Entities\Link.cs" />
-    <Compile Include="DynamicProxy\Order.cs" />
-    <Compile Include="DynamicProxy\Customer.cs" />
-    <Compile Include="Entities\EntitiesTests.cs" />
-    <Compile Include="DynamicProxy\DynamicProxyTests.cs" />
-    <Compile Include="Entities\Parent.cs" />
-    <Compile Include="Entities\SubChild.cs" />
-    <Compile Include="Northwind\NorthwindDatabase.cs" />
-    <Compile Include="Northwind\Customer.cs" />
-    <Compile Include="Northwind\NorthwindConfiguration.cs" />
-    <Compile Include="Northwind\Order.cs" />
-    <Compile Include="Northwind\OrderDetail.cs" />
-    <Compile Include="Northwind\Product.cs" />
-    <Compile Include="PluralizeTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Queries\QueryExecutionTests.cs" />
-    <Compile Include="Queries\QueryLanguageTests.cs" />
-    <Compile Include="Queries\QueryTranslationTests.cs" />
-    <Compile Include="TitleCaseTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Watsonia.Data.SqlServerCe\Watsonia.Data.SqlServerCe.csproj">
-      <Project>{9701a495-ab24-44ab-8410-28ac47af719c}</Project>
-      <Name>Watsonia.Data.SqlServerCe</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Watsonia.Data.SqlServer\Watsonia.Data.SqlServer.csproj">
-      <Project>{c77957fd-41c5-4784-b2c7-bd324dfa5327}</Project>
-      <Name>Watsonia.Data.SqlServer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Watsonia.Data\Watsonia.Data.csproj">
-      <Project>{61036BC9-9528-4E43-9D4C-0304E6492E7C}</Project>
-      <Name>Watsonia.Data</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Data\Northwind.sdf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Queries\QueryTranslationBaselines.xml">
+    <None Update="App.secret.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="Queries\QueryLanguageBaselines.xml">
+    </None>
+    <None Update="Data\Northwind.sqlite">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </Content>
+    </None>
+    <None Update="Queries\QueryLanguageBaselinesSQLite.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Queries\QueryLanguageBaselinesSqlServer.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Queries\QueryTranslationBaselines.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="Watsonia.snk" />
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

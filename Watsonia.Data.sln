@@ -1,19 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2011
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data", "Watsonia.Data\Watsonia.Data.csproj", "{61036BC9-9528-4E43-9D4C-0304E6492E7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Watsonia.Data", "Watsonia.Data\Watsonia.Data.csproj", "{61036BC9-9528-4E43-9D4C-0304E6492E7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data.Reference", "Watsonia.Data.Reference\Watsonia.Data.Reference.csproj", "{E6FA24BB-E050-40EC-9CC6-A9E91C2A6C16}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Watsonia.Data.SqlServer", "Watsonia.Data.SqlServer\Watsonia.Data.SqlServer.csproj", "{C77957FD-41C5-4784-B2C7-BD324DFA5327}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data.SqlServer", "Watsonia.Data.SqlServer\Watsonia.Data.SqlServer.csproj", "{C77957FD-41C5-4784-B2C7-BD324DFA5327}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Watsonia.Data.Tests", "Watsonia.Data.Tests\Watsonia.Data.Tests.csproj", "{95D24ED5-B6DE-4C55-B671-486B01825E21}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data.SqlServerCe", "Watsonia.Data.SqlServerCe\Watsonia.Data.SqlServerCe.csproj", "{9701A495-AB24-44AB-8410-28AC47AF719C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Watsonia.Data.SQLite", "Watsonia.Data.SQLite\Watsonia.Data.SQLite.csproj", "{1F6603C7-5D43-4916-A203-F7DFE585D11F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data.TestPerformance", "Watsonia.Data.TestPerformance\Watsonia.Data.TestPerformance.csproj", "{44A112E6-D15B-4C30-8992-9EC3A8FEFF0E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data.Reference", "Watsonia.Data.Reference\Watsonia.Data.Reference.csproj", "{56B77678-159E-4D8E-8A9D-17AA2AC4BCBA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data.Tests", "Watsonia.Data.Tests\Watsonia.Data.Tests.csproj", "{95D24ED5-B6DE-4C55-B671-486B01825E21}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data.TestPerformance", "Watsonia.Data.TestPerformance\Watsonia.Data.TestPerformance.csproj", "{25B1FBCC-F846-4C92-BB47-3F2492778A35}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,44 +25,20 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{61036BC9-9528-4E43-9D4C-0304E6492E7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{61036BC9-9528-4E43-9D4C-0304E6492E7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{61036BC9-9528-4E43-9D4C-0304E6492E7C}.Debug|x86.ActiveCfg = Debug|x86
-		{61036BC9-9528-4E43-9D4C-0304E6492E7C}.Debug|x86.Build.0 = Debug|x86
+		{61036BC9-9528-4E43-9D4C-0304E6492E7C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{61036BC9-9528-4E43-9D4C-0304E6492E7C}.Debug|x86.Build.0 = Debug|Any CPU
 		{61036BC9-9528-4E43-9D4C-0304E6492E7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61036BC9-9528-4E43-9D4C-0304E6492E7C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{61036BC9-9528-4E43-9D4C-0304E6492E7C}.Release|x86.ActiveCfg = Release|x86
-		{61036BC9-9528-4E43-9D4C-0304E6492E7C}.Release|x86.Build.0 = Release|x86
-		{E6FA24BB-E050-40EC-9CC6-A9E91C2A6C16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E6FA24BB-E050-40EC-9CC6-A9E91C2A6C16}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E6FA24BB-E050-40EC-9CC6-A9E91C2A6C16}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{E6FA24BB-E050-40EC-9CC6-A9E91C2A6C16}.Debug|x86.Build.0 = Debug|Any CPU
-		{E6FA24BB-E050-40EC-9CC6-A9E91C2A6C16}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E6FA24BB-E050-40EC-9CC6-A9E91C2A6C16}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E6FA24BB-E050-40EC-9CC6-A9E91C2A6C16}.Release|x86.ActiveCfg = Release|Any CPU
-		{E6FA24BB-E050-40EC-9CC6-A9E91C2A6C16}.Release|x86.Build.0 = Release|Any CPU
+		{61036BC9-9528-4E43-9D4C-0304E6492E7C}.Release|x86.ActiveCfg = Release|Any CPU
+		{61036BC9-9528-4E43-9D4C-0304E6492E7C}.Release|x86.Build.0 = Release|Any CPU
 		{C77957FD-41C5-4784-B2C7-BD324DFA5327}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C77957FD-41C5-4784-B2C7-BD324DFA5327}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C77957FD-41C5-4784-B2C7-BD324DFA5327}.Debug|x86.ActiveCfg = Debug|x86
-		{C77957FD-41C5-4784-B2C7-BD324DFA5327}.Debug|x86.Build.0 = Debug|x86
+		{C77957FD-41C5-4784-B2C7-BD324DFA5327}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C77957FD-41C5-4784-B2C7-BD324DFA5327}.Debug|x86.Build.0 = Debug|Any CPU
 		{C77957FD-41C5-4784-B2C7-BD324DFA5327}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C77957FD-41C5-4784-B2C7-BD324DFA5327}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C77957FD-41C5-4784-B2C7-BD324DFA5327}.Release|x86.ActiveCfg = Release|x86
-		{C77957FD-41C5-4784-B2C7-BD324DFA5327}.Release|x86.Build.0 = Release|x86
-		{9701A495-AB24-44AB-8410-28AC47AF719C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9701A495-AB24-44AB-8410-28AC47AF719C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9701A495-AB24-44AB-8410-28AC47AF719C}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{9701A495-AB24-44AB-8410-28AC47AF719C}.Debug|x86.Build.0 = Debug|Any CPU
-		{9701A495-AB24-44AB-8410-28AC47AF719C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9701A495-AB24-44AB-8410-28AC47AF719C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9701A495-AB24-44AB-8410-28AC47AF719C}.Release|x86.ActiveCfg = Release|Any CPU
-		{9701A495-AB24-44AB-8410-28AC47AF719C}.Release|x86.Build.0 = Release|Any CPU
-		{44A112E6-D15B-4C30-8992-9EC3A8FEFF0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{44A112E6-D15B-4C30-8992-9EC3A8FEFF0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{44A112E6-D15B-4C30-8992-9EC3A8FEFF0E}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{44A112E6-D15B-4C30-8992-9EC3A8FEFF0E}.Debug|x86.Build.0 = Debug|Any CPU
-		{44A112E6-D15B-4C30-8992-9EC3A8FEFF0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{44A112E6-D15B-4C30-8992-9EC3A8FEFF0E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{44A112E6-D15B-4C30-8992-9EC3A8FEFF0E}.Release|x86.ActiveCfg = Release|Any CPU
-		{44A112E6-D15B-4C30-8992-9EC3A8FEFF0E}.Release|x86.Build.0 = Release|Any CPU
+		{C77957FD-41C5-4784-B2C7-BD324DFA5327}.Release|x86.ActiveCfg = Release|Any CPU
+		{C77957FD-41C5-4784-B2C7-BD324DFA5327}.Release|x86.Build.0 = Release|Any CPU
 		{95D24ED5-B6DE-4C55-B671-486B01825E21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{95D24ED5-B6DE-4C55-B671-486B01825E21}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95D24ED5-B6DE-4C55-B671-486B01825E21}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -71,9 +47,36 @@ Global
 		{95D24ED5-B6DE-4C55-B671-486B01825E21}.Release|Any CPU.Build.0 = Release|Any CPU
 		{95D24ED5-B6DE-4C55-B671-486B01825E21}.Release|x86.ActiveCfg = Release|Any CPU
 		{95D24ED5-B6DE-4C55-B671-486B01825E21}.Release|x86.Build.0 = Release|Any CPU
+		{1F6603C7-5D43-4916-A203-F7DFE585D11F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F6603C7-5D43-4916-A203-F7DFE585D11F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F6603C7-5D43-4916-A203-F7DFE585D11F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1F6603C7-5D43-4916-A203-F7DFE585D11F}.Debug|x86.Build.0 = Debug|Any CPU
+		{1F6603C7-5D43-4916-A203-F7DFE585D11F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F6603C7-5D43-4916-A203-F7DFE585D11F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F6603C7-5D43-4916-A203-F7DFE585D11F}.Release|x86.ActiveCfg = Release|Any CPU
+		{1F6603C7-5D43-4916-A203-F7DFE585D11F}.Release|x86.Build.0 = Release|Any CPU
+		{56B77678-159E-4D8E-8A9D-17AA2AC4BCBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56B77678-159E-4D8E-8A9D-17AA2AC4BCBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56B77678-159E-4D8E-8A9D-17AA2AC4BCBA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{56B77678-159E-4D8E-8A9D-17AA2AC4BCBA}.Debug|x86.Build.0 = Debug|Any CPU
+		{56B77678-159E-4D8E-8A9D-17AA2AC4BCBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56B77678-159E-4D8E-8A9D-17AA2AC4BCBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56B77678-159E-4D8E-8A9D-17AA2AC4BCBA}.Release|x86.ActiveCfg = Release|Any CPU
+		{56B77678-159E-4D8E-8A9D-17AA2AC4BCBA}.Release|x86.Build.0 = Release|Any CPU
+		{25B1FBCC-F846-4C92-BB47-3F2492778A35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25B1FBCC-F846-4C92-BB47-3F2492778A35}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25B1FBCC-F846-4C92-BB47-3F2492778A35}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{25B1FBCC-F846-4C92-BB47-3F2492778A35}.Debug|x86.Build.0 = Debug|Any CPU
+		{25B1FBCC-F846-4C92-BB47-3F2492778A35}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25B1FBCC-F846-4C92-BB47-3F2492778A35}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25B1FBCC-F846-4C92-BB47-3F2492778A35}.Release|x86.ActiveCfg = Release|Any CPU
+		{25B1FBCC-F846-4C92-BB47-3F2492778A35}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BBF9771A-FD02-40B5-83E4-8143974997E2}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Watsonia.Data.vsmdi

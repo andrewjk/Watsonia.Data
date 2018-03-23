@@ -1149,21 +1149,21 @@ namespace Watsonia.Data.Tests.Queries
 		////[TestMethod]
 		////public void TestDateTimeDay()
 		////{
-		////	var v = db.Orders.Where(o => o.OrderDate == new DateTime(1997, 8, 25)).Take(1).Max(o => o.OrderDate.Day);
+		////	var v = db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).Max(o => o.OrderDate.Day);
 		////	Assert.AreEqual(25, v);
 		////}
 
 		////[TestMethod]
 		////public void TestDateTimeMonth()
 		////{
-		////	var v = db.Orders.Where(o => o.OrderDate == new DateTime(1997, 8, 25)).Take(1).Max(o => o.OrderDate.Month);
+		////	var v = db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).Max(o => o.OrderDate.Month);
 		////	Assert.AreEqual(8, v);
 		////}
 
 		////[TestMethod]
 		////public void TestDateTimeYear()
 		////{
-		////	var v = db.Orders.Where(o => o.OrderDate == new DateTime(1997, 8, 25)).Take(1).Max(o => o.OrderDate.Year);
+		////	var v = db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).Max(o => o.OrderDate.Year);
 		////	Assert.AreEqual(1997, v);
 		////}
 
@@ -1191,49 +1191,49 @@ namespace Watsonia.Data.Tests.Queries
 		////[TestMethod]
 		////public void TestDateTimeDayOfWeek()
 		////{
-		////	var dow = db.Orders.Where(o => o.OrderDate == new DateTime(1997, 8, 25)).Take(1).Max(o => o.OrderDate.DayOfWeek);
+		////	var dow = db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).Max(o => o.OrderDate.DayOfWeek);
 		////	Assert.AreEqual(DayOfWeek.Monday, dow);
 		////}
 
 		[TestMethod]
 		public void TestDateTimeAddYears()
 		{
-			var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(1997, 8, 25) && o.OrderDate.AddYears(2).Year == 1999);
+			var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(2012, 8, 23) && o.OrderDate.AddYears(2).Year == 2014);
 			Assert.AreNotEqual(null, od);
 		}
 
 		[TestMethod]
 		public void TestDateTimeAddMonths()
 		{
-			var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(1997, 8, 25) && o.OrderDate.AddMonths(2).Month == 10);
+			var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(2012, 8, 23) && o.OrderDate.AddMonths(2).Month == 10);
 			Assert.AreNotEqual(null, od);
 		}
 
 		[TestMethod]
 		public void TestDateTimeAddDays()
 		{
-			var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(1997, 8, 25) && o.OrderDate.AddDays(2).Day == 27);
+			var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(2012, 8, 23) && o.OrderDate.AddDays(2).Day == 25);
 			Assert.AreNotEqual(null, od);
 		}
 
 		[TestMethod]
 		public void TestDateTimeAddHours()
 		{
-			var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(1997, 8, 25) && o.OrderDate.AddHours(3).Hour == 3);
+			var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(2012, 8, 23) && o.OrderDate.AddHours(3).Hour == 3);
 			Assert.AreNotEqual(null, od);
 		}
 
 		[TestMethod]
 		public void TestDateTimeAddMinutes()
 		{
-			var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(1997, 8, 25) && o.OrderDate.AddMinutes(5).Minute == 5);
+			var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(2012, 8, 23) && o.OrderDate.AddMinutes(5).Minute == 5);
 			Assert.AreNotEqual(null, od);
 		}
 
 		[TestMethod]
 		public void TestDateTimeAddSeconds()
 		{
-			var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(1997, 8, 25) && o.OrderDate.AddSeconds(6).Second == 6);
+			var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(2012, 8, 23) && o.OrderDate.AddSeconds(6).Second == 6);
 			Assert.AreNotEqual(null, od);
 		}
 
@@ -1249,6 +1249,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathAtan()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			var zero = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Atan((c.CustomerID == "ALFKI") ? 0.0 : 0.0));
 			var one = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Atan((c.CustomerID == "ALFKI") ? 1.0 : 1.0));
 			Assert.AreEqual(Math.Atan(0.0), zero, 0.0001);
@@ -1258,6 +1264,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathCos()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			var zero = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Cos((c.CustomerID == "ALFKI") ? 0.0 : 0.0));
 			var pi = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Cos((c.CustomerID == "ALFKI") ? Math.PI : Math.PI));
 			Assert.AreEqual(Math.Cos(0.0), zero, 0.0001);
@@ -1267,6 +1279,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathSin()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			var zero = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Sin((c.CustomerID == "ALFKI") ? 0.0 : 0.0));
 			var pi = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Sin((c.CustomerID == "ALFKI") ? Math.PI : Math.PI));
 			var pi2 = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Sin(((c.CustomerID == "ALFKI") ? Math.PI : Math.PI) / 2.0));
@@ -1278,6 +1296,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathTan()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			var zero = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Tan((c.CustomerID == "ALFKI") ? 0.0 : 0.0));
 			var pi = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Tan((c.CustomerID == "ALFKI") ? Math.PI : Math.PI));
 			Assert.AreEqual(Math.Tan(0.0), zero, 0.0001);
@@ -1287,6 +1311,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathExp()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			var zero = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Exp((c.CustomerID == "ALFKI") ? 0.0 : 0.0));
 			var one = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Exp((c.CustomerID == "ALFKI") ? 1.0 : 1.0));
 			var two = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Exp((c.CustomerID == "ALFKI") ? 2.0 : 2.0));
@@ -1298,6 +1328,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathLog()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			var one = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Log((c.CustomerID == "ALFKI") ? 1.0 : 1.0));
 			var e = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Log((c.CustomerID == "ALFKI") ? Math.E : Math.E));
 			Assert.AreEqual(Math.Log(1.0), one, 0.0001);
@@ -1307,6 +1343,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathSqrt()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			var one = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Sqrt((c.CustomerID == "ALFKI") ? 1.0 : 1.0));
 			var four = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Sqrt((c.CustomerID == "ALFKI") ? 4.0 : 4.0));
 			var nine = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Sqrt((c.CustomerID == "ALFKI") ? 9.0 : 9.0));
@@ -1318,6 +1360,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathPow()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			var zero = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Pow((c.CustomerID == "ALFKI") ? 2.0 : 2.0, 0.0));
 			var one = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Pow((c.CustomerID == "ALFKI") ? 2.0 : 2.0, 1.0));
 			var two = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => Math.Pow((c.CustomerID == "ALFKI") ? 2.0 : 2.0, 2.0));

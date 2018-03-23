@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -17,16 +18,24 @@ namespace Watsonia.Data.Tests.Queries
 	public class QueryLanguageTests
 	{
 		private static NorthwindDatabase db = new NorthwindDatabase();
-		private static Dictionary<string, string> baselines = new Dictionary<string, string>();
+		private static Dictionary<string, string> sqlServerBaselines = new Dictionary<string, string>();
+		private static Dictionary<string, string> sqliteBaselines = new Dictionary<string, string>();
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
 		{
-			string fileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryLanguageBaselines.xml";
-			if (!string.IsNullOrEmpty(fileName) && File.Exists(fileName))
+			string sqlServerFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryLanguageBaselinesSqlServer.xml";
+			if (!string.IsNullOrEmpty(sqlServerFileName) && File.Exists(sqlServerFileName))
 			{
-				XDocument doc = XDocument.Load(fileName);
-				baselines = doc.Root.Elements("baseline").ToDictionary(e => (string)e.Attribute("key"), e => e.Value);
+				XDocument doc = XDocument.Load(sqlServerFileName);
+				sqlServerBaselines = doc.Root.Elements("baseline").ToDictionary(e => (string)e.Attribute("key"), e => e.Value);
+			}
+
+			string sqliteFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryLanguageBaselinesSQLite.xml";
+			if (!string.IsNullOrEmpty(sqliteFileName) && File.Exists(sqliteFileName))
+			{
+				XDocument doc = XDocument.Load(sqliteFileName);
+				sqliteBaselines = doc.Root.Elements("baseline").ToDictionary(e => (string)e.Attribute("key"), e => e.Value);
 			}
 		}
 
@@ -1397,6 +1406,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathAcos()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			TestQuery(
 				"TestMathAcos",
 				db.Orders.Where(o => Math.Acos(o.OrderID) == 0));
@@ -1405,6 +1420,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathAsin()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			TestQuery(
 				"TestMathAsin",
 				db.Orders.Where(o => Math.Asin(o.OrderID) == 0));
@@ -1413,6 +1434,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathAtan()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			TestQuery(
 				"TestMathAtan",
 				db.Orders.Where(o => Math.Atan(o.OrderID) == 0));
@@ -1421,6 +1448,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathAtan2()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			TestQuery(
 				"TestMathAtan2",
 				db.Orders.Where(o => Math.Atan2(o.OrderID, 3) == 0));
@@ -1429,6 +1462,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathCos()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			TestQuery(
 				"TestMathCos",
 				db.Orders.Where(o => Math.Cos(o.OrderID) == 0));
@@ -1437,6 +1476,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathSin()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			TestQuery(
 				"TestMathSin",
 				db.Orders.Where(o => Math.Sin(o.OrderID) == 0));
@@ -1445,6 +1490,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathTan()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			TestQuery(
 				"TestMathTan",
 				db.Orders.Where(o => Math.Tan(o.OrderID) == 0));
@@ -1453,6 +1504,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathExp()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			TestQuery(
 				"TestMathExp",
 				db.Orders.Where(o => Math.Exp(o.OrderID) == 0));
@@ -1461,6 +1518,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathLog()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			TestQuery(
 				"TestMathLog",
 				db.Orders.Where(o => Math.Log(o.OrderID) == 0));
@@ -1469,6 +1532,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathLog10()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			TestQuery(
 				"TestMathLog10",
 				db.Orders.Where(o => Math.Log10(o.OrderID) == 0));
@@ -1477,6 +1546,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathSqrt()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			TestQuery(
 				"TestMathSqrt",
 				db.Orders.Where(o => Math.Sqrt(o.OrderID) == 0));
@@ -1501,6 +1576,12 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestMathPow()
 		{
+			// Math functions are not supported in SQLite
+			if (db.Configuration.DataAccessProvider.GetType().Name.Contains("SQLite"))
+			{
+				return;
+			}
+
 			TestQuery(
 				"TestMathPow",
 				db.Orders.Where(o => Math.Pow(o.OrderID < 1000 ? 1 : 2, 3) == 0));
@@ -2123,36 +2204,46 @@ namespace Watsonia.Data.Tests.Queries
 
 		private void TestQuery(string baseline, Expression query)
 		{
+			var select = db.BuildSelectStatement(query);
+
+			// Test the SQLite command builder
+			var sqliteProvider = new SQLite.SQLiteDataAccessProvider();
+			var sqliteCommand = sqliteProvider.BuildCommand(select, db.Configuration);
+			TestQuery(query, sqliteBaselines[baseline], sqliteCommand, "*** SQLITE ***");
+
+			// Test the SQL Server command builder
+			var sqlServerProvider = new SqlServer.SqlServerDataAccessProvider();
+			var sqlServerCommand = sqlServerProvider.BuildCommand(select, db.Configuration);
+			TestQuery(query, sqlServerBaselines[baseline], sqlServerCommand, "*** SQL SERVER ***");
+		}
+
+		private void TestQuery(Expression query, string baseline, DbCommand command, string provider)
+		{
 			if (query.NodeType == ExpressionType.Convert && query.Type == typeof(object))
 			{
 				// Remove boxing
 				query = ((UnaryExpression)query).Operand;
 			}
 
-			string expected = TrimExtraWhiteSpace(baselines[baseline].Replace("\n\n", ") ("));
-			SelectStatement select = db.BuildSelectStatement(query);
-
-			var builder = new SqlServer.TSqlCommandBuilder();
-			builder.VisitStatement(select, db.Configuration);
-
-			string actual = TrimExtraWhiteSpace(builder.CommandText.ToString());
+			string expected = TrimExtraWhiteSpace(baseline.Replace("\n\n", ") ("));
+			string actual = TrimExtraWhiteSpace(command.CommandText.ToString());
 
 			// Replace parameter references with their values so that we can check they have the correct value
-			for (int i= 0; i < builder.ParameterValues.Count; i++)
+			for (int i = 0; i < command.Parameters.Count; i++)
 			{
 				Assert.IsTrue(actual.Contains("@" + i));
-				if (builder.ParameterValues[i] is string ||
-					builder.ParameterValues[i] is char)
+				if (command.Parameters[i].Value is string ||
+					command.Parameters[i].Value is char)
 				{
-					actual = actual.Replace("@" + i, "'" + builder.ParameterValues[i].ToString() + "'");
+					actual = actual.Replace("@" + i, "'" + command.Parameters[i].Value.ToString() + "'");
 				}
 				else
 				{
-					actual = actual.Replace("@" + i, builder.ParameterValues[i].ToString());
+					actual = actual.Replace("@" + i, command.Parameters[i].Value.ToString());
 				}
 			}
 
-			Assert.AreEqual(expected, actual);
+			Assert.AreEqual(expected, actual, provider);
 		}
 
 		private string TrimExtraWhiteSpace(string s)

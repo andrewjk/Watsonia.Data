@@ -7,7 +7,7 @@ namespace Watsonia.Data.TestPerformance
 {
 	internal sealed class WatsoniaDatabase : Database
 	{
-		public const string ConnectionString = @"Data Source=Data\Performance.sdf;Persist Security Info=False";
+		public const string ConnectionString = @"Data Source=Data\Performance.sqlite";
 		private const string EntityNamespace = "Watsonia.Data.TestPerformance.Entities";
 
 		public WatsoniaDatabase()

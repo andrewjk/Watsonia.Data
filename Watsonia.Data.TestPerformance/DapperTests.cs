@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using Watsonia.Data.TestPerformance.Entities;
-using System.Data.SqlServerCe;
+using Microsoft.Data.Sqlite;
 
 namespace Watsonia.Data.TestPerformance
 {
@@ -19,7 +19,7 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqlCeConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
 			{
 				conn.Open();
 				var posts = conn.Query<Player>("SELECT ID, Text, DateCreated, DateModified FROM Posts").ToList();
@@ -32,11 +32,11 @@ namespace Watsonia.Data.TestPerformance
 			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetPlayerByID(int id)
+		public long GetPlayerByID(long id)
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqlCeConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
 			{
 				conn.Open();
 				var player = conn.Query<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamID FROM Players WHERE ID = @ID", new { ID = id }).First();
@@ -46,11 +46,11 @@ namespace Watsonia.Data.TestPerformance
 			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetPlayersForTeam(int teamID)
+		public long GetPlayersForTeam(long teamID)
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqlCeConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
 			{
 				conn.Open();
 				var players = conn.Query<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamID FROM Players WHERE TeamID = @ID", new { ID = teamID });
@@ -63,11 +63,11 @@ namespace Watsonia.Data.TestPerformance
 			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetTeamsForSport(int sportID)
+		public long GetTeamsForSport(long sportID)
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqlCeConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
 			{
 				conn.Open();
 				var players = conn.Query<Player, Team, Player>("" +
