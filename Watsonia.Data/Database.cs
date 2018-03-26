@@ -1086,7 +1086,7 @@ namespace Watsonia.Data
 						for (int i = 0; i < cascadeIDsToDelete.Length; i += chunkSize)
 						{
 							var chunkedIDsToDelete = cascadeIDsToDelete.Skip(i).Take(chunkSize);
-							var select = Watsonia.Data.Select.From(deleteTableName).Where(deletePrimaryKeyName, SqlOperator.IsIn, chunkedIDsToDelete);
+							var select = Select.From(deleteTableName).Where(deletePrimaryKeyName, SqlOperator.IsIn, chunkedIDsToDelete);
 
 							// Load the items and delete them. Not the most efficient but it ensures that things
 							// are cascaded correctly and the right events are raised
@@ -1263,22 +1263,36 @@ namespace Watsonia.Data
 			{
 				foreach (PropertyInfo property in this.Configuration.PropertiesToCascadeDelete(itemType))
 				{
-					Type deleteType = TypeHelper.GetElementType(property.PropertyType);
-					string deleteTableName = this.Configuration.GetTableName(deleteType);
-					string deleteForeignKeyName = this.Configuration.GetForeignKeyColumnName(deleteType, tableType);
-					var select = Watsonia.Data.Select.From(deleteTableName).Where(deleteForeignKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
-
 					// Load the items to delete. Not the most efficient but it ensures that
 					// things are cascaded correctly and the right events are raised
-					var itemsToDelete = LoadCollection(select, deleteType);
+					IList<IDynamicProxy> itemsToDelete = new List<IDynamicProxy>();
 
-					// If it's a single item, update the field to null to avoid a reference
-					// exception when deleting the item
+					Type deleteType = TypeHelper.GetElementType(property.PropertyType);
+					string deleteTableName = this.Configuration.GetTableName(deleteType);
+
 					if (this.Configuration.IsRelatedItem(property))
 					{
-						string columnName = this.Configuration.GetColumnName(property);
-						var updateQuery = Watsonia.Data.Update.Table(tableName).Set(columnName, null).Where(primaryKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
-						Execute(updateQuery, connection, transaction);
+						string deleteKeyPropertyName = this.Configuration.GetForeignKeyColumnName(property);
+						PropertyInfo deleteKeyProperty = proxy.GetType().GetProperty(deleteKeyPropertyName,
+							BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+						object deletePrimaryKeyValue = deleteKeyProperty.GetValue(proxy);
+						if (deletePrimaryKeyValue != null)
+						{
+							string deletePrimaryKeyName = this.Configuration.GetPrimaryKeyColumnName(deleteType);
+							var select = Select.From(deleteTableName).Where(deletePrimaryKeyName, SqlOperator.Equals, deletePrimaryKeyValue);
+							itemsToDelete = LoadCollection(select, deleteType);
+
+							// Update the field to null to avoid a reference exception when deleting the item
+							string columnName = this.Configuration.GetColumnName(property);
+							var updateQuery = Update.Table(tableName).Set(columnName, null).Where(primaryKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
+							Execute(updateQuery, connection, transaction);
+						}
+					}
+					else if (this.Configuration.IsRelatedCollection(property))
+					{
+						string deleteForeignKeyName = this.Configuration.GetForeignKeyColumnName(deleteType, tableType);
+						var select = Select.From(deleteTableName).Where(deleteForeignKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
+						itemsToDelete = LoadCollection(select, deleteType);
 					}
 
 					foreach (IDynamicProxy deleteItem in itemsToDelete)
