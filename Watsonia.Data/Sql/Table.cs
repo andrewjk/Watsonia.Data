@@ -9,8 +9,6 @@ namespace Watsonia.Data.Sql
 	/// </summary>
 	public sealed class Table : StatementPart
 	{
-		private readonly List<string> _includePaths = new List<string>();
-
 		/// <summary>
 		/// Gets the type of the statement part.
 		/// </summary>
@@ -47,20 +45,6 @@ namespace Watsonia.Data.Sql
 		{
 			get;
 			internal set;
-		}
-
-		/// <summary>
-		/// Gets the paths of related items and collections to include when loading data from this table.
-		/// </summary>
-		/// <value>
-		/// The include paths.
-		/// </value>
-		internal List<string> IncludePaths
-		{
-			get
-			{
-				return _includePaths;
-			}
 		}
 
 		/// <summary>

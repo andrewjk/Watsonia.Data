@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace Watsonia.Data
 {
 	/// <summary>
-	/// A parameter for passing to stored procedures for execution against the database.
+	/// A parameter for passing to a stored procedure or user-defined function.
 	/// </summary>
-	public class ProcedureParameter
+	public class Parameter
 	{
 		/// <summary>
 		/// Gets the name of the parameter.
@@ -28,11 +28,11 @@ namespace Watsonia.Data
 		public object Value { get; private set; }
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ProcedureParameter"/> class.
+		/// Initializes a new instance of the <see cref="Parameter"/> class.
 		/// </summary>
 		/// <param name="name">The name.</param>
 		/// <param name="value">The value.</param>
-		public ProcedureParameter(string name, object value)
+		public Parameter(string name, object value)
 		{
 			this.Name = name;
 			this.Value = value;

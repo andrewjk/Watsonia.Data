@@ -53,11 +53,12 @@ namespace Watsonia.Data.SqlServer
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
 		/// <param name="procedures">The stored procedures that should exist in the database.</param>
+		/// <param name="functions">The user-defined functions that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration)
+		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
-			updater.UpdateDatabase(tables, views, procedures);
+			updater.UpdateDatabase(tables, views, procedures, functions);
 		}
 
 		/// <summary>
@@ -66,14 +67,15 @@ namespace Watsonia.Data.SqlServer
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
 		/// <param name="procedures">The stored procedures that should exist in the database.</param>
+		/// <param name="functions">The user-defined functions that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration)
+		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
-			return updater.GetUpdateScript(tables, views, procedures);
+			return updater.GetUpdateScript(tables, views, procedures, functions);
 		}
 
 		/// <summary>
@@ -126,7 +128,7 @@ namespace Watsonia.Data.SqlServer
 		/// <param name="parameters">Any parameters that need to be passed to the stored procedure.</param>
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
-		public DbCommand BuildProcedureCommand(string procedureName, params ProcedureParameter[] parameters)
+		public DbCommand BuildProcedureCommand(string procedureName, params Parameter[] parameters)
 		{
 			var builder = new SqlServerCommandBuilder();
 			return builder.BuildProcedureCommand(procedureName, parameters);
@@ -138,12 +140,13 @@ namespace Watsonia.Data.SqlServer
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
 		/// <param name="procedures">The stored procedures that should exist in the database.</param>
+		/// <param name="functions">The user-defined functions that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the unmapped columns.
 		/// </returns>
 		/// <exception cref="System.NotImplementedException"></exception>
-		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration)
+		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
 			return updater.GetUnmappedColumns(tables, views);

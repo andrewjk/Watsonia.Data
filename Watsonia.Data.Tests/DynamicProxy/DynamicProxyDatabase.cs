@@ -4,17 +4,16 @@ using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Watsonia.Data.SqlServer;
+using Watsonia.Data.SQLite;
 
 namespace Watsonia.Data.Tests.DynamicProxy
 {
 	public class DynamicProxyDatabase : Database
 	{
+		private const string ConnectionString = @"Data Source=Data\DynamicProxyTests.sqlite";
+
 		public DynamicProxyDatabase()
-			: base(
-				  new SqlServerDataAccessProvider(),
-				  AppConfiguration.ConnectionString.Replace("Northwind", "WatsoniaDataTests"),
-				  "Watsonia.Data.Tests.DynamicProxy")
+			: base(new SQLiteDataAccessProvider(), DynamicProxyDatabase.ConnectionString, "Watsonia.Data.Tests.DynamicProxy")
 		{
 		}
 	}

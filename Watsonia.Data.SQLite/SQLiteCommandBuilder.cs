@@ -58,7 +58,7 @@ namespace Watsonia.Data.SQLite
 			}
 		}
 
-		public SqliteCommand BuildProcedureCommand(string procedureName, params ProcedureParameter[] parameters)
+		public SqliteCommand BuildProcedureCommand(string procedureName, params Parameter[] parameters)
 		{
 			var command = new SqliteCommand();
 			command.CommandType = System.Data.CommandType.StoredProcedure;
@@ -67,7 +67,7 @@ namespace Watsonia.Data.SQLite
 			return command;
 		}
 
-		private void AddProcedureParameters(SqliteCommand command, params ProcedureParameter[] parameters)
+		private void AddProcedureParameters(SqliteCommand command, params Parameter[] parameters)
 		{
 			for (int i = 0; i < parameters.Length; i++)
 			{
@@ -81,9 +81,14 @@ namespace Watsonia.Data.SQLite
 
 		private void CheckParameterValue(SqliteParameter parameter)
 		{
-			// HACK: Is there a better way to do this? SQLite doesn't seem to ignore times on dates...
-			if (parameter.Value.GetType() == typeof(DateTime))
+			if (parameter.Value.GetType() == typeof(char))
 			{
+				// HACK: SQLite doesn't seem to handle chars correctly?
+				parameter.Value = parameter.Value.ToString();
+			}
+			else if (parameter.Value.GetType() == typeof(DateTime))
+			{
+				// HACK: Is there a better way to do this? SQLite doesn't seem to ignore times on dates...
 				var value = Convert.ToDateTime(parameter.Value);
 				if (value.Hour > 0 || value.Minute > 0 || value.Second > 0)
 				{

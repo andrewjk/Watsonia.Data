@@ -19,19 +19,19 @@ namespace Watsonia.Data.SQLite
 			_configuration = configuration;
 		}
 
-		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures)
+		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
 		{
-			UpdateDatabase(tables, views, procedures, true);
+			UpdateDatabase(tables, views, procedures, functions, true);
 		}
 
-		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures)
+		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
 		{
 			StringBuilder script = new StringBuilder();
-			UpdateDatabase(tables, views, procedures, false, script);
+			UpdateDatabase(tables, views, procedures, functions, false, script);
 			return script.ToString();
 		}
 
-		protected virtual void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, bool doUpdate, StringBuilder script = null)
+		protected virtual void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, bool doUpdate, StringBuilder script = null)
 		{
 			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
 			{

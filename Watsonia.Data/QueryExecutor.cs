@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Remotion.Linq;
+using Watsonia.Data.Sql;
 
 namespace Watsonia.Data
 {
@@ -29,9 +30,18 @@ namespace Watsonia.Data
 
             // Create the select statement
             SelectStatement select = SelectStatementCreator.Visit(queryModel, this.Database.Configuration, true);
+
+			// Add include paths if necessary
 			if (!select.IsAggregate)
 			{
 				select.IncludePaths.AddRange(this.Query.IncludePaths);
+			}
+
+			// Add parameters if the source is a user-defined function
+			if (select.Source.PartType == StatementPartType.UserDefinedFunction)
+			{
+				var function = (UserDefinedFunction)select.Source;
+				function.Parameters.AddRange(this.Query.Parameters);
 			}
 
 			// Check whether we need to expand fields (if the select has no fields)

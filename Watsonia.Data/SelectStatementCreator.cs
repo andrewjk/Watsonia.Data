@@ -72,10 +72,18 @@ namespace Watsonia.Data
 
 		public override void VisitMainFromClause(MainFromClause fromClause, QueryModel queryModel)
 		{
-            string tableName = this.Configuration.GetTableName(fromClause.ItemType);
-            string alias = fromClause.ItemName.Replace("<generated>", "g");
-            this.SelectStatement.Source = new Table(tableName) { Alias = alias };
-
+			if (this.Configuration.IsFunction(fromClause.ItemType))
+			{
+				string functionName = this.Configuration.GetFunctionName(fromClause.ItemType);
+				string alias = fromClause.ItemName.Replace("<generated>", "g");
+				this.SelectStatement.Source = new UserDefinedFunction(functionName) { Alias = alias };
+			}
+			else
+			{
+				string tableName = this.Configuration.GetTableName(fromClause.ItemType);
+				string alias = fromClause.ItemName.Replace("<generated>", "g");
+				this.SelectStatement.Source = new Table(tableName) { Alias = alias };
+			}
 			base.VisitMainFromClause(fromClause, queryModel);
 		}
 

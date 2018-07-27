@@ -752,11 +752,6 @@ namespace Watsonia.Data.SQLite
 					this.VisitConstant((ConstantPart)field);
 					break;
 				}
-				case StatementPartType.Parameter:
-				{
-					this.VisitParameter((Parameter)field);
-					break;
-				}
 				case StatementPartType.Condition:
 				{
 					this.VisitCondition((Condition)field);
@@ -1016,66 +1011,87 @@ namespace Watsonia.Data.SQLite
 			}
 			else
 			{
-				this.VisitField(condition.Field);
-
 				switch (condition.Operator)
 				{
 					case SqlOperator.Equals:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" = ");
 						this.VisitField(condition.Value);
 						break;
 					}
 					case SqlOperator.NotEquals:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" <> ");
 						this.VisitField(condition.Value);
 						break;
 					}
 					case SqlOperator.IsLessThan:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" < ");
 						this.VisitField(condition.Value);
 						break;
 					}
 					case SqlOperator.IsLessThanOrEqualTo:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" <= ");
 						this.VisitField(condition.Value);
 						break;
 					}
 					case SqlOperator.IsGreaterThan:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" > ");
 						this.VisitField(condition.Value);
 						break;
 					}
 					case SqlOperator.IsGreaterThanOrEqualTo:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" >= ");
 						this.VisitField(condition.Value);
 						break;
 					}
-					////case SqlOperator.IsBetween:
-					////{
-					////	this.CommandText.Append(" BETWEEN ");
-					////	this.VisitField(condition.Value);
-					////	this.CommandText.Append(" AND ");
-					////	this.VisitField(condition.Values[1]);
-					////	break;
-					////}
 					case SqlOperator.IsIn:
 					{
-						this.CommandText.Append(" IN (");
-						this.AppendNewLine(Indentation.Inner);
-						this.VisitField(condition.Value);
-						this.AppendNewLine(Indentation.Same);
-						this.CommandText.Append(")");
-						this.AppendNewLine(Indentation.Outer);
+						// If it's in an empty list, just check against false
+						bool handled = false;
+						if (condition.Value.PartType == StatementPartType.ConstantPart)
+						{
+							var value = ((ConstantPart)condition.Value).Value;
+							if (value is IEnumerable && !(value is string) && !(value is byte[]))
+							{
+								// HACK: Ugh
+								bool hasThings = false;
+								foreach (var thing in (IEnumerable)value)
+								{
+									hasThings = true;
+								}
+								if (!hasThings)
+								{
+									handled = true;
+									this.CommandText.Append(" 0 <> 0");
+								}
+							}
+						}
+						if (!handled)
+						{
+							this.VisitField(condition.Field);
+							this.CommandText.Append(" IN (");
+							this.AppendNewLine(Indentation.Inner);
+							this.VisitField(condition.Value);
+							this.AppendNewLine(Indentation.Same);
+							this.CommandText.Append(")");
+							this.AppendNewLine(Indentation.Outer);
+						}
 						break;
 					}
 					case SqlOperator.Contains:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" LIKE '%' || ");
 						this.VisitField(condition.Value);
 						this.CommandText.Append(" || '%'");
@@ -1083,6 +1099,7 @@ namespace Watsonia.Data.SQLite
 					}
 					case SqlOperator.StartsWith:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" LIKE ");
 						this.VisitField(condition.Value);
 						this.CommandText.Append(" || '%'");
@@ -1090,6 +1107,7 @@ namespace Watsonia.Data.SQLite
 					}
 					case SqlOperator.EndsWith:
 					{
+						this.VisitField(condition.Field);
 						this.CommandText.Append(" LIKE '%' || ");
 						this.VisitField(condition.Value);
 						break;
@@ -1325,8 +1343,12 @@ namespace Watsonia.Data.SQLite
 			this.VisitField(function.Argument);
 			this.CommandText.Append(", ");
 			this.VisitField(function.StartIndex);
-			this.CommandText.Append(" + 1, ");
-			this.VisitField(function.Length);
+			this.CommandText.Append(" + 1");
+			if (function.Length != null)
+			{
+				this.CommandText.Append(", ");
+				this.VisitField(function.Length);
+			}
 			this.CommandText.Append(")");
 		}
 
@@ -1346,7 +1368,11 @@ namespace Watsonia.Data.SQLite
 			this.CommandText.Append("(");
 			if (function.StartIndex != null)
 			{
-				this.VisitFunction("INSTR", function.Argument, function.StringToFind, function.StartIndex);
+				// e.g. INSTR(SUBSTR(text, startIndex), stringToFind) + startIndex
+				var substring = new SubstringFunction() { Argument = function.Argument, StartIndex = function.StartIndex };
+				this.VisitFunction("INSTR", substring, function.StringToFind);
+				this.CommandText.Append(" + ");
+				this.VisitField(function.StartIndex);
 			}
 			else
 			{

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Watsonia.Data
 {
-	public class MappedProcedureParameter
+	public class MappedParameter
 	{
 		public string Name { get; set; }
 
@@ -14,13 +14,13 @@ namespace Watsonia.Data
 
 		public int MaxLength { get; set; }
 
-		public MappedProcedureParameter(string name, Type parameterType)
+		public MappedParameter(string name, Type parameterType)
 		{
 			this.Name = name;
 			this.ParameterType = parameterType;
 		}
 
-		public MappedProcedureParameter(string name, Type parameterType, int maxLength)
+		public MappedParameter(string name, Type parameterType, int maxLength)
 		{
 			this.Name = name;
 			this.ParameterType = parameterType;

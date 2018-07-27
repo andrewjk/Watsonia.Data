@@ -27,7 +27,7 @@ namespace Watsonia.Data
 		{
 			var assemblyName = new AssemblyName(DynamicProxyFactory.ProxyAssemblyName);
 			_assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-			_moduleBuilder = _assemblyBuilder.DefineDynamicModule(_assemblyBuilder.GetName().Name/*, false*/);	// NOTE: emit was previously false
+			_moduleBuilder = _assemblyBuilder.DefineDynamicModule(_assemblyBuilder.GetName().Name/*, false*/);  // NOTE: emit was previously false
 		}
 
 		// NOTE: This is not supported as of .Net Standard 2.0:
@@ -79,7 +79,8 @@ namespace Watsonia.Data
 		{
 			string proxyTypeName = GetDynamicTypeName(parentType, database);
 			return _cachedConstructors.GetOrAdd(proxyTypeName,
-				(string s) => {
+				(string s) =>
+				{
 					Type proxyType = GetDynamicProxyType(parentType, database);
 					return proxyType.GetConstructor(Type.EmptyTypes);
 				});
@@ -780,7 +781,7 @@ namespace Watsonia.Data
 			return method;
 		}
 
-		private static MethodBuilder CreateOverriddenPropertySetMethod(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members )
+		private static MethodBuilder CreateOverriddenPropertySetMethod(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members)
 		{
 			MethodBuilder method = type.DefineMethod(
 				"set_" + property.Name,
@@ -1038,7 +1039,7 @@ namespace Watsonia.Data
 
 			MethodInfo addLoadedCollectionMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"AddLoadedCollection", new Type[] { typeof(string) });
-			
+
 			ParameterBuilder value = method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			ILGenerator gen = method.GetILGenerator();
@@ -1053,7 +1054,7 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
 			gen.Emit(OpCodes.Ldstr, property.Name);
 			gen.Emit(OpCodes.Callvirt, addLoadedCollectionMethod);
-			
+
 			gen.Emit(OpCodes.Ret);
 
 			return method;
@@ -1084,7 +1085,7 @@ namespace Watsonia.Data
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
 				null,
 				new Type[] { property.PropertyType });
-			
+
 			MethodInfo checkOriginalValueMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"CheckOriginalValue").MakeGenericMethod(property.PropertyType);
 
@@ -1103,7 +1104,7 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldstr, property.Name);
 			gen.Emit(OpCodes.Ldarg_1);
 			gen.Emit(OpCodes.Callvirt, checkOriginalValueMethod);
-			
+
 			// TODO: Ugh, this should only be fired if its value has changed
 			if (property.Name == members.PrimaryKeyColumnName)
 			{
@@ -1120,7 +1121,7 @@ namespace Watsonia.Data
 
 			return method;
 		}
-		
+
 		private static void CreateOverriddenItemProperty(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members, Database database)
 		{
 			// If the ID property doesn't exist, create it
@@ -1382,10 +1383,10 @@ namespace Watsonia.Data
 			gen.MarkLabel(label138);
 
 			gen.Emit(OpCodes.Ret);
-			
+
 			return method;
 		}
-		
+
 		private static MethodBuilder CreateItemPrimaryKeyValueChangedEventHandler(TypeBuilder type, PropertyInfo property, MethodInfo setItemIDMethod, DynamicProxyTypeMembers members, Database database)
 		{
 			MethodBuilder method = type.DefineMethod(
@@ -1644,7 +1645,7 @@ namespace Watsonia.Data
 			}
 			gen.Emit(OpCodes.Call, members.SetPrimaryKeyMethod);
 			gen.Emit(OpCodes.Ret);
-			
+
 			return method;
 		}
 
@@ -2358,6 +2359,12 @@ namespace Watsonia.Data
 			var result = new ChildParentMapping();
 			foreach (Type parentType in database.Configuration.TypesToMap())
 			{
+				// We only want to map parents that are tables
+				if (!database.Configuration.IsTable(parentType))
+				{
+					continue;
+				}
+
 				foreach (PropertyInfo childProperty in database.Configuration.PropertiesToMap(parentType))
 				{
 					if (database.Configuration.IsRelatedCollection(childProperty))

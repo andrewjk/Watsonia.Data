@@ -200,6 +200,27 @@ namespace Watsonia.Data
 			return query;
 		}
 
+		/// <summary>
+		/// Provides a queryable interface to a user-defined function in the database for use with LINQ.
+		/// </summary>
+		/// <typeparam name="T">The type of the class mapped to the database function.</typeparam>
+		/// <returns></returns>
+		public DatabaseQuery<T> QueryFunction<T>(params Parameter[] parameters)
+		{
+			var queryParser = QueryParser.CreateDefault();
+			var queryExecutor = new QueryExecutor<T>(this);
+			var query = new DatabaseQuery<T>(queryParser, queryExecutor);
+
+			// HACK: This is a bit horrible and circular, but necessary to get Include paths into the select
+			// statement in the QueryExecutor.Execute methods
+			queryExecutor.Query = query;
+
+			// HACK: This is also a bit horrible as parameters are only necessary for functions
+			query.Parameters.AddRange(parameters);
+
+			return query;
+		}
+
 		internal SelectStatement BuildSelectStatement(Expression expression)
 		{
 			// For testing
@@ -555,11 +576,24 @@ namespace Watsonia.Data
 
 		private SelectStatement GetChildItemSubquery(SelectStatement parentQuery, PropertyInfo parentProperty, Type itemType)
 		{
-			// Build a statement to use as a subquery to get the IDs of the parent items
-			var foreignTable = (Sql.Table)parentQuery.Source;
-			var foreignKeyColumn = new Sql.Column(
-				!string.IsNullOrEmpty(foreignTable.Alias) ? foreignTable.Alias : foreignTable.Name,
-				this.Configuration.GetForeignKeyColumnName(parentProperty));
+			Sql.Column foreignKeyColumn;
+			if (parentQuery.Source is Sql.UserDefinedFunction)
+			{
+				// Build a statement to use as a subquery to get the IDs of the parent items
+				var foreignTable = (Sql.UserDefinedFunction)parentQuery.Source;
+				foreignKeyColumn = new Sql.Column(
+					!string.IsNullOrEmpty(foreignTable.Alias) ? foreignTable.Alias : foreignTable.Name,
+					this.Configuration.GetForeignKeyColumnName(parentProperty));
+			}
+			else
+			{
+				// Build a statement to use as a subquery to get the IDs of the parent items
+				var foreignTable = (Sql.Table)parentQuery.Source;
+				foreignKeyColumn = new Sql.Column(
+					!string.IsNullOrEmpty(foreignTable.Alias) ? foreignTable.Alias : foreignTable.Name,
+					this.Configuration.GetForeignKeyColumnName(parentProperty));
+			}
+
 			SelectStatement selectChildItemIDs = Select.From(parentQuery.Source).Columns(foreignKeyColumn);
 			if (parentQuery.SourceJoins.Count > 0)
 			{
@@ -1431,7 +1465,7 @@ namespace Watsonia.Data
 		/// <param name="procedureName">The name of the stored procedure.</param>
 		/// <param name="parameters">Any parameters that need to be passed to the stored procedure.</param>
 		/// <returns>Any value returned by the stored procedure.</returns>
-		public object ExecuteProcedure(string procedureName, params ProcedureParameter[] parameters)
+		public object ExecuteProcedure(string procedureName, params Parameter[] parameters)
 		{
 			object value;
 

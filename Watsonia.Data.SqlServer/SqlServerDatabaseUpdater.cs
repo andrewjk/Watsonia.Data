@@ -33,19 +33,19 @@ namespace Watsonia.Data.SqlServer
 			_configuration = configuration;
 		}
 
-		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures)
+		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
 		{
-			UpdateDatabase(tables, views, procedures, true);
+			UpdateDatabase(tables, views, procedures, functions, true);
 		}
 
-		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures)
+		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
 		{
 			StringBuilder script = new StringBuilder();
-			UpdateDatabase(tables, views, procedures, false, script);
+			UpdateDatabase(tables, views, procedures, functions, false, script);
 			return script.ToString();
 		}
 
-		protected virtual void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, bool doUpdate, StringBuilder script = null)
+		protected virtual void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, bool doUpdate, StringBuilder script = null)
 		{
 			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
 			{
@@ -54,6 +54,7 @@ namespace Watsonia.Data.SqlServer
 				var existingColumns = LoadExistingColumns(connection);
 				var existingViews = LoadExistingViews(connection);
 				var existingProcedures = LoadExistingProcedures(connection);
+				var existingFunctions = LoadExistingFunctions(connection);
 
 				// First pass - create or update tables and columns
 				foreach (MappedTable table in tables)
@@ -133,6 +134,22 @@ namespace Watsonia.Data.SqlServer
 					{
 						// The procedure doesn't exist so it needs to be created
 						CreateProcedure(procedure, connection, doUpdate, script);
+					}
+				}
+
+				// Sixth pass - create functions
+				foreach (MappedFunction function in functions)
+				{
+					string key = function.Name.ToUpperInvariant();
+					if (existingFunctions.ContainsKey(key))
+					{
+						// The function exists so we need to check whether it should be updated
+						UpdateFunction(function, existingFunctions[key], connection, doUpdate, script);
+					}
+					else
+					{
+						// The function doesn't exist so it needs to be created
+						CreateFunction(function, connection, doUpdate, script);
 					}
 				}
 			}
@@ -247,6 +264,32 @@ namespace Watsonia.Data.SqlServer
 				}
 			}
 			return existingProcedures;
+		}
+
+		protected virtual Dictionary<string, MappedFunction> LoadExistingFunctions(DbConnection connection)
+		{
+			var existingFunctions = new Dictionary<string, MappedFunction>();
+			if (!this.CompactEdition)
+			{
+				using (var existingFunctionsCommand = CreateCommand(connection))
+				{
+					existingFunctionsCommand.CommandText = "SELECT ROUTINE_NAME, ROUTINE_DEFINITION FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_TYPE = 'FUNCTION'";
+					existingFunctionsCommand.Connection = connection;
+					using (var reader = existingFunctionsCommand.ExecuteReader())
+					{
+						while (reader.Read())
+						{
+							string functionName = reader.GetString(reader.GetOrdinal("ROUTINE_NAME"));
+							string statementText = reader.GetString(reader.GetOrdinal("ROUTINE_DEFINITION"));
+							MappedFunction function = new MappedFunction(functionName);
+							function.StatementText = statementText;
+							string key = functionName.ToUpperInvariant();
+							existingFunctions.Add(key, function);
+						}
+					}
+				}
+			}
+			return existingFunctions;
 		}
 
 		protected virtual Type FrameworkTypeFromDatabase(string databaseTypeName, bool allowNulls)
@@ -846,17 +889,18 @@ namespace Watsonia.Data.SqlServer
 		{
 			var b = new StringBuilder();
 			b.AppendLine($"CREATE PROCEDURE [{procedure.Name}]");
+			var parameterDeclarations = new List<string>();
 			for (int i = 0; i < procedure.Parameters.Count; i++)
 			{
 				var parameter = procedure.Parameters[i];
 				string parameterText = ColumnTypeText(parameter.ParameterType, parameter.MaxLength);
-				b.Append($"{parameter.Name} {parameterText}");
-				if (i < procedure.Parameters.Count - 1)
+				string parameterDeclaration = $"{parameter.Name} {parameterText}";
+				if (!parameterDeclarations.Contains(parameterDeclaration))
 				{
-					b.Append(",");
+					parameterDeclarations.Add(parameterDeclaration);
 				}
-				b.AppendLine();
 			}
+			b.AppendLine(string.Join("," + Environment.NewLine, parameterDeclarations));
 			b.AppendLine("AS");
 			b.AppendLine("BEGIN");
 			b.AppendLine("SET NOCOUNT ON;");
@@ -867,9 +911,9 @@ namespace Watsonia.Data.SqlServer
 				var commandText = procedureCommand.CommandText;
 				for (int i = 0; i < procedureCommand.Parameters.Count; i++)
 				{
-					if (procedureCommand.Parameters[i].Value is MappedProcedureParameter)
+					if (procedureCommand.Parameters[i].Value is MappedParameter)
 					{
-						var parameter = (MappedProcedureParameter)procedureCommand.Parameters[i].Value;
+						var parameter = (MappedParameter)procedureCommand.Parameters[i].Value;
 						commandText = commandText.Replace("@" + i, parameter.Name);
 					}
 					else if (procedureCommand.Parameters[i].Value is string ||
@@ -886,6 +930,91 @@ namespace Watsonia.Data.SqlServer
 			}
 			b.AppendLine();
 			b.AppendLine("END");
+
+			return b.ToString();
+		}
+
+		protected virtual void CreateFunction(MappedFunction function, DbConnection connection, bool doUpdate, StringBuilder script)
+		{
+			if (this.CompactEdition)
+			{
+				// No functions in CE
+				return;
+			}
+
+			var commandText = BuildFunctionSql(function);
+			using (var command = CreateCommand(connection))
+			{
+				command.CommandText = commandText;
+				command.Connection = connection;
+				ExecuteSql(command, doUpdate, script);
+			}
+		}
+
+		protected virtual void UpdateFunction(MappedFunction function, MappedFunction oldFunction, DbConnection connection, bool doUpdate, StringBuilder script)
+		{
+			var commandText = BuildFunctionSql(function);
+			if (oldFunction.StatementText != commandText)
+			{
+				using (var command = CreateCommand(connection))
+				{
+					command.CommandText = commandText.Replace("CREATE FUNCTION", "ALTER FUNCTION");
+					command.Connection = connection;
+					ExecuteSql(command, doUpdate, script);
+				}
+			}
+		}
+
+		protected virtual string BuildFunctionSql(MappedFunction function)
+		{
+			var b = new StringBuilder();
+			b.AppendLine($"CREATE FUNCTION [{function.Name}]");
+			var parameterDeclarations = new List<string>();
+			for (int i = 0; i < function.Parameters.Count; i++)
+			{
+				var parameter = function.Parameters[i];
+				string parameterText = ColumnTypeText(parameter.ParameterType, parameter.MaxLength);
+				string parameterDeclaration = $"{parameter.Name} {parameterText}";
+				if (!parameterDeclarations.Contains(parameterDeclaration))
+				{
+					parameterDeclarations.Add(parameterDeclaration);
+				}
+			}
+			if  (parameterDeclarations.Count > 0)
+			{
+				b.AppendLine("(");
+				b.AppendLine(string.Join("," + Environment.NewLine, parameterDeclarations));
+				b.AppendLine(")");
+			}
+			b.AppendLine("RETURNS table");
+			b.AppendLine("AS");
+			b.AppendLine("RETURN (");
+			b.AppendLine();
+			using (var functionCommand = _configuration.DataAccessProvider.BuildCommand(function.Statement, _configuration))
+			{
+				// Functions can't have parameters, so replace all parameter calls with values
+				var commandText = functionCommand.CommandText;
+				for (int i = 0; i < functionCommand.Parameters.Count; i++)
+				{
+					if (functionCommand.Parameters[i].Value is MappedParameter)
+					{
+						var parameter = (MappedParameter)functionCommand.Parameters[i].Value;
+						commandText = commandText.Replace("@" + i, parameter.Name);
+					}
+					else if (functionCommand.Parameters[i].Value is string ||
+						functionCommand.Parameters[i].Value is char)
+					{
+						commandText = commandText.Replace("@" + i, "'" + functionCommand.Parameters[i].Value.ToString() + "'");
+					}
+					else
+					{
+						commandText = commandText.Replace("@" + i, functionCommand.Parameters[i].Value.ToString());
+					}
+				}
+				b.AppendLine(commandText);
+			}
+			b.AppendLine();
+			b.AppendLine(")");
 
 			return b.ToString();
 		}

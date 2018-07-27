@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.IO;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +14,12 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
 		{
+			if (!File.Exists(@"Data\DynamicProxyTests.sqlite"))
+			{
+				File.Create(@"Data\DynamicProxyTests.sqlite");
+			}
+
+			db.UpdateDatabase();
 		}
 
 		[TestMethod]

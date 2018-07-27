@@ -34,8 +34,9 @@ namespace Watsonia.Data
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
 		/// <param name="procedures">The stored procedures that should exist in the database.</param>
+		/// <param name="functions">The user-defined functions that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration);
+		void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Gets the update script for any changes that have been made to tables and columns.
@@ -43,11 +44,12 @@ namespace Watsonia.Data
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
 		/// <param name="procedures">The stored procedures that should exist in the database.</param>
+		/// <param name="functions">The user-defined functions that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration);
+		string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Gets columns that exist in the database but are not mapped.
@@ -55,11 +57,12 @@ namespace Watsonia.Data
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
 		/// <param name="procedures">The stored procedures that should exist in the database.</param>
+		/// <param name="functions">The user-defined functions that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the unmapped columns.
 		/// </returns>
-		string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, DatabaseConfiguration configuration);
+		string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Builds a command to return the ID of the last inserted item.
@@ -97,6 +100,6 @@ namespace Watsonia.Data
 		/// <param name="procedureName">The name of the procedure.</param>
 		/// <param name="parameters">Any parameters that need to be passed to the stored procedure.</param>
 		/// <returns></returns>
-		DbCommand BuildProcedureCommand(string procedureName, params ProcedureParameter[] parameters);
+		DbCommand BuildProcedureCommand(string procedureName, params Parameter[] parameters);
 	}
 }

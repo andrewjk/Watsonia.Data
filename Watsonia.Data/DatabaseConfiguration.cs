@@ -64,9 +64,6 @@ namespace Watsonia.Data
 		/// <summary>
 		/// Gets the name of the view for the supplied type.
 		/// </summary>
-		/// <remarks>
-		/// For a Book item, this would return "Book" by default but might be overridden to return "Books" or something different.
-		/// </remarks>
 		/// <param name="type">The type.</param>
 		/// <returns></returns>
 		public virtual string GetViewName(Type type)
@@ -77,14 +74,21 @@ namespace Watsonia.Data
 		/// <summary>
 		/// Gets the name of the procedure for the supplied type.
 		/// </summary>
-		/// <remarks>
-		/// For a Book item, this would return "Book" by default but might be overridden to return "Books" or something different.
-		/// </remarks>
 		/// <param name="type">The type.</param>
 		/// <returns></returns>
 		public virtual string GetProcedureName(Type type)
 		{
 			return type.Name.Replace("Procedure", "");
+		}
+
+		/// <summary>
+		/// Gets the name of the function for the supplied type.
+		/// </summary>
+		/// <param name="type">The type.</param>
+		/// <returns></returns>
+		public virtual string GetFunctionName(Type type)
+		{
+			return type.Name.Replace("Function", "");
 		}
 
 		/// <summary>
@@ -221,10 +225,11 @@ namespace Watsonia.Data
 		/// <returns>
 		///   <c>true</c> if the supplied type is a table; otherwise, <c>false</c>.
 		/// </returns>
-		public bool IsTable(Type type)
+		public virtual bool IsTable(Type type)
 		{
 			return !type.Name.EndsWith("View") &&
-				!type.Name.EndsWith("Procedure");
+				!type.Name.EndsWith("Procedure") &&
+				!type.Name.EndsWith("Function");
 		}
 		
 		/// <summary>
@@ -234,7 +239,7 @@ namespace Watsonia.Data
 		/// <returns>
 		///   <c>true</c> if the supplied type is a view; otherwise, <c>false</c>.
 		/// </returns>
-		public bool IsView(Type type)
+		public virtual bool IsView(Type type)
 		{
 			return type.Name.EndsWith("View");
 		}
@@ -246,9 +251,21 @@ namespace Watsonia.Data
 		/// <returns>
 		///   <c>true</c> if the supplied type is a stored procedure; otherwise, <c>false</c>.
 		/// </returns>
-		public bool IsProcedure(Type type)
+		public virtual bool IsProcedure(Type type)
 		{
 			return type.Name.EndsWith("Procedure");
+		}
+
+		/// <summary>
+		/// Determines whether the supplied type is a user-defined function.
+		/// </summary>
+		/// <param name="type">The type.</param>
+		/// <returns>
+		///   <c>true</c> if the supplied type is a user-defined function; otherwise, <c>false</c>.
+		/// </returns>
+		public virtual bool IsFunction(Type type)
+		{
+			return type.Name.EndsWith("Function");
 		}
 
 		/// <summary>

@@ -9,7 +9,7 @@
     <Copyright>© Watsonia Publishing</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Watsonia.Data\Watsonia.Data.csproj" />

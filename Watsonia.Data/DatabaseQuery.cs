@@ -12,15 +12,9 @@ namespace Watsonia.Data
 {
 	public sealed class DatabaseQuery<T> : QueryableBase<T>, IDatabaseQuery
 	{
-		private List<string> _includePaths = new List<string>();
+		public List<string> IncludePaths { get; } = new List<string>();
 
-		public List<string> IncludePaths
-		{
-			get
-			{
-				return _includePaths;
-			}
-		}
+		public List<Parameter> Parameters { get; } = new List<Parameter>();
 
 		public DatabaseQuery(IQueryParser queryParser, IQueryExecutor executor)
 			: base(new DefaultQueryProvider(typeof(DatabaseQuery<>), queryParser, executor))
@@ -34,7 +28,7 @@ namespace Watsonia.Data
 
 		public DatabaseQuery<T> Include(string path)
 		{
-			_includePaths.Add(path);
+			this.IncludePaths.Add(path);
 			return this;
 		}
 

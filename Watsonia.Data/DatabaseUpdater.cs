@@ -20,8 +20,9 @@ namespace Watsonia.Data
 			var tables = new List<MappedTable>();
 			var views = new List<MappedView>();
 			var procedures = new List<MappedProcedure>();
-			GetMappedTablesAndViews(tables, views, procedures, configuration);
-			configuration.DataAccessProvider.UpdateDatabase(tables, views, procedures, configuration);
+			var functions = new List<MappedFunction>();
+			GetMappedObjects(tables, views, procedures, functions, configuration);
+			configuration.DataAccessProvider.UpdateDatabase(tables, views, procedures, functions, configuration);
 		}
 
 		public string GetUpdateScript(DatabaseConfiguration configuration)
@@ -34,8 +35,9 @@ namespace Watsonia.Data
 			var tables = new List<MappedTable>();
 			var views = new List<MappedView>();
 			var procedures = new List<MappedProcedure>();
-			GetMappedTablesAndViews(tables, views, procedures, configuration);
-			return configuration.DataAccessProvider.GetUpdateScript(tables, views, procedures, configuration);
+			var functions = new List<MappedFunction>();
+			GetMappedObjects(tables, views, procedures, functions, configuration);
+			return configuration.DataAccessProvider.GetUpdateScript(tables, views, procedures, functions, configuration);
 		}
 
 		public string GetUnmappedColumns(DatabaseConfiguration configuration)
@@ -48,11 +50,12 @@ namespace Watsonia.Data
 			var tables = new List<MappedTable>();
 			var views = new List<MappedView>();
 			var procedures = new List<MappedProcedure>();
-			GetMappedTablesAndViews(tables, views, procedures, configuration);
-			return configuration.DataAccessProvider.GetUnmappedColumns(tables, views, procedures, configuration);
+			var functions = new List<MappedFunction>();
+			GetMappedObjects(tables, views, procedures, functions, configuration);
+			return configuration.DataAccessProvider.GetUnmappedColumns(tables, views, procedures, functions, configuration);
 		}
 
-		private void GetMappedTablesAndViews(List<MappedTable> tables, List<MappedView> views, List<MappedProcedure> procedures, DatabaseConfiguration configuration)
+		private void GetMappedObjects(List<MappedTable> tables, List<MappedView> views, List<MappedProcedure> procedures, List<MappedFunction> functions, DatabaseConfiguration configuration)
 		{
 			if (tables == null)
 			{
@@ -69,6 +72,11 @@ namespace Watsonia.Data
 				throw new ArgumentNullException("procedures");
 			}
 
+			if (functions == null)
+			{
+				throw new ArgumentNullException("functions");
+			}
+
 			if (configuration == null)
 			{
 				throw new ArgumentNullException("configuration");
@@ -81,19 +89,24 @@ namespace Watsonia.Data
 			var tableRelationships = new Dictionary<string, MappedRelationship>();
 			var viewDictionary = new Dictionary<string, MappedView>();
 			var procedureDictionary = new Dictionary<string, MappedProcedure>();
+			var functionDictionary = new Dictionary<string, MappedFunction>();
 			foreach (Type type in configuration.TypesToMap())
 			{
-				if (configuration.IsTable(type))
-				{
-					GetMappedTable(tableDictionary, tableRelationships, type, configuration);
-				}
-				else if (configuration.IsView(type))
+				if (configuration.IsView(type))
 				{
 					GetMappedView(viewDictionary, type, configuration);
 				}
 				else if (configuration.IsProcedure(type))
 				{
 					GetMappedProcedure(procedureDictionary, type, configuration);
+				}
+				else if (configuration.IsFunction(type))
+				{
+					GetMappedFunction(functionDictionary, type, configuration);
+				}
+				else if (configuration.IsTable(type))
+				{
+					GetMappedTable(tableDictionary, tableRelationships, type, configuration);
 				}
 			}
 
@@ -121,6 +134,7 @@ namespace Watsonia.Data
 			tables.AddRange(tableDictionary.Values);
 			views.AddRange(viewDictionary.Values);
 			procedures.AddRange(procedureDictionary.Values);
+			functions.AddRange(functionDictionary.Values);
 		}
 
 		private void GetMappedTable(Dictionary<string, MappedTable> tableDictionary, Dictionary<string, MappedRelationship> tableRelationships, Type tableType,  DatabaseConfiguration configuration)
@@ -352,35 +366,75 @@ namespace Watsonia.Data
 			// Get the parameters from the statement property
 			if (procedure.Statement is SelectStatement)
 			{
-				GatherProcedureParameters(procedure.Parameters, ((SelectStatement)procedure.Statement).Conditions);
+				var select = (SelectStatement)procedure.Statement;
+				GatherMappedParameters(procedure.Parameters, select.Conditions);
+				foreach (var source in select.SourceFields)
+				{
+					if (source is Sql.SelectExpression)
+					{
+						var sourceSelect = (Sql.SelectExpression)source;
+						GatherMappedParameters(procedure.Parameters, sourceSelect.Select.Conditions);
+					}
+				}
 			}
 
 			// Add the procedure to the dictionary
 			procedureDictionary.Add(procedure.Name, procedure);
 		}
 
-		private void GatherProcedureParameters(ICollection<MappedProcedureParameter> parameters, ConditionCollection conditions)
+		private void GetMappedFunction(Dictionary<string, MappedFunction> functionDictionary, Type functionType, DatabaseConfiguration configuration)
+		{
+			string functionName = configuration.GetFunctionName(functionType);
+
+			var function = new MappedFunction(functionName);
+
+			PropertyInfo statementProperty = functionType.GetProperty("Statement", BindingFlags.Public | BindingFlags.Static);
+			if (statementProperty != null)
+			{
+				function.Statement = (Statement)statementProperty.GetValue(null);
+			}
+
+			// Get the parameters from the statement property
+			if (function.Statement is SelectStatement)
+			{
+				var select = (SelectStatement)function.Statement;
+				GatherMappedParameters(function.Parameters, select.Conditions);
+				foreach (var source in select.SourceFields)
+				{
+					if (source is Sql.SelectExpression)
+					{
+						var sourceSelect = (Sql.SelectExpression)source;
+						GatherMappedParameters(function.Parameters, sourceSelect.Select.Conditions);
+					}
+				}
+			}
+
+			// Add the function to the dictionary
+			functionDictionary.Add(function.Name, function);
+		}
+
+		private void GatherMappedParameters(ICollection<MappedParameter> parameters, ConditionCollection conditions)
 		{
 			foreach (var condition in conditions)
 			{
 				if (condition is ConditionCollection)
 				{
-					GatherProcedureParameters(parameters, (ConditionCollection)condition);
+					GatherMappedParameters(parameters, (ConditionCollection)condition);
 				}
 				else if (condition is Condition)
 				{
-					GatherProcedureParametersFromCondition(parameters, (Condition)condition);
+					GatherMappedParametersFromCondition(parameters, (Condition)condition);
 				}
 			}
 		}
 
-		private void GatherProcedureParametersFromCondition(ICollection<MappedProcedureParameter> parameters, Condition condition)
+		private void GatherMappedParametersFromCondition(ICollection<MappedParameter> parameters, Condition condition)
 		{
 			if (condition.Value is Sql.ConstantPart &&
-				((Sql.ConstantPart)condition.Value).Value is MappedProcedureParameter)
+				((Sql.ConstantPart)condition.Value).Value is MappedParameter)
 			{
 				var parameterValue = ((Sql.ConstantPart)condition.Value).Value;
-				parameters.Add((MappedProcedureParameter)parameterValue);
+				parameters.Add((MappedParameter)parameterValue);
 			}
 		}
 	}

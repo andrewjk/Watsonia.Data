@@ -922,7 +922,7 @@ namespace Watsonia.Data.Tests.Queries
 		public void TestContainsWithSubquery()
 		{
 			var list = db.Customers.Where(c => db.Orders.Select(o => o.CustomerID).Contains(c.CustomerID)).ToList();
-			Assert.AreEqual(89, list.Count);
+			Assert.AreEqual(85, list.Count);
 		}
 
 		[TestMethod]

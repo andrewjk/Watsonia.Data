@@ -76,6 +76,19 @@ namespace Watsonia.Data
 			return select;
 		}
 
+		public static SelectStatement Count(this SelectStatement select, params Column[] columns)
+		{
+			if (columns.Any())
+			{
+				select.SourceFields.AddRange(columns.Select(cn => new Aggregate(AggregateType.Count, cn)));
+			}
+			else
+			{
+				select.SourceFields.Add(new Aggregate(AggregateType.Count, new Column("*")));
+			}
+			return select;
+		}
+
 		public static SelectStatement Count(this SelectStatement select, params string[] columnNames)
 		{
 			if (columnNames.Any())
@@ -85,6 +98,19 @@ namespace Watsonia.Data
 			else
 			{
 				select.SourceFields.Add(new Aggregate(AggregateType.Count, new Column("*")));
+			}
+			return select;
+		}
+
+		public static SelectStatement Sum(this SelectStatement select, params Column[] columns)
+		{
+			if (columns.Any())
+			{
+				select.SourceFields.AddRange(columns.Select(cn => new Aggregate(AggregateType.Sum, cn)));
+			}
+			else
+			{
+				select.SourceFields.Add(new Aggregate(AggregateType.Sum, new Column("*")));
 			}
 			return select;
 		}
@@ -102,6 +128,19 @@ namespace Watsonia.Data
 			return select;
 		}
 
+		public static SelectStatement Min(this SelectStatement select, params Column[] columns)
+		{
+			if (columns.Any())
+			{
+				select.SourceFields.AddRange(columns.Select(cn => new Aggregate(AggregateType.Min, cn)));
+			}
+			else
+			{
+				select.SourceFields.Add(new Aggregate(AggregateType.Min, new Column("*")));
+			}
+			return select;
+		}
+
 		public static SelectStatement Min(this SelectStatement select, params string[] columnNames)
 		{
 			if (columnNames.Any())
@@ -115,6 +154,19 @@ namespace Watsonia.Data
 			return select;
 		}
 
+		public static SelectStatement Max(this SelectStatement select, params Column[] columns)
+		{
+			if (columns.Any())
+			{
+				select.SourceFields.AddRange(columns.Select(cn => new Aggregate(AggregateType.Max, cn)));
+			}
+			else
+			{
+				select.SourceFields.Add(new Aggregate(AggregateType.Max, new Column("*")));
+			}
+			return select;
+		}
+
 		public static SelectStatement Max(this SelectStatement select, params string[] columnNames)
 		{
 			if (columnNames.Any())
@@ -124,6 +176,19 @@ namespace Watsonia.Data
 			else
 			{
 				select.SourceFields.Add(new Aggregate(AggregateType.Max, new Column("*")));
+			}
+			return select;
+		}
+
+		public static SelectStatement Average(this SelectStatement select, params Column[] columns)
+		{
+			if (columns.Any())
+			{
+				select.SourceFields.AddRange(columns.Select(cn => new Aggregate(AggregateType.Average, cn)));
+			}
+			else
+			{
+				select.SourceFields.Add(new Aggregate(AggregateType.Average, new Column("*")));
 			}
 			return select;
 		}

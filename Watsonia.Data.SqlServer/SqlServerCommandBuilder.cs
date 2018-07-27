@@ -58,7 +58,7 @@ namespace Watsonia.Data.SqlServer
 			}
 		}
 
-		public SqlCommand BuildProcedureCommand(string procedureName, params ProcedureParameter[] parameters)
+		public SqlCommand BuildProcedureCommand(string procedureName, params Parameter[] parameters)
 		{
 			var command = new SqlCommand();
 			command.CommandType = System.Data.CommandType.StoredProcedure;
@@ -67,7 +67,7 @@ namespace Watsonia.Data.SqlServer
 			return command;
 		}
 
-		private void AddProcedureParameters(SqlCommand command, params ProcedureParameter[] parameters)
+		private void AddProcedureParameters(SqlCommand command, params Parameter[] parameters)
 		{
 			for (int i = 0; i < parameters.Length; i++)
 			{

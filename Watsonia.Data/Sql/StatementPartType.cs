@@ -62,6 +62,7 @@ namespace Watsonia.Data.Sql
 		LiteralPart,
 		ScalarField,
 		FieldCollection,
-		SelectExpression
+		SelectExpression,
+		UserDefinedFunction
 	}
 }

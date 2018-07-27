@@ -891,6 +891,18 @@ namespace Watsonia.Data.SqlServer
 					this.VisitJoin((Join)source);
 					break;
 				}
+				case StatementPartType.UserDefinedFunction:
+				{
+					var function = (UserDefinedFunction)source;
+					this.VisitUserDefinedFunction(function);
+					if (!string.IsNullOrEmpty(function.Alias))
+					{
+						this.CommandText.Append(" AS [");
+						this.CommandText.Append(function.Alias);
+						this.CommandText.Append("]");
+					}
+					break;
+				}
 				default:
 				{
 					throw new InvalidOperationException("Select source is not valid type");
@@ -904,6 +916,21 @@ namespace Watsonia.Data.SqlServer
 			this.CommandText.Append("[");
 			this.CommandText.Append(table.Name);
 			this.CommandText.Append("]");
+		}
+
+		private void VisitUserDefinedFunction(UserDefinedFunction function)
+		{
+			this.CommandText.Append(function.Name);
+			this.CommandText.Append("(");
+			for (int i = 0; i < function.Parameters.Count; i++)
+			{
+				if (i > 0)
+				{
+					this.CommandText.Append(", ");
+				}
+				this.VisitObject(function.Parameters[i].Value);
+			}
+			this.CommandText.Append(")");
 		}
 
 		private void VisitJoin(Join join)
@@ -1046,7 +1073,7 @@ namespace Watsonia.Data.SqlServer
 						bool handled = false;
 						if (condition.Value.PartType == StatementPartType.ConstantPart)
 						{
-							 var value = ((ConstantPart)condition.Value).Value;
+							var value = ((ConstantPart)condition.Value).Value;
 							if (value is IEnumerable && !(value is string) && !(value is byte[]))
 							{
 								// HACK: Ugh
