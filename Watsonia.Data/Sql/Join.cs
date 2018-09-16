@@ -74,6 +74,13 @@ namespace Watsonia.Data.Sql
 			this.Conditions.Add(new Condition(leftColumn, SqlOperator.Equals, rightColumn));
 		}
 
+		public Join(JoinType joinType, Table table, SourceExpression leftColumn, SourceExpression rightColumn)
+		{
+			this.JoinType = joinType;
+			this.Table = table;
+			this.Conditions.Add(new Condition(leftColumn, SqlOperator.Equals, rightColumn));
+		}
+
 		public Join(Table table, ConditionCollection conditions)
 		{
 			this.JoinType = JoinType.Inner;

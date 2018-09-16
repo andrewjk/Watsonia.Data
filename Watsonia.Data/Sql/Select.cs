@@ -52,6 +52,12 @@ namespace Watsonia.Data
 			return select;
 		}
 
+		public static SelectStatement Join(this SelectStatement select, JoinType joinType, Table table, Column leftColumn, Column rightColumn)
+		{
+			select.SourceJoins.Add(new Join(joinType, table, leftColumn, rightColumn));
+			return select;
+		}
+
 		public static SelectStatement Columns(this SelectStatement select, params string[] columnNames)
 		{
 			select.SourceFields.AddRange(columnNames.Select(cn => new Column(cn)));
