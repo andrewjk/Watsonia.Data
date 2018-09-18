@@ -53,14 +53,12 @@ namespace Watsonia.Data
 			// Copy the body clauses list with ToList() as we will be modifying it
 			foreach (var clause in queryModel.BodyClauses.ToList())
 			{
-				if (clause is WhereClause)
+				if (clause is WhereClause whereClause)
 				{
-					var whereClause = (WhereClause)clause;
 					whereClause.Predicate = visitor.Visit(whereClause.Predicate);
 				}
-				else if (clause is OrderByClause)
+				else if (clause is OrderByClause orderByClause)
 				{
-					var orderByClause = (OrderByClause)clause;
 					foreach (Ordering order in orderByClause.Orderings)
 					{
 						order.Expression = visitor.Visit(order.Expression);
@@ -72,9 +70,8 @@ namespace Watsonia.Data
 			// TODO: This needs recursion for joins that we create in this go around
 			foreach (var clause in queryModel.BodyClauses.ToList())
 			{
-				if (clause is JoinClause)
+				if (clause is JoinClause joinClause)
 				{
-					var joinClause = (JoinClause)clause;
 					joinClause.OuterKeySelector = visitor.Visit(joinClause.OuterKeySelector);
 				}
 			}
@@ -92,16 +89,15 @@ namespace Watsonia.Data
                 JoinClause existingJoin = null;
                 foreach (var clause in this.QueryModel.BodyClauses)
                 {
-                    if (clause is JoinClause)
-                    {
-                        var joinClause = (JoinClause)clause;
-                        if (joinClause.OuterKeySelector.Type == subexpression.Type)
-                        {
-                            existingJoin = joinClause;
-                            break;
-                        }
-                    }
-                }
+					if (clause is JoinClause joinClause)
+					{
+						if (joinClause.OuterKeySelector.Type == subexpression.Type)
+						{
+							existingJoin = joinClause;
+							break;
+						}
+					}
+				}
 
                 if (existingJoin != null)
                 {

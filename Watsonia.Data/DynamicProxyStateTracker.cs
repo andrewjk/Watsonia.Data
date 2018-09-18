@@ -482,8 +482,7 @@ namespace Watsonia.Data
 		/// <returns>True if this item is equal to the other; otherwise, false.</returns>
 		public bool ItemEquals(object obj)
 		{
-			var other = obj as IDynamicProxy;
-			if (other == null)
+			if (!(obj is IDynamicProxy other))
 			{
 				return false;
 			}

@@ -911,9 +911,8 @@ namespace Watsonia.Data.SqlServer
 				var commandText = procedureCommand.CommandText;
 				for (int i = 0; i < procedureCommand.Parameters.Count; i++)
 				{
-					if (procedureCommand.Parameters[i].Value is MappedParameter)
+					if (procedureCommand.Parameters[i].Value is MappedParameter parameter)
 					{
-						var parameter = (MappedParameter)procedureCommand.Parameters[i].Value;
 						commandText = commandText.Replace("@" + i, parameter.Name);
 					}
 					else if (procedureCommand.Parameters[i].Value is string ||
@@ -996,9 +995,8 @@ namespace Watsonia.Data.SqlServer
 				var commandText = functionCommand.CommandText;
 				for (int i = 0; i < functionCommand.Parameters.Count; i++)
 				{
-					if (functionCommand.Parameters[i].Value is MappedParameter)
+					if (functionCommand.Parameters[i].Value is MappedParameter parameter)
 					{
-						var parameter = (MappedParameter)functionCommand.Parameters[i].Value;
 						commandText = commandText.Replace("@" + i, parameter.Name);
 					}
 					else if (functionCommand.Parameters[i].Value is string ||

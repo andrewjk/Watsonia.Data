@@ -925,8 +925,7 @@ namespace Watsonia.Data
 			MethodBuilder setMethod = null;
 
 			// Check whether the property is a related collection
-			Type enumeratedType;
-			bool isRelatedCollection = database.Configuration.IsRelatedCollection(property, out enumeratedType);
+			bool isRelatedCollection = database.Configuration.IsRelatedCollection(property, out Type enumeratedType);
 			if (isRelatedCollection)
 			{
 				getMethod = CreateOverriddenCollectionPropertyGetMethod(type, property, enumeratedType, members);

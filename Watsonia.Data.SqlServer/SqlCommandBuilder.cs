@@ -364,8 +364,7 @@ namespace Watsonia.Data.SqlServer
 			// If the original table selected all fields, we need to add another field to select them ourselves
 			if (!select.SourceFields.Any())
 			{
-				Table table = select.Source as Table;
-				if (table != null)
+				if (select.Source is Table table)
 				{
 					inner.SourceFields.Add(new Column(table.Name, "*"));
 				}
@@ -375,8 +374,7 @@ namespace Watsonia.Data.SqlServer
 			SelectStatement outer = Select.From(inner);
 			foreach (SourceExpression field in select.SourceFields)
 			{
-				Column column = field as Column;
-				if (column != null)
+				if (field is Column column)
 				{
 					outer.SourceFields.Add(new Column(inner.Alias, column.Name));
 				}

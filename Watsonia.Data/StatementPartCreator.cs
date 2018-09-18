@@ -1121,10 +1121,9 @@ namespace Watsonia.Data
 					Visit(expression.Operand);
 
 					newOperation.Expression = this.Stack.Pop();
-					if (newOperation.Expression is Condition)
+					// Push the condition onto the stack instead
+					if (newOperation.Expression is Condition newCondition)
 					{
-						// Push the condition onto the stack instead
-						Condition newCondition = (Condition)newOperation.Expression;
 						newCondition.Not = true;
 						this.Stack.Push(newCondition);
 					}

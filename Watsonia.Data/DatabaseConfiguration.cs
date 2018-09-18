@@ -314,8 +314,7 @@ namespace Watsonia.Data
 		/// </returns>
 		public bool IsRelatedCollection(PropertyInfo property)
 		{
-			Type itemType;
-			return IsRelatedCollection(property, out itemType);
+			return IsRelatedCollection(property, out Type itemType);
 		}
 
 		/// <summary>

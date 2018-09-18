@@ -117,8 +117,7 @@ namespace Watsonia.Data
 
 				string tableName = relationshipKey.Split('.')[0];
 				string columnName = relationshipKey.Split('.')[1];
-				MappedTable table;
-				if (tableDictionary.TryGetValue(tableName, out table))
+				if (tableDictionary.TryGetValue(tableName, out MappedTable table))
 				{
 					MappedColumn column = table.Columns.FirstOrDefault(c => c.Name == columnName);
 					if (column == null)
@@ -227,8 +226,7 @@ namespace Watsonia.Data
 				}
 				else
 				{
-					Type itemType;
-					if (configuration.IsRelatedCollection(property, out itemType))
+					if (configuration.IsRelatedCollection(property, out Type itemType))
 					{
 						// It's a collection property referencing another table so add it to the table relationships
 						// collection for wiring up when we have all tables
@@ -323,8 +321,7 @@ namespace Watsonia.Data
 				}
 				else
 				{
-					Type itemType;
-					if (configuration.IsRelatedCollection(property, out itemType))
+					if (configuration.IsRelatedCollection(property, out Type itemType))
 					{
 						// It's a collection property referencing another table so add it to the view relationships
 						// collection for wiring up when we have all views
@@ -364,15 +361,13 @@ namespace Watsonia.Data
 			}
 
 			// Get the parameters from the statement property
-			if (procedure.Statement is SelectStatement)
+			if (procedure.Statement is SelectStatement select)
 			{
-				var select = (SelectStatement)procedure.Statement;
 				GatherMappedParameters(procedure.Parameters, select.Conditions);
 				foreach (var source in select.SourceFields)
 				{
-					if (source is Sql.SelectExpression)
+					if (source is Sql.SelectExpression sourceSelect)
 					{
-						var sourceSelect = (Sql.SelectExpression)source;
 						GatherMappedParameters(procedure.Parameters, sourceSelect.Select.Conditions);
 					}
 				}
@@ -395,15 +390,13 @@ namespace Watsonia.Data
 			}
 
 			// Get the parameters from the statement property
-			if (function.Statement is SelectStatement)
+			if (function.Statement is SelectStatement select)
 			{
-				var select = (SelectStatement)function.Statement;
 				GatherMappedParameters(function.Parameters, select.Conditions);
 				foreach (var source in select.SourceFields)
 				{
-					if (source is Sql.SelectExpression)
+					if (source is Sql.SelectExpression sourceSelect)
 					{
-						var sourceSelect = (Sql.SelectExpression)source;
 						GatherMappedParameters(function.Parameters, sourceSelect.Select.Conditions);
 					}
 				}

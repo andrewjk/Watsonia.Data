@@ -51,13 +51,10 @@ namespace Watsonia.Data
 				MemberExpression mex = (MemberExpression)selector.Body;
 				return (PropertyInfo)mex.Member;
 			}
-			else if (selector.Body is UnaryExpression)
+			else if (selector.Body is UnaryExpression uex) // Throw away Converts
 			{
-				// Throw away Converts
-				UnaryExpression uex = (UnaryExpression)selector.Body;
-				if (uex.Operand is MemberExpression)
+				if (uex.Operand is MemberExpression mex)
 				{
-					MemberExpression mex = (MemberExpression)uex.Operand;
 					return (PropertyInfo)mex.Member;
 				}
 			}
