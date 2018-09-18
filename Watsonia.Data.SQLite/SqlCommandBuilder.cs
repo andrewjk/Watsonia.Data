@@ -20,16 +20,9 @@ namespace Watsonia.Data.SQLite
 			Outer
 		}
 
-		private readonly StringBuilder _builder = new StringBuilder();
 		private readonly List<object> _parameterValues = new List<object>();
 
-		public StringBuilder CommandText
-		{
-			get
-			{
-				return _builder;
-			}
-		}
+		public StringBuilder CommandText { get; } = new StringBuilder();
 
 		public List<object> ParameterValues
 		{

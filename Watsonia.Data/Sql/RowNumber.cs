@@ -6,8 +6,6 @@ namespace Watsonia.Data.Sql
 {
 	public sealed class RowNumber : SourceExpression
 	{
-		private readonly List<OrderByExpression> _orderByFields = new List<OrderByExpression>();
-
 		public override StatementPartType PartType
 		{
 			get
@@ -16,13 +14,7 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public List<OrderByExpression> OrderByFields
-		{
-			get
-			{
-				return _orderByFields;
-			}
-		}
+		public List<OrderByExpression> OrderByFields { get; } = new List<OrderByExpression>();
 
 		public RowNumber(params OrderByExpression[] orderByFields)
 		{

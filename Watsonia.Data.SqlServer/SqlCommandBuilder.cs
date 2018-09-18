@@ -19,24 +19,9 @@ namespace Watsonia.Data.SqlServer
 			Outer
 		}
 
-		private readonly StringBuilder _builder = new StringBuilder();
-		private readonly List<object> _parameterValues = new List<object>();
+		public StringBuilder CommandText { get; } = new StringBuilder();
 
-		public StringBuilder CommandText
-		{
-			get
-			{
-				return _builder;
-			}
-		}
-
-		public List<object> ParameterValues
-		{
-			get
-			{
-				return _parameterValues;
-			}
-		}
+		public List<object> ParameterValues { get; } = new List<object>();
 
 		private int Depth { get; set; }
 

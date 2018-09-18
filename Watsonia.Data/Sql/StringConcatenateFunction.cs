@@ -6,8 +6,6 @@ namespace Watsonia.Data.Sql
 {
 	public sealed class StringConcatenateFunction : Field
 	{
-		private readonly List<StatementPart> _arguments = new List<StatementPart>();
-
 		public override StatementPartType PartType
 		{
 			get
@@ -16,13 +14,7 @@ namespace Watsonia.Data.Sql
 			}
 		}
 
-		public List<StatementPart> Arguments
-		{
-			get
-			{
-				return _arguments;
-			}
-		}
+		public List<StatementPart> Arguments { get; } = new List<StatementPart>();
 
 		public override string ToString()
 		{

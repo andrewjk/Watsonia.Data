@@ -7,8 +7,6 @@ namespace Watsonia.Data
 	/// </summary>
 	public class MappedTable
 	{
-		private readonly List<MappedColumn> _columns = new List<MappedColumn>();
-		private readonly List<Dictionary<string, object>> _values = new List<Dictionary<string, object>>();
 
 		/// <summary>
 		/// Gets or sets name of the table.
@@ -40,13 +38,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The columns.
 		/// </value>
-		public List<MappedColumn> Columns
-		{
-			get
-			{
-				return _columns;
-			}
-		}
+		public List<MappedColumn> Columns { get; } = new List<MappedColumn>();
 
 		/// <summary>
 		/// Gets any values that should be created in the table.
@@ -54,13 +46,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The values.
 		/// </value>
-		public List<Dictionary<string, object>> Values
-		{
-			get
-			{
-				return _values;
-			}
-		}
+		public List<Dictionary<string, object>> Values { get; } = new List<Dictionary<string, object>>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MappedTable" /> class.

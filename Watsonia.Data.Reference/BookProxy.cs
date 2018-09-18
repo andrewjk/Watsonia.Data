@@ -53,32 +53,8 @@ namespace Watsonia.Data.Reference
 				this.ID = (long)Convert.ChangeType(value, typeof(long));
 			}
 		}
-
-		private bool _isNew;
-		public bool IsNew
-		{
-			get
-			{
-				return _isNew;
-			}
-			set
-			{
-				_isNew = value;
-			}
-		}
-
-		private bool _hasChanges;
-		public bool HasChanges
-		{
-			get
-			{
-				return _hasChanges;
-			}
-			set
-			{
-				_hasChanges = value;
-			}
-		}
+		public bool IsNew { get; set; }
+		public bool HasChanges { get; set; }
 
 		public override string Title
 		{

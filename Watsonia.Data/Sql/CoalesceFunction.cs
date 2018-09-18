@@ -10,7 +10,6 @@ namespace Watsonia.Data.Sql
 	/// </summary>
 	public sealed class CoalesceFunction : Field
 	{
-		private List<SourceExpression> _arguments = new List<SourceExpression>();
 
 		/// <summary>
 		/// Gets the type of the statement part.
@@ -32,13 +31,7 @@ namespace Watsonia.Data.Sql
 		/// <value>
 		/// The first expression.
 		/// </value>
-		public List<SourceExpression> Arguments
-		{
-			get
-			{
-				return _arguments;
-			}
-		}
+		public List<SourceExpression> Arguments { get; } = new List<SourceExpression>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="CoalesceFunction" /> class.

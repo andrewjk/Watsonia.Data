@@ -8,21 +8,13 @@ namespace Watsonia.Data
 {
 	public sealed class ValidationException : Exception
 	{
-		private List<ValidationError> _errors = new List<ValidationError>();
-
 		/// <summary>
 		/// Gets the validation errors.
 		/// </summary>
 		/// <value>
 		/// The validation errors.
 		/// </value>
-		public List<ValidationError> ValidationErrors
-		{
-			get
-			{
-				return _errors;
-			}
-		}
+		public List<ValidationError> ValidationErrors { get; } = new List<ValidationError>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ValidationException"/> class.

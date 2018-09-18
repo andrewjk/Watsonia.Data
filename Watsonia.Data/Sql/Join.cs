@@ -6,8 +6,6 @@ namespace Watsonia.Data.Sql
 {
 	public sealed class Join : StatementPart
 	{
-		private ConditionCollection _conditions = new ConditionCollection();
-
 		public override StatementPartType PartType
 		{
 			get
@@ -28,13 +26,7 @@ namespace Watsonia.Data.Sql
 			internal set;
 		}
 
-		public ConditionCollection Conditions
-		{
-			get
-			{
-				return _conditions;
-			}
-		}
+		public ConditionCollection Conditions { get; } = new ConditionCollection();
 
 		internal Join()
 		{
