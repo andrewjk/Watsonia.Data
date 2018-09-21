@@ -46,16 +46,15 @@ namespace Watsonia.Data
 
 		private static PropertyInfo FuncToPropertyInfo<T>(Expression<Func<T, object>> selector)
 		{
-			if (selector.Body is MemberExpression)
+			if (selector.Body is MemberExpression mex)
 			{
-				MemberExpression mex = (MemberExpression)selector.Body;
 				return (PropertyInfo)mex.Member;
 			}
 			else if (selector.Body is UnaryExpression uex) // Throw away Converts
 			{
-				if (uex.Operand is MemberExpression mex)
+				if (uex.Operand is MemberExpression omex)
 				{
-					return (PropertyInfo)mex.Member;
+					return (PropertyInfo)omex.Member;
 				}
 			}
 
