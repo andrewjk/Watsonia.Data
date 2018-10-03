@@ -178,7 +178,7 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public virtual string GetForeignKeyColumnName(Type tableType, Type foreignType)
 		{
-			return foreignType.Name + "ID";
+			return GetTableName(foreignType) + "ID";
 		}
 
 		/// <summary>
