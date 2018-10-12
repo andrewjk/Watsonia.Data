@@ -94,6 +94,12 @@ namespace Watsonia.Data.SqlServer
 		private void VisitConstant(ConstantPart constant)
 		{
 			VisitObject(constant.Value);
+			if (!string.IsNullOrEmpty(constant.Alias))
+			{
+				this.CommandText.Append(" AS [");
+				this.CommandText.Append(constant.Alias);
+				this.CommandText.Append("]");
+			}
 		}
 
 		private void VisitObject(object value)
