@@ -363,14 +363,7 @@ namespace Watsonia.Data
 			// Get the parameters from the statement property
 			if (procedure.Statement is SelectStatement select)
 			{
-				GatherMappedParameters(procedure.Parameters, select.Conditions);
-				foreach (var source in select.SourceFields)
-				{
-					if (source is Sql.SelectExpression sourceSelect)
-					{
-						GatherMappedParameters(procedure.Parameters, sourceSelect.Select.Conditions);
-					}
-				}
+				GatherMappedParametersFromSelect(procedure.Parameters, select);
 			}
 
 			// Add the procedure to the dictionary
@@ -392,27 +385,36 @@ namespace Watsonia.Data
 			// Get the parameters from the statement property
 			if (function.Statement is SelectStatement select)
 			{
-				GatherMappedParameters(function.Parameters, select.Conditions);
-				foreach (var source in select.SourceFields)
-				{
-					if (source is Sql.SelectExpression sourceSelect)
-					{
-						GatherMappedParameters(function.Parameters, sourceSelect.Select.Conditions);
-					}
-				}
+				GatherMappedParametersFromSelect(function.Parameters, select);
 			}
 
 			// Add the function to the dictionary
 			functionDictionary.Add(function.Name, function);
 		}
 
-		private void GatherMappedParameters(ICollection<MappedParameter> parameters, ConditionCollection conditions)
+		private void GatherMappedParametersFromSelect(ICollection<MappedParameter> parameters, SelectStatement select)
+		{
+			GatherMappedParametersFromConditionCollection(parameters, select.Conditions);
+			foreach (var source in select.SourceFields)
+			{
+				if (source is Sql.SelectExpression sourceSelect)
+				{
+					GatherMappedParametersFromConditionCollection(parameters, sourceSelect.Select.Conditions);
+				}
+			}
+			foreach (var unionSelect in select.UnionStatements)
+			{
+				GatherMappedParametersFromSelect(parameters, unionSelect);
+			}
+		}
+
+		private void GatherMappedParametersFromConditionCollection(ICollection<MappedParameter> parameters, ConditionCollection conditions)
 		{
 			foreach (var condition in conditions)
 			{
 				if (condition is ConditionCollection)
 				{
-					GatherMappedParameters(parameters, (ConditionCollection)condition);
+					GatherMappedParametersFromConditionCollection(parameters, (ConditionCollection)condition);
 				}
 				else if (condition is Condition)
 				{
