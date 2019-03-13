@@ -9,7 +9,9 @@ Have better error messages
 	When an unusual collection is used (one that doesn't take an IList<T> in a constructor)
 	When calling Select.And without Select.Where
 Test using Guids for IDs
-Add async support
+	And compound IDs
+	And no IDs
+Add async support - something like EntityFrameworkQueryableExtensions.cs?
 Duplicate less code between SQLite and SQL Server
 Fix up the documentation
 	Make a list of conventions
@@ -26,6 +28,7 @@ More XML commenting throughout
 
 Should primary key columns be nullable?  New items could have their ID set to null and we could get
 rid of GetPrimaryKeyNewItemValue
+Add attributes for basically everything that can be set in the configuration
 
 Having methods defined on IDynamicProxy introduces the risk of clashes with base class names.  We should
 probably allow the user to set method names in DatabaseConfiguration that override base class methods
@@ -34,6 +37,16 @@ and then we just create calls to the appropriate methods in DynamicProxyStateTra
 Use Merge to insert/update large amounts of data?  It's what EF Core seems to do...
 
 Get the query building functionality from Watsonia.QueryBuilder
+Check that the types match in DataEntity.Equals
+
+Can we do e.g. (from a in db.Query<Thing>() where !a.IsActive).Delete() ?!
+Can we do e.g. (from a in db.Query<Thing>() where !a.IsActive).Update(a => a.IsActive, true) ?!
+	(see the OpenIddict stores...)
+
+SqlBulkInsert?!
+
+extend the benchmark to inserting/updating/deleting
+and print it out nicer
 
 
 THINGS THAT WOULD BE AWESOME BUT TIME CONSUMING:
