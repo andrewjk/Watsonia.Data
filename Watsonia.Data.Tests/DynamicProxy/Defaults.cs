@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using Watsonia.Data.DataAnnotations;
 
 namespace Watsonia.Data.Tests.DynamicProxy
 {
