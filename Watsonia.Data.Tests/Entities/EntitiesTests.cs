@@ -14,7 +14,7 @@ namespace Watsonia.Data.Tests.Entities
 	[TestClass]
 	public class EntitiesTests
 	{
-		private readonly static EntitiesDatabase db = new EntitiesDatabase();
+		private readonly static EntitiesDatabase _db = new EntitiesDatabase();
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
@@ -24,7 +24,7 @@ namespace Watsonia.Data.Tests.Entities
 				File.Create(@"Data\EntitiesTests.sqlite");
 			}
 
-			db.UpdateDatabase();
+			_db.UpdateDatabase();
 		}
 
 		[ClassCleanup]
@@ -37,34 +37,34 @@ namespace Watsonia.Data.Tests.Entities
 		{
 			// Delete all existing cruds
 			var deleteCruds = Delete.From("Crud").Where(true);
-			db.Execute(deleteCruds);
+			_db.Execute(deleteCruds);
 
 			// Check that the delete worked
 			var countCruds = Select.From("Crud").Count("*");
-			Assert.AreEqual(0, Convert.ToInt32(db.LoadValue(countCruds)));
+			Assert.AreEqual(0, Convert.ToInt32(_db.LoadValue(countCruds)));
 
 			// Insert a crud and check that the insert worked and the new ID is correctly set
-			var newCrud = db.Create<Crud>();
+			var newCrud = _db.Create<Crud>();
 			newCrud.Name = "ABC";
-			db.Save(newCrud);
-			Assert.AreEqual(1, Convert.ToInt32(db.LoadValue(countCruds)));
+			_db.Save(newCrud);
+			Assert.AreEqual(1, Convert.ToInt32(_db.LoadValue(countCruds)));
 			Assert.IsTrue(newCrud.ID > 0);
 
 			// Load the inserted crud
-			var crud = db.Load<Crud>(newCrud.ID);
+			var crud = _db.Load<Crud>(newCrud.ID);
 			Assert.AreEqual("ABC", crud.Name);
 
 			// Update the crud
 			crud.Name = "DEF";
-			db.Save(crud);
+			_db.Save(crud);
 
 			// Load the updated crud
-			var updatedCrud = db.Load<Crud>(newCrud.ID);
+			var updatedCrud = _db.Load<Crud>(newCrud.ID);
 			Assert.AreEqual("DEF", crud.Name);
 
 			// And delete it
-			db.Delete(updatedCrud);
-			Assert.AreEqual(0, Convert.ToInt32(db.LoadValue(countCruds)));
+			_db.Delete(updatedCrud);
+			Assert.AreEqual(0, Convert.ToInt32(_db.LoadValue(countCruds)));
 		}
 
 		[TestMethod]
@@ -72,31 +72,31 @@ namespace Watsonia.Data.Tests.Entities
 		{
 			// Delete all existing has changes items
 			var deleteHasChanges = Delete.From("HasChanges").Where(true);
-			db.Execute(deleteHasChanges);
+			_db.Execute(deleteHasChanges);
 			var deleteHasChangesRelated = Delete.From("HasChangesRelated").Where(true);
-			db.Execute(deleteHasChangesRelated);
+			_db.Execute(deleteHasChangesRelated);
 
 			// Check that the delete worked
 			var countHasChanges = Select.From("HasChanges").Count("*");
-			Assert.AreEqual(0, Convert.ToInt32(db.LoadValue(countHasChanges)));
+			Assert.AreEqual(0, Convert.ToInt32(_db.LoadValue(countHasChanges)));
 			var countHasChangesRelated = Select.From("HasChangesRelated").Count("*");
-			Assert.AreEqual(0, Convert.ToInt32(db.LoadValue(countHasChangesRelated)));
+			Assert.AreEqual(0, Convert.ToInt32(_db.LoadValue(countHasChangesRelated)));
 
 			// Create a HasChanges and check that it has no changes
-			var newHasChanges = db.Create<HasChanges>();
+			var newHasChanges = _db.Create<HasChanges>();
 			Assert.IsTrue(((IDynamicProxy)newHasChanges).IsNew);
 			Assert.IsFalse(((IDynamicProxy)newHasChanges).HasChanges);
 
 			// Create two related items and check that they have no changes
-			var hasChangesRelated1 = db.Create<HasChangesRelated>();
+			var hasChangesRelated1 = _db.Create<HasChangesRelated>();
 			Assert.IsTrue(((IDynamicProxy)hasChangesRelated1).IsNew);
 			Assert.IsFalse(((IDynamicProxy)hasChangesRelated1).HasChanges);
-			db.Save(hasChangesRelated1);
+			_db.Save(hasChangesRelated1);
 
-			var hasChangesRelated2 = db.Create<HasChangesRelated>();
+			var hasChangesRelated2 = _db.Create<HasChangesRelated>();
 			Assert.IsTrue(((IDynamicProxy)hasChangesRelated2).IsNew);
 			Assert.IsFalse(((IDynamicProxy)hasChangesRelated2).HasChanges);
-			db.Save(hasChangesRelated2);
+			_db.Save(hasChangesRelated2);
 
 			// Even if we set things to their default values
 			newHasChanges.Bool = false;
@@ -109,14 +109,14 @@ namespace Watsonia.Data.Tests.Entities
 
 			// Insert it and check that the insert worked
 			newHasChanges.String = "ABC";
-			db.Save(newHasChanges);
-			Assert.AreEqual(1, Convert.ToInt32(db.LoadValue(countHasChanges)));
+			_db.Save(newHasChanges);
+			Assert.AreEqual(1, Convert.ToInt32(_db.LoadValue(countHasChanges)));
 			Assert.IsFalse(((IDynamicProxy)newHasChanges).IsNew);
 			Assert.IsFalse(((IDynamicProxy)newHasChanges).HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)newHasChanges).StateTracker.ChangedFields.Count);
 
 			// Load the inserted HasChanges
-			var hasChanges = db.Load<HasChanges>(((IDynamicProxy)newHasChanges).PrimaryKeyValue);
+			var hasChanges = _db.Load<HasChanges>(((IDynamicProxy)newHasChanges).PrimaryKeyValue);
 			Assert.AreEqual("ABC", hasChanges.String);
 			Assert.IsFalse(((IDynamicProxy)hasChanges).IsNew);
 			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
@@ -239,7 +239,7 @@ namespace Watsonia.Data.Tests.Entities
 			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("RelatedID", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
-			db.Save(hasChanges);
+			_db.Save(hasChanges);
 			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
@@ -282,7 +282,7 @@ namespace Watsonia.Data.Tests.Entities
 			hasChanges.String = "JKL";
 			hasChanges.DecimalWithDefault = 200.2m;
 			hasChanges.Related = hasChangesRelated1;
-			db.Save(hasChanges);
+			_db.Save(hasChanges);
 			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
@@ -334,23 +334,23 @@ namespace Watsonia.Data.Tests.Entities
 		{
 			// Delete all existing colls
 			var deleteCollections = Delete.From("Collection").Where(true);
-			db.Execute(deleteCollections);
+			_db.Execute(deleteCollections);
 
-			db.Insert(new Collection() { Value = 1, Description = "One" });
-			db.Insert(new Collection() { Value = 2, Description = "Two" });
-			db.Insert(new Collection() { Value = 3, Description = "Three" });
-			db.Insert(new Collection() { Value = 4, Description = "Four" });
-			db.Insert(new Collection() { Value = 5, Description = "Five" });
+			_db.Insert(new Collection() { Value = 1, Description = "One" });
+			_db.Insert(new Collection() { Value = 2, Description = "Two" });
+			_db.Insert(new Collection() { Value = 3, Description = "Three" });
+			_db.Insert(new Collection() { Value = 4, Description = "Four" });
+			_db.Insert(new Collection() { Value = 5, Description = "Five" });
 
 			// Load all of the colls except for one
 			var select = Select.From("Collection").Where("Description", SqlOperator.NotEquals, "Four").OrderBy("Description");
-			var collection = db.LoadCollection<Collection>(select);
+			var collection = _db.LoadCollection<Collection>(select);
 			Assert.AreEqual(4, collection.Count);
 			Assert.AreEqual("Two", collection[3].Description);
 
 			// Load all of the colls except for one with an IN statement
 			var select2 = Select.From("Collection").Where("Value", SqlOperator.IsIn, new int[] { 1, 2, 3, 5, 6}).OrderBy("Description");
-			var collection2 = db.LoadCollection<Collection>(select2);
+			var collection2 = _db.LoadCollection<Collection>(select2);
 			Assert.AreEqual(4, collection2.Count);
 			Assert.AreEqual("Two", collection2[3].Description);
 		}
@@ -360,31 +360,31 @@ namespace Watsonia.Data.Tests.Entities
 		{
 			// Delete all existing subchils, chils and pars
 			var deleteSubChildren = Delete.From("SubChild").Where(true);
-			db.Execute(deleteSubChildren);
+			_db.Execute(deleteSubChildren);
 			var deleteChildren = Delete.From("Child").Where(true);
-			db.Execute(deleteChildren);
+			_db.Execute(deleteChildren);
 			var deleteParents = Delete.From("Parent").Where(true);
-			db.Execute(deleteParents);
+			_db.Execute(deleteParents);
 
 			// Add a couple of test pars
-			var newParent = db.Create<Parent>();
+			var newParent = _db.Create<Parent>();
 			newParent.Name = "P1";
-			newParent.Children.Add(db.Create(new Child() { Value = 1, Description = "One" }));
-			newParent.Children[0].SubChildren.Add(db.Create(new SubChild() { SubName = "SC1" }));
-			newParent.Children[0].SubChildren.Add(db.Create(new SubChild() { SubName = "SC2" }));
-			newParent.Children.Add(db.Create(new Child() { Value = 2, Description = "Two" }));
-			db.Save(newParent);
+			newParent.Children.Add(_db.Create(new Child() { Value = 1, Description = "One" }));
+			newParent.Children[0].SubChildren.Add(_db.Create(new SubChild() { SubName = "SC1" }));
+			newParent.Children[0].SubChildren.Add(_db.Create(new SubChild() { SubName = "SC2" }));
+			newParent.Children.Add(_db.Create(new Child() { Value = 2, Description = "Two" }));
+			_db.Save(newParent);
 
-			var newParent2 = db.Create<Parent>();
+			var newParent2 = _db.Create<Parent>();
 			newParent2.Name = "P2";
-			newParent2.Children.Add(db.Create(new Child() { Value = 3, Description = "Three" }));
-			newParent2.Children.Add(db.Create(new Child() { Value = 4, Description = "Four" }));
-			newParent2.Children.Add(db.Create(new Child() { Value = 5, Description = "Five" }));
-			db.Save(newParent2);
+			newParent2.Children.Add(_db.Create(new Child() { Value = 3, Description = "Three" }));
+			newParent2.Children.Add(_db.Create(new Child() { Value = 4, Description = "Four" }));
+			newParent2.Children.Add(_db.Create(new Child() { Value = 5, Description = "Five" }));
+			_db.Save(newParent2);
 
 			// Test lazy loading
 			var select = Select.From("Parent").Where("Name", SqlOperator.StartsWith, "P");
-			var collection = db.LoadCollection<Parent>(select);
+			var collection = _db.LoadCollection<Parent>(select);
 			Assert.AreEqual(2, collection.Count);
 			Assert.IsFalse(((IDynamicProxy)collection[0]).StateTracker.LoadedCollections.Contains("Children"));
 			Assert.AreEqual(2, collection[0].Children.Count);
@@ -392,13 +392,13 @@ namespace Watsonia.Data.Tests.Entities
 
 			// Test eager loading
 			var select2 = Select.From("Parent").Include("Children").Where("Name", SqlOperator.StartsWith, "P");
-			var collection2 = db.LoadCollection<Parent>(select2);
+			var collection2 = _db.LoadCollection<Parent>(select2);
 			Assert.AreEqual(2, collection2.Count);
 			Assert.IsTrue(((IDynamicProxy)collection2[0]).StateTracker.LoadedCollections.Contains("Children"));
 
 			// Test eager loading with dots
 			var select3 = Select.From("Parent").Include("Children").Include("Children.SubChildren").Where("Name", SqlOperator.StartsWith, "P");
-			var collection3 = db.LoadCollection<Parent>(select3);
+			var collection3 = _db.LoadCollection<Parent>(select3);
 			Assert.AreEqual(2, collection3.Count);
 			Assert.IsTrue(((IDynamicProxy)collection3[0]).StateTracker.LoadedCollections.Contains("Children"));
 			Assert.IsTrue(((IDynamicProxy)((Parent)collection3[0]).Children[0]).StateTracker.LoadedCollections.Contains("SubChildren"));
@@ -409,39 +409,39 @@ namespace Watsonia.Data.Tests.Entities
 		{
 			// Delete all existing aggs
 			var deleteAggregates = Delete.From("Aggregate").Where(true);
-			db.Execute(deleteAggregates);
+			_db.Execute(deleteAggregates);
 
 			// Add some test aggs
-			db.Insert(new Aggregate() { Value = 1 });
-			db.Insert(new Aggregate() { Value = 3 });
-			db.Insert(new Aggregate() { Value = 5 });
-			db.Insert(new Aggregate() { Value = 7 });
-			db.Insert(new Aggregate() { Value = 11 });
+			_db.Insert(new Aggregate() { Value = 1 });
+			_db.Insert(new Aggregate() { Value = 3 });
+			_db.Insert(new Aggregate() { Value = 5 });
+			_db.Insert(new Aggregate() { Value = 7 });
+			_db.Insert(new Aggregate() { Value = 11 });
 
 			// Test count
 			var selectCount = Select.From("Aggregate").Count("*");
-			Assert.AreEqual(5, Convert.ToInt32(db.LoadValue(selectCount)));
+			Assert.AreEqual(5, Convert.ToInt32(_db.LoadValue(selectCount)));
 
 			// Test sum
 			var selectSum = Select.From("Aggregate").Sum("Value");
-			Assert.AreEqual(27d, Convert.ToDouble(db.LoadValue(selectSum)));
+			Assert.AreEqual(27d, Convert.ToDouble(_db.LoadValue(selectSum)));
 
 			// Test average
 			var selectAverage = Select.From("Aggregate").Average("Value");
-			Assert.AreEqual(5.4, Convert.ToDouble(db.LoadValue(selectAverage)));
+			Assert.AreEqual(5.4, Convert.ToDouble(_db.LoadValue(selectAverage)));
 
 			// Test minimum
 			var selectMin = Select.From("Aggregate").Min("Value");
-			Assert.AreEqual(1d, Convert.ToDouble(db.LoadValue(selectMin)));
+			Assert.AreEqual(1d, Convert.ToDouble(_db.LoadValue(selectMin)));
 
 			// Test maximum
 			var selectMax = Select.From("Aggregate").Max("Value");
-			Assert.AreEqual(11d, Convert.ToDouble(db.LoadValue(selectMax)));
+			Assert.AreEqual(11d, Convert.ToDouble(_db.LoadValue(selectMax)));
 		}
 
 		private void ExecuteNonQuery(string sql)
 		{
-			using (var connection = new SqlConnection(db.Configuration.ConnectionString))
+			using (var connection = new SqlConnection(_db.Configuration.ConnectionString))
 			{
 				connection.Open();
 				using (var command = new SqlCommand(sql, connection))

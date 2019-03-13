@@ -12,7 +12,7 @@ namespace Watsonia.Data
 	/// </summary>
 	public class ItemCache
 	{
-		private object _lock = new object();
+		private readonly object _lock = new object();
 
 		/// <summary>
 		/// Gets or sets the expiry length in milliseconds.

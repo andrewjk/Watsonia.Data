@@ -16,8 +16,8 @@ namespace Watsonia.Data.Tests.Queries
 	[TestClass]
 	public class QueryTranslationTests
 	{
-		private static NorthwindDatabase db = new NorthwindDatabase();
-		private static Dictionary<string, string> baselines = new Dictionary<string, string>();
+		private static NorthwindDatabase _db = new NorthwindDatabase();
+		private static Dictionary<string, string> _baselines = new Dictionary<string, string>();
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
@@ -26,7 +26,7 @@ namespace Watsonia.Data.Tests.Queries
 			if (!string.IsNullOrEmpty(fileName) && File.Exists(fileName))
 			{
 				var doc = XDocument.Load(fileName);
-				baselines = doc.Root.Elements("baseline").ToDictionary(e => (string)e.Attribute("key"), e => e.Value);
+				_baselines = doc.Root.Elements("baseline").ToDictionary(e => (string)e.Attribute("key"), e => e.Value);
 			}
 		}
 
@@ -35,7 +35,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestWhere",
-				db.Customers.Where(c => c.City == "London"));
+				_db.Customers.Where(c => c.City == "London"));
 		}
 
 		[TestMethod]
@@ -44,7 +44,7 @@ namespace Watsonia.Data.Tests.Queries
 			var alfki = new Customer { CustomerID = "ALFKI" };
 			TestQuery(
 				"TestCompareEntityEqual",
-				db.Customers.Where(c => c == alfki));
+				_db.Customers.Where(c => c == alfki));
 		}
 
 		[TestMethod]
@@ -53,7 +53,7 @@ namespace Watsonia.Data.Tests.Queries
 			var alfki = new Customer { CustomerID = "ALFKI" };
 			TestQuery(
 				"TestCompareEntityNotEqual",
-				db.Customers.Where(c => c != alfki));
+				_db.Customers.Where(c => c != alfki));
 		}
 
 		[TestMethod]
@@ -61,7 +61,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestCompareConstructedEqual",
-				db.Customers.Where(c => new { x = c.City } == new { x = "London" }));
+				_db.Customers.Where(c => new { x = c.City } == new { x = "London" }));
 		}
 
 		[TestMethod]
@@ -69,7 +69,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestCompareConstructedMultiValueEqual",
-				db.Customers.Where(c => new { x = c.City, y = c.Country } == new { x = "London", y = "UK" }));
+				_db.Customers.Where(c => new { x = c.City, y = c.Country } == new { x = "London", y = "UK" }));
 		}
 
 		[TestMethod]
@@ -77,7 +77,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestCompareConstructedMultiValueNotEqual",
-				db.Customers.Where(c => new { x = c.City, y = c.Country } != new { x = "London", y = "UK" }));
+				_db.Customers.Where(c => new { x = c.City, y = c.Country } != new { x = "London", y = "UK" }));
 		}
 
 		[TestMethod]
@@ -85,7 +85,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestCompareConstructed",
-				db.Customers.Where(c => new { x = c.City } == new { x = "London" }));
+				_db.Customers.Where(c => new { x = c.City } == new { x = "London" }));
 		}
 
 		[TestMethod]
@@ -93,7 +93,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSelectScalar",
-				db.Customers.Select(c => c.City));
+				_db.Customers.Select(c => c.City));
 		}
 
 		[TestMethod]
@@ -101,7 +101,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSelectAnonymousOne",
-				db.Customers.Select(c => new { c.City }));
+				_db.Customers.Select(c => new { c.City }));
 		}
 
 		////[TestMethod]
@@ -125,7 +125,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSelectCustomerTable",
-				db.Customers);
+				_db.Customers);
 		}
 
 		[TestMethod]
@@ -133,7 +133,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSelectCustomerIdentity",
-				db.Customers.Select(c => c));
+				_db.Customers.Select(c => c));
 		}
 
 		////[TestMethod]
@@ -173,7 +173,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSelectConstantInt",
-				db.Customers.Select(c => 0));
+				_db.Customers.Select(c => 0));
 		}
 
 		[TestMethod]
@@ -181,7 +181,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSelectConstantNullString",
-				db.Customers.Select(c => (string)null));
+				_db.Customers.Select(c => (string)null));
 		}
 
 		[TestMethod]
@@ -190,7 +190,7 @@ namespace Watsonia.Data.Tests.Queries
 			var x = 10;
 			TestQuery(
 				"TestSelectLocal",
-				db.Customers.Select(c => x));
+				_db.Customers.Select(c => x));
 		}
 
 		////[TestMethod]
@@ -309,7 +309,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestOrderBy",
-				db.Customers.OrderBy(c => c.CustomerID)
+				_db.Customers.OrderBy(c => c.CustomerID)
 				);
 		}
 
@@ -318,7 +318,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestOrderBySelect",
-				db.Customers.OrderBy(c => c.CustomerID).Select(c => c.ContactName)
+				_db.Customers.OrderBy(c => c.CustomerID).Select(c => c.ContactName)
 				);
 		}
 
@@ -327,7 +327,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestOrderByOrderBy",
-				db.Customers.OrderBy(c => c.CustomerID).OrderBy(c => c.Country).Select(c => c.City)
+				_db.Customers.OrderBy(c => c.CustomerID).OrderBy(c => c.Country).Select(c => c.City)
 				);
 		}
 
@@ -336,7 +336,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestOrderByThenBy",
-				db.Customers.OrderBy(c => c.CustomerID).ThenBy(c => c.Country).Select(c => c.City)
+				_db.Customers.OrderBy(c => c.CustomerID).ThenBy(c => c.Country).Select(c => c.City)
 				);
 		}
 
@@ -345,7 +345,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestOrderByDescending",
-				db.Customers.OrderByDescending(c => c.CustomerID).Select(c => c.City)
+				_db.Customers.OrderByDescending(c => c.CustomerID).Select(c => c.City)
 				);
 		}
 
@@ -354,7 +354,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestOrderByDescendingThenBy",
-				db.Customers.OrderByDescending(c => c.CustomerID).ThenBy(c => c.Country).Select(c => c.City)
+				_db.Customers.OrderByDescending(c => c.CustomerID).ThenBy(c => c.Country).Select(c => c.City)
 				);
 		}
 
@@ -363,7 +363,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestOrderByDescendingThenByDescending",
-				db.Customers.OrderByDescending(c => c.CustomerID).ThenByDescending(c => c.Country).Select(c => c.City)
+				_db.Customers.OrderByDescending(c => c.CustomerID).ThenByDescending(c => c.Country).Select(c => c.City)
 				);
 		}
 
@@ -534,7 +534,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSumWithNoArg",
-				() => db.Orders.Select(o => o.OrderID).Sum()
+				() => _db.Orders.Select(o => o.OrderID).Sum()
 				);
 		}
 
@@ -543,7 +543,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSumWithArg",
-				() => db.Orders.Sum(o => o.OrderID)
+				() => _db.Orders.Sum(o => o.OrderID)
 				);
 		}
 
@@ -552,7 +552,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestCountWithNoPredicate",
-				() => db.Orders.Count()
+				() => _db.Orders.Count()
 				);
 		}
 
@@ -561,7 +561,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestCountWithPredicate",
-				() => db.Orders.Count(o => o.CustomerID == "ALFKI")
+				() => _db.Orders.Count(o => o.CustomerID == "ALFKI")
 				);
 		}
 
@@ -570,7 +570,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDistinct",
-				db.Customers.Distinct()
+				_db.Customers.Distinct()
 				);
 		}
 
@@ -579,7 +579,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDistinctScalar",
-				db.Customers.Select(c => c.City).Distinct()
+				_db.Customers.Select(c => c.City).Distinct()
 				);
 		}
 
@@ -588,7 +588,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestOrderByDistinct",
-				db.Customers.OrderBy(c => c.CustomerID).Select(c => c.City).Distinct()
+				_db.Customers.OrderBy(c => c.CustomerID).Select(c => c.City).Distinct()
 				);
 		}
 
@@ -625,7 +625,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDistinctCount",
-				() => db.Customers.Distinct().Count()
+				() => _db.Customers.Distinct().Count()
 				);
 		}
 
@@ -697,7 +697,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDistinctTake",
-				db.Orders.Distinct().Take(5)
+				_db.Orders.Distinct().Take(5)
 				);
 		}
 
@@ -724,7 +724,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSkip",
-				db.Customers.OrderBy(c => c.ContactName).Skip(5)
+				_db.Customers.OrderBy(c => c.ContactName).Skip(5)
 				);
 		}
 
@@ -733,7 +733,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestTakeSkip",
-				db.Customers.OrderBy(c => c.ContactName).Take(10).Skip(5)
+				_db.Customers.OrderBy(c => c.ContactName).Take(10).Skip(5)
 				);
 		}
 
@@ -751,7 +751,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSkipTake",
-				db.Customers.OrderBy(c => c.ContactName).Skip(5).Take(10)
+				_db.Customers.OrderBy(c => c.ContactName).Skip(5).Take(10)
 				);
 		}
 
@@ -769,7 +769,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSkipDistinct",
-				db.Customers.OrderBy(c => c.ContactName).Skip(5).Distinct()
+				_db.Customers.OrderBy(c => c.ContactName).Skip(5).Distinct()
 				);
 		}
 
@@ -778,7 +778,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSkipTakeDistinct",
-				db.Customers.OrderBy(c => c.ContactName).Skip(5).Take(10).Distinct()
+				_db.Customers.OrderBy(c => c.ContactName).Skip(5).Take(10).Distinct()
 				);
 		}
 
@@ -796,7 +796,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestFirst",
-				() => db.Customers.OrderBy(c => c.ContactName).First()
+				() => _db.Customers.OrderBy(c => c.ContactName).First()
 				);
 		}
 
@@ -805,7 +805,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestFirstPredicate",
-				() => db.Customers.OrderBy(c => c.ContactName).First(c => c.City == "London")
+				() => _db.Customers.OrderBy(c => c.ContactName).First(c => c.City == "London")
 				);
 		}
 
@@ -814,7 +814,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestWhereFirst",
-				() => db.Customers.OrderBy(c => c.ContactName).Where(c => c.City == "London").First()
+				() => _db.Customers.OrderBy(c => c.ContactName).Where(c => c.City == "London").First()
 				);
 		}
 
@@ -823,7 +823,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestFirstOrDefault",
-				() => db.Customers.OrderBy(c => c.ContactName).FirstOrDefault()
+				() => _db.Customers.OrderBy(c => c.ContactName).FirstOrDefault()
 				);
 		}
 
@@ -832,7 +832,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestFirstOrDefaultPredicate",
-				() => db.Customers.OrderBy(c => c.ContactName).FirstOrDefault(c => c.City == "London")
+				() => _db.Customers.OrderBy(c => c.ContactName).FirstOrDefault(c => c.City == "London")
 				);
 		}
 
@@ -841,7 +841,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestWhereFirstOrDefault",
-				() => db.Customers.OrderBy(c => c.ContactName).Where(c => c.City == "London").FirstOrDefault()
+				() => _db.Customers.OrderBy(c => c.ContactName).Where(c => c.City == "London").FirstOrDefault()
 				);
 		}
 
@@ -850,7 +850,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestReverse",
-				db.Customers.OrderBy(c => c.ContactName).Reverse()
+				_db.Customers.OrderBy(c => c.ContactName).Reverse()
 				);
 		}
 
@@ -859,7 +859,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestReverseReverse",
-				db.Customers.OrderBy(c => c.ContactName).Reverse().Reverse()
+				_db.Customers.OrderBy(c => c.ContactName).Reverse().Reverse()
 				);
 		}
 
@@ -895,7 +895,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestLast",
-				() => db.Customers.OrderBy(c => c.ContactName).Last()
+				() => _db.Customers.OrderBy(c => c.ContactName).Last()
 				);
 		}
 
@@ -904,7 +904,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestLastPredicate",
-				() => db.Customers.OrderBy(c => c.ContactName).Last(c => c.City == "London")
+				() => _db.Customers.OrderBy(c => c.ContactName).Last(c => c.City == "London")
 				);
 		}
 
@@ -913,7 +913,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestWhereLast",
-				() => db.Customers.OrderBy(c => c.ContactName).Where(c => c.City == "London").Last()
+				() => _db.Customers.OrderBy(c => c.ContactName).Where(c => c.City == "London").Last()
 				);
 		}
 
@@ -922,7 +922,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestLastOrDefault",
-				() => db.Customers.OrderBy(c => c.ContactName).LastOrDefault()
+				() => _db.Customers.OrderBy(c => c.ContactName).LastOrDefault()
 				);
 		}
 
@@ -931,7 +931,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestLastOrDefaultPredicate",
-				() => db.Customers.OrderBy(c => c.ContactName).LastOrDefault(c => c.City == "London")
+				() => _db.Customers.OrderBy(c => c.ContactName).LastOrDefault(c => c.City == "London")
 				);
 		}
 
@@ -940,7 +940,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestWhereLastOrDefault",
-				() => db.Customers.OrderBy(c => c.ContactName).Where(c => c.City == "London").LastOrDefault()
+				() => _db.Customers.OrderBy(c => c.ContactName).Where(c => c.City == "London").LastOrDefault()
 				);
 		}
 
@@ -949,7 +949,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSingle",
-				() => db.Customers.Single());
+				() => _db.Customers.Single());
 		}
 
 		[TestMethod]
@@ -957,7 +957,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSinglePredicate",
-				() => db.Customers.Single(c => c.CustomerID == "ALFKI")
+				() => _db.Customers.Single(c => c.CustomerID == "ALFKI")
 				);
 		}
 
@@ -966,7 +966,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestWhereSingle",
-				() => db.Customers.Where(c => c.CustomerID == "ALFKI").Single()
+				() => _db.Customers.Where(c => c.CustomerID == "ALFKI").Single()
 				);
 		}
 
@@ -983,7 +983,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestSingleOrDefaultPredicate",
-				() => db.Customers.SingleOrDefault(c => c.CustomerID == "ALFKI")
+				() => _db.Customers.SingleOrDefault(c => c.CustomerID == "ALFKI")
 				);
 		}
 
@@ -992,7 +992,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestWhereSingleOrDefault",
-				() => db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault()
+				() => _db.Customers.Where(c => c.CustomerID == "ALFKI").SingleOrDefault()
 				);
 		}
 
@@ -1029,7 +1029,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestAnyTopLevel",
-				() => db.Customers.Any()
+				() => _db.Customers.Any()
 				);
 		}
 
@@ -1058,7 +1058,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestAllTopLevel",
-				() => db.Customers.All(c => c.ContactName.StartsWith("a"))
+				() => _db.Customers.All(c => c.ContactName.StartsWith("a"))
 				);
 		}
 
@@ -1067,7 +1067,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestContainsWithSubquery",
-				db.Customers.Where(c => db.Orders.Select(o => o.CustomerID).Contains(c.CustomerID))
+				_db.Customers.Where(c => _db.Orders.Select(o => o.CustomerID).Contains(c.CustomerID))
 				);
 		}
 
@@ -1077,7 +1077,7 @@ namespace Watsonia.Data.Tests.Queries
 			var ids = new[] { "ABCDE", "ALFKI" };
 			TestQuery(
 				"TestContainsWithLocalCollection",
-				db.Customers.Where(c => ids.Contains(c.CustomerID))
+				_db.Customers.Where(c => ids.Contains(c.CustomerID))
 				);
 		}
 
@@ -1086,7 +1086,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestContainsTopLevel",
-				() => db.Customers.Select(c => c.CustomerID).Contains("ALFKI")
+				() => _db.Customers.Select(c => c.CustomerID).Contains("ALFKI")
 				);
 		}
 
@@ -1111,7 +1111,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringLength",
-				db.Customers.Where(c => c.City.Length == 7));
+				_db.Customers.Where(c => c.City.Length == 7));
 		}
 
 		[TestMethod]
@@ -1119,7 +1119,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringStartsWithLiteral",
-				db.Customers.Where(c => c.ContactName.StartsWith("M")));
+				_db.Customers.Where(c => c.ContactName.StartsWith("M")));
 		}
 
 		[TestMethod]
@@ -1127,7 +1127,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringStartsWithColumn",
-				db.Customers.Where(c => c.ContactName.StartsWith(c.ContactName)));
+				_db.Customers.Where(c => c.ContactName.StartsWith(c.ContactName)));
 		}
 
 		[TestMethod]
@@ -1135,7 +1135,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringEndsWithLiteral",
-				db.Customers.Where(c => c.ContactName.EndsWith("s")));
+				_db.Customers.Where(c => c.ContactName.EndsWith("s")));
 		}
 
 		[TestMethod]
@@ -1143,7 +1143,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringEndsWithColumn",
-				db.Customers.Where(c => c.ContactName.EndsWith(c.ContactName)));
+				_db.Customers.Where(c => c.ContactName.EndsWith(c.ContactName)));
 		}
 
 		[TestMethod]
@@ -1151,7 +1151,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringContainsLiteral",
-				db.Customers.Where(c => c.ContactName.Contains("and")));
+				_db.Customers.Where(c => c.ContactName.Contains("and")));
 		}
 
 		[TestMethod]
@@ -1159,7 +1159,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringContainsColumn",
-				db.Customers.Where(c => c.ContactName.Contains(c.ContactName)));
+				_db.Customers.Where(c => c.ContactName.Contains(c.ContactName)));
 		}
 
 		[TestMethod]
@@ -1167,7 +1167,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringConcatImplicit2Args",
-				db.Customers.Where(c => c.ContactName + "X" == "X"));
+				_db.Customers.Where(c => c.ContactName + "X" == "X"));
 		}
 
 		[TestMethod]
@@ -1175,7 +1175,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringConcatExplicit2Args",
-				db.Customers.Where(c => string.Concat(c.ContactName, "X") == "X"));
+				_db.Customers.Where(c => string.Concat(c.ContactName, "X") == "X"));
 		}
 
 		[TestMethod]
@@ -1183,7 +1183,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringConcatExplicit3Args",
-				db.Customers.Where(c => string.Concat(c.ContactName, "X", c.Country) == "X"));
+				_db.Customers.Where(c => string.Concat(c.ContactName, "X", c.Country) == "X"));
 		}
 
 		[TestMethod]
@@ -1191,7 +1191,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringConcatExplicitNArgs",
-				db.Customers.Where(c => string.Concat(new string[] { c.ContactName, "X", c.Country }) == "X"));
+				_db.Customers.Where(c => string.Concat(new string[] { c.ContactName, "X", c.Country }) == "X"));
 		}
 
 		[TestMethod]
@@ -1199,7 +1199,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringIsNullOrEmpty",
-				db.Customers.Where(c => string.IsNullOrEmpty(c.City)));
+				_db.Customers.Where(c => string.IsNullOrEmpty(c.City)));
 		}
 
 		[TestMethod]
@@ -1207,7 +1207,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringToUpper",
-				db.Customers.Where(c => c.City.ToUpper() == "SEATTLE"));
+				_db.Customers.Where(c => c.City.ToUpper() == "SEATTLE"));
 		}
 
 		[TestMethod]
@@ -1215,7 +1215,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringToLower",
-				db.Customers.Where(c => c.City.ToLower() == "seattle"));
+				_db.Customers.Where(c => c.City.ToLower() == "seattle"));
 		}
 
 		[TestMethod]
@@ -1223,7 +1223,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringSubstring",
-				db.Customers.Where(c => c.City.Substring(0, 4) == "Seat"));
+				_db.Customers.Where(c => c.City.Substring(0, 4) == "Seat"));
 		}
 
 		[TestMethod]
@@ -1231,7 +1231,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringSubstringNoLength",
-				db.Customers.Where(c => c.City.Substring(4) == "tle"));
+				_db.Customers.Where(c => c.City.Substring(4) == "tle"));
 		}
 
 		[TestMethod]
@@ -1239,7 +1239,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringIndexOf",
-				db.Customers.Where(c => c.City.IndexOf("tt") == 4));
+				_db.Customers.Where(c => c.City.IndexOf("tt") == 4));
 		}
 
 		[TestMethod]
@@ -1247,7 +1247,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringIndexOfChar",
-				db.Customers.Where(c => c.City.IndexOf('t') == 4));
+				_db.Customers.Where(c => c.City.IndexOf('t') == 4));
 		}
 
 		[TestMethod]
@@ -1255,7 +1255,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringReplace",
-				db.Customers.Where(c => c.City.Replace("ea", "ae") == "Saettle"));
+				_db.Customers.Where(c => c.City.Replace("ea", "ae") == "Saettle"));
 		}
 
 		[TestMethod]
@@ -1263,7 +1263,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringReplaceChars",
-				db.Customers.Where(c => c.City.Replace("e", "y") == "Syattly"));
+				_db.Customers.Where(c => c.City.Replace("e", "y") == "Syattly"));
 		}
 
 		[TestMethod]
@@ -1271,7 +1271,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringTrim",
-				db.Customers.Where(c => c.City.Trim() == "Seattle"));
+				_db.Customers.Where(c => c.City.Trim() == "Seattle"));
 		}
 
 		[TestMethod]
@@ -1279,7 +1279,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringToString",
-				db.Customers.Where(c => c.City.ToString() == "Seattle"));
+				_db.Customers.Where(c => c.City.ToString() == "Seattle"));
 		}
 
 		[TestMethod]
@@ -1287,7 +1287,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringRemove",
-				db.Customers.Where(c => c.City.Remove(1, 2) == "Sttle"));
+				_db.Customers.Where(c => c.City.Remove(1, 2) == "Sttle"));
 		}
 
 		[TestMethod]
@@ -1295,7 +1295,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringRemoveNoCount",
-				db.Customers.Where(c => c.City.Remove(4) == "Seat"));
+				_db.Customers.Where(c => c.City.Remove(4) == "Seat"));
 		}
 		
 		[TestMethod]
@@ -1303,7 +1303,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDateTimeConstructYmd",
-				db.Orders.Where(o => o.OrderDate == new DateTime(o.OrderDate.Year, 1, 1)));
+				_db.Orders.Where(o => o.OrderDate == new DateTime(o.OrderDate.Year, 1, 1)));
 		}
 
 		[TestMethod]
@@ -1311,7 +1311,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDateTimeConstructYmdhms",
-				db.Orders.Where(o => o.OrderDate == new DateTime(o.OrderDate.Year, 1, 1, 10, 25, 55)));
+				_db.Orders.Where(o => o.OrderDate == new DateTime(o.OrderDate.Year, 1, 1, 10, 25, 55)));
 		}
 
 		[TestMethod]
@@ -1319,7 +1319,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDateTimeDay",
-				db.Orders.Where(o => o.OrderDate.Day == 5));
+				_db.Orders.Where(o => o.OrderDate.Day == 5));
 		}
 
 		[TestMethod]
@@ -1327,7 +1327,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDateTimeMonth",
-				db.Orders.Where(o => o.OrderDate.Month == 12));
+				_db.Orders.Where(o => o.OrderDate.Month == 12));
 		}
 
 		[TestMethod]
@@ -1335,7 +1335,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDateTimeYear",
-				db.Orders.Where(o => o.OrderDate.Year == 1997));
+				_db.Orders.Where(o => o.OrderDate.Year == 1997));
 		}
 
 		[TestMethod]
@@ -1343,7 +1343,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDateTimeHour",
-				db.Orders.Where(o => o.OrderDate.Hour == 6));
+				_db.Orders.Where(o => o.OrderDate.Hour == 6));
 		}
 
 		[TestMethod]
@@ -1351,7 +1351,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDateTimeMinute",
-				db.Orders.Where(o => o.OrderDate.Minute == 32));
+				_db.Orders.Where(o => o.OrderDate.Minute == 32));
 		}
 
 		[TestMethod]
@@ -1359,7 +1359,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDateTimeSecond",
-				db.Orders.Where(o => o.OrderDate.Second == 47));
+				_db.Orders.Where(o => o.OrderDate.Second == 47));
 		}
 
 		[TestMethod]
@@ -1367,7 +1367,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDateTimeMillisecond",
-				db.Orders.Where(o => o.OrderDate.Millisecond == 200));
+				_db.Orders.Where(o => o.OrderDate.Millisecond == 200));
 		}
 
 		[TestMethod]
@@ -1375,7 +1375,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDateTimeDayOfWeek",
-				db.Orders.Where(o => o.OrderDate.DayOfWeek == DayOfWeek.Friday));
+				_db.Orders.Where(o => o.OrderDate.DayOfWeek == DayOfWeek.Friday));
 		}
 
 		[TestMethod]
@@ -1383,7 +1383,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDateTimeDayOfYear",
-				db.Orders.Where(o => o.OrderDate.DayOfYear == 360));
+				_db.Orders.Where(o => o.OrderDate.DayOfYear == 360));
 		}
 
 		[TestMethod]
@@ -1391,7 +1391,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathAbs",
-				db.Orders.Where(o => Math.Abs(o.OrderID) == 10));
+				_db.Orders.Where(o => Math.Abs(o.OrderID) == 10));
 		}
 
 		[TestMethod]
@@ -1399,7 +1399,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathAcos",
-				db.Orders.Where(o => Math.Acos(o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Acos(o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1407,7 +1407,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathAsin",
-				db.Orders.Where(o => Math.Asin(o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Asin(o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1415,7 +1415,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathAtan",
-				db.Orders.Where(o => Math.Atan(o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Atan(o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1423,7 +1423,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathAtan2",
-				db.Orders.Where(o => Math.Atan2(o.OrderID, 3) == 0));
+				_db.Orders.Where(o => Math.Atan2(o.OrderID, 3) == 0));
 		}
 
 		[TestMethod]
@@ -1431,7 +1431,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathCos",
-				db.Orders.Where(o => Math.Cos(o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Cos(o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1439,7 +1439,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathSin",
-				db.Orders.Where(o => Math.Sin(o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Sin(o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1447,7 +1447,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathTan",
-				db.Orders.Where(o => Math.Tan(o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Tan(o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1455,7 +1455,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathExp",
-				db.Orders.Where(o => Math.Exp(o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Exp(o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1463,7 +1463,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathLog",
-				db.Orders.Where(o => Math.Log(o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Log(o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1471,7 +1471,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathLog10",
-				db.Orders.Where(o => Math.Log10(o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Log10(o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1479,7 +1479,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathSqrt",
-				db.Orders.Where(o => Math.Sqrt(o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Sqrt(o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1487,7 +1487,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathCeiling",
-				db.Orders.Where(o => Math.Ceiling((double)o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Ceiling((double)o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1495,7 +1495,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathFloor",
-				db.Orders.Where(o => Math.Floor((double)o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Floor((double)o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1503,7 +1503,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathPow",
-				db.Orders.Where(o => Math.Pow(o.OrderID < 1000 ? 1 : 2, 3) == 0));
+				_db.Orders.Where(o => Math.Pow(o.OrderID < 1000 ? 1 : 2, 3) == 0));
 		}
 
 		[TestMethod]
@@ -1511,7 +1511,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathRoundDefault",
-				db.Orders.Where(o => Math.Round((decimal)o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Round((decimal)o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1519,7 +1519,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathRoundToPlace",
-				db.Orders.Where(o => Math.Round((decimal)o.OrderID, 2) == 0));
+				_db.Orders.Where(o => Math.Round((decimal)o.OrderID, 2) == 0));
 		}
 
 		[TestMethod]
@@ -1527,7 +1527,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestMathTruncate",
-				db.Orders.Where(o => Math.Truncate((double)o.OrderID) == 0));
+				_db.Orders.Where(o => Math.Truncate((double)o.OrderID) == 0));
 		}
 
 		[TestMethod]
@@ -1535,7 +1535,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringCompareToLessThan",
-				db.Customers.Where(c => c.City.CompareTo("Seattle") < 0));
+				_db.Customers.Where(c => c.City.CompareTo("Seattle") < 0));
 		}
 
 		[TestMethod]
@@ -1543,7 +1543,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringCompareToLessThanOrEqualTo",
-				db.Customers.Where(c => c.City.CompareTo("Seattle") <= 0));
+				_db.Customers.Where(c => c.City.CompareTo("Seattle") <= 0));
 		}
 
 		[TestMethod]
@@ -1551,7 +1551,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringCompareToGreaterThan",
-				db.Customers.Where(c => c.City.CompareTo("Seattle") > 0));
+				_db.Customers.Where(c => c.City.CompareTo("Seattle") > 0));
 		}
 
 		[TestMethod]
@@ -1559,7 +1559,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringCompareToGreaterThanOrEqualTo",
-				db.Customers.Where(c => c.City.CompareTo("Seattle") >= 0));
+				_db.Customers.Where(c => c.City.CompareTo("Seattle") >= 0));
 		}
 
 		[TestMethod]
@@ -1567,7 +1567,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringCompareToEquals",
-				db.Customers.Where(c => c.City.CompareTo("Seattle") == 0));
+				_db.Customers.Where(c => c.City.CompareTo("Seattle") == 0));
 		}
 
 		[TestMethod]
@@ -1575,7 +1575,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringCompareToNotEquals",
-				db.Customers.Where(c => c.City.CompareTo("Seattle") != 0));
+				_db.Customers.Where(c => c.City.CompareTo("Seattle") != 0));
 		}
 
 		[TestMethod]
@@ -1583,7 +1583,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringCompareLessThan",
-				db.Customers.Where(c => string.Compare(c.City, "Seattle") < 0));
+				_db.Customers.Where(c => string.Compare(c.City, "Seattle") < 0));
 		}
 
 		[TestMethod]
@@ -1591,7 +1591,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringCompareLessThanOrEqualTo",
-				db.Customers.Where(c => string.Compare(c.City, "Seattle") <= 0));
+				_db.Customers.Where(c => string.Compare(c.City, "Seattle") <= 0));
 		}
 
 		[TestMethod]
@@ -1599,7 +1599,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringCompareGreaterThan",
-				db.Customers.Where(c => string.Compare(c.City, "Seattle") > 0));
+				_db.Customers.Where(c => string.Compare(c.City, "Seattle") > 0));
 		}
 
 		[TestMethod]
@@ -1607,7 +1607,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringCompareGreaterThanOrEqualTo",
-				db.Customers.Where(c => string.Compare(c.City, "Seattle") >= 0));
+				_db.Customers.Where(c => string.Compare(c.City, "Seattle") >= 0));
 		}
 
 		[TestMethod]
@@ -1615,7 +1615,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringCompareEquals",
-				db.Customers.Where(c => string.Compare(c.City, "Seattle") == 0));
+				_db.Customers.Where(c => string.Compare(c.City, "Seattle") == 0));
 		}
 
 		[TestMethod]
@@ -1623,7 +1623,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestStringCompareNotEquals",
-				db.Customers.Where(c => string.Compare(c.City, "Seattle") != 0));
+				_db.Customers.Where(c => string.Compare(c.City, "Seattle") != 0));
 		}
 
 		[TestMethod]
@@ -1631,7 +1631,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntCompareTo",
-				db.Orders.Where(o => o.OrderID.CompareTo(1000) == 0));
+				_db.Orders.Where(o => o.OrderID.CompareTo(1000) == 0));
 		}
 
 		[TestMethod]
@@ -1639,7 +1639,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDecimalCompare",
-				db.Orders.Where(o => decimal.Compare((decimal)o.OrderID, 0.0m) == 0));
+				_db.Orders.Where(o => decimal.Compare((decimal)o.OrderID, 0.0m) == 0));
 		}
 
 		[TestMethod]
@@ -1647,7 +1647,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDecimalAdd",
-				db.Orders.Where(o => decimal.Add(o.OrderID, 0.0m) == 0.0m));
+				_db.Orders.Where(o => decimal.Add(o.OrderID, 0.0m) == 0.0m));
 		}
 
 		[TestMethod]
@@ -1655,7 +1655,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDecimalSubtract",
-				db.Orders.Where(o => decimal.Subtract(o.OrderID, 0.0m) == 0.0m));
+				_db.Orders.Where(o => decimal.Subtract(o.OrderID, 0.0m) == 0.0m));
 		}
 
 		[TestMethod]
@@ -1663,7 +1663,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDecimalMultiply",
-				db.Orders.Where(o => decimal.Multiply(o.OrderID, 1.0m) == 1.0m));
+				_db.Orders.Where(o => decimal.Multiply(o.OrderID, 1.0m) == 1.0m));
 		}
 
 		[TestMethod]
@@ -1671,7 +1671,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDecimalDivide",
-				db.Orders.Where(o => decimal.Divide(o.OrderID, 1.0m) == 1.0m));
+				_db.Orders.Where(o => decimal.Divide(o.OrderID, 1.0m) == 1.0m));
 		}
 
 		[TestMethod]
@@ -1679,7 +1679,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDecimalRemainder",
-				db.Orders.Where(o => decimal.Remainder(o.OrderID, 1.0m) == 0.0m));
+				_db.Orders.Where(o => decimal.Remainder(o.OrderID, 1.0m) == 0.0m));
 		}
 
 		[TestMethod]
@@ -1687,7 +1687,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDecimalNegate",
-				db.Orders.Where(o => decimal.Negate(o.OrderID) == 1.0m));
+				_db.Orders.Where(o => decimal.Negate(o.OrderID) == 1.0m));
 		}
 
 		[TestMethod]
@@ -1695,7 +1695,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDecimalCeiling",
-				db.Orders.Where(o => decimal.Ceiling(o.OrderID) == 0.0m));
+				_db.Orders.Where(o => decimal.Ceiling(o.OrderID) == 0.0m));
 		}
 
 		[TestMethod]
@@ -1703,7 +1703,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDecimalFloor",
-				db.Orders.Where(o => decimal.Floor(o.OrderID) == 0.0m));
+				_db.Orders.Where(o => decimal.Floor(o.OrderID) == 0.0m));
 		}
 
 		[TestMethod]
@@ -1711,7 +1711,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDecimalRoundDefault",
-				db.Orders.Where(o => decimal.Round(o.OrderID) == 0m));
+				_db.Orders.Where(o => decimal.Round(o.OrderID) == 0m));
 		}
 
 		[TestMethod]
@@ -1719,7 +1719,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDecimalRoundPlaces",
-				db.Orders.Where(o => decimal.Round(o.OrderID, 2) == 0.00m));
+				_db.Orders.Where(o => decimal.Round(o.OrderID, 2) == 0.00m));
 		}
 
 		[TestMethod]
@@ -1727,7 +1727,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDecimalTruncate",
-				db.Orders.Where(o => decimal.Truncate(o.OrderID) == 0m));
+				_db.Orders.Where(o => decimal.Truncate(o.OrderID) == 0m));
 		}
 
 		[TestMethod]
@@ -1735,7 +1735,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestDecimalLessThan",
-				db.Orders.Where(o => ((decimal)o.OrderID) < 0.0m));
+				_db.Orders.Where(o => ((decimal)o.OrderID) < 0.0m));
 		}
 
 		[TestMethod]
@@ -1743,7 +1743,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntLessThan",
-				db.Orders.Where(o => o.OrderID < 0));
+				_db.Orders.Where(o => o.OrderID < 0));
 		}
 
 		[TestMethod]
@@ -1751,7 +1751,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntLessThanOrEqual",
-				db.Orders.Where(o => o.OrderID <= 0));
+				_db.Orders.Where(o => o.OrderID <= 0));
 		}
 
 		[TestMethod]
@@ -1759,7 +1759,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntGreaterThan",
-				db.Orders.Where(o => o.OrderID > 0));
+				_db.Orders.Where(o => o.OrderID > 0));
 		}
 
 		[TestMethod]
@@ -1767,7 +1767,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntGreaterThanOrEqual",
-				db.Orders.Where(o => o.OrderID >= 0));
+				_db.Orders.Where(o => o.OrderID >= 0));
 		}
 
 		[TestMethod]
@@ -1775,7 +1775,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntEqual",
-				db.Orders.Where(o => o.OrderID == 0));
+				_db.Orders.Where(o => o.OrderID == 0));
 		}
 
 		[TestMethod]
@@ -1783,7 +1783,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntNotEqual",
-				db.Orders.Where(o => o.OrderID != 0));
+				_db.Orders.Where(o => o.OrderID != 0));
 		}
 
 		[TestMethod]
@@ -1791,7 +1791,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntAdd",
-				db.Orders.Where(o => o.OrderID + 0 == 0));
+				_db.Orders.Where(o => o.OrderID + 0 == 0));
 		}
 
 		[TestMethod]
@@ -1799,7 +1799,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntSubtract",
-				db.Orders.Where(o => o.OrderID - 0 == 0));
+				_db.Orders.Where(o => o.OrderID - 0 == 0));
 		}
 
 		[TestMethod]
@@ -1807,7 +1807,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntMultiply",
-				db.Orders.Where(o => o.OrderID * 1 == 1));
+				_db.Orders.Where(o => o.OrderID * 1 == 1));
 		}
 
 		[TestMethod]
@@ -1815,7 +1815,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntDivide",
-				db.Orders.Where(o => o.OrderID / 1 == 1));
+				_db.Orders.Where(o => o.OrderID / 1 == 1));
 		}
 
 		[TestMethod]
@@ -1823,7 +1823,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntModulo",
-				db.Orders.Where(o => o.OrderID % 1 == 0));
+				_db.Orders.Where(o => o.OrderID % 1 == 0));
 		}
 
 		[TestMethod]
@@ -1831,7 +1831,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntLeftShift",
-				db.Orders.Where(o => o.OrderID << 1 == 0));
+				_db.Orders.Where(o => o.OrderID << 1 == 0));
 		}
 
 		[TestMethod]
@@ -1839,7 +1839,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntRightShift",
-				db.Orders.Where(o => o.OrderID >> 1 == 0));
+				_db.Orders.Where(o => o.OrderID >> 1 == 0));
 		}
 
 		[TestMethod]
@@ -1847,7 +1847,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntBitwiseAnd",
-				db.Orders.Where(o => (o.OrderID & 1) == 0));
+				_db.Orders.Where(o => (o.OrderID & 1) == 0));
 		}
 
 		[TestMethod]
@@ -1855,7 +1855,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntBitwiseOr",
-				db.Orders.Where(o => (o.OrderID | 1) == 1));
+				_db.Orders.Where(o => (o.OrderID | 1) == 1));
 		}
 
 		[TestMethod]
@@ -1863,7 +1863,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntBitwiseExclusiveOr",
-				db.Orders.Where(o => (o.OrderID ^ 1) == 1));
+				_db.Orders.Where(o => (o.OrderID ^ 1) == 1));
 		}
 
 		////[TestMethod]
@@ -1879,7 +1879,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestIntNegate",
-				db.Orders.Where(o => -o.OrderID == -1));
+				_db.Orders.Where(o => -o.OrderID == -1));
 		}
 
 		[TestMethod]
@@ -1887,7 +1887,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestAnd",
-				db.Orders.Where(o => o.OrderID > 0 && o.OrderID < 2000));
+				_db.Orders.Where(o => o.OrderID > 0 && o.OrderID < 2000));
 		}
 
 		[TestMethod]
@@ -1895,7 +1895,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestOr",
-				db.Orders.Where(o => o.OrderID < 5 || o.OrderID > 10));
+				_db.Orders.Where(o => o.OrderID < 5 || o.OrderID > 10));
 		}
 
 		[TestMethod]
@@ -1903,7 +1903,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestNot",
-				db.Orders.Where(o => !(o.OrderID == 0)));
+				_db.Orders.Where(o => !(o.OrderID == 0)));
 		}
 
 		[TestMethod]
@@ -1911,7 +1911,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestEqualNull",
-				db.Customers.Where(c => c.City == null));
+				_db.Customers.Where(c => c.City == null));
 		}
 
 		[TestMethod]
@@ -1919,7 +1919,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestEqualNullReverse",
-				db.Customers.Where(c => null == c.City));
+				_db.Customers.Where(c => null == c.City));
 		}
 
 		[TestMethod]
@@ -1927,7 +1927,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestConditional",
-				db.Orders.Where(o => (o.CustomerID == "ALFKI" ? 1000 : 0) == 1000));
+				_db.Orders.Where(o => (o.CustomerID == "ALFKI" ? 1000 : 0) == 1000));
 		}
 
 		[TestMethod]
@@ -1935,7 +1935,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestConditional2",
-				db.Orders.Where(o => (o.CustomerID == "ALFKI" ? 1000 : o.CustomerID == "ABCDE" ? 2000 : 0) == 1000));
+				_db.Orders.Where(o => (o.CustomerID == "ALFKI" ? 1000 : o.CustomerID == "ABCDE" ? 2000 : 0) == 1000));
 		}
 
 		[TestMethod]
@@ -1943,7 +1943,7 @@ namespace Watsonia.Data.Tests.Queries
 		{
 			TestQuery(
 				"TestConditionalTestIsValue",
-				db.Orders.Where(o => (((bool)(object)o.OrderID) ? 100 : 200) == 100));
+				_db.Orders.Where(o => (((bool)(object)o.OrderID) ? 100 : 200) == 100));
 		}
 
 		////[TestMethod]
@@ -2051,7 +2051,7 @@ namespace Watsonia.Data.Tests.Queries
 			var today = new DateTime(2013, 1, 1);
 			TestQuery(
 				"TestCompareDateTimesWithDifferentNullability",
-				from o in db.Orders
+				from o in _db.Orders
 				where o.OrderDate < today && ((DateTime?)o.OrderDate) < today
 				select o
 				);
@@ -2063,7 +2063,7 @@ namespace Watsonia.Data.Tests.Queries
 			var ids = new string[0];
 			TestQuery(
 				"TestContainsWithEmptyLocalList",
-				from c in db.Customers
+				from c in _db.Customers
 				where ids.Contains(c.CustomerID)
 				select c
 				);
@@ -2072,11 +2072,11 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestContainsWithSubquery2()
 		{
-			var custsInLondon = db.Customers.Where(c => c.City == "London").Select(c => c.CustomerID);
+			var custsInLondon = _db.Customers.Where(c => c.City == "London").Select(c => c.CustomerID);
 
 			TestQuery(
 				"TestContainsWithSubquery2",
-				from c in db.Customers
+				from c in _db.Customers
 				where custsInLondon.Contains(c.CustomerID)
 				select c
 				);
@@ -2129,8 +2129,8 @@ namespace Watsonia.Data.Tests.Queries
 				query = ((UnaryExpression)query).Operand;
 			}
 
-			var expected = "(" + TrimExtraWhiteSpace(baselines[baseline].Replace("\n\n", ") (")) + ")";
-			var select = db.BuildSelectStatement(query);
+			var expected = "(" + TrimExtraWhiteSpace(_baselines[baseline].Replace("\n\n", ") (")) + ")";
+			var select = _db.BuildSelectStatement(query);
 			var actual = TrimExtraWhiteSpace(select.ToString());
 
 			Assert.AreEqual(expected, actual);

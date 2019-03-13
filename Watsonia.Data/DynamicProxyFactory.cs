@@ -322,13 +322,13 @@ namespace Watsonia.Data
 						case TypeCode.Decimal:
 						{
 							var decimalValue = Convert.ToDecimal(value);
-							var words = Decimal.GetBits(decimalValue);
+							var words = decimal.GetBits(decimalValue);
 							var power = (words[3] >> 16) & 0xff;
 							var sign = words[3] >> 31;
 
 							if (power == 0 && decimalValue <= int.MaxValue && decimalValue >= int.MinValue)
 							{
-								var decimalConstructor = typeof(Decimal).GetConstructor(
+								var decimalConstructor = typeof(decimal).GetConstructor(
 									new Type[1] { typeof(int) });
 
 								gen.Emit(OpCodes.Ldc_I4, (int)decimalValue);
@@ -336,7 +336,7 @@ namespace Watsonia.Data
 							}
 							else
 							{
-								var decimalConstructor = typeof(Decimal).GetConstructor(
+								var decimalConstructor = typeof(decimal).GetConstructor(
 									new Type[5] { typeof(int), typeof(int), typeof(int), typeof(bool), typeof(byte) });
 
 								gen.Emit(OpCodes.Ldc_I4, words[0]);
