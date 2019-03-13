@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace Watsonia.Data
+namespace Watsonia.Data.DataAnnotations
 {
 	public sealed class DefaultDateTimeValueAttribute : DefaultValueAttribute
 	{
