@@ -1,4 +1,4 @@
-using Remotion.Linq;
+﻿using Remotion.Linq;
 using Remotion.Linq.Parsing.Structure;
 using System;
 using System.Collections;
@@ -153,8 +153,8 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public T Create<T>()
 		{
-			T newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
-			IDynamicProxy proxy = (IDynamicProxy)newItem;
+			var newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
+			var proxy = (IDynamicProxy)newItem;
 			//proxy.ID = -1;
 			proxy.IsNew = true;
 
@@ -171,8 +171,8 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public T Create<T>(T item)
 		{
-			T newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
-			IDynamicProxy proxy = (IDynamicProxy)newItem;
+			var newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
+			var proxy = (IDynamicProxy)newItem;
 			//proxy.ID = -1;
 			proxy.IsNew = true;
 			LoadValues(item, proxy);
@@ -225,7 +225,7 @@ namespace Watsonia.Data
 		{
 			// For testing
 			var queryParser = QueryParser.CreateDefault();
-			QueryModel queryModel = queryParser.GetParsedQuery(expression);
+			var queryModel = queryParser.GetParsedQuery(expression);
 
 			// The type doesn't matter
 			var queryExecutor = new QueryExecutor<int>(this);
@@ -266,15 +266,15 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		private T LoadOrDefault<T>(object id, bool throwIfNotFound)
 		{
-			T item = default(T);
+			var item = default(T);
 			IDynamicProxy proxy = null;
 
-			string tableName = this.Configuration.GetTableName(typeof(T));
-			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(typeof(T));
+			var tableName = this.Configuration.GetTableName(typeof(T));
+			var primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(typeof(T));
 
 			// First, check the cache
-			string cacheKey = DynamicProxyFactory.GetDynamicTypeName(typeof(T), this);
-			ItemCache cache = this.Configuration.ShouldCacheType(typeof(T)) ?
+			var cacheKey = DynamicProxyFactory.GetDynamicTypeName(typeof(T), this);
+			var cache = this.Configuration.ShouldCacheType(typeof(T)) ?
 				Database.Cache.GetOrAdd(
 				cacheKey,
 				(string s) => new ItemCache(
@@ -296,12 +296,12 @@ namespace Watsonia.Data
 				// It's not in the cache, going to have to load it from the database
 				var select = Select.From(tableName).Where(primaryKeyColumnName, SqlOperator.Equals, id);
 
-				using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
-				using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
+				using (var connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+				using (var command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 				{
 					command.Connection = connection;
 					OnBeforeExecuteCommand(command);
-					using (DbDataReader reader = command.ExecuteReader())
+					using (var reader = command.ExecuteReader())
 					{
 						if (reader.Read())
 						{
@@ -347,26 +347,26 @@ namespace Watsonia.Data
 		{
 			if ((item as IDynamicProxy) == null)
 			{
-				string message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
+				var message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
 				throw new ArgumentException(message, "item");
 			}
 
-			IDynamicProxy proxy = (IDynamicProxy)item;
+			var proxy = (IDynamicProxy)item;
 
 			OnBeforeRefresh(proxy);
 
-			T newItem = Load<T>(proxy.PrimaryKeyValue);
+			var newItem = Load<T>(proxy.PrimaryKeyValue);
 			LoadValues(newItem, (IDynamicProxy)item);
 
 			// Refresh any loaded children
-			foreach (string collectionPropertyName in proxy.StateTracker.LoadedCollections)
+			foreach (var collectionPropertyName in proxy.StateTracker.LoadedCollections)
 			{
-				PropertyInfo property = proxy.GetType().GetProperty(collectionPropertyName,
+				var property = proxy.GetType().GetProperty(collectionPropertyName,
 					BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
-				Type elementType = TypeHelper.GetElementType(property.PropertyType);
-				string tableName = this.Configuration.GetTableName(elementType);
-				string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(elementType, typeof(T));
+				var elementType = TypeHelper.GetElementType(property.PropertyType);
+				var tableName = this.Configuration.GetTableName(elementType);
+				var foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(elementType, typeof(T));
 				var select = Select.From(tableName).Where(foreignKeyColumnName, SqlOperator.Equals, proxy.PrimaryKeyValue);
 
 				// We know that this is an IList because we created it as an List in the DynamicProxyFactory
@@ -390,16 +390,16 @@ namespace Watsonia.Data
 
 			var itemType = GetCollectionItemType(typeof(T));
 
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
+			using (var connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (var command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
-				using (DbDataReader reader = command.ExecuteReader())
+				using (var reader = command.ExecuteReader())
 				{
 					while (reader.Read())
 					{
-						T newItem = LoadItemInCollection<T>(reader, itemType);
+						var newItem = LoadItemInCollection<T>(reader, itemType);
 						result.Add(newItem);
 					}
 				}
@@ -422,17 +422,17 @@ namespace Watsonia.Data
 
 			var result = new List<IDynamicProxy>();
 
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
+			using (var connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (var command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
-				using (DbDataReader reader = command.ExecuteReader())
+				using (var reader = command.ExecuteReader())
 				{
 					while (reader.Read())
 					{
-						ConstructorInfo proxyConstructor = DynamicProxyFactory.GetDynamicProxyConstructor(itemType, this);
-						IDynamicProxy proxy = (IDynamicProxy)proxyConstructor.Invoke(Type.EmptyTypes);
+						var proxyConstructor = DynamicProxyFactory.GetDynamicProxyConstructor(itemType, this);
+						var proxy = (IDynamicProxy)proxyConstructor.Invoke(Type.EmptyTypes);
 						proxy.StateTracker.Database = this;
 						proxy.SetValuesFromReader(reader);
 						result.Add(proxy);
@@ -453,7 +453,7 @@ namespace Watsonia.Data
 
 		private void LoadIncludePaths<T>(SelectStatement select, IList<T> result)
 		{
-			Type parentType = typeof(T);
+			var parentType = typeof(T);
 			if (typeof(IDynamicProxy).IsAssignableFrom(parentType))
 			{
 				parentType = parentType.BaseType;
@@ -463,18 +463,18 @@ namespace Watsonia.Data
 			// E.g. for "Books.Subject" on Author we need to remove "Books" if it's been specified
 			// Otherwise the books collection would be loaded for "Books" AND "Books.Subject"
 			var pathsToRemove = new List<string>();
-			foreach (string path in select.IncludePaths)
+			foreach (var path in select.IncludePaths)
 			{
-				string[] pathParts = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-				for (int i = 0; i < pathParts.Length - 1; i++)
+				var pathParts = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+				for (var i = 0; i < pathParts.Length - 1; i++)
 				{
-					string newPath = string.Join(".", pathParts.Take(i + 1));
+					var newPath = string.Join(".", pathParts.Take(i + 1));
 					pathsToRemove.Add(newPath);
 				}
 			}
 
-			IEnumerable<string> newPaths = select.IncludePaths.Except(pathsToRemove);
-			foreach (string path in newPaths)
+			var newPaths = select.IncludePaths.Except(pathsToRemove);
+			foreach (var path in newPaths)
 			{
 				LoadIncludePath(select, result, parentType, path);
 			}
@@ -482,20 +482,20 @@ namespace Watsonia.Data
 
 		private void LoadIncludePath<T>(SelectStatement parentQuery, IList<T> parentCollection, Type parentType, string path)
 		{
-			string firstProperty = path.Contains(".") ? path.Substring(0, path.IndexOf(".")) : path;
-			PropertyInfo pathProperty = parentType.GetProperty(firstProperty);
+			var firstProperty = path.Contains(".") ? path.Substring(0, path.IndexOf(".")) : path;
+			var pathProperty = parentType.GetProperty(firstProperty);
 			LoadCompoundChildItems(parentQuery, parentCollection, path, parentType, pathProperty);
 		}
 
 		private void LoadCompoundChildItems<T>(SelectStatement parentQuery, IList<T> parentCollection, string path, Type parentType, PropertyInfo pathProperty)
 		{
 			// Create arrays for each path and its corresponding properties and collections
-			string[] pathParts = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-			IncludePath[] paths = pathParts.Select(p => new IncludePath(p)).ToArray();
+			var pathParts = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+			var paths = pathParts.Select(p => new IncludePath(p)).ToArray();
 
 			// Get the chain of properties in this path
-			Type propertyParentType = parentType;
-			for (int i = 0; i < pathParts.Length; i++)
+			var propertyParentType = parentType;
+			for (var i = 0; i < pathParts.Length; i++)
 			{
 				paths[i].Property = propertyParentType.GetProperty(pathParts[i]);
 				propertyParentType = paths[i].Property.PropertyType;
@@ -525,9 +525,9 @@ namespace Watsonia.Data
 
 			// Load the first child items
 			// E.g. SELECT * FROM Book WHERE AuthorID IN (SELECT ID FROM Author WHERE LastName LIKE 'A%')
-			MethodInfo loadCollectionMethod = this.GetType().GetMethod("LoadCollection", new Type[] { typeof(SelectStatement) });
-			MethodInfo genericLoadCollectionMethod = loadCollectionMethod.MakeGenericMethod(itemType);
-			object childCollection = genericLoadCollectionMethod.Invoke(this, new object[] { childQuery });
+			var loadCollectionMethod = this.GetType().GetMethod("LoadCollection", new Type[] { typeof(SelectStatement) });
+			var genericLoadCollectionMethod = loadCollectionMethod.MakeGenericMethod(itemType);
+			var childCollection = genericLoadCollectionMethod.Invoke(this, new object[] { childQuery });
 			paths[0].ChildCollection = (IEnumerable)childCollection;
 
 			// For compound paths, load the other child items
@@ -537,7 +537,7 @@ namespace Watsonia.Data
 			// We're doing a subquery for the first path part and joins for the rest, only because it
 			// seems easier this way
 			propertyParentType = itemType;
-			for (int i = 1; i < pathParts.Length; i++)
+			for (var i = 1; i < pathParts.Length; i++)
 			{
 				paths[i].ChildCollection = LoadChildCollection(childQuery, propertyParentType, paths[i].Property, loadCollectionMethod);
 				propertyParentType = paths[i].Property.PropertyType;
@@ -555,7 +555,7 @@ namespace Watsonia.Data
 			var parentIDColumn = new Sql.Column(
 				!string.IsNullOrEmpty(parentTable.Alias) ? parentTable.Alias : parentTable.Name,
 				this.Configuration.GetPrimaryKeyColumnName(parentType));
-			SelectStatement selectParentItemIDs = Select.From(parentQuery.Source).Columns(parentIDColumn);
+			var selectParentItemIDs = Select.From(parentQuery.Source).Columns(parentIDColumn);
 			if (parentQuery.SourceJoins.Count > 0)
 			{
 				selectParentItemIDs.SourceJoins.AddRange(parentQuery.SourceJoins);
@@ -566,9 +566,9 @@ namespace Watsonia.Data
 			}
 
 			// Build a statement to get the child items
-			string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(itemType, parentType);
-			string childTableName = this.Configuration.GetTableName(itemType);
-			SelectStatement childQuery = Select.From(childTableName).Where(
+			var foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(itemType, parentType);
+			var childTableName = this.Configuration.GetTableName(itemType);
+			var childQuery = Select.From(childTableName).Where(
 				new Condition(foreignKeyColumnName, SqlOperator.IsIn, selectParentItemIDs));
 
 			return childQuery;
@@ -594,7 +594,7 @@ namespace Watsonia.Data
 					this.Configuration.GetForeignKeyColumnName(parentProperty));
 			}
 
-			SelectStatement selectChildItemIDs = Select.From(parentQuery.Source).Columns(foreignKeyColumn);
+			var selectChildItemIDs = Select.From(parentQuery.Source).Columns(foreignKeyColumn);
 			if (parentQuery.SourceJoins.Count > 0)
 			{
 				selectChildItemIDs.SourceJoins.AddRange(parentQuery.SourceJoins);
@@ -605,9 +605,9 @@ namespace Watsonia.Data
 			}
 
 			// Build a statement to get the child items
-			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(itemType);
-			string childTableName = this.Configuration.GetTableName(itemType);
-			SelectStatement childQuery = Select.From(childTableName).Where(
+			var primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(itemType);
+			var childTableName = this.Configuration.GetTableName(itemType);
+			var childQuery = Select.From(childTableName).Where(
 				new Condition(primaryKeyColumnName, SqlOperator.IsIn, selectChildItemIDs));
 
 			return childQuery;
@@ -622,7 +622,7 @@ namespace Watsonia.Data
 			{
 				itemType = TypeHelper.GetElementType(pathProperty.PropertyType);
 
-				string tableName = this.Configuration.GetTableName(itemType);
+				var tableName = this.Configuration.GetTableName(itemType);
 				childQuery = childQuery.ColumnsFrom(tableName);
 				childQuery = childQuery.Join(
 					tableName,
@@ -635,7 +635,7 @@ namespace Watsonia.Data
 			{
 				itemType = pathProperty.PropertyType;
 
-				string tableName = this.Configuration.GetTableName(itemType);
+				var tableName = this.Configuration.GetTableName(itemType);
 				childQuery = childQuery.ColumnsFrom(tableName);
 				childQuery = childQuery.Join(
 					tableName,
@@ -649,31 +649,31 @@ namespace Watsonia.Data
 				throw new InvalidOperationException();
 			}
 
-			MethodInfo genericLoadCollectionMethod = loadCollectionMethod.MakeGenericMethod(itemType);
-			object childCollection = genericLoadCollectionMethod.Invoke(this, new object[] { childQuery });
+			var genericLoadCollectionMethod = loadCollectionMethod.MakeGenericMethod(itemType);
+			var childCollection = genericLoadCollectionMethod.Invoke(this, new object[] { childQuery });
 			return (IEnumerable)childCollection;
 		}
 
 		private void SetChildItems(IEnumerable parentCollection, Type parentType, IncludePath[] paths, int pathIndex)
 		{
-			string pathToLoad = paths[pathIndex].Path;
-			PropertyInfo propertyToLoad = paths[pathIndex].Property;
-			IEnumerable childCollection = paths[pathIndex].ChildCollection;
+			var pathToLoad = paths[pathIndex].Path;
+			var propertyToLoad = paths[pathIndex].Property;
+			var childCollection = paths[pathIndex].ChildCollection;
 			if (this.Configuration.IsRelatedCollection(propertyToLoad))
 			{
-				Type itemType = TypeHelper.GetElementType(propertyToLoad.PropertyType);
-				Type itemProxyType = DynamicProxyFactory.GetDynamicProxyType(itemType, this);
-				string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(itemType, parentType);
+				var itemType = TypeHelper.GetElementType(propertyToLoad.PropertyType);
+				var itemProxyType = DynamicProxyFactory.GetDynamicProxyType(itemType, this);
+				var foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(itemType, parentType);
 
-				PropertyInfo childParentIDProperty = itemProxyType.GetProperty(foreignKeyColumnName);
+				var childParentIDProperty = itemProxyType.GetProperty(foreignKeyColumnName);
 				foreach (IDynamicProxy parent in parentCollection)
 				{
 					var children = propertyToLoad.PropertyType.IsInterface ?
 						(IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(itemType)) :
 						(IList)Activator.CreateInstance(propertyToLoad.PropertyType);
-					foreach (object child in childCollection)
+					foreach (var child in childCollection)
 					{
-						object parentID = child.GetType().GetProperty(foreignKeyColumnName).GetValue(child);
+						var parentID = child.GetType().GetProperty(foreignKeyColumnName).GetValue(child);
 						if (parent.PrimaryKeyValue.Equals(parentID))
 						{
 							children.Add(child);
@@ -691,15 +691,15 @@ namespace Watsonia.Data
 			}
 			else if (this.Configuration.IsRelatedItem(propertyToLoad))
 			{
-				Type itemType = propertyToLoad.PropertyType;
-				string foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(propertyToLoad);
+				var itemType = propertyToLoad.PropertyType;
+				var foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(propertyToLoad);
 
-				Type parentProxyType = DynamicProxyFactory.GetDynamicProxyType(parentType, this);
-				PropertyInfo parentChildIDProperty = parentProxyType.GetProperty(foreignKeyColumnName);
+				var parentProxyType = DynamicProxyFactory.GetDynamicProxyType(parentType, this);
+				var parentChildIDProperty = parentProxyType.GetProperty(foreignKeyColumnName);
 				foreach (IDynamicProxy parent in parentCollection)
 				{
-					object parentChildID = parentChildIDProperty.GetValue(parent);
-					foreach (object child in childCollection)
+					var parentChildID = parentChildIDProperty.GetValue(parent);
+					foreach (var child in childCollection)
 					{
 						if (((IDynamicProxy)child).PrimaryKeyValue.Equals(parentChildID))
 						{
@@ -729,7 +729,7 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IList<T> LoadCollection<T>(SelectStatement<T> select)
 		{
-			SelectStatement select2 = select.CreateStatement(this.Configuration);
+			var select2 = select.CreateStatement(this.Configuration);
 			return LoadCollection<T>(select2);
 		}
 
@@ -746,16 +746,16 @@ namespace Watsonia.Data
 
 			var itemType = GetCollectionItemType(typeof(T));
 
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration, parameters))
+			using (var connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (var command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration, parameters))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
-				using (DbDataReader reader = command.ExecuteReader())
+				using (var reader = command.ExecuteReader())
 				{
 					while (reader.Read())
 					{
-						T newItem = LoadItemInCollection<T>(reader, itemType);
+						var newItem = LoadItemInCollection<T>(reader, itemType);
 						result.Add(newItem);
 					}
 				}
@@ -796,32 +796,32 @@ namespace Watsonia.Data
 			{
 				case CollectionItemType.Value:
 				{
-					object value = TypeHelper.ChangeType(reader.GetValue(0), typeof(T));
+					var value = TypeHelper.ChangeType(reader.GetValue(0), typeof(T));
 					return value != null ? (T)value : default(T);
 				}
 				case CollectionItemType.Anonymous:
 				{
 					var values = new List<object>();
-					foreach (PropertyInfo p in typeof(T).GetProperties())
+					foreach (var p in typeof(T).GetProperties())
 					{
-						int ordinal = reader.GetOrdinal(p.Name);
-						object value = TypeHelper.ChangeType(reader.GetValue(ordinal), p.PropertyType);
+						var ordinal = reader.GetOrdinal(p.Name);
+						var value = TypeHelper.ChangeType(reader.GetValue(ordinal), p.PropertyType);
 						values.Add(value);
 					}
 					return (T)Activator.CreateInstance(typeof(T), values.ToArray());
 				}
 				case CollectionItemType.DynamicProxy:
 				{
-					T newItem = (T)typeof(T).GetConstructor(Type.EmptyTypes).Invoke(Type.EmptyTypes);
-					IDynamicProxy proxy = (IDynamicProxy)newItem;
+					var newItem = (T)typeof(T).GetConstructor(Type.EmptyTypes).Invoke(Type.EmptyTypes);
+					var proxy = (IDynamicProxy)newItem;
 					proxy.StateTracker.Database = this;
 					proxy.SetValuesFromReader(reader);
 					return newItem;
 				}
 				case CollectionItemType.MappedObject:
 				{
-					T newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
-					IDynamicProxy proxy = (IDynamicProxy)newItem;
+					var newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
+					var proxy = (IDynamicProxy)newItem;
 					proxy.SetValuesFromReader(reader);
 					return newItem;
 				}
@@ -838,16 +838,16 @@ namespace Watsonia.Data
 			var result = new List<IDynamicProxy>();
 
 			// Load items from the database
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
+			using (var connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (var command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
-				using (DbDataReader reader = command.ExecuteReader())
+				using (var reader = command.ExecuteReader())
 				{
 					while (reader.Read())
 					{
-						IDynamicProxy proxy = DynamicProxyFactory.GetDynamicProxy(elementType, this);
+						var proxy = DynamicProxyFactory.GetDynamicProxy(elementType, this);
 						proxy.SetValuesFromReader(reader);
 						result.Add(proxy);
 					}
@@ -856,7 +856,7 @@ namespace Watsonia.Data
 			}
 
 			// Remove items from the collection that are no longer in the database
-			for (int i = collection.Count - 1; i >= 0; i--)
+			for (var i = collection.Count - 1; i >= 0; i--)
 			{
 				if (!result.Any(p => p.PrimaryKeyValue == ((IDynamicProxy)collection[i]).PrimaryKeyValue))
 				{
@@ -865,7 +865,7 @@ namespace Watsonia.Data
 			}
 
 			// Update the existing items in the collection and add new items
-			foreach (IDynamicProxy newItem in result)
+			foreach (var newItem in result)
 			{
 				// TODO: Gross
 				IDynamicProxy proxy = null;
@@ -899,8 +899,8 @@ namespace Watsonia.Data
 
 			object value;
 
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
+			using (var connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (var command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
@@ -920,7 +920,7 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public object LoadValue<T>(SelectStatement<T> select)
 		{
-			SelectStatement select2 = select.CreateStatement(this.Configuration);
+			var select2 = select.CreateStatement(this.Configuration);
 			return LoadValue(select2);
 		}
 
@@ -934,8 +934,8 @@ namespace Watsonia.Data
 		{
 			object value;
 
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration, parameters))
+			using (var connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (var command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration, parameters))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
@@ -957,11 +957,11 @@ namespace Watsonia.Data
 		{
 			if ((item as IDynamicProxy) == null)
 			{
-				string message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
+				var message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
 				throw new ArgumentException(message, "item");
 			}
 
-			IDynamicProxy proxy = (IDynamicProxy)item;
+			var proxy = (IDynamicProxy)item;
 
 			OnBeforeSave(proxy);
 
@@ -975,8 +975,8 @@ namespace Watsonia.Data
 
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
-			DbConnection connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
-			DbTransaction transactionToUse = transaction ?? connectionToUse.BeginTransaction();
+			var connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
+			var transactionToUse = transaction ?? connectionToUse.BeginTransaction();
 			try
 			{
 				SaveItem(proxy, connectionToUse, transactionToUse);
@@ -1016,16 +1016,16 @@ namespace Watsonia.Data
 
 		private void SaveItem(IDynamicProxy proxy, DbConnection connection, DbTransaction transaction)
 		{
-			Type tableType = proxy.GetType().BaseType;
-			string tableName = this.Configuration.GetTableName(tableType);
-			string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(tableType);
+			var tableType = proxy.GetType().BaseType;
+			var tableName = this.Configuration.GetTableName(tableType);
+			var primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(tableType);
 
 			// Insert or update all of the related items that should be saved with this item
 			var newRelatedItems = new List<IDynamicProxy>();
-			foreach (string propertyName in proxy.StateTracker.LoadedItems)
+			foreach (var propertyName in proxy.StateTracker.LoadedItems)
 			{
-				PropertyInfo property = tableType.GetProperty(propertyName);
-				IDynamicProxy relatedItem = (IDynamicProxy)property.GetValue(proxy, null);
+				var property = tableType.GetProperty(propertyName);
+				var relatedItem = (IDynamicProxy)property.GetValue(proxy, null);
 				if (relatedItem != null)
 				{
 					if (this.Configuration.ShouldCascadeInternal(property))
@@ -1033,8 +1033,8 @@ namespace Watsonia.Data
 						SaveItem(relatedItem, connection, transaction);
 
 						// Update the related item ID property
-						string relatedItemIDPropertyName = this.Configuration.GetForeignKeyColumnName(property);
-						PropertyInfo relatedItemIDProperty = proxy.GetType().GetProperty(relatedItemIDPropertyName);
+						var relatedItemIDPropertyName = this.Configuration.GetForeignKeyColumnName(property);
+						var relatedItemIDProperty = proxy.GetType().GetProperty(relatedItemIDPropertyName);
 						relatedItemIDProperty.SetValue(proxy, relatedItem.PrimaryKeyValue, null);
 
 						// Add the related item to a list so that we can check whether it needs to be
@@ -1043,7 +1043,7 @@ namespace Watsonia.Data
 					}
 					else if (relatedItem.IsNew)
 					{
-						string message = $"The related item '{tableType.Name}.{propertyName}' must be saved before the parent '{tableType.Name}'.";
+						var message = $"The related item '{tableType.Name}.{propertyName}' must be saved before the parent '{tableType.Name}'.";
 						throw new InvalidOperationException(message);
 					}
 				}
@@ -1066,8 +1066,8 @@ namespace Watsonia.Data
 			// Add or update it in the cache
 			if (this.Configuration.ShouldCacheType(tableType))
 			{
-				string cacheKey = DynamicProxyFactory.GetDynamicTypeName(tableType, this);
-				ItemCache cache = Database.Cache.GetOrAdd(
+				var cacheKey = DynamicProxyFactory.GetDynamicTypeName(tableType, this);
+				var cache = Database.Cache.GetOrAdd(
 					cacheKey,
 					(string s) => new ItemCache(
 						this.Configuration.GetCacheExpiryLength(tableType),
@@ -1082,9 +1082,9 @@ namespace Watsonia.Data
 			proxy.StateTracker.ChangedFields.Clear();
 
 			// Insert, update or delete all of the related collections that should be saved with this item
-			foreach (string collectionPropertyName in proxy.StateTracker.LoadedCollections)
+			foreach (var collectionPropertyName in proxy.StateTracker.LoadedCollections)
 			{
-				PropertyInfo property = tableType.GetProperty(collectionPropertyName,
+				var property = tableType.GetProperty(collectionPropertyName,
 					BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
 				// Save items and collect the item IDs while we're at it
@@ -1096,8 +1096,8 @@ namespace Watsonia.Data
 						if (childItem.IsNew || newRelatedItems.Contains(childItem))
 						{
 							// Set the parent ID of the item in the collection
-							string parentIDPropertyName = this.Configuration.GetForeignKeyColumnName(childItem.GetType().BaseType, tableType);
-							PropertyInfo parentIDProperty = childItem.GetType().GetProperty(parentIDPropertyName);
+							var parentIDPropertyName = this.Configuration.GetForeignKeyColumnName(childItem.GetType().BaseType, tableType);
+							var parentIDProperty = childItem.GetType().GetProperty(parentIDPropertyName);
 							parentIDProperty.SetValue(childItem, proxy.PrimaryKeyValue, null);
 						}
 						SaveItem(childItem, connection, transaction);
@@ -1108,23 +1108,23 @@ namespace Watsonia.Data
 				// Delete items that have been removed from the collection
 				if (this.Configuration.ShouldCascadeDelete(property))
 				{
-					object[] cascadeIDsToDelete = proxy.StateTracker.SavedCollectionIDs[property.Name].Except(collectionIDs).ToArray();
+					var cascadeIDsToDelete = proxy.StateTracker.SavedCollectionIDs[property.Name].Except(collectionIDs).ToArray();
 					if (cascadeIDsToDelete.Length > 0)
 					{
 						// Do it ten at a time just in case there's a huge amount and we would time out
-						Type deleteType = TypeHelper.GetElementType(property.PropertyType);
-						string deleteTableName = this.Configuration.GetTableName(deleteType);
-						string deletePrimaryKeyName = this.Configuration.GetPrimaryKeyColumnName(deleteType);
+						var deleteType = TypeHelper.GetElementType(property.PropertyType);
+						var deleteTableName = this.Configuration.GetTableName(deleteType);
+						var deletePrimaryKeyName = this.Configuration.GetPrimaryKeyColumnName(deleteType);
 
-						int chunkSize = 10;
-						for (int i = 0; i < cascadeIDsToDelete.Length; i += chunkSize)
+						var chunkSize = 10;
+						for (var i = 0; i < cascadeIDsToDelete.Length; i += chunkSize)
 						{
 							var chunkedIDsToDelete = cascadeIDsToDelete.Skip(i).Take(chunkSize);
 							var select = Select.From(deleteTableName).Where(deletePrimaryKeyName, SqlOperator.IsIn, chunkedIDsToDelete);
 
 							// Load the items and delete them. Not the most efficient but it ensures that things
 							// are cascaded correctly and the right events are raised
-							foreach (IDynamicProxy deleteItem in LoadCollection(select, deleteType))
+							foreach (var deleteItem in LoadCollection(select, deleteType))
 							{
 								Delete(deleteItem, deleteType, connection, transaction);
 							}
@@ -1140,7 +1140,7 @@ namespace Watsonia.Data
 		private void InsertItem(IDynamicProxy proxy, string tableName, Type tableType, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction)
 		{
 			var insert = Watsonia.Data.Insert.Into(tableName);
-			foreach (PropertyInfo property in this.Configuration.PropertiesToLoadAndSave(proxy.GetType()))
+			foreach (var property in this.Configuration.PropertiesToLoadAndSave(proxy.GetType()))
 			{
 				if (property.Name != primaryKeyColumnName)
 				{
@@ -1159,11 +1159,11 @@ namespace Watsonia.Data
 
 			// TODO: This probably isn't going to deal too well with concurrency, should there be a transaction?
 			//	Or wack it on the end of the build(insert)?
-			using (DbCommand getPrimaryKeyValueCommand = this.Configuration.DataAccessProvider.BuildInsertedIDCommand(this.Configuration))
+			using (var getPrimaryKeyValueCommand = this.Configuration.DataAccessProvider.BuildInsertedIDCommand(this.Configuration))
 			{
 				getPrimaryKeyValueCommand.Connection = connection;
 				getPrimaryKeyValueCommand.Transaction = transaction;
-				object primaryKeyValue = getPrimaryKeyValueCommand.ExecuteScalar();
+				var primaryKeyValue = getPrimaryKeyValueCommand.ExecuteScalar();
 				proxy.PrimaryKeyValue = Convert.ChangeType(primaryKeyValue, this.Configuration.GetPrimaryKeyColumnType(tableType));
 				proxy.IsNew = false;
 			}
@@ -1172,10 +1172,10 @@ namespace Watsonia.Data
 		private void UpdateItem(IDynamicProxy proxy, string tableName, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction)
 		{
 			// TODO: Get rid of this, it's just to stop properties like Database and HasChanges
-			bool doUpdate = false;
+			var doUpdate = false;
 
-			UpdateStatement update = Update.Table(tableName);
-			foreach (PropertyInfo property in this.Configuration.PropertiesToLoadAndSave(proxy.GetType()))
+			var update = Update.Table(tableName);
+			foreach (var property in this.Configuration.PropertiesToLoadAndSave(proxy.GetType()))
 			{
 				if (property.Name != primaryKeyColumnName && proxy.StateTracker.ChangedFields.Contains(property.Name))
 				{
@@ -1205,15 +1205,15 @@ namespace Watsonia.Data
 		{
 			if ((item as IDynamicProxy) == null)
 			{
-				string message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
+				var message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
 				throw new ArgumentException(message, "item");
 			}
 
-			IDynamicProxy proxy = (IDynamicProxy)item;
+			var proxy = (IDynamicProxy)item;
 
 			if (proxy.StateTracker.LoadedCollections.Count > 0)
 			{
-				foreach (PropertyInfo property in this.Configuration.PropertiesToCascade(typeof(T)))
+				foreach (var property in this.Configuration.PropertiesToCascade(typeof(T)))
 				{
 					if (proxy.StateTracker.LoadedCollections.Contains(property.Name))
 					{
@@ -1239,7 +1239,7 @@ namespace Watsonia.Data
 		{
 			OnBeforeInsert(item);
 
-			T newItem = Create(item);
+			var newItem = Create(item);
 			Save(newItem);
 
 			OnAfterInsert((IDynamicProxy)newItem);
@@ -1256,7 +1256,7 @@ namespace Watsonia.Data
 		/// <param name="transaction">The transaction.</param>
 		public void Delete<T>(object id, DbConnection connection = null, DbTransaction transaction = null)
 		{
-			T item = Load<T>(id);
+			var item = Load<T>(id);
 			Delete(item, connection, transaction);
 		}
 
@@ -1277,59 +1277,59 @@ namespace Watsonia.Data
 		{
 			if ((item as IDynamicProxy) == null)
 			{
-				string message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
+				var message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
 				throw new ArgumentException(message, "item");
 			}
 
-			IDynamicProxy proxy = (IDynamicProxy)item;
+			var proxy = (IDynamicProxy)item;
 
 			OnBeforeDelete(proxy);
 
-			Type tableType = proxy.GetType().BaseType;
-			string tableName = this.Configuration.GetTableName(tableType);
-			string primaryKeyName = this.Configuration.GetPrimaryKeyColumnName(tableType);
+			var tableType = proxy.GetType().BaseType;
+			var tableName = this.Configuration.GetTableName(tableType);
+			var primaryKeyName = this.Configuration.GetPrimaryKeyColumnName(tableType);
 
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
-			DbConnection connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
-			DbTransaction transactionToUse = transaction ?? connectionToUse.BeginTransaction();
+			var connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
+			var transactionToUse = transaction ?? connectionToUse.BeginTransaction();
 			try
 			{
-				foreach (PropertyInfo property in this.Configuration.PropertiesToCascadeDelete(itemType))
+				foreach (var property in this.Configuration.PropertiesToCascadeDelete(itemType))
 				{
 					// Load the items to delete. Not the most efficient but it ensures that
 					// things are cascaded correctly and the right events are raised
 					IList<IDynamicProxy> itemsToDelete = new List<IDynamicProxy>();
 
-					Type deleteType = TypeHelper.GetElementType(property.PropertyType);
-					string deleteTableName = this.Configuration.GetTableName(deleteType);
+					var deleteType = TypeHelper.GetElementType(property.PropertyType);
+					var deleteTableName = this.Configuration.GetTableName(deleteType);
 
 					if (this.Configuration.IsRelatedItem(property))
 					{
-						string deleteKeyPropertyName = this.Configuration.GetForeignKeyColumnName(property);
-						PropertyInfo deleteKeyProperty = proxy.GetType().GetProperty(deleteKeyPropertyName,
+						var deleteKeyPropertyName = this.Configuration.GetForeignKeyColumnName(property);
+						var deleteKeyProperty = proxy.GetType().GetProperty(deleteKeyPropertyName,
 							BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-						object deletePrimaryKeyValue = deleteKeyProperty.GetValue(proxy);
+						var deletePrimaryKeyValue = deleteKeyProperty.GetValue(proxy);
 						if (deletePrimaryKeyValue != null)
 						{
-							string deletePrimaryKeyName = this.Configuration.GetPrimaryKeyColumnName(deleteType);
+							var deletePrimaryKeyName = this.Configuration.GetPrimaryKeyColumnName(deleteType);
 							var select = Select.From(deleteTableName).Where(deletePrimaryKeyName, SqlOperator.Equals, deletePrimaryKeyValue);
 							itemsToDelete = LoadCollection(select, deleteType);
 
 							// Update the field to null to avoid a reference exception when deleting the item
-							string columnName = this.Configuration.GetColumnName(property);
+							var columnName = this.Configuration.GetColumnName(property);
 							var updateQuery = Update.Table(tableName).Set(columnName, null).Where(primaryKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
 							Execute(updateQuery, connection, transaction);
 						}
 					}
 					else if (this.Configuration.IsRelatedCollection(property))
 					{
-						string deleteForeignKeyName = this.Configuration.GetForeignKeyColumnName(deleteType, tableType);
+						var deleteForeignKeyName = this.Configuration.GetForeignKeyColumnName(deleteType, tableType);
 						var select = Select.From(deleteTableName).Where(deleteForeignKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
 						itemsToDelete = LoadCollection(select, deleteType);
 					}
 
-					foreach (IDynamicProxy deleteItem in itemsToDelete)
+					foreach (var deleteItem in itemsToDelete)
 					{
 						Delete(deleteItem, deleteType, connection, transaction);
 					}
@@ -1381,10 +1381,10 @@ namespace Watsonia.Data
 
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
-			DbConnection connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
+			var connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
 			try
 			{
-				using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(statement, this.Configuration))
+				using (var command = this.Configuration.DataAccessProvider.BuildCommand(statement, this.Configuration))
 				{
 					command.Connection = connectionToUse;
 					command.Transaction = transaction;
@@ -1437,10 +1437,10 @@ namespace Watsonia.Data
 		{
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
-			DbConnection connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
+			var connectionToUse = connection ?? this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
 			try
 			{
-				using (DbCommand command = this.Configuration.DataAccessProvider.BuildCommand(statement, this.Configuration, parameters))
+				using (var command = this.Configuration.DataAccessProvider.BuildCommand(statement, this.Configuration, parameters))
 				{
 					command.Connection = connectionToUse;
 					command.Transaction = transaction;
@@ -1469,8 +1469,8 @@ namespace Watsonia.Data
 		{
 			object value;
 
-			using (DbConnection connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
-			using (DbCommand command = this.Configuration.DataAccessProvider.BuildProcedureCommand(procedureName, parameters))
+			using (var connection = this.Configuration.DataAccessProvider.OpenConnection(this.Configuration))
+			using (var command = this.Configuration.DataAccessProvider.BuildProcedureCommand(procedureName, parameters))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
@@ -1490,16 +1490,16 @@ namespace Watsonia.Data
 
 			// TODO: Move this into the dynamic proxy
 			// TODO: Pipe everything through the same area; this, linq, etc
-			foreach (PropertyInfo sourceProperty in this.Configuration.PropertiesToMap(source.GetType()))
+			foreach (var sourceProperty in this.Configuration.PropertiesToMap(source.GetType()))
 			{
 				if (this.Configuration.ShouldMapTypeInternal(sourceProperty.PropertyType))
 				{
-					string destPropertyName = this.Configuration.GetForeignKeyColumnName(sourceProperty);
-					PropertyInfo destProperty = destination.GetType().GetProperty(destPropertyName);
+					var destPropertyName = this.Configuration.GetForeignKeyColumnName(sourceProperty);
+					var destProperty = destination.GetType().GetProperty(destPropertyName);
 					if ((source is IDynamicProxy) == false ||
 						((IDynamicProxy)source).StateTracker.LoadedItems.Contains(sourceProperty.Name))
 					{
-						IDynamicProxy sourceItem = (IDynamicProxy)sourceProperty.GetValue(source, null);
+						var sourceItem = (IDynamicProxy)sourceProperty.GetValue(source, null);
 						if (destProperty != null && sourceItem != null)
 						{
 							destProperty.SetValue(destination, sourceItem.PrimaryKeyValue, null);
@@ -1508,7 +1508,7 @@ namespace Watsonia.Data
 				}
 				else if (this.Configuration.ShouldLoadAndSaveProperty(sourceProperty))
 				{
-					PropertyInfo destProperty = destination.GetType().GetProperty(sourceProperty.Name);
+					var destProperty = destination.GetType().GetProperty(sourceProperty.Name);
 					if (destProperty != null)
 					{
 						destProperty.SetValue(destination, sourceProperty.GetValue(source, null), null);
@@ -1714,7 +1714,7 @@ namespace Watsonia.Data
 			if (command.Parameters.Count > 0)
 			{
 				b.Append(" { ");
-				for (int i = 0; i < command.Parameters.Count; i++)
+				for (var i = 0; i < command.Parameters.Count; i++)
 				{
 					if (i > 0)
 					{

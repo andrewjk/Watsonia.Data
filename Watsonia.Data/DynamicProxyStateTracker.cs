@@ -136,11 +136,11 @@ namespace Watsonia.Data
 			}
 			else
 			{
-				Type tableType = typeof(T);
-				string tableName = this.Database.Configuration.GetTableName(tableType);
-				string foreignKeyColumnName = this.Database.Configuration.GetForeignKeyColumnName(tableType, this.Item.GetType().BaseType);
+				var tableType = typeof(T);
+				var tableName = this.Database.Configuration.GetTableName(tableType);
+				var foreignKeyColumnName = this.Database.Configuration.GetForeignKeyColumnName(tableType, this.Item.GetType().BaseType);
 				var select = Select.From(tableName).Where(foreignKeyColumnName, SqlOperator.Equals, this.Item.PrimaryKeyValue);
-				IList<T> collection = this.Database.LoadCollection<T>(select);
+				var collection = this.Database.LoadCollection<T>(select);
 				SetCollection(propertyName, (IList)collection);
 				return collection;
 			}
@@ -164,12 +164,12 @@ namespace Watsonia.Data
 				// TODO: Need to only be setting the one property that points to this item when there
 				// are two properties that point to different items e.g. in LearningUserNotes
 				// Should come from ChildParentMapping?
-				foreach (PropertyInfo property in collection[0].GetType().GetProperties())
+				foreach (var property in collection[0].GetType().GetProperties())
 				{
 					if (property.PropertyType.IsAssignableFrom(this.Item.GetType()) &&
 						property.PropertyType != typeof(object))
 					{
-						foreach (object item in collection)
+						foreach (var item in collection)
 						{
 							var proxyItem = (IDynamicProxy)item;
 							proxyItem.StateTracker.IsLoading = true;
@@ -181,7 +181,7 @@ namespace Watsonia.Data
 			}
 
 			this.SavedCollectionIDs.Add(propertyName, new List<object>());
-			for (int i = 0; i < collection.Count; i++)
+			for (var i = 0; i < collection.Count; i++)
 			{
 				this.SavedCollectionIDs[propertyName].Add(((IDynamicProxy)collection[i]).PrimaryKeyValue);
 			}
@@ -246,7 +246,7 @@ namespace Watsonia.Data
 			{
 				// If the property is being set to its original value, clear it out of the changed fields
 				// Otherwise, add it to the changed fields
-				T originalValue = (T)TypeHelper.ChangeType(this.OriginalValues[propertyName], typeof(T));
+				var originalValue = (T)TypeHelper.ChangeType(this.OriginalValues[propertyName], typeof(T));
 				if (EqualityComparer<T>.Default.Equals(originalValue, newValue))
 				{
 					if (this.ChangedFields.Contains(propertyName))
@@ -302,7 +302,7 @@ namespace Watsonia.Data
 		public bool Validate()
 		{
 			this.ValidationErrors.Clear();
-			foreach (IDynamicProxy item in this.RecurseRelatedItems(this.Item))
+			foreach (var item in this.RecurseRelatedItems(this.Item))
 			{
 				ValidateItem(item);
 			}
@@ -316,7 +316,7 @@ namespace Watsonia.Data
 		private void ValidateItem(IDynamicProxy item)
 		{
 			// First check data annotations on properties
-			foreach (PropertyInfo property in item.GetType().GetProperties())
+			foreach (var property in item.GetType().GetProperties())
 			{
 				// This will have the side effect of filling out the Errors collection:
 				GetError(item, property);
@@ -327,9 +327,9 @@ namespace Watsonia.Data
 			{
 				foreach (var error in ((IValidatableObject)item).Validate(null))
 				{
-					object itemID = item.PrimaryKeyValue;
-					string itemName = item.GetType().BaseType.Name;
-					string propertyName = string.Join(", ", error.MemberNames);
+					var itemID = item.PrimaryKeyValue;
+					var itemName = item.GetType().BaseType.Name;
+					var propertyName = string.Join(", ", error.MemberNames);
 					var newError = new ValidationError(itemID, itemName, propertyName, "Error", error.ErrorMessage);
 					this.ValidationErrors.Add(newError);
 				}
@@ -354,7 +354,7 @@ namespace Watsonia.Data
 		/// <returns>A string containing the error text or the empty string if there are no errors.</returns>
 		public string GetErrorText(string propertyName)
 		{
-			ValidationError error = GetError(propertyName);
+			var error = GetError(propertyName);
 			return (error != null) ? error.ErrorMessage : "";
 		}
 
@@ -365,7 +365,7 @@ namespace Watsonia.Data
 		/// <returns>A string containing the error text or the empty string if there are no errors.</returns>
 		private string GetErrorText(PropertyInfo property)
 		{
-			ValidationError error = GetError(this.Item, property);
+			var error = GetError(this.Item, property);
 			return (error != null) ? error.ErrorMessage : "";
 		}
 
@@ -376,7 +376,7 @@ namespace Watsonia.Data
 		/// <returns>An error or null if there are no errors.</returns>
 		public ValidationError GetError(string propertyName)
 		{
-			PropertyInfo property = this.Item.GetType().GetProperty(propertyName);
+			var property = this.Item.GetType().GetProperty(propertyName);
 			return GetError(this.Item, property);
 		}
 
@@ -395,9 +395,9 @@ namespace Watsonia.Data
 			}
 
 			// Remove the errors for this item
-			object itemID = item.PrimaryKeyValue;
-			string itemName = item.GetType().BaseType.Name;
-			string propertyName = property.Name;
+			var itemID = item.PrimaryKeyValue;
+			var itemName = item.GetType().BaseType.Name;
+			var propertyName = property.Name;
 			this.ValidationErrors.RemoveAll(e =>
 				e.ItemID == itemID &&
 				e.ItemName == itemName &&
@@ -407,12 +407,12 @@ namespace Watsonia.Data
 			// chain whereas Attribute.GetCustomAttributes does
 			foreach (object attribute in Attribute.GetCustomAttributes(property, typeof(ValidationAttribute), true))
 			{
-				ValidationAttribute validation = (ValidationAttribute)attribute;
-				object value = property.GetValue(item, null);
+				var validation = (ValidationAttribute)attribute;
+				var value = property.GetValue(item, null);
 				if (!validation.IsValid(value))
 				{
-					string errorName = attribute.GetType().Name.Replace("Attribute", "");
-					string errorMessage = validation.FormatErrorMessage(PropertyName(property));
+					var errorName = attribute.GetType().Name.Replace("Attribute", "");
+					var errorMessage = validation.FormatErrorMessage(PropertyName(property));
 					var newError = new ValidationError(itemID, itemName, property.Name, errorName, errorMessage);
 
 					this.ValidationErrors.Add(newError);
@@ -436,7 +436,7 @@ namespace Watsonia.Data
 			// Check for a DisplayAttribute or a DisplayNameAttribute on the property
 			// If neither are found, just return the property's name
 			object[] attributes = Attribute.GetCustomAttributes(property, true);
-			foreach (object att in attributes)
+			foreach (var att in attributes)
 			{
 				if (att is DisplayAttribute)
 				{
@@ -521,9 +521,9 @@ namespace Watsonia.Data
 			yield return item;
 
 			// Recurse through loaded collections
-			foreach (string collectionPropertyName in item.StateTracker.LoadedCollections)
+			foreach (var collectionPropertyName in item.StateTracker.LoadedCollections)
 			{
-				PropertyInfo property = item.GetType().GetProperty(collectionPropertyName,
+				var property = item.GetType().GetProperty(collectionPropertyName,
 					BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 				foreach (var child in (IList)property.GetValue(item, null))
 				{
@@ -532,11 +532,11 @@ namespace Watsonia.Data
 			}
 
 			// Recurse through loaded items
-			foreach (string itemPropertyName in item.StateTracker.LoadedItems)
+			foreach (var itemPropertyName in item.StateTracker.LoadedItems)
 			{
-				PropertyInfo property = item.GetType().GetProperty(itemPropertyName,
+				var property = item.GetType().GetProperty(itemPropertyName,
 					BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-				IDynamicProxy relatedItem = (IDynamicProxy)property.GetValue(item, null);
+				var relatedItem = (IDynamicProxy)property.GetValue(item, null);
 				if (relatedItem != null)
 				{
 					if (this.Database.Configuration.ShouldCascadeInternal(property))

@@ -30,9 +30,9 @@ namespace Watsonia.Data
 
 			if (sequenceType.IsGenericType)
 			{
-				foreach (Type arg in sequenceType.GetGenericArguments())
+				foreach (var arg in sequenceType.GetGenericArguments())
 				{
-					Type ienum = typeof(IEnumerable<>).MakeGenericType(arg);
+					var ienum = typeof(IEnumerable<>).MakeGenericType(arg);
 					if (ienum.IsAssignableFrom(sequenceType))
 					{
 						return ienum;
@@ -40,12 +40,12 @@ namespace Watsonia.Data
 				}
 			}
 
-			Type[] interfaces = sequenceType.GetInterfaces();
+			var interfaces = sequenceType.GetInterfaces();
 			if (interfaces != null && interfaces.Length > 0)
 			{
-				foreach (Type iface in interfaces)
+				foreach (var iface in interfaces)
 				{
-					Type ienum = FindIEnumerable(iface);
+					var ienum = FindIEnumerable(iface);
 					if (ienum != null)
 						return ienum;
 				}
@@ -66,7 +66,7 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public static Type GetElementType(Type sequenceType)
 		{
-			Type enumerableType = FindIEnumerable(sequenceType);
+			var enumerableType = FindIEnumerable(sequenceType);
 			if (enumerableType == null)
 			{
 				return sequenceType;
@@ -115,7 +115,7 @@ namespace Watsonia.Data
 
 		public static bool IsInteger(Type type)
 		{
-			Type nnType = GetNonNullableType(type);
+			var nnType = GetNonNullableType(type);
 			switch (Type.GetTypeCode(type))
 			{
 				case TypeCode.SByte:
@@ -216,7 +216,7 @@ namespace Watsonia.Data
 				return true;
 			}
 
-			Type baseType = type.BaseType;
+			var baseType = type.BaseType;
 			if (baseType == null)
 			{
 				return false;
@@ -245,7 +245,7 @@ namespace Watsonia.Data
 				return null;
 			}
 
-			Type safeType = Nullable.GetUnderlyingType(conversionType) ?? conversionType;
+			var safeType = Nullable.GetUnderlyingType(conversionType) ?? conversionType;
 			if (safeType.IsEnum)
 			{
 				return Enum.ToObject(safeType, value);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 using System.Linq;
@@ -29,7 +29,7 @@ namespace Watsonia.Data.SQLite
 
 		private void AddParameters(SqlCommandBuilder builder, SqliteCommand command)
 		{
-			for (int i = 0; i < builder.ParameterValues.Count; i++)
+			for (var i = 0; i < builder.ParameterValues.Count; i++)
 			{
 				var parameter = new SqliteParameter();
 				parameter.ParameterName = "@" + i;
@@ -41,7 +41,7 @@ namespace Watsonia.Data.SQLite
 
 		public SqliteCommand BuildCommand(string statement, params object[] parameters)
 		{
-			SqliteCommand command = new SqliteCommand();
+			var command = new SqliteCommand();
 			command.CommandText = statement;
 			AddParameters(command, parameters);
 			return command;
@@ -49,7 +49,7 @@ namespace Watsonia.Data.SQLite
 
 		private void AddParameters(SqliteCommand command, params object[] parameters)
 		{
-			for (int i = 0; i < parameters.Length; i++)
+			for (var i = 0; i < parameters.Length; i++)
 			{
 				var parameter = new SqliteParameter();
 				parameter.ParameterName = "@" + i;
@@ -69,7 +69,7 @@ namespace Watsonia.Data.SQLite
 
 		private void AddProcedureParameters(SqliteCommand command, params Parameter[] parameters)
 		{
-			for (int i = 0; i < parameters.Length; i++)
+			for (var i = 0; i < parameters.Length; i++)
 			{
 				var parameter = new SqliteParameter();
 				parameter.ParameterName = parameters[i].Name;

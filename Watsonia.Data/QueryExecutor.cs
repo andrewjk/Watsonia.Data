@@ -29,7 +29,7 @@ namespace Watsonia.Data
             SelectSourceExpander.Visit(queryModel, this.Database, this.Database.Configuration);
 
             // Create the select statement
-            SelectStatement select = SelectStatementCreator.Visit(queryModel, this.Database.Configuration, true);
+            var select = SelectStatementCreator.Visit(queryModel, this.Database.Configuration, true);
 
 			// Add include paths if necessary
 			if (!select.IsAggregate)

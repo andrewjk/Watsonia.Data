@@ -25,28 +25,28 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		[TestMethod]
 		public void TestProxyProperties()
 		{
-			IDynamicProxy customerProxy = (IDynamicProxy)DynamicProxyFactory.GetDynamicProxy<Customer>(db);
-			IDynamicProxy orderProxy = (IDynamicProxy)DynamicProxyFactory.GetDynamicProxy<Order>(db);
+			var customerProxy = (IDynamicProxy)DynamicProxyFactory.GetDynamicProxy<Customer>(db);
+			var orderProxy = (IDynamicProxy)DynamicProxyFactory.GetDynamicProxy<Order>(db);
 
 			// Test that an ID property is overridden in Customer and created in Order
-			PropertyInfo customerIDProperty = customerProxy.GetType().GetProperty("ID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+			var customerIDProperty = customerProxy.GetType().GetProperty("ID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 			Assert.AreNotEqual(null, customerIDProperty);
 			//customerIDProperty.SetValue(customerProxy, 1, null);
 
-			PropertyInfo orderIDProperty = orderProxy.GetType().GetProperty("ID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+			var orderIDProperty = orderProxy.GetType().GetProperty("ID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 			Assert.AreNotEqual(null, orderIDProperty);
 			orderIDProperty.SetValue(orderProxy, -1, null);
 
 			// Test that the IsNew property is created
-			PropertyInfo isNewProperty = orderProxy.GetType().GetProperty("IsNew", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+			var isNewProperty = orderProxy.GetType().GetProperty("IsNew", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 			Assert.AreNotEqual(null, isNewProperty);
 		}
 
 		[TestMethod]
 		public void TestEquality()
 		{
-			Customer a = DynamicProxyFactory.GetDynamicProxy<Customer>(db);
-			Customer b = DynamicProxyFactory.GetDynamicProxy<Customer>(db);
+			var a = DynamicProxyFactory.GetDynamicProxy<Customer>(db);
+			var b = DynamicProxyFactory.GetDynamicProxy<Customer>(db);
 
 			((IDynamicProxy)a).PrimaryKeyValue = 5;
 			((IDynamicProxy)b).PrimaryKeyValue = 5;
@@ -58,7 +58,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 			Assert.AreEqual(true, a == b, "Using == failed");
 			Assert.AreEqual(false, a != b, "Using != failed");
 
-			Order c = DynamicProxyFactory.GetDynamicProxy<Order>(db);
+			var c = DynamicProxyFactory.GetDynamicProxy<Order>(db);
 			((IDynamicProxy)c).PrimaryKeyValue = 5;
 			Assert.AreEqual(false, a.Equals(c), "Comparing different types failed");
 		}
@@ -66,7 +66,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		[TestMethod]
 		public void TestModelProperties()
 		{
-			IDynamicProxy orderProxy = (IDynamicProxy)DynamicProxyFactory.GetDynamicProxy<Order>(db);
+			var orderProxy = (IDynamicProxy)DynamicProxyFactory.GetDynamicProxy<Order>(db);
 
 			((Order)orderProxy).NumberOfItems = 5;
 			Assert.AreEqual(5, ((Order)orderProxy).NumberOfItems);
@@ -117,7 +117,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 			Assert.AreEqual(-501, (long)property.GetValue(address));
 
 			// Updating Jerry's ID (like, for instance, when saving a new customer) should update the CustomerID too
-			bool eventIsFiringOk = false;
+			var eventIsFiringOk = false;
 			((IDynamicProxy)jerry).PrimaryKeyValueChanged += delegate
 			{
 				eventIsFiringOk = true;
@@ -134,7 +134,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		[TestMethod]
 		public void TestDefaultValues()
 		{
-			Defaults def = DynamicProxyFactory.GetDynamicProxy<Defaults>(db);
+			var def = DynamicProxyFactory.GetDynamicProxy<Defaults>(db);
 
 			Assert.AreEqual(true, def.Bool);
 			Assert.AreEqual(10, def.Int);
@@ -149,7 +149,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		[TestMethod]
 		public void TestConstructorInitialization()
 		{
-			ConstructorInitializer initializer = DynamicProxyFactory.GetDynamicProxy<ConstructorInitializer>(db);
+			var initializer = DynamicProxyFactory.GetDynamicProxy<ConstructorInitializer>(db);
 
 			Assert.AreEqual("Hello", initializer.Name);
 			Assert.AreEqual("Hey", initializer.Description);
@@ -158,8 +158,8 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		[TestMethod]
 		public void TestDataErrorInfoMethods()
 		{
-			Invalid invalid = db.Create<Invalid>();
-			IDynamicProxy invalidProxy = (IDynamicProxy)invalid;
+			var invalid = db.Create<Invalid>();
+			var invalidProxy = (IDynamicProxy)invalid;
 
 			Assert.AreEqual("The Required string field is required.", invalidProxy.StateTracker.GetErrorText("RequiredString"));
 
@@ -197,9 +197,9 @@ namespace Watsonia.Data.Tests.DynamicProxy
 			Assert.AreEqual("", invalidProxy.StateTracker.GetErrorText("ConfirmEmailAddress"));
 
 			// Validate the whole thing
-			InvalidChild child1 = db.Create<InvalidChild>();
+			var child1 = db.Create<InvalidChild>();
 			invalid.InvalidChildren.Add(child1);
-			InvalidChild child2 = db.Create<InvalidChild>();
+			var child2 = db.Create<InvalidChild>();
 			invalid.InvalidChildren.Add(child2);
 
 			child1.Name = "Good";

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -30,7 +30,7 @@ namespace Watsonia.Data.SqlServer
 
 		private void AddParameters(SqlCommandBuilder builder, SqlCommand command)
 		{
-			for (int i = 0; i < builder.ParameterValues.Count; i++)
+			for (var i = 0; i < builder.ParameterValues.Count; i++)
 			{
 				var parameter = new SqlParameter();
 				parameter.ParameterName = "@" + i;
@@ -49,7 +49,7 @@ namespace Watsonia.Data.SqlServer
 
 		private void AddParameters(SqlCommand command, params object[] parameters)
 		{
-			for (int i = 0; i < parameters.Length; i++)
+			for (var i = 0; i < parameters.Length; i++)
 			{
 				var parameter = new SqlParameter();
 				parameter.ParameterName = "@" + i;
@@ -69,7 +69,7 @@ namespace Watsonia.Data.SqlServer
 
 		private void AddProcedureParameters(SqlCommand command, params Parameter[] parameters)
 		{
-			for (int i = 0; i < parameters.Length; i++)
+			for (var i = 0; i < parameters.Length; i++)
 			{
 				var parameter = new SqlParameter();
 				parameter.ParameterName = parameters[i].Name;

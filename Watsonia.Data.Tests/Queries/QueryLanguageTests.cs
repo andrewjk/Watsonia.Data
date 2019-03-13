@@ -24,17 +24,17 @@ namespace Watsonia.Data.Tests.Queries
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
 		{
-			string sqlServerFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryLanguageBaselinesSqlServer.xml";
+			var sqlServerFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryLanguageBaselinesSqlServer.xml";
 			if (!string.IsNullOrEmpty(sqlServerFileName) && File.Exists(sqlServerFileName))
 			{
-				XDocument doc = XDocument.Load(sqlServerFileName);
+				var doc = XDocument.Load(sqlServerFileName);
 				sqlServerBaselines = doc.Root.Elements("baseline").ToDictionary(e => (string)e.Attribute("key"), e => e.Value);
 			}
 
-			string sqliteFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryLanguageBaselinesSQLite.xml";
+			var sqliteFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryLanguageBaselinesSQLite.xml";
 			if (!string.IsNullOrEmpty(sqliteFileName) && File.Exists(sqliteFileName))
 			{
-				XDocument doc = XDocument.Load(sqliteFileName);
+				var doc = XDocument.Load(sqliteFileName);
 				sqliteBaselines = doc.Root.Elements("baseline").ToDictionary(e => (string)e.Attribute("key"), e => e.Value);
 			}
 		}
@@ -50,7 +50,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestCompareEntityEqual()
 		{
-			Customer alfki = new Customer { CustomerID = "ALFKI" };
+			var alfki = new Customer { CustomerID = "ALFKI" };
 			TestQuery(
 				"TestCompareEntityEqual",
 				db.Customers.Where(c => c == alfki));
@@ -59,7 +59,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestCompareEntityNotEqual()
 		{
-			Customer alfki = new Customer { CustomerID = "ALFKI" };
+			var alfki = new Customer { CustomerID = "ALFKI" };
 			TestQuery(
 				"TestCompareEntityNotEqual",
 				db.Customers.Where(c => c != alfki));
@@ -196,7 +196,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestSelectLocal()
 		{
-			int x = 10;
+			var x = 10;
 			TestQuery(
 				"TestSelectLocal",
 				db.Customers.Select(c => x));
@@ -1083,7 +1083,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestContainsWithLocalCollection()
 		{
-			string[] ids = new[] { "ABCDE", "ALFKI" };
+			var ids = new[] { "ABCDE", "ALFKI" };
 			TestQuery(
 				"TestContainsWithLocalCollection",
 				db.Customers.Where(c => ids.Contains(c.CustomerID))
@@ -2225,11 +2225,11 @@ namespace Watsonia.Data.Tests.Queries
 				query = ((UnaryExpression)query).Operand;
 			}
 
-			string expected = TrimExtraWhiteSpace(baseline.Replace("\n\n", ") ("));
-			string actual = TrimExtraWhiteSpace(command.CommandText.ToString());
+			var expected = TrimExtraWhiteSpace(baseline.Replace("\n\n", ") ("));
+			var actual = TrimExtraWhiteSpace(command.CommandText.ToString());
 
 			// Replace parameter references with their values so that we can check they have the correct value
-			for (int i = 0; i < command.Parameters.Count; i++)
+			for (var i = 0; i < command.Parameters.Count; i++)
 			{
 				Assert.IsTrue(actual.Contains("@" + i));
 				if (command.Parameters[i].Value is string ||
@@ -2248,7 +2248,7 @@ namespace Watsonia.Data.Tests.Queries
 
 		private string TrimExtraWhiteSpace(string s)
 		{
-			string result = s.Replace("\r", " ").Replace("\n", " ").Replace("\t", " ").Trim();
+			var result = s.Replace("\r", " ").Replace("\n", " ").Replace("\t", " ").Trim();
 			while (result.Contains("  "))
 			{
 				result = result.Replace("  ", " ");

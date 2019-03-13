@@ -22,10 +22,10 @@ namespace Watsonia.Data.Tests.Queries
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
 		{
-			string fileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryTranslationBaselines.xml";
+			var fileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryTranslationBaselines.xml";
 			if (!string.IsNullOrEmpty(fileName) && File.Exists(fileName))
 			{
-				XDocument doc = XDocument.Load(fileName);
+				var doc = XDocument.Load(fileName);
 				baselines = doc.Root.Elements("baseline").ToDictionary(e => (string)e.Attribute("key"), e => e.Value);
 			}
 		}
@@ -41,7 +41,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestCompareEntityEqual()
 		{
-			Customer alfki = new Customer { CustomerID = "ALFKI" };
+			var alfki = new Customer { CustomerID = "ALFKI" };
 			TestQuery(
 				"TestCompareEntityEqual",
 				db.Customers.Where(c => c == alfki));
@@ -50,7 +50,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestCompareEntityNotEqual()
 		{
-			Customer alfki = new Customer { CustomerID = "ALFKI" };
+			var alfki = new Customer { CustomerID = "ALFKI" };
 			TestQuery(
 				"TestCompareEntityNotEqual",
 				db.Customers.Where(c => c != alfki));
@@ -187,7 +187,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestSelectLocal()
 		{
-			int x = 10;
+			var x = 10;
 			TestQuery(
 				"TestSelectLocal",
 				db.Customers.Select(c => x));
@@ -1074,7 +1074,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestContainsWithLocalCollection()
 		{
-			string[] ids = new[] { "ABCDE", "ALFKI" };
+			var ids = new[] { "ABCDE", "ALFKI" };
 			TestQuery(
 				"TestContainsWithLocalCollection",
 				db.Customers.Where(c => ids.Contains(c.CustomerID))
@@ -2048,7 +2048,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestCompareDateTimesWithDifferentNullability()
 		{
-			DateTime today = new DateTime(2013, 1, 1);
+			var today = new DateTime(2013, 1, 1);
 			TestQuery(
 				"TestCompareDateTimesWithDifferentNullability",
 				from o in db.Orders
@@ -2129,16 +2129,16 @@ namespace Watsonia.Data.Tests.Queries
 				query = ((UnaryExpression)query).Operand;
 			}
 
-			string expected = "(" + TrimExtraWhiteSpace(baselines[baseline].Replace("\n\n", ") (")) + ")";
-			SelectStatement select = db.BuildSelectStatement(query);
-			string actual = TrimExtraWhiteSpace(select.ToString());
+			var expected = "(" + TrimExtraWhiteSpace(baselines[baseline].Replace("\n\n", ") (")) + ")";
+			var select = db.BuildSelectStatement(query);
+			var actual = TrimExtraWhiteSpace(select.ToString());
 
 			Assert.AreEqual(expected, actual);
 		}
 
 		private string TrimExtraWhiteSpace(string s)
 		{
-			string result = s.Replace("\r", " ").Replace("\n", " ").Replace("\t", " ").Trim();
+			var result = s.Replace("\r", " ").Replace("\n", " ").Replace("\t", " ").Trim();
 			while (result.Contains("  "))
 			{
 				result = result.Replace("  ", " ");

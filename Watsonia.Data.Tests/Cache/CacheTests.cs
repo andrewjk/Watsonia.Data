@@ -97,7 +97,7 @@ namespace Watsonia.Data.Tests.Cache
 		{
 			// Add test data
 			var cache = new ItemCache(900000, 20);
-			for (int i = 0; i < 20; i++)
+			for (var i = 0; i < 20; i++)
 			{
 				cache.AddOrUpdate(
 					i,
@@ -151,7 +151,7 @@ namespace Watsonia.Data.Tests.Cache
 		{
 			// Test that adding 25 items to a cache that has a limit of 20 has the right number of items
 			var cache = new ItemCache(900000, 20);
-			for (int i = 0; i < 25; i++)
+			for (var i = 0; i < 25; i++)
 			{
 				cache.AddOrUpdate(
 					i,
@@ -185,7 +185,7 @@ namespace Watsonia.Data.Tests.Cache
 		{
 			// Add test data
 			var cache = new ItemCache(900000, 20);
-			for (int i = 0; i < 20; i++)
+			for (var i = 0; i < 20; i++)
 			{
 				cache.AddOrUpdate(
 					i,
@@ -245,7 +245,7 @@ namespace Watsonia.Data.Tests.Cache
 			var db = new Northwind.NorthwindDatabase();
 
 			// Make sure the price is correct initially
-			string sql = "UPDATE Products SET UnitPrice = @0 WHERE ProductName = 'Aniseed Syrup'";
+			var sql = "UPDATE Products SET UnitPrice = @0 WHERE ProductName = 'Aniseed Syrup'";
 			db.Execute(sql, 10);
 
 			var syrup = db.Query<Northwind.Product>().FirstOrDefault(p => p.ProductName == "Aniseed Syrup");
@@ -255,7 +255,7 @@ namespace Watsonia.Data.Tests.Cache
 			Assert.IsNotNull(syrup1);
 			Assert.AreEqual(10, syrup1.UnitPrice);
 
-			string cacheKey = DynamicProxyFactory.GetDynamicTypeName(typeof(Northwind.Product), db);
+			var cacheKey = DynamicProxyFactory.GetDynamicTypeName(typeof(Northwind.Product), db);
 
 			// Check that the product is in the cache and can be removed
 			Assert.IsTrue(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));

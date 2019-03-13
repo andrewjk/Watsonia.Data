@@ -301,7 +301,7 @@ namespace Watsonia.Data
 		/// </returns>
 		public virtual bool IsRelatedItemID(PropertyInfo property)
 		{
-			Type primaryKeyColumnType = typeof(long);
+			var primaryKeyColumnType = typeof(long);
 			return (property.PropertyType == typeof(Nullable<>).MakeGenericType(primaryKeyColumnType) && property.Name.EndsWith("ID"));
 		}
 
@@ -314,7 +314,7 @@ namespace Watsonia.Data
 		/// </returns>
 		public bool IsRelatedCollection(PropertyInfo property)
 		{
-			return IsRelatedCollection(property, out Type itemType);
+			return IsRelatedCollection(property, out var itemType);
 		}
 
 		/// <summary>
@@ -329,10 +329,10 @@ namespace Watsonia.Data
 		{
 			itemType = null;
 
-			Type collectionType = property.PropertyType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition().Equals(typeof(IEnumerable<>)));
+			var collectionType = property.PropertyType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition().Equals(typeof(IEnumerable<>)));
 			if (collectionType != null)
 			{
-				Type genericArgumentType = collectionType.GetGenericArguments()[0];
+				var genericArgumentType = collectionType.GetGenericArguments()[0];
 				if (genericArgumentType != null && ShouldMapTypeInternal(genericArgumentType))
 				{
 					itemType = genericArgumentType;
@@ -410,7 +410,7 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IEnumerable<Assembly> AssembliesToMap()
 		{
-			foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+			foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
 			{
 				if (ShouldMapAssemblyInternal(assembly))
 				{
@@ -425,9 +425,9 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IEnumerable<Type> TypesToMap()
 		{
-			foreach (Assembly assembly in AssembliesToMap())
+			foreach (var assembly in AssembliesToMap())
 			{
-				foreach (Type type in TypesToMap(assembly))
+				foreach (var type in TypesToMap(assembly))
 				{
 					yield return type;
 				}
@@ -451,7 +451,7 @@ namespace Watsonia.Data
 			{
 				typesInAssembly = ex.Types;
 			}
-			foreach (Type type in typesInAssembly)
+			foreach (var type in typesInAssembly)
 			{
 				if (ShouldMapTypeInternal(type))
 				{
@@ -514,8 +514,8 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IEnumerable<PropertyInfo> PropertiesToMap(Type type)
 		{
-			BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
-			foreach (PropertyInfo property in type.GetProperties(flags))
+			var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+			foreach (var property in type.GetProperties(flags))
 			{
 				if (this.ShouldMapPropertyInternal(property))
 				{
@@ -567,8 +567,8 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IEnumerable<PropertyInfo> PropertiesToLoadAndSave(Type type)
 		{
-			BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
-			foreach (PropertyInfo property in type.GetProperties(flags))
+			var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+			foreach (var property in type.GetProperties(flags))
 			{
 				if (this.ShouldLoadAndSaveProperty(property))
 				{
@@ -602,7 +602,7 @@ namespace Watsonia.Data
 		public bool ShouldCascade(PropertyInfo property)
 		{
 			// If it has a Cascade attribute then it should be cascaded
-			CascadeAttribute attribute = GetCustomAttribute<CascadeAttribute>(property);
+			var attribute = GetCustomAttribute<CascadeAttribute>(property);
 			if (attribute != null)
 			{
 				return attribute.ShouldCascade;
@@ -631,8 +631,8 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IEnumerable<PropertyInfo> PropertiesToCascade(Type type)
 		{
-			BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
-			foreach (PropertyInfo property in type.GetProperties(flags))
+			var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+			foreach (var property in type.GetProperties(flags))
 			{
 				if (this.ShouldCascadeInternal(property))
 				{
@@ -666,7 +666,7 @@ namespace Watsonia.Data
 		public bool ShouldCascadeDelete(PropertyInfo property)
 		{
 			// If it has a CascadeDelete attribute then it should be cascaded
-			CascadeDeleteAttribute attribute = GetCustomAttribute<CascadeDeleteAttribute>(property);
+			var attribute = GetCustomAttribute<CascadeDeleteAttribute>(property);
 			if (attribute != null)
 			{
 				return attribute.ShouldCascade;
@@ -683,8 +683,8 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IEnumerable<PropertyInfo> PropertiesToCascadeDelete(Type type)
 		{
-			BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
-			foreach (PropertyInfo property in type.GetProperties(flags))
+			var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+			foreach (var property in type.GetProperties(flags))
 			{
 				if (this.ShouldCascadeDeleteInternal(property))
 				{
@@ -732,7 +732,7 @@ namespace Watsonia.Data
 		/// <returns>The custom attribute or null if one was not found.</returns>
 		protected T GetCustomAttribute<T>(MemberInfo target) where T : Attribute
 		{
-			object[] attributes = target.GetCustomAttributes(typeof(T), false);
+			var attributes = target.GetCustomAttributes(typeof(T), false);
 			if (attributes != null && attributes.Length > 0)
 			{
 				return (T)attributes[0];

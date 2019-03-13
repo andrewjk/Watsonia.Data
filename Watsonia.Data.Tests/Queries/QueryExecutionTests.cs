@@ -48,7 +48,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestCompareEntityEqual()
 		{
-			Customer alfki = new Customer { CustomerID = "ALFKI" };
+			var alfki = new Customer { CustomerID = "ALFKI" };
 			var list = db.Customers.Where(c => c == alfki).ToList();
 			Assert.AreEqual(1, list.Count);
 			Assert.AreEqual("ALFKI", list[0].CustomerID);
@@ -57,7 +57,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestCompareEntityNotEqual()
 		{
-			Customer alfki = new Customer { CustomerID = "ALFKI" };
+			var alfki = new Customer { CustomerID = "ALFKI" };
 			var list = db.Customers.Where(c => c != alfki).ToList();
 			Assert.AreEqual(90, list.Count);
 		}
@@ -155,7 +155,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestSelectLocal()
 		{
-			int x = 10;
+			var x = 10;
 			var list = db.Customers.Select(c => x).ToList();
 			Assert.AreEqual(91, list.Count);
 			Assert.IsTrue(list.All(y => y == 10));
@@ -928,7 +928,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestContainsWithLocalCollection()
 		{
-			string[] ids = new[] { "ALFKI", "WOLZA", "NOONE" };
+			var ids = new[] { "ALFKI", "WOLZA", "NOONE" };
 			var list = db.Customers.Where(c => ids.Contains(c.CustomerID)).ToList();
 			Assert.AreEqual(2, list.Count);
 		}

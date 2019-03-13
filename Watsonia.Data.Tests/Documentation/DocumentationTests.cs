@@ -62,7 +62,7 @@ namespace Watsonia.Data.Tests.Documentation
 			var query = from a in db.Query<Author>()
 						where a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase)
 						select a;
-			foreach (Author a in query)
+			foreach (var a in query)
 			{
 				if (existingAuthorID == null)
 				{
@@ -84,11 +84,11 @@ namespace Watsonia.Data.Tests.Documentation
 
 			// Test loading a scalar value
 			var query4 = Select.From("Author").Count("*").Where("LastName", SqlOperator.StartsWith, "P");
-			int count = Convert.ToInt32(db.LoadValue(query4));
+			var count = Convert.ToInt32(db.LoadValue(query4));
 			Assert.AreEqual(2, count);
 
 			var query44 = Select.From<Author>().Count().Where(a => a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase));
-			int count44 = Convert.ToInt32(db.LoadValue(query44));
+			var count44 = Convert.ToInt32(db.LoadValue(query44));
 			Assert.AreEqual(2, count44);
 
 			// Test loading an item
@@ -160,7 +160,7 @@ namespace Watsonia.Data.Tests.Documentation
 		[TestMethod]
 		public void TestValidation()
 		{
-			Author author = db.Create<Author>();
+			var author = db.Create<Author>();
 
 			// There should be an error for the first and last name being required
 			Assert.IsFalse(author.IsValid, "Author should be invalid");
@@ -175,7 +175,7 @@ namespace Watsonia.Data.Tests.Documentation
 			Assert.AreEqual(0, author.ValidationErrors.Count, "Author validation error count should be 0");
 
 			// Add a book without a title
-			Book book = db.Create<Book>();
+			var book = db.Create<Book>();
 			author.Books.Add(book);
 
 			// There should be an error for the book's title being required
@@ -186,7 +186,7 @@ namespace Watsonia.Data.Tests.Documentation
 			book.Title = "1984";
 
 			// Add another dodgy book and make sure that saving it to the database fails
-			Book book2 = db.Create<Book>();
+			var book2 = db.Create<Book>();
 			author.Books.Add(book2);
 			try
 			{
@@ -203,7 +203,7 @@ namespace Watsonia.Data.Tests.Documentation
 			book2.Title = "Animal Farm";
 
 			// Add yet another dodgy book and make sure that saving it to the database fails
-			Book book3 = db.Create<Book>();
+			var book3 = db.Create<Book>();
 			book3.Title = "Bad Book";
 			author.Books.Add(book3);
 			try
@@ -222,16 +222,16 @@ namespace Watsonia.Data.Tests.Documentation
 		public void TestHasChanges()
 		{
 			// Create an author and some books
-			Author author = db.Create<Author>();
+			var author = db.Create<Author>();
 			author.FirstName = "Ernest";
 			author.LastName = "Hemingway";
 			author.Rating = 95;
 
-			Book book1 = db.Create<Book>();
+			var book1 = db.Create<Book>();
 			book1.Title = "The Sun Also Rises";
 			author.Books.Add(book1);
 
-			Book book2 = db.Create<Book>();
+			var book2 = db.Create<Book>();
 			book2.Title = "The Old Man And The Sea";
 			author.Books.Add(book2);
 

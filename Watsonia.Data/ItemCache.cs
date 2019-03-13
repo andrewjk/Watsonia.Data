@@ -74,14 +74,14 @@ namespace Watsonia.Data
 				// Remove anything that's older than it should be, before checking whether the item exists
 				var expiryDateTime = DateTime.Now.AddMilliseconds(-1 * this.ExpiryLength);
 				var keysToRemove = new List<object>();
-				for (int i= 0; i < this.ItemsByLoadedTime.Count; i++)
+				for (var i= 0; i < this.ItemsByLoadedTime.Count; i++)
 				{
 					if (this.ItemsByLoadedTime[i].Item2 < expiryDateTime)
 					{
 						keysToRemove.Add(this.ItemsByLoadedTime[i].Item1);
 					}
 				}
-				foreach (object removeKey in keysToRemove)
+				foreach (var removeKey in keysToRemove)
 				{
 					Remove(removeKey);
 				}
@@ -148,8 +148,8 @@ namespace Watsonia.Data
 		/// <param name="key">The key.</param>
 		public void Remove(object key)
 		{
-			this.Items.TryRemove(key, out IValueBag value);
-			for (int i = 0; i < this.ItemsByLoadedTime.Count; i++)
+			this.Items.TryRemove(key, out var value);
+			for (var i = 0; i < this.ItemsByLoadedTime.Count; i++)
 			{
 				if (this.ItemsByLoadedTime[i].Item1 == key)
 				{

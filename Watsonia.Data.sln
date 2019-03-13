@@ -11,9 +11,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Watsonia.Data.Tests", "Wats
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Watsonia.Data.SQLite", "Watsonia.Data.SQLite\Watsonia.Data.SQLite.csproj", "{1F6603C7-5D43-4916-A203-F7DFE585D11F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data.Reference", "Watsonia.Data.Reference\Watsonia.Data.Reference.csproj", "{56B77678-159E-4D8E-8A9D-17AA2AC4BCBA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Watsonia.Data.Reference", "Watsonia.Data.Reference\Watsonia.Data.Reference.csproj", "{56B77678-159E-4D8E-8A9D-17AA2AC4BCBA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Watsonia.Data.TestPerformance", "Watsonia.Data.TestPerformance\Watsonia.Data.TestPerformance.csproj", "{25B1FBCC-F846-4C92-BB47-3F2492778A35}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Watsonia.Data.TestPerformance", "Watsonia.Data.TestPerformance\Watsonia.Data.TestPerformance.csproj", "{25B1FBCC-F846-4C92-BB47-3F2492778A35}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C3EC3583-28FF-4C4B-B642-A76844479F9A}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

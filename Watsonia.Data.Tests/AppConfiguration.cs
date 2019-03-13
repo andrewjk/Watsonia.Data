@@ -14,7 +14,7 @@ namespace Watsonia.Data.Tests
 			{
 				if (string.IsNullOrEmpty(_connectionString))
 				{
-					string fileName = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\App.secret.config";
+					var fileName = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\App.secret.config";
 					_connectionString = System.IO.File.ReadAllLines(fileName)[0];
 				}
 				return _connectionString;

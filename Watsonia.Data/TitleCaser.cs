@@ -58,14 +58,14 @@ namespace Watsonia.Data
 			}
 
 			// Split the title on white space
-			string[] parts = text.Split(new char[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+			var parts = text.Split(new char[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
 			// Process each part of the title (recursively if necessary to split further)
 			var b = new List<string>();
-			for (int i = 0; i < parts.Length; i++)
+			for (var i = 0; i < parts.Length; i++)
 			{
-				char previousCharacter = (i > 0 ? parts[i - 1][parts[i - 1].Length - 1] : ' ');
-				string processedPart = ProcessTitlePart(parts, i, previousCharacter);
+				var previousCharacter = (i > 0 ? parts[i - 1][parts[i - 1].Length - 1] : ' ');
+				var processedPart = ProcessTitlePart(parts, i, previousCharacter);
 				if (!string.IsNullOrWhiteSpace(processedPart))
 				{
 					b.Add(processedPart);
@@ -73,12 +73,12 @@ namespace Watsonia.Data
 			}
 
 			// Re-join the title with spaces
-			string result = string.Join(" ", b.ToArray());
+			var result = string.Join(" ", b.ToArray());
 
 			// Update the case of any extra phrases that were passed in
 			if (extraCases != null)
 			{
-				foreach (string term in extraCases)
+				foreach (var term in extraCases)
 				{
 					result = Regex.Replace(result, term, term, RegexOptions.IgnoreCase);
 				}
@@ -89,7 +89,7 @@ namespace Watsonia.Data
 
 		private static string ProcessTitlePart(string[] parts, int index, char previousCharacter)
 		{
-			string result = parts[index];
+			var result = parts[index];
 
 			if (index > 0 &&
 				index < (parts.Length - 1) &&
@@ -134,7 +134,7 @@ namespace Watsonia.Data
 			else
 			{
 				// The first letter should be capitalized (ignoring things like an opening parenthesis)
-				for (int j = 0; j < parts[index].Length; j++)
+				for (var j = 0; j < parts[index].Length; j++)
 				{
 					if (char.IsLetter(parts[index][j]))
 					{
@@ -149,8 +149,8 @@ namespace Watsonia.Data
 
 		private static string ProcessTitleSubParts(string part, char separator, char previousCharacter)
 		{
-			string[] subParts = part.Split(new char[] { separator }, StringSplitOptions.RemoveEmptyEntries);
-			for (int j = 0; j < subParts.Length; j++)
+			var subParts = part.Split(new char[] { separator }, StringSplitOptions.RemoveEmptyEntries);
+			for (var j = 0; j < subParts.Length; j++)
 			{
 				char subPreviousCharacter;
 				if (j > 0)

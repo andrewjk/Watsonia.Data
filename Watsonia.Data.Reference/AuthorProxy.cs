@@ -254,7 +254,7 @@ namespace Watsonia.Data.Reference
 
 		private void OnPrimaryKeyValueChanged(object value)
 		{
-			PrimaryKeyValueChangedEventHandler changed = PrimaryKeyValueChanged;
+			var changed = PrimaryKeyValueChanged;
 			if (changed != null)
 			{
 				changed(this, new PrimaryKeyValueChangedEventArgs(value));
@@ -278,7 +278,7 @@ namespace Watsonia.Data.Reference
 			this.StateTracker.IsLoading = true;
 			//}
 
-			for (int i = 0; i < source.FieldCount; i++)
+			for (var i = 0; i < source.FieldCount; i++)
 			{
 				switch (source.GetName(i).ToUpperInvariant())
 				{

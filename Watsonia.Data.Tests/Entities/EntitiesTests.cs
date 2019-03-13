@@ -44,14 +44,14 @@ namespace Watsonia.Data.Tests.Entities
 			Assert.AreEqual(0, Convert.ToInt32(db.LoadValue(countCruds)));
 
 			// Insert a crud and check that the insert worked and the new ID is correctly set
-			Crud newCrud = db.Create<Crud>();
+			var newCrud = db.Create<Crud>();
 			newCrud.Name = "ABC";
 			db.Save(newCrud);
 			Assert.AreEqual(1, Convert.ToInt32(db.LoadValue(countCruds)));
 			Assert.IsTrue(newCrud.ID > 0);
 
 			// Load the inserted crud
-			Crud crud = db.Load<Crud>(newCrud.ID);
+			var crud = db.Load<Crud>(newCrud.ID);
 			Assert.AreEqual("ABC", crud.Name);
 
 			// Update the crud
@@ -59,7 +59,7 @@ namespace Watsonia.Data.Tests.Entities
 			db.Save(crud);
 
 			// Load the updated crud
-			Crud updatedCrud = db.Load<Crud>(newCrud.ID);
+			var updatedCrud = db.Load<Crud>(newCrud.ID);
 			Assert.AreEqual("DEF", crud.Name);
 
 			// And delete it
@@ -83,17 +83,17 @@ namespace Watsonia.Data.Tests.Entities
 			Assert.AreEqual(0, Convert.ToInt32(db.LoadValue(countHasChangesRelated)));
 
 			// Create a HasChanges and check that it has no changes
-			HasChanges newHasChanges = db.Create<HasChanges>();
+			var newHasChanges = db.Create<HasChanges>();
 			Assert.IsTrue(((IDynamicProxy)newHasChanges).IsNew);
 			Assert.IsFalse(((IDynamicProxy)newHasChanges).HasChanges);
 
 			// Create two related items and check that they have no changes
-			HasChangesRelated hasChangesRelated1 = db.Create<HasChangesRelated>();
+			var hasChangesRelated1 = db.Create<HasChangesRelated>();
 			Assert.IsTrue(((IDynamicProxy)hasChangesRelated1).IsNew);
 			Assert.IsFalse(((IDynamicProxy)hasChangesRelated1).HasChanges);
 			db.Save(hasChangesRelated1);
 
-			HasChangesRelated hasChangesRelated2 = db.Create<HasChangesRelated>();
+			var hasChangesRelated2 = db.Create<HasChangesRelated>();
 			Assert.IsTrue(((IDynamicProxy)hasChangesRelated2).IsNew);
 			Assert.IsFalse(((IDynamicProxy)hasChangesRelated2).HasChanges);
 			db.Save(hasChangesRelated2);
@@ -116,7 +116,7 @@ namespace Watsonia.Data.Tests.Entities
 			Assert.AreEqual(0, ((IDynamicProxy)newHasChanges).StateTracker.ChangedFields.Count);
 
 			// Load the inserted HasChanges
-			HasChanges hasChanges = db.Load<HasChanges>(((IDynamicProxy)newHasChanges).PrimaryKeyValue);
+			var hasChanges = db.Load<HasChanges>(((IDynamicProxy)newHasChanges).PrimaryKeyValue);
 			Assert.AreEqual("ABC", hasChanges.String);
 			Assert.IsFalse(((IDynamicProxy)hasChanges).IsNew);
 			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
@@ -367,7 +367,7 @@ namespace Watsonia.Data.Tests.Entities
 			db.Execute(deleteParents);
 
 			// Add a couple of test pars
-			Parent newParent = db.Create<Parent>();
+			var newParent = db.Create<Parent>();
 			newParent.Name = "P1";
 			newParent.Children.Add(db.Create(new Child() { Value = 1, Description = "One" }));
 			newParent.Children[0].SubChildren.Add(db.Create(new SubChild() { SubName = "SC1" }));
@@ -375,7 +375,7 @@ namespace Watsonia.Data.Tests.Entities
 			newParent.Children.Add(db.Create(new Child() { Value = 2, Description = "Two" }));
 			db.Save(newParent);
 
-			Parent newParent2 = db.Create<Parent>();
+			var newParent2 = db.Create<Parent>();
 			newParent2.Name = "P2";
 			newParent2.Children.Add(db.Create(new Child() { Value = 3, Description = "Three" }));
 			newParent2.Children.Add(db.Create(new Child() { Value = 4, Description = "Four" }));
@@ -441,10 +441,10 @@ namespace Watsonia.Data.Tests.Entities
 
 		private void ExecuteNonQuery(string sql)
 		{
-			using (SqlConnection connection = new SqlConnection(db.Configuration.ConnectionString))
+			using (var connection = new SqlConnection(db.Configuration.ConnectionString))
 			{
 				connection.Open();
-				using (SqlCommand command = new SqlCommand(sql, connection))
+				using (var command = new SqlCommand(sql, connection))
 				{
 					command.ExecuteNonQuery();
 				}
@@ -461,9 +461,9 @@ namespace Watsonia.Data.Tests.Entities
 					.Value("ABN", "123 456 789")
 					.Value("LicenseCount", 5);
 
-			DatabaseConfiguration dummyConfig = new DatabaseConfiguration(null, "", "");
+			var dummyConfig = new DatabaseConfiguration(null, "", "");
 			IDataAccessProvider provider = new SqlServerDataAccessProvider();
-			DbCommand command = provider.BuildCommand(insert, dummyConfig);
+			var command = provider.BuildCommand(insert, dummyConfig);
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
@@ -485,9 +485,9 @@ namespace Watsonia.Data.Tests.Entities
 				.And("ABN", SqlOperator.Equals, "123 456 789")
 				.OrderBy("Name");
 
-			DatabaseConfiguration dummyConfig = new DatabaseConfiguration(null, "", "");
+			var dummyConfig = new DatabaseConfiguration(null, "", "");
 			IDataAccessProvider provider = new SqlServerDataAccessProvider();
-			DbCommand command = provider.BuildCommand(select, dummyConfig);
+			var command = provider.BuildCommand(select, dummyConfig);
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
@@ -510,9 +510,9 @@ namespace Watsonia.Data.Tests.Entities
 					.Where("Code", SqlOperator.Equals, "HI123")
 					.And("ABN", SqlOperator.Equals, "123 456 789");
 
-			DatabaseConfiguration dummyConfig = new DatabaseConfiguration(null, "", "");
+			var dummyConfig = new DatabaseConfiguration(null, "", "");
 			IDataAccessProvider provider = new SqlServerDataAccessProvider();
-			DbCommand command = provider.BuildCommand(update, dummyConfig);
+			var command = provider.BuildCommand(update, dummyConfig);
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
@@ -532,9 +532,9 @@ namespace Watsonia.Data.Tests.Entities
 					.Where("Code", SqlOperator.Equals, "HI123")
 					.And("LicenseCount", SqlOperator.Equals, 10);
 
-			DatabaseConfiguration dummyConfig = new DatabaseConfiguration(null, "", "");
+			var dummyConfig = new DatabaseConfiguration(null, "", "");
 			IDataAccessProvider provider = new SqlServerDataAccessProvider();
-			DbCommand command = provider.BuildCommand(delete, dummyConfig);
+			var command = provider.BuildCommand(delete, dummyConfig);
 
 			// Make sure the SQL is correct
 			Assert.AreEqual(
@@ -549,7 +549,7 @@ namespace Watsonia.Data.Tests.Entities
 
 		private string TrimExtraWhiteSpace(string s)
 		{
-			string result = s.Replace("\r", " ").Replace("\n", " ").Replace("\t", " ").Trim();
+			var result = s.Replace("\r", " ").Replace("\n", " ").Replace("\t", " ").Trim();
 			while (result.Contains("  "))
 			{
 				result = result.Replace("  ", " ");

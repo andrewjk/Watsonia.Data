@@ -89,7 +89,7 @@ namespace Watsonia.Data
 			{
 				b.Append("(");
 			}
-			for (int i = 0; i < this.Count; i++)
+			for (var i = 0; i < this.Count; i++)
 			{
 				if (i > 0)
 				{

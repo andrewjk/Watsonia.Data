@@ -1,4 +1,4 @@
-using Remotion.Linq;
+﻿using Remotion.Linq;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Parsing;
@@ -59,7 +59,7 @@ namespace Watsonia.Data
 				}
 				else if (clause is OrderByClause orderByClause)
 				{
-					foreach (Ordering order in orderByClause.Orderings)
+					foreach (var order in orderByClause.Orderings)
 					{
 						order.Expression = visitor.Visit(order.Expression);
 					}
@@ -112,7 +112,7 @@ namespace Watsonia.Data
                     var databaseQueryItem = databaseQueryGeneric.Invoke(this.Database, null);
 
                     // Build the item name based on what's come before
-                    string itemName = $"j_" + _newJoinNumber++;
+                    var itemName = $"j_" + _newJoinNumber++;
 
                     // Build the join sequences and keys
                     Expression innerSequence = Expression.Constant(databaseQueryItem);

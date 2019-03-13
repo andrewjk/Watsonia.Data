@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.SqlClient;
@@ -40,7 +40,7 @@ namespace Watsonia.Data.SqlServer
 
 		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
 		{
-			StringBuilder script = new StringBuilder();
+			var script = new StringBuilder();
 			UpdateDatabase(tables, views, procedures, functions, false, script);
 			return script.ToString();
 		}
@@ -57,14 +57,14 @@ namespace Watsonia.Data.SqlServer
 				var existingFunctions = LoadExistingFunctions(connection);
 
 				// First pass - create or update tables and columns
-				foreach (MappedTable table in tables)
+				foreach (var table in tables)
 				{
 					if (existingTables.ContainsKey(table.Name.ToUpperInvariant()))
 					{
 						// The table exists so we need to check whether it should be updated
-						foreach (MappedColumn column in table.Columns)
+						foreach (var column in table.Columns)
 						{
-							string key = table.Name.ToUpperInvariant() + "." + column.Name.ToUpperInvariant();
+							var key = table.Name.ToUpperInvariant() + "." + column.Name.ToUpperInvariant();
 							if (existingColumns.ContainsKey(key))
 							{
 								// The column exists so we need to check whether it should be updated
@@ -85,17 +85,17 @@ namespace Watsonia.Data.SqlServer
 				}
 
 				// Second pass - fill table data
-				foreach (MappedTable table in tables.Where(t => t.Values.Count > 0))
+				foreach (var table in tables.Where(t => t.Values.Count > 0))
 				{
-					bool tableExists = existingTables.ContainsKey(table.Name.ToUpperInvariant());
+					var tableExists = existingTables.ContainsKey(table.Name.ToUpperInvariant());
 					UpdateTableData(table, connection, doUpdate, script, tableExists);
 				}
 
 				// Third pass - create relationship constraints
 				var existingForeignKeys = LoadExistingForeignKeys(connection);
-				foreach (MappedTable table in tables)
+				foreach (var table in tables)
 				{
-					foreach (MappedColumn column in table.Columns.Where(c => c.Relationship != null))
+					foreach (var column in table.Columns.Where(c => c.Relationship != null))
 					{
 						if (!existingForeignKeys.Contains(column.Relationship.ConstraintName))
 						{
@@ -106,9 +106,9 @@ namespace Watsonia.Data.SqlServer
 				}
 
 				// Fourth pass - create views
-				foreach (MappedView view in views)
+				foreach (var view in views)
 				{
-					string key = view.Name.ToUpperInvariant();
+					var key = view.Name.ToUpperInvariant();
 					if (existingViews.ContainsKey(key))
 					{
 						// The view exists so we need to check whether it should be updated
@@ -122,9 +122,9 @@ namespace Watsonia.Data.SqlServer
 				}
 
 				// Fifth pass - create procedures
-				foreach (MappedProcedure procedure in procedures)
+				foreach (var procedure in procedures)
 				{
-					string key = procedure.Name.ToUpperInvariant();
+					var key = procedure.Name.ToUpperInvariant();
 					if (existingProcedures.ContainsKey(key))
 					{
 						// The procedure exists so we need to check whether it should be updated
@@ -138,9 +138,9 @@ namespace Watsonia.Data.SqlServer
 				}
 
 				// Sixth pass - create functions
-				foreach (MappedFunction function in functions)
+				foreach (var function in functions)
 				{
-					string key = function.Name.ToUpperInvariant();
+					var key = function.Name.ToUpperInvariant();
 					if (existingFunctions.ContainsKey(key))
 					{
 						// The function exists so we need to check whether it should be updated
@@ -166,8 +166,8 @@ namespace Watsonia.Data.SqlServer
 				{
 					while (reader.Read())
 					{
-						string tableName = reader.GetString(reader.GetOrdinal("TABLE_NAME"));
-						MappedTable table = new MappedTable(tableName);
+						var tableName = reader.GetString(reader.GetOrdinal("TABLE_NAME"));
+						var table = new MappedTable(tableName);
 						existingTables.Add(tableName.ToUpperInvariant(), table);
 					}
 				}
@@ -186,27 +186,27 @@ namespace Watsonia.Data.SqlServer
 				{
 					while (reader.Read())
 					{
-						string tableName = reader.GetString(reader.GetOrdinal("TABLE_NAME"));
-						string columnName = reader.GetString(reader.GetOrdinal("COLUMN_NAME"));
-						bool allowNulls = (reader.GetString(reader.GetOrdinal("IS_NULLABLE")).ToUpperInvariant() == "YES");
-						object defaultValue = reader.GetValue(reader.GetOrdinal("COLUMN_DEFAULT"));
+						var tableName = reader.GetString(reader.GetOrdinal("TABLE_NAME"));
+						var columnName = reader.GetString(reader.GetOrdinal("COLUMN_NAME"));
+						var allowNulls = (reader.GetString(reader.GetOrdinal("IS_NULLABLE")).ToUpperInvariant() == "YES");
+						var defaultValue = reader.GetValue(reader.GetOrdinal("COLUMN_DEFAULT"));
 						if (defaultValue == DBNull.Value)
 						{
 							defaultValue = null;
 						}
-						string dataTypeName = reader.GetString(reader.GetOrdinal("DATA_TYPE"));
+						var dataTypeName = reader.GetString(reader.GetOrdinal("DATA_TYPE"));
 
-						Type columnType = FrameworkTypeFromDatabase(dataTypeName, allowNulls);
-						int maxLength = 0;
+						var columnType = FrameworkTypeFromDatabase(dataTypeName, allowNulls);
+						var maxLength = 0;
 						if (columnType == typeof(string))
 						{
 							maxLength = reader.GetInt32(reader.GetOrdinal("CHARACTER_MAXIMUM_LENGTH"));
 						}
-						MappedColumn column = new MappedColumn(columnName, columnType, "");
+						var column = new MappedColumn(columnName, columnType, "");
 						column.MaxLength = maxLength;
 						column.AllowNulls = allowNulls;
 						column.DefaultValue = defaultValue;
-						string key = tableName.ToUpperInvariant() + "." + columnName.ToUpperInvariant();
+						var key = tableName.ToUpperInvariant() + "." + columnName.ToUpperInvariant();
 						existingColumns.Add(key, column);
 					}
 				}
@@ -227,11 +227,11 @@ namespace Watsonia.Data.SqlServer
 					{
 						while (reader.Read())
 						{
-							string viewName = reader.GetString(reader.GetOrdinal("TABLE_NAME"));
-							string selectStatementText = reader.GetString(reader.GetOrdinal("VIEW_DEFINITION"));
-							MappedView view = new MappedView(viewName);
+							var viewName = reader.GetString(reader.GetOrdinal("TABLE_NAME"));
+							var selectStatementText = reader.GetString(reader.GetOrdinal("VIEW_DEFINITION"));
+							var view = new MappedView(viewName);
 							view.SelectStatementText = selectStatementText;
-							string key = viewName.ToUpperInvariant();
+							var key = viewName.ToUpperInvariant();
 							existingViews.Add(key, view);
 						}
 					}
@@ -253,11 +253,11 @@ namespace Watsonia.Data.SqlServer
 					{
 						while (reader.Read())
 						{
-							string procedureName = reader.GetString(reader.GetOrdinal("ROUTINE_NAME"));
-							string statementText = reader.GetString(reader.GetOrdinal("ROUTINE_DEFINITION"));
-							MappedProcedure procedure = new MappedProcedure(procedureName);
+							var procedureName = reader.GetString(reader.GetOrdinal("ROUTINE_NAME"));
+							var statementText = reader.GetString(reader.GetOrdinal("ROUTINE_DEFINITION"));
+							var procedure = new MappedProcedure(procedureName);
 							procedure.StatementText = statementText;
-							string key = procedureName.ToUpperInvariant();
+							var key = procedureName.ToUpperInvariant();
 							existingProcedures.Add(key, procedure);
 						}
 					}
@@ -279,11 +279,11 @@ namespace Watsonia.Data.SqlServer
 					{
 						while (reader.Read())
 						{
-							string functionName = reader.GetString(reader.GetOrdinal("ROUTINE_NAME"));
-							string statementText = reader.GetString(reader.GetOrdinal("ROUTINE_DEFINITION"));
-							MappedFunction function = new MappedFunction(functionName);
+							var functionName = reader.GetString(reader.GetOrdinal("ROUTINE_NAME"));
+							var statementText = reader.GetString(reader.GetOrdinal("ROUTINE_DEFINITION"));
+							var function = new MappedFunction(functionName);
 							function.StatementText = statementText;
-							string key = functionName.ToUpperInvariant();
+							var key = functionName.ToUpperInvariant();
 							existingFunctions.Add(key, function);
 						}
 					}
@@ -378,8 +378,8 @@ namespace Watsonia.Data.SqlServer
 			b.AppendLine($"CREATE TABLE [{table.Name}] (");
 			b.Append(string.Join(", ", Array.ConvertAll(table.Columns.ToArray(), c => ColumnText(table, c, true, true))));
 			b.AppendLine(",");
-			string maybeClustered = (this.CompactEdition ? "" : "CLUSTERED");
-			string direction = (this.CompactEdition ? "" : " ASC");
+			var maybeClustered = (this.CompactEdition ? "" : "CLUSTERED");
+			var direction = (this.CompactEdition ? "" : " ASC");
 			b.AppendLine($"CONSTRAINT [{table.PrimaryKeyConstraintName}] PRIMARY KEY {maybeClustered} ([{table.PrimaryKeyColumnName}]{direction})");
 			b.Append(")");
 			using (var command = CreateCommand(connection))
@@ -441,7 +441,7 @@ namespace Watsonia.Data.SqlServer
 
 		protected virtual string ColumnTypeText(MappedColumn column)
 		{
-						return ColumnTypeText(column.ColumnType, column.MaxLength);
+			return ColumnTypeText(column.ColumnType, column.MaxLength);
 		}
 
 		protected virtual string ColumnTypeText(Type columnType, int maxLength)
@@ -453,6 +453,10 @@ namespace Watsonia.Data.SqlServer
 			else if (columnType == typeof(DateTime) || columnType == typeof(DateTime?))
 			{
 				return "DATETIME";
+			}
+			else if (columnType == typeof(DateTimeOffset) || columnType == typeof(DateTimeOffset?))
+			{
+				return "DATETIMEOFFSET";
 			}
 			else if (columnType == typeof(decimal) || columnType == typeof(decimal?))
 			{
@@ -571,10 +575,10 @@ namespace Watsonia.Data.SqlServer
 		{
 			using (var command = CreateCommand(connection))
 			{
-				string maybeCheck = (this.CompactEdition ? "" : "WITH CHECK");
-				string constraintName = column.Relationship.ConstraintName;
-				string foreignTableName = column.Relationship.ForeignTableName;
-				string foreignTableColumnName = column.Relationship.ForeignTableColumnName;
+				var maybeCheck = (this.CompactEdition ? "" : "WITH CHECK");
+				var constraintName = column.Relationship.ConstraintName;
+				var foreignTableName = column.Relationship.ForeignTableName;
+				var foreignTableColumnName = column.Relationship.ForeignTableColumnName;
 				command.CommandText = $"ALTER TABLE [{table.Name}] {maybeCheck} ADD CONSTRAINT [{constraintName}] FOREIGN KEY ([{column.Name}]) REFERENCES [{foreignTableName}] ({foreignTableColumnName})";
 				command.Connection = connection;
 				ExecuteSql(command, doUpdate, script);
@@ -595,19 +599,19 @@ namespace Watsonia.Data.SqlServer
 				}
 			}
 
-			bool columnTypeChanged = (oldColumn.ColumnType != column.ColumnType);
+			var columnTypeChanged = (oldColumn.ColumnType != column.ColumnType);
 			// TODO: Figure out how to compare database default values to CLR default values.  For the time being we can
 			// only go from no default to default
-			bool defaultValueChanged = (oldColumn.DefaultValue == null && oldColumn.DefaultValue != column.DefaultValue);
-			bool allowNullsChanged = (oldColumn.AllowNulls != column.AllowNulls);
-			bool maxLengthChanged = (oldColumn.MaxLength != column.MaxLength && !(oldColumn.MaxLength == -1 && column.MaxLength >= 4000));
+			var defaultValueChanged = (oldColumn.DefaultValue == null && oldColumn.DefaultValue != column.DefaultValue);
+			var allowNullsChanged = (oldColumn.AllowNulls != column.AllowNulls);
+			var maxLengthChanged = (oldColumn.MaxLength != column.MaxLength && !(oldColumn.MaxLength == -1 && column.MaxLength >= 4000));
 
 			if (columnTypeChanged || defaultValueChanged || allowNullsChanged || maxLengthChanged)
 			{
 				using (var command = CreateCommand(connection))
 				{
 					// Drop all constraints before updating the column.  They will be re-created later
-					List<string> constraints = GetColumnConstraintsToDrop(table, column, connection);
+					var constraints = GetColumnConstraintsToDrop(table, column, connection);
 					if (constraints.Count > 0)
 					{
 						command.CommandText = string.Join(Environment.NewLine, constraints.ToArray());
@@ -638,7 +642,7 @@ namespace Watsonia.Data.SqlServer
 
 		protected virtual List<string> GetColumnConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
-			List<string> constraints = new List<string>();
+			var constraints = new List<string>();
 
 			constraints.AddRange(GetForeignKeyConstraintsToDrop(table, column, connection));
 			constraints.AddRange(GetPrimaryKeyConstraintsToDrop(table, column, connection));
@@ -649,7 +653,7 @@ namespace Watsonia.Data.SqlServer
 
 		protected virtual List<string> GetForeignKeyConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
-			List<string> constraints = new List<string>();
+			var constraints = new List<string>();
 
 			// Get foreign key constraints on this column or that reference this column
 			using (var command = CreateCommand(connection))
@@ -674,8 +678,8 @@ namespace Watsonia.Data.SqlServer
 				{
 					while (reader.Read())
 					{
-						string tableName = reader.GetString(reader.GetOrdinal("TABLE_NAME"));
-						string constraintName = reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"));
+						var tableName = reader.GetString(reader.GetOrdinal("TABLE_NAME"));
+						var constraintName = reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"));
 						constraints.Add($"ALTER TABLE [{tableName}] DROP CONSTRAINT [{constraintName}];");
 					}
 				}
@@ -686,7 +690,7 @@ namespace Watsonia.Data.SqlServer
 
 		protected virtual List<string> GetPrimaryKeyConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
-			List<string> constraints = new List<string>();
+			var constraints = new List<string>();
 
 			// Get primary key constraints for this column
 			using (var command = CreateCommand(connection))
@@ -702,7 +706,7 @@ namespace Watsonia.Data.SqlServer
 				{
 					while (reader.Read())
 					{
-						string constraintName = reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"));
+						var constraintName = reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"));
 						constraints.Add($"ALTER TABLE [{table.Name}] DROP CONSTRAINT [{constraintName}];");
 					}
 				}
@@ -713,7 +717,7 @@ namespace Watsonia.Data.SqlServer
 
 		protected virtual List<string> GetDefaultValueConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
-			List<string> constraints = new List<string>();
+			var constraints = new List<string>();
 
 			// Can't get default value constraints in CE so just return an empty list
 			if (this.CompactEdition)
@@ -735,7 +739,7 @@ namespace Watsonia.Data.SqlServer
 				{
 					while (reader.Read())
 					{
-						string constraintName = reader.GetString(reader.GetOrdinal("name"));
+						var constraintName = reader.GetString(reader.GetOrdinal("name"));
 						constraints.Add($"ALTER TABLE [{table.Name}] DROP CONSTRAINT [{constraintName}];");
 					}
 				}
@@ -778,12 +782,12 @@ namespace Watsonia.Data.SqlServer
 						identityInsertCommand.CommandText = "SET IDENTITY_INSERT " + table.Name + " ON";
 						ExecuteSql(identityInsertCommand, doUpdate, script);
 
-						InsertStatement insertData = Insert.Into(table.Name);
-						foreach (string key in data.Keys)
+						var insertData = Insert.Into(table.Name);
+						foreach (var key in data.Keys)
 						{
 							insertData = insertData.Value(key, data[key]);
 						}
-						using (DbCommand command = _dataAccessProvider.BuildCommand(insertData, _configuration))
+						using (var command = _dataAccessProvider.BuildCommand(insertData, _configuration))
 						{
 							command.Connection = connection;
 							ExecuteSql(command, doUpdate, script);
@@ -836,7 +840,7 @@ namespace Watsonia.Data.SqlServer
 			{
 				// Views can't have parameters, so replace all parameter calls with values
 				var commandText = viewCommand.CommandText;
-				for (int i = 0; i < viewCommand.Parameters.Count; i++)
+				for (var i = 0; i < viewCommand.Parameters.Count; i++)
 				{
 					if (viewCommand.Parameters[i].Value is string ||
 						viewCommand.Parameters[i].Value is char)
@@ -890,11 +894,11 @@ namespace Watsonia.Data.SqlServer
 			var b = new StringBuilder();
 			b.AppendLine($"CREATE PROCEDURE [{procedure.Name}]");
 			var parameterDeclarations = new List<string>();
-			for (int i = 0; i < procedure.Parameters.Count; i++)
+			for (var i = 0; i < procedure.Parameters.Count; i++)
 			{
 				var parameter = procedure.Parameters[i];
-				string parameterText = ColumnTypeText(parameter.ParameterType, parameter.MaxLength);
-				string parameterDeclaration = $"{parameter.Name} {parameterText}";
+				var parameterText = ColumnTypeText(parameter.ParameterType, parameter.MaxLength);
+				var parameterDeclaration = $"{parameter.Name} {parameterText}";
 				if (!parameterDeclarations.Contains(parameterDeclaration))
 				{
 					parameterDeclarations.Add(parameterDeclaration);
@@ -909,7 +913,7 @@ namespace Watsonia.Data.SqlServer
 			{
 				// Procedures can't have parameters, so replace all parameter calls with values
 				var commandText = procedureCommand.CommandText;
-				for (int i = 0; i < procedureCommand.Parameters.Count; i++)
+				for (var i = 0; i < procedureCommand.Parameters.Count; i++)
 				{
 					if (procedureCommand.Parameters[i].Value is MappedParameter parameter)
 					{
@@ -969,17 +973,17 @@ namespace Watsonia.Data.SqlServer
 			var b = new StringBuilder();
 			b.AppendLine($"CREATE FUNCTION [{function.Name}]");
 			var parameterDeclarations = new List<string>();
-			for (int i = 0; i < function.Parameters.Count; i++)
+			for (var i = 0; i < function.Parameters.Count; i++)
 			{
 				var parameter = function.Parameters[i];
-				string parameterText = ColumnTypeText(parameter.ParameterType, parameter.MaxLength);
-				string parameterDeclaration = $"{parameter.Name} {parameterText}";
+				var parameterText = ColumnTypeText(parameter.ParameterType, parameter.MaxLength);
+				var parameterDeclaration = $"{parameter.Name} {parameterText}";
 				if (!parameterDeclarations.Contains(parameterDeclaration))
 				{
 					parameterDeclarations.Add(parameterDeclaration);
 				}
 			}
-			if  (parameterDeclarations.Count > 0)
+			if (parameterDeclarations.Count > 0)
 			{
 				b.AppendLine("(");
 				b.AppendLine(string.Join("," + Environment.NewLine, parameterDeclarations));
@@ -993,7 +997,7 @@ namespace Watsonia.Data.SqlServer
 			{
 				// Functions can't have parameters, so replace all parameter calls with values
 				var commandText = functionCommand.CommandText;
-				for (int i = 0; i < functionCommand.Parameters.Count; i++)
+				for (var i = 0; i < functionCommand.Parameters.Count; i++)
 				{
 					if (functionCommand.Parameters[i].Value is MappedParameter parameter)
 					{
@@ -1026,7 +1030,7 @@ namespace Watsonia.Data.SqlServer
 				if (command.Parameters.Count > 0)
 				{
 					script.Append(" { ");
-					for (int i = 0; i < command.Parameters.Count; i++)
+					for (var i = 0; i < command.Parameters.Count; i++)
 					{
 						if (i > 0)
 						{
@@ -1061,7 +1065,7 @@ namespace Watsonia.Data.SqlServer
 
 		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views)
 		{
-			StringBuilder columns = new StringBuilder();
+			var columns = new StringBuilder();
 
 			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
 			{
@@ -1069,13 +1073,13 @@ namespace Watsonia.Data.SqlServer
 				var existingColumns = LoadExistingColumns(connection);
 
 				// Check whether each existing column is mapped
-				foreach (string columnKey in existingColumns.Keys)
+				foreach (var columnKey in existingColumns.Keys)
 				{
-					string tableName = columnKey.Split('.')[0];
-					string columnName = columnKey.Split('.')[1];
+					var tableName = columnKey.Split('.')[0];
+					var columnName = columnKey.Split('.')[1];
 
-					MappedTable table = tables.FirstOrDefault(m => m.Name.Equals(tableName, StringComparison.InvariantCultureIgnoreCase));
-					bool isColumnMapped = (table != null && table.Columns.Any(c => c.Name.Equals(columnName, StringComparison.InvariantCultureIgnoreCase)));
+					var table = tables.FirstOrDefault(m => m.Name.Equals(tableName, StringComparison.InvariantCultureIgnoreCase));
+					var isColumnMapped = (table != null && table.Columns.Any(c => c.Name.Equals(columnName, StringComparison.InvariantCultureIgnoreCase)));
 
 					if (!isColumnMapped)
 					{

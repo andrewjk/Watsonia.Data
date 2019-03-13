@@ -1,4 +1,4 @@
-using Remotion.Linq;
+﻿using Remotion.Linq;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.ResultOperators;
 using Remotion.Linq.Parsing.Structure;
@@ -50,7 +50,7 @@ namespace Watsonia.Data
 			// Select from the query with the conditions so that we have a sequence for Re-Linq to parse
 			var select = (from t in query select t).Where(conditions);
 			var expression = Expression.Constant(select, query.GetType());
-			QueryModel queryModel = queryParser.GetParsedQuery(expression);
+			var queryModel = queryParser.GetParsedQuery(expression);
 
 			// Get the conditions from the query model
 			var visitor = new SelectStatementCreator(configuration, aliasTables);
@@ -63,7 +63,7 @@ namespace Watsonia.Data
 		{
 			if (selectClause.Selector.NodeType != ExpressionType.Extension)
 			{
-				StatementPart fields = StatementPartCreator.Visit(queryModel, selectClause.Selector, this.Configuration, this.AliasTables);
+				var fields = StatementPartCreator.Visit(queryModel, selectClause.Selector, this.Configuration, this.AliasTables);
 				this.SelectStatement.SourceFields.Add((SourceExpression)fields);
 			}
 
@@ -74,14 +74,14 @@ namespace Watsonia.Data
 		{
 			if (this.Configuration.IsFunction(fromClause.ItemType))
 			{
-				string functionName = this.Configuration.GetFunctionName(fromClause.ItemType);
-				string alias = fromClause.ItemName.Replace("<generated>", "g");
+				var functionName = this.Configuration.GetFunctionName(fromClause.ItemType);
+				var alias = fromClause.ItemName.Replace("<generated>", "g");
 				this.SelectStatement.Source = new UserDefinedFunction(functionName) { Alias = alias };
 			}
 			else
 			{
-				string tableName = this.Configuration.GetTableName(fromClause.ItemType);
-				string alias = fromClause.ItemName.Replace("<generated>", "g");
+				var tableName = this.Configuration.GetTableName(fromClause.ItemType);
+				var alias = fromClause.ItemName.Replace("<generated>", "g");
 				this.SelectStatement.Source = new Table(tableName) { Alias = alias };
 			}
 			base.VisitMainFromClause(fromClause, queryModel);
@@ -101,7 +101,7 @@ namespace Watsonia.Data
 				var leftColumnCollection = (FieldCollection)leftColumn;
 				var rightColumnCollection = (FieldCollection)rightColumn;
 				var joinConditions = new ConditionCollection();
-				for (int i = 0; i < leftColumnCollection.Count; i++)
+				for (var i = 0; i < leftColumnCollection.Count; i++)
 				{
 					joinConditions.Add(new Condition(leftColumnCollection[i], SqlOperator.Equals, rightColumnCollection[i]));
 				}
@@ -117,7 +117,7 @@ namespace Watsonia.Data
 
 		public override void VisitOrdering(Ordering ordering, QueryModel queryModel, OrderByClause orderByClause, int index)
 		{
-			Column column = (Column)StatementPartCreator.Visit(queryModel, ordering.Expression, this.Configuration, this.AliasTables);
+			var column = (Column)StatementPartCreator.Visit(queryModel, ordering.Expression, this.Configuration, this.AliasTables);
 
 			switch (ordering.OrderingDirection)
 			{
@@ -182,7 +182,7 @@ namespace Watsonia.Data
 			if (resultOperator is LastResultOperator)
 			{
 				this.SelectStatement.Limit = 1;
-				foreach (OrderByExpression orderBy in this.SelectStatement.OrderByFields)
+				foreach (var orderBy in this.SelectStatement.OrderByFields)
 				{
 					orderBy.Direction = (orderBy.Direction == OrderDirection.Ascending) ? OrderDirection.Descending : OrderDirection.Ascending;
 				}
@@ -308,7 +308,7 @@ namespace Watsonia.Data
 
 			if (resultOperator is ReverseResultOperator)
 			{
-				foreach (OrderByExpression orderBy in this.SelectStatement.OrderByFields)
+				foreach (var orderBy in this.SelectStatement.OrderByFields)
 				{
 					orderBy.Direction = (orderBy.Direction == OrderDirection.Ascending) ? OrderDirection.Descending : OrderDirection.Ascending;
 				}
@@ -327,7 +327,7 @@ namespace Watsonia.Data
 
 		private void VisitPredicate(Expression predicate, QueryModel queryModel)
 		{
-			StatementPart whereStatement = StatementPartCreator.Visit(queryModel, predicate, this.Configuration, this.AliasTables);
+			var whereStatement = StatementPartCreator.Visit(queryModel, predicate, this.Configuration, this.AliasTables);
 			ConditionExpression condition;
 			if (whereStatement is ConditionExpression)
 			{
@@ -345,7 +345,7 @@ namespace Watsonia.Data
 			}
 			else if (whereStatement is ConstantPart && ((ConstantPart)whereStatement).Value is bool)
 			{
-				bool value = (bool)((ConstantPart)whereStatement).Value;
+				var value = (bool)((ConstantPart)whereStatement).Value;
 				condition = new Condition() { Field = new ConstantPart(value), Operator = SqlOperator.Equals, Value = new ConstantPart(true) };
 			}
 			else if (whereStatement is Column && ((Column)whereStatement).PropertyType == typeof(bool))

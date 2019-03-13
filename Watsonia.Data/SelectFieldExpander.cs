@@ -53,13 +53,13 @@ namespace Watsonia.Data
                 // This will avoid the case where selecting fields from multiple tables with non-unique field
                 // names (e.g. two tables with an ID field) fills the object with the wrong value
                 var columnNames = new List<string>();
-                string primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(selectClause.Selector.Type);
-                foreach (PropertyInfo property in this.Configuration.PropertiesToMap(selectClause.Selector.Type))
+                var primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(selectClause.Selector.Type);
+                foreach (var property in this.Configuration.PropertiesToMap(selectClause.Selector.Type))
                 {
                     if (this.Configuration.IsRelatedItem(property))
                     {
                         // It's a property referencing another table so change its name and type
-                        string columnName = this.Configuration.GetForeignKeyColumnName(property);
+                        var columnName = this.Configuration.GetForeignKeyColumnName(property);
                         if (!columnNames.Any(c => c.Equals(columnName, StringComparison.InvariantCultureIgnoreCase)))
                         {
                             columnNames.Add(columnName);
@@ -72,7 +72,7 @@ namespace Watsonia.Data
                     else
                     {
                         // It's a regular mapped column
-                        string columnName = this.Configuration.GetColumnName(property);
+                        var columnName = this.Configuration.GetColumnName(property);
                         if (!columnName.Equals(primaryKeyColumnName, StringComparison.InvariantCultureIgnoreCase) &&
                             !columnNames.Any(c => c.Equals(columnName, StringComparison.InvariantCultureIgnoreCase)))
                         {
@@ -85,8 +85,8 @@ namespace Watsonia.Data
                 columnNames.Insert(0, primaryKeyColumnName);
 
                 var source = (QuerySourceReferenceExpression)selectClause.Selector;
-                string tableName = source.ReferencedQuerySource.ItemName.Replace("<generated>", "g");
-                foreach (string columnName in columnNames)
+                var tableName = source.ReferencedQuerySource.ItemName.Replace("<generated>", "g");
+                foreach (var columnName in columnNames)
                 {
                     this.Select.SourceFields.Add(new Column(tableName, columnName));
                 }

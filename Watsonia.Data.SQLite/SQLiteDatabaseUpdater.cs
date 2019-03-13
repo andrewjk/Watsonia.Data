@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using Microsoft.Data.Sqlite;
@@ -26,7 +26,7 @@ namespace Watsonia.Data.SQLite
 
 		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
 		{
-			StringBuilder script = new StringBuilder();
+			var script = new StringBuilder();
 			UpdateDatabase(tables, views, procedures, functions, false, script);
 			return script.ToString();
 		}
@@ -41,14 +41,14 @@ namespace Watsonia.Data.SQLite
 				var existingViews = LoadExistingViews(connection);
 
 				// First pass - create or update tables and columns
-				foreach (MappedTable table in tables)
+				foreach (var table in tables)
 				{
 					if (existingTables.ContainsKey(table.Name.ToUpperInvariant()))
 					{
 						// The table exists so we need to check whether it should be updated
-						foreach (MappedColumn column in table.Columns)
+						foreach (var column in table.Columns)
 						{
-							string key = table.Name.ToUpperInvariant() + "." + column.Name.ToUpperInvariant();
+							var key = table.Name.ToUpperInvariant() + "." + column.Name.ToUpperInvariant();
 							if (existingColumns.ContainsKey(key))
 							{
 								// The column exists so we need to check whether it should be updated
@@ -69,16 +69,16 @@ namespace Watsonia.Data.SQLite
 				}
 
 				// Second pass - fill table data
-				foreach (MappedTable table in tables.Where(t => t.Values.Count > 0))
+				foreach (var table in tables.Where(t => t.Values.Count > 0))
 				{
 					UpdateTableData(table, connection, doUpdate, script);
 				}
 
 				// Third pass - create relationship constraints
 				var existingForeignKeys = LoadExistingForeignKeys(connection);
-				foreach (MappedTable table in tables)
+				foreach (var table in tables)
 				{
-					foreach (MappedColumn column in table.Columns.Where(c => c.Relationship != null))
+					foreach (var column in table.Columns.Where(c => c.Relationship != null))
 					{
 						if (!existingForeignKeys.Contains(column.Relationship.ConstraintName))
 						{
@@ -89,9 +89,9 @@ namespace Watsonia.Data.SQLite
 				}
 
 				// Fourth pass - create views
-				foreach (MappedView view in views)
+				foreach (var view in views)
 				{
-					string key = view.Name.ToUpperInvariant();
+					var key = view.Name.ToUpperInvariant();
 					if (existingViews.ContainsKey(key))
 					{
 						// The view exists so we need to check whether it should be updated
@@ -117,8 +117,8 @@ namespace Watsonia.Data.SQLite
 				{
 					while (reader.Read())
 					{
-						string tableName = reader.GetString(reader.GetOrdinal("name"));
-						MappedTable table = new MappedTable(tableName);
+						var tableName = reader.GetString(reader.GetOrdinal("name"));
+						var table = new MappedTable(tableName);
 						existingTables.Add(tableName.ToUpperInvariant(), table);
 					}
 				}
@@ -129,7 +129,7 @@ namespace Watsonia.Data.SQLite
 		protected virtual Dictionary<string, MappedColumn> LoadExistingColumns(Dictionary<string, MappedTable> existingTables, DbConnection connection)
 		{
 			var existingColumns = new Dictionary<string, MappedColumn>();
-			foreach (MappedTable table in existingTables.Values)
+			foreach (var table in existingTables.Values)
 			{
 				using (var existingColumnsCommand = CreateCommand(connection))
 				{
@@ -139,28 +139,28 @@ namespace Watsonia.Data.SQLite
 					{
 						while (reader.Read())
 						{
-							string tableName = table.Name;
-							string columnName = reader.GetString(reader.GetOrdinal("name"));
-							bool allowNulls = (reader.GetString(reader.GetOrdinal("notnull")) == "0");
-							object defaultValue = reader.GetValue(reader.GetOrdinal("dflt_value"));
+							var tableName = table.Name;
+							var columnName = reader.GetString(reader.GetOrdinal("name"));
+							var allowNulls = (reader.GetString(reader.GetOrdinal("notnull")) == "0");
+							var defaultValue = reader.GetValue(reader.GetOrdinal("dflt_value"));
 							if (defaultValue == DBNull.Value)
 							{
 								defaultValue = null;
 							}
-							string dataTypeName = reader.GetString(reader.GetOrdinal("type"));
-							Type columnType = FrameworkTypeFromDatabase(dataTypeName, allowNulls);
-							int maxLength = 0;
+							var dataTypeName = reader.GetString(reader.GetOrdinal("type"));
+							var columnType = FrameworkTypeFromDatabase(dataTypeName, allowNulls);
+							var maxLength = 0;
 							if (columnType == typeof(string) && dataTypeName.Contains("("))
 							{
-								int start = dataTypeName.IndexOf("(") + 1;
-								int end = dataTypeName.IndexOf(")", start);
+								var start = dataTypeName.IndexOf("(") + 1;
+								var end = dataTypeName.IndexOf(")", start);
 								maxLength = Convert.ToInt32(dataTypeName.Substring(start, end - start));
 							}
-							MappedColumn column = new MappedColumn(columnName, columnType, "");
+							var column = new MappedColumn(columnName, columnType, "");
 							column.MaxLength = maxLength;
 							column.AllowNulls = allowNulls;
 							column.DefaultValue = defaultValue;
-							string key = tableName.ToUpperInvariant() + "." + columnName.ToUpperInvariant();
+							var key = tableName.ToUpperInvariant() + "." + columnName.ToUpperInvariant();
 							existingColumns.Add(key, column);
 						}
 					}
@@ -180,11 +180,11 @@ namespace Watsonia.Data.SQLite
 				{
 					while (reader.Read())
 					{
-						string viewName = reader.GetString(reader.GetOrdinal("name"));
-						string selectStatementText = reader.GetString(reader.GetOrdinal("sql"));
-						MappedView view = new MappedView(viewName);
+						var viewName = reader.GetString(reader.GetOrdinal("name"));
+						var selectStatementText = reader.GetString(reader.GetOrdinal("sql"));
+						var view = new MappedView(viewName);
 						view.SelectStatementText = selectStatementText;
-						string key = viewName.ToUpperInvariant();
+						var key = viewName.ToUpperInvariant();
 						existingViews.Add(key, view);
 					}
 				}
@@ -194,7 +194,7 @@ namespace Watsonia.Data.SQLite
 
 		protected virtual Type FrameworkTypeFromDatabase(string databaseTypeName, bool allowNulls)
 		{
-			string typeName = databaseTypeName.Contains("(") ? databaseTypeName.Substring(0, databaseTypeName.IndexOf("(")) : databaseTypeName;
+			var typeName = databaseTypeName.Contains("(") ? databaseTypeName.Substring(0, databaseTypeName.IndexOf("(")) : databaseTypeName;
 
 			switch (typeName.ToUpperInvariant())
 			{
@@ -268,7 +268,7 @@ namespace Watsonia.Data.SQLite
 		{
 			using (var command = CreateCommand(connection))
 			{
-				StringBuilder b = new StringBuilder();
+				var b = new StringBuilder();
 				b.AppendLine($"CREATE TABLE [{table.Name}] (");
 				b.Append(string.Join(", ", Array.ConvertAll(table.Columns.ToArray(), c => ColumnText(table, c, true, true))));
 				b.AppendLine(",");
@@ -292,7 +292,7 @@ namespace Watsonia.Data.SQLite
 
 		protected virtual string ColumnText(MappedTable table, MappedColumn column, bool includeDefault, bool includeIdentity)
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			b.Append($"[{column.Name}] {ColumnTypeText(column)}");
 			if (!column.IsPrimaryKey)
 			{
@@ -464,19 +464,19 @@ namespace Watsonia.Data.SQLite
 				oldColumn.AllowNulls = false;
 			}
 
-			bool columnTypeChanged = (oldColumn.ColumnType != column.ColumnType);
+			var columnTypeChanged = (oldColumn.ColumnType != column.ColumnType);
 			// TODO: Figure out how to compare database default values to CLR default values.  For the time being we can
 			// only go from no default to default
-			bool defaultValueChanged = (oldColumn.DefaultValue == null && oldColumn.DefaultValue != column.DefaultValue);
-			bool allowNullsChanged = (oldColumn.AllowNulls != column.AllowNulls);
-			bool maxLengthChanged = (oldColumn.MaxLength != column.MaxLength && !(oldColumn.MaxLength == -1 && column.MaxLength >= 4000));
+			var defaultValueChanged = (oldColumn.DefaultValue == null && oldColumn.DefaultValue != column.DefaultValue);
+			var allowNullsChanged = (oldColumn.AllowNulls != column.AllowNulls);
+			var maxLengthChanged = (oldColumn.MaxLength != column.MaxLength && !(oldColumn.MaxLength == -1 && column.MaxLength >= 4000));
 
 			if (columnTypeChanged || defaultValueChanged || allowNullsChanged || maxLengthChanged)
 			{
 				using (var command = CreateCommand(connection))
 				{
 					// Drop all constraints before updating the column.  They will be re-created later
-					List<string> constraints = GetColumnConstraintsToDrop(table, column, connection);
+					var constraints = GetColumnConstraintsToDrop(table, column, connection);
 					if (constraints.Count > 0)
 					{
 						command.CommandText = string.Join(Environment.NewLine, constraints.ToArray());
@@ -507,7 +507,7 @@ namespace Watsonia.Data.SQLite
 
 		protected virtual List<string> GetColumnConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
-			List<string> constraints = new List<string>();
+			var constraints = new List<string>();
 
 			constraints.AddRange(GetForeignKeyConstraintsToDrop(table, column, connection));
 			constraints.AddRange(GetPrimaryKeyConstraintsToDrop(table, column, connection));
@@ -518,7 +518,7 @@ namespace Watsonia.Data.SQLite
 
 		protected virtual List<string> GetForeignKeyConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
-			List<string> constraints = new List<string>();
+			var constraints = new List<string>();
 
 			// TODO:
 			//// Get foreign key constraints on this column or that reference this column
@@ -556,7 +556,7 @@ namespace Watsonia.Data.SQLite
 
 		protected virtual List<string> GetPrimaryKeyConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
-			List<string> constraints = new List<string>();
+			var constraints = new List<string>();
 
 			// TODO:
 			//// Get primary key constraints for this column
@@ -584,7 +584,7 @@ namespace Watsonia.Data.SQLite
 
 		protected virtual List<string> GetDefaultValueConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
-			List<string> constraints = new List<string>();
+			var constraints = new List<string>();
 
 			// TODO:
 			//// Get default value constraints for this column
@@ -637,12 +637,12 @@ namespace Watsonia.Data.SQLite
 				{
 					using (var identityInsertCommand = CreateCommand(connection))
 					{
-						InsertStatement insertData = Insert.Into(table.Name);
-						foreach (string key in data.Keys)
+						var insertData = Insert.Into(table.Name);
+						foreach (var key in data.Keys)
 						{
 							insertData = insertData.Value(key, data[key]);
 						}
-						using (DbCommand command = _dataAccessProvider.BuildCommand(insertData, _configuration))
+						using (var command = _dataAccessProvider.BuildCommand(insertData, _configuration))
 						{
 							command.Connection = connection;
 							ExecuteSql(command, doUpdate, script);
@@ -654,7 +654,7 @@ namespace Watsonia.Data.SQLite
 
 		protected virtual void CreateView(MappedView view, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			b.AppendLine($"CREATE VIEW [{view.Name}] AS");
 			using (var viewCommand = _configuration.DataAccessProvider.BuildCommand(view.SelectStatement, _configuration))
 			{
@@ -671,7 +671,7 @@ namespace Watsonia.Data.SQLite
 
 		protected virtual void UpdateView(MappedView view, MappedView oldView, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
-			StringBuilder b = new StringBuilder();
+			var b = new StringBuilder();
 			b.AppendLine($"CREATE VIEW [{view.Name}] AS");
 			using (var viewCommand = _configuration.DataAccessProvider.BuildCommand(view.SelectStatement, _configuration))
 			{
@@ -698,7 +698,7 @@ namespace Watsonia.Data.SQLite
 				if (command.Parameters.Count > 0)
 				{
 					script.Append(" { ");
-					for (int i = 0; i < command.Parameters.Count; i++)
+					for (var i = 0; i < command.Parameters.Count; i++)
 					{
 						if (i > 0)
 						{
@@ -733,7 +733,7 @@ namespace Watsonia.Data.SQLite
 
 		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views)
 		{
-			StringBuilder columns = new StringBuilder();
+			var columns = new StringBuilder();
 
 			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
 			{
@@ -742,13 +742,13 @@ namespace Watsonia.Data.SQLite
 				var existingColumns = LoadExistingColumns(existingTables, connection);
 
 				// Check whether each existing column is mapped
-				foreach (string columnKey in existingColumns.Keys)
+				foreach (var columnKey in existingColumns.Keys)
 				{
-					string tableName = columnKey.Split('.')[0];
-					string columnName = columnKey.Split('.')[1];
+					var tableName = columnKey.Split('.')[0];
+					var columnName = columnKey.Split('.')[1];
 
-					MappedTable table = tables.FirstOrDefault(m => m.Name.Equals(tableName, StringComparison.InvariantCultureIgnoreCase));
-					bool isColumnMapped = (table != null && table.Columns.Any(c => c.Name.Equals(columnName, StringComparison.InvariantCultureIgnoreCase)));
+					var table = tables.FirstOrDefault(m => m.Name.Equals(tableName, StringComparison.InvariantCultureIgnoreCase));
+					var isColumnMapped = (table != null && table.Columns.Any(c => c.Name.Equals(columnName, StringComparison.InvariantCultureIgnoreCase)));
 
 					if (!isColumnMapped)
 					{

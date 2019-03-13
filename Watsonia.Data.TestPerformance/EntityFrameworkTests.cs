@@ -16,7 +16,7 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (EntityFrameworkContext context = new EntityFrameworkContext())
+			using (var context = new EntityFrameworkContext())
 			{
 				var posts = context.Posts.ToList();
 				foreach (var p in posts)
@@ -32,7 +32,7 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (EntityFrameworkContext context = new EntityFrameworkContext())
+			using (var context = new EntityFrameworkContext())
 			{
 				var player = context.Players.Find(id);
 				this.LoadedItems.Add("Player: " + player.ID);
@@ -45,7 +45,7 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (EntityFrameworkContext context = new EntityFrameworkContext())
+			using (var context = new EntityFrameworkContext())
 			{
 				var players = context.Players.AsNoTracking().Where(x => x.TeamsID == teamID).ToList();
 				foreach (var p in players)
@@ -61,7 +61,7 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (EntityFrameworkContext context = new EntityFrameworkContext())
+			using (var context = new EntityFrameworkContext())
 			{
 				var teams = context.Teams.AsNoTracking().Include(x => x.Players).Where(x => x.SportsID == sportID).ToList();
 				foreach (var t in teams)

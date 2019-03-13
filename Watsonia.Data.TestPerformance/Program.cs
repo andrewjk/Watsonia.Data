@@ -27,7 +27,7 @@ namespace Watsonia.Data.TestPerformance
 			CheckDatabase(db);
 
 			Console.WriteLine("Running tests...");
-			List<TestResult> testResults = RunTests();
+			var testResults = RunTests();
 
 			ProcessResults(testResults);
 
@@ -49,14 +49,14 @@ namespace Watsonia.Data.TestPerformance
 
 			if (db.Query<Post>().Count() == 0)
 			{
-				List<Post> posts = DataGenerator.GeneratePosts(db, PostCount);
-				List<Sport> sports = DataGenerator.GenerateSports(db, SportCount);
+				var posts = DataGenerator.GeneratePosts(db, PostCount);
+				var sports = DataGenerator.GenerateSports(db, SportCount);
 				foreach (var sport in sports)
 				{
-					List<Team> teams = DataGenerator.GenerateTeams(db, sport, TeamsPerSportCount);
+					var teams = DataGenerator.GenerateTeams(db, sport, TeamsPerSportCount);
 					foreach (var team in teams)
 					{
-						List<Player> players = DataGenerator.GeneratePlayers(db, team, PlayersPerTeamCount);
+						var players = DataGenerator.GeneratePlayers(db, team, PlayersPerTeamCount);
 					}
 				}
 			}
@@ -66,7 +66,7 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var testResults = new List<TestResult>();
 
-			for (int i = 0; i < RunCount; i++)
+			for (var i = 0; i < RunCount; i++)
 			{
 				Console.WriteLine("{0}/{1}", i + 1, RunCount);
 
@@ -95,27 +95,27 @@ namespace Watsonia.Data.TestPerformance
 
 			var result = new TestResult() { Number = number, Framework = framework };
 			var allPostsResults = new List<long>();
-			for (int i = 1; i <= Math.Min(MaxOperations, PostCount); i++)
+			for (var i = 1; i <= Math.Min(MaxOperations, PostCount); i++)
 			{
 				allPostsResults.Add(tests.GetAllPosts());
 			}
 			result.AllPostsMilliseconds = Math.Round(allPostsResults.Average(), 2);
 
 			var playerByIDResults = new List<long>();
-			for (int i = 1; i <= Math.Min(MaxOperations, PlayersPerTeamCount * TeamsPerSportCount * SportCount); i++)
+			for (var i = 1; i <= Math.Min(MaxOperations, PlayersPerTeamCount * TeamsPerSportCount * SportCount); i++)
 			{
 				playerByIDResults.Add(tests.GetPlayerByID(i));
 			}
 			result.PlayerByIDMilliseconds = Math.Round(playerByIDResults.Average(), 2);
 
 			var playersForTeamResults = new List<long>();
-			for (int i = 1; i <= Math.Min(MaxOperations, TeamsPerSportCount * SportCount); i++)
+			for (var i = 1; i <= Math.Min(MaxOperations, TeamsPerSportCount * SportCount); i++)
 			{
 				playersForTeamResults.Add(tests.GetPlayersForTeam(i));
 			}
 			result.PlayersForTeamMilliseconds = Math.Round(playersForTeamResults.Average(), 2);
 			var teamsForSportResults = new List<long>();
-			for (int i = 1; i <= Math.Min(MaxOperations, SportCount); i++)
+			for (var i = 1; i <= Math.Min(MaxOperations, SportCount); i++)
 			{
 				teamsForSportResults.Add(tests.GetTeamsForSport(i));
 			}
@@ -154,10 +154,10 @@ namespace Watsonia.Data.TestPerformance
 						orderResult.TeamsForSportMilliseconds.ToString()
 					});
 				}
-				double averageAllPosts = group.Average(x => x.AllPostsMilliseconds);
-				double averagePlayerByID = group.Average(x => x.PlayerByIDMilliseconds);
-				double averagePlayersForTeam = group.Average(x => x.PlayersForTeamMilliseconds);
-				double averageTeamsForSport = group.Average(x => x.TeamsForSportMilliseconds);
+				var averageAllPosts = group.Average(x => x.AllPostsMilliseconds);
+				var averagePlayerByID = group.Average(x => x.PlayerByIDMilliseconds);
+				var averagePlayersForTeam = group.Average(x => x.PlayersForTeamMilliseconds);
+				var averageTeamsForSport = group.Average(x => x.TeamsForSportMilliseconds);
 				lineParts.Add(new string[] {
 					"Avg",
 					averageAllPosts.ToString(),
@@ -197,7 +197,7 @@ namespace Watsonia.Data.TestPerformance
 				}
 			}
 
-			foreach (string line in lines)
+			foreach (var line in lines)
 			{
 				Console.WriteLine(line);
 			}
@@ -205,7 +205,7 @@ namespace Watsonia.Data.TestPerformance
 			var logFile = $@"Data\Log {DateTime.Now:yyyy-MM-dd-HH-mm-ss}.txt";
 			using (var writer = new StreamWriter(logFile))
 			{
-				foreach (string line in lines)
+				foreach (var line in lines)
 				{
 					writer.WriteLine(line);
 				}

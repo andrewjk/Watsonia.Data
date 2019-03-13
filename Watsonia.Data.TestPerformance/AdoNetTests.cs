@@ -87,7 +87,7 @@ namespace Watsonia.Data.TestPerformance
 			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
 			{
 				conn.Open();
-				string query = "" +
+				var query = "" +
 					"SELECT p.ID, p.FirstName, p.LastName, p.DateOfBirth, p.TeamID, t.ID as TeamID, t.Name, t.SportID " +
 					"FROM Players p " +
 					"INNER JOIN Teams t ON p.TeamID = t.ID " +

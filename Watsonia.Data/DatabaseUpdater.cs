@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -90,7 +90,7 @@ namespace Watsonia.Data
 			var viewDictionary = new Dictionary<string, MappedView>();
 			var procedureDictionary = new Dictionary<string, MappedProcedure>();
 			var functionDictionary = new Dictionary<string, MappedFunction>();
-			foreach (Type type in configuration.TypesToMap())
+			foreach (var type in configuration.TypesToMap())
 			{
 				if (configuration.IsView(type))
 				{
@@ -113,16 +113,16 @@ namespace Watsonia.Data
 			// Assign each relationship to the appropriate table
 			foreach (var relationshipKey in tableRelationships.Keys)
 			{
-				MappedRelationship relationship = tableRelationships[relationshipKey];
+				var relationship = tableRelationships[relationshipKey];
 
-				string tableName = relationshipKey.Split('.')[0];
-				string columnName = relationshipKey.Split('.')[1];
-				if (tableDictionary.TryGetValue(tableName, out MappedTable table))
+				var tableName = relationshipKey.Split('.')[0];
+				var columnName = relationshipKey.Split('.')[1];
+				if (tableDictionary.TryGetValue(tableName, out var table))
 				{
-					MappedColumn column = table.Columns.FirstOrDefault(c => c.Name == columnName);
+					var column = table.Columns.FirstOrDefault(c => c.Name == columnName);
 					if (column == null)
 					{
-						Type foreignKeyType = typeof(Nullable<>).MakeGenericType(configuration.GetPrimaryKeyColumnType(relationship.ForeignTableType));
+						var foreignKeyType = typeof(Nullable<>).MakeGenericType(configuration.GetPrimaryKeyColumnType(relationship.ForeignTableType));
 						column = new MappedColumn(columnName, foreignKeyType, "");
 						table.Columns.Add(column);
 					}
@@ -138,29 +138,29 @@ namespace Watsonia.Data
 
 		private void GetMappedTable(Dictionary<string, MappedTable> tableDictionary, Dictionary<string, MappedRelationship> tableRelationships, Type tableType,  DatabaseConfiguration configuration)
 		{
-			string tableName = configuration.GetTableName(tableType);
-			string primaryKeyColumnName = configuration.GetPrimaryKeyColumnName(tableType);
-			string primaryKeyConstraintName = configuration.GetPrimaryKeyConstraintName(tableType);
+			var tableName = configuration.GetTableName(tableType);
+			var primaryKeyColumnName = configuration.GetPrimaryKeyColumnName(tableType);
+			var primaryKeyConstraintName = configuration.GetPrimaryKeyConstraintName(tableType);
 
 			var table = new MappedTable(tableName, primaryKeyColumnName, primaryKeyConstraintName);
 
-			bool tableHasColumns = false;
-			bool tableHasRelationships = false;
+			var tableHasColumns = false;
+			var tableHasRelationships = false;
 
-			foreach (PropertyInfo property in configuration.PropertiesToMap(tableType))
+			foreach (var property in configuration.PropertiesToMap(tableType))
 			{
-				string columnName = configuration.GetColumnName(property);
-				string defaultValueConstraintName = configuration.GetDefaultValueConstraintName(tableName, property);
+				var columnName = configuration.GetColumnName(property);
+				var defaultValueConstraintName = configuration.GetDefaultValueConstraintName(tableName, property);
 
 				var column = new MappedColumn(columnName, property.PropertyType, defaultValueConstraintName);
-				bool addColumn = true;
+				var addColumn = true;
 				if (property.PropertyType == typeof(string))
 				{
 					// It's a string so get the max length from any StringLength attribute that is applied
-					object[] stringLengthAttributes = property.GetCustomAttributes(typeof(StringLengthAttribute), false);
+					var stringLengthAttributes = property.GetCustomAttributes(typeof(StringLengthAttribute), false);
 					if (stringLengthAttributes.Length > 0)
 					{
-						StringLengthAttribute attribute = (StringLengthAttribute)stringLengthAttributes[0];
+						var attribute = (StringLengthAttribute)stringLengthAttributes[0];
 						column.MaxLength = attribute.MaximumLength;
 					}
 					else
@@ -174,16 +174,16 @@ namespace Watsonia.Data
 				else if (property.PropertyType.IsEnum)
 				{
 					// It's an enum so we might need to create a table for it
-					string enumTableName = configuration.GetTableName(property.PropertyType);
-					string enumPrimaryKeyColumnName = configuration.GetPrimaryKeyColumnName(property.PropertyType);
-					string enumPrimaryKeyConstraintName = configuration.GetPrimaryKeyConstraintName(property.PropertyType);
+					var enumTableName = configuration.GetTableName(property.PropertyType);
+					var enumPrimaryKeyColumnName = configuration.GetPrimaryKeyColumnName(property.PropertyType);
+					var enumPrimaryKeyConstraintName = configuration.GetPrimaryKeyConstraintName(property.PropertyType);
 
 					if (!tableDictionary.ContainsKey(property.PropertyType.Name))
 					{
 						var enumTable = new MappedTable(enumTableName, enumPrimaryKeyColumnName, enumPrimaryKeyConstraintName);
 						enumTable.Columns.Add(new MappedColumn(enumPrimaryKeyColumnName, typeof(int), "") { IsPrimaryKey = true });
 						enumTable.Columns.Add(new MappedColumn("Text", typeof(string), "DF_" + enumTableName + "_Text") { MaxLength = 255 });
-						foreach (object value in Enum.GetValues(property.PropertyType))
+						foreach (var value in Enum.GetValues(property.PropertyType))
 						{
 							enumTable.Values.Add(new Dictionary<string, object>() { 
 										{ "ID", (int)value },
@@ -202,10 +202,10 @@ namespace Watsonia.Data
 						enumPrimaryKeyColumnName);
 
 					// And its default value is the default value for the enum
-					object[] enumDefaultValueAttributes = property.PropertyType.GetCustomAttributes(typeof(DefaultValueAttribute), false);
+					var enumDefaultValueAttributes = property.PropertyType.GetCustomAttributes(typeof(DefaultValueAttribute), false);
 					if (enumDefaultValueAttributes.Length > 0)
 					{
-						DefaultValueAttribute attribute = (DefaultValueAttribute)enumDefaultValueAttributes[0];
+						var attribute = (DefaultValueAttribute)enumDefaultValueAttributes[0];
 						column.DefaultValue = (int)attribute.Value;
 					}
 					else
@@ -226,11 +226,11 @@ namespace Watsonia.Data
 				}
 				else
 				{
-					if (configuration.IsRelatedCollection(property, out Type itemType))
+					if (configuration.IsRelatedCollection(property, out var itemType))
 					{
 						// It's a collection property referencing another table so add it to the table relationships
 						// collection for wiring up when we have all tables
-						string key = $"{configuration.GetTableName(itemType)}.{configuration.GetForeignKeyColumnName(itemType, tableType)}";
+						var key = $"{configuration.GetTableName(itemType)}.{configuration.GetForeignKeyColumnName(itemType, tableType)}";
 						tableRelationships.Add(key,
 							new MappedRelationship(
 								configuration.GetForeignKeyConstraintName(itemType, tableType),
@@ -243,10 +243,10 @@ namespace Watsonia.Data
 				}
 
 				// Get the default value from any DefaultValue attribute that is applied
-				object[] defaultValueAttributes = property.GetCustomAttributes(typeof(DefaultValueAttribute), false);
+				var defaultValueAttributes = property.GetCustomAttributes(typeof(DefaultValueAttribute), false);
 				if (defaultValueAttributes.Length > 0)
 				{
-					DefaultValueAttribute attribute = (DefaultValueAttribute)defaultValueAttributes[0];
+					var attribute = (DefaultValueAttribute)defaultValueAttributes[0];
 					column.DefaultValue = attribute.Value;
 				}
 
@@ -260,7 +260,7 @@ namespace Watsonia.Data
 			if (tableHasColumns || tableHasRelationships)
 			{
 				// Add the primary key column (or move it to the first column position for nicety)
-				MappedColumn primaryKeyColumn = table.Columns.FirstOrDefault(c => c.Name.Equals(primaryKeyColumnName, StringComparison.InvariantCultureIgnoreCase));
+				var primaryKeyColumn = table.Columns.FirstOrDefault(c => c.Name.Equals(primaryKeyColumnName, StringComparison.InvariantCultureIgnoreCase));
 				if (primaryKeyColumn == null)
 				{
 					primaryKeyColumn = new MappedColumn(primaryKeyColumnName, configuration.GetPrimaryKeyColumnType(tableType), "");
@@ -279,7 +279,7 @@ namespace Watsonia.Data
 				// Remove any duplicate relationship columns e.g. if the user has added properties for
 				// Author and AuthorID, we want AuthorID to be populated from the relationship
 				var columnsToRemove = new List<MappedColumn>();
-				foreach (MappedColumn column in table.Columns)
+				foreach (var column in table.Columns)
 				{
 					if (column.Relationship == null &&
 						table.Columns.Any(c => c.Relationship != null && c.Name == column.Name))
@@ -287,7 +287,7 @@ namespace Watsonia.Data
 						columnsToRemove.Add(column);
 					}
 				}
-				foreach (MappedColumn column in columnsToRemove)
+				foreach (var column in columnsToRemove)
 				{
 					table.Columns.Remove(column);
 				}
@@ -296,18 +296,18 @@ namespace Watsonia.Data
 
 		private void GetMappedView(Dictionary<string, MappedView> viewDictionary, Type viewType, DatabaseConfiguration configuration)
 		{
-			string viewName = configuration.GetViewName(viewType);
+			var viewName = configuration.GetViewName(viewType);
 
 			var view = new MappedView(viewName);
 
-			bool viewHasColumns = false;
+			var viewHasColumns = false;
 
-			foreach (PropertyInfo property in configuration.PropertiesToMap(viewType))
+			foreach (var property in configuration.PropertiesToMap(viewType))
 			{
-				string columnName = configuration.GetColumnName(property);
+				var columnName = configuration.GetColumnName(property);
 
 				var column = new MappedColumn(columnName, property.PropertyType, "");
-				bool addColumn = true;
+				var addColumn = true;
 				if (configuration.IsRelatedItem(property))
 				{
 					// It's a property referencing another view so change its name and type
@@ -321,7 +321,7 @@ namespace Watsonia.Data
 				}
 				else
 				{
-					if (configuration.IsRelatedCollection(property, out Type itemType))
+					if (configuration.IsRelatedCollection(property, out var itemType))
 					{
 						// It's a collection property referencing another table so add it to the view relationships
 						// collection for wiring up when we have all views
@@ -335,7 +335,7 @@ namespace Watsonia.Data
 				}
 			}
 
-			PropertyInfo statementProperty = viewType.GetProperty("SelectStatement", BindingFlags.Public | BindingFlags.Static);
+			var statementProperty = viewType.GetProperty("SelectStatement", BindingFlags.Public | BindingFlags.Static);
 			if (statementProperty != null)
 			{
 				view.SelectStatement = (Statement)statementProperty.GetValue(null);
@@ -350,11 +350,11 @@ namespace Watsonia.Data
 		
 		private void GetMappedProcedure(Dictionary<string, MappedProcedure> procedureDictionary, Type procedureType, DatabaseConfiguration configuration)
 		{
-			string procedureName = configuration.GetProcedureName(procedureType);
+			var procedureName = configuration.GetProcedureName(procedureType);
 
 			var procedure = new MappedProcedure(procedureName);
 
-			PropertyInfo statementProperty = procedureType.GetProperty("Statement", BindingFlags.Public | BindingFlags.Static);
+			var statementProperty = procedureType.GetProperty("Statement", BindingFlags.Public | BindingFlags.Static);
 			if (statementProperty != null)
 			{
 				procedure.Statement = (Statement)statementProperty.GetValue(null);
@@ -372,11 +372,11 @@ namespace Watsonia.Data
 
 		private void GetMappedFunction(Dictionary<string, MappedFunction> functionDictionary, Type functionType, DatabaseConfiguration configuration)
 		{
-			string functionName = configuration.GetFunctionName(functionType);
+			var functionName = configuration.GetFunctionName(functionType);
 
 			var function = new MappedFunction(functionName);
 
-			PropertyInfo statementProperty = functionType.GetProperty("Statement", BindingFlags.Public | BindingFlags.Static);
+			var statementProperty = functionType.GetProperty("Statement", BindingFlags.Public | BindingFlags.Static);
 			if (statementProperty != null)
 			{
 				function.Statement = (Statement)statementProperty.GetValue(null);
