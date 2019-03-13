@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Reflection;
 using System.Text;
 using Watsonia.Data.Mapping;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data.SqlServer
 {

@@ -5,10 +5,10 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Watsonia.Data.Sql;
 using Remotion.Linq.Clauses;
 using System.Linq.Expressions;
 using Remotion.Linq.Clauses.Expressions;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data
 {

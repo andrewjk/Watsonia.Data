@@ -11,6 +11,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data
 {
@@ -551,8 +552,8 @@ namespace Watsonia.Data
 		private SelectStatement GetChildCollectionSubquery(SelectStatement parentQuery, Type parentType, Type itemType)
 		{
 			// Build a statement to use as a subquery to get the IDs of the parent items
-			var parentTable = (Sql.Table)parentQuery.Source;
-			var parentIDColumn = new Sql.Column(
+			var parentTable = (Table)parentQuery.Source;
+			var parentIDColumn = new Column(
 				!string.IsNullOrEmpty(parentTable.Alias) ? parentTable.Alias : parentTable.Name,
 				this.Configuration.GetPrimaryKeyColumnName(parentType));
 			var selectParentItemIDs = Select.From(parentQuery.Source).Columns(parentIDColumn);
@@ -576,20 +577,20 @@ namespace Watsonia.Data
 
 		private SelectStatement GetChildItemSubquery(SelectStatement parentQuery, PropertyInfo parentProperty, Type itemType)
 		{
-			Sql.Column foreignKeyColumn;
-			if (parentQuery.Source is Sql.UserDefinedFunction)
+			Column foreignKeyColumn;
+			if (parentQuery.Source is UserDefinedFunction)
 			{
 				// Build a statement to use as a subquery to get the IDs of the parent items
-				var foreignTable = (Sql.UserDefinedFunction)parentQuery.Source;
-				foreignKeyColumn = new Sql.Column(
+				var foreignTable = (UserDefinedFunction)parentQuery.Source;
+				foreignKeyColumn = new Column(
 					!string.IsNullOrEmpty(foreignTable.Alias) ? foreignTable.Alias : foreignTable.Name,
 					this.Configuration.GetForeignKeyColumnName(parentProperty));
 			}
 			else
 			{
 				// Build a statement to use as a subquery to get the IDs of the parent items
-				var foreignTable = (Sql.Table)parentQuery.Source;
-				foreignKeyColumn = new Sql.Column(
+				var foreignTable = (Table)parentQuery.Source;
+				foreignKeyColumn = new Column(
 					!string.IsNullOrEmpty(foreignTable.Alias) ? foreignTable.Alias : foreignTable.Name,
 					this.Configuration.GetForeignKeyColumnName(parentProperty));
 			}
@@ -729,7 +730,7 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IList<T> LoadCollection<T>(SelectStatement<T> select)
 		{
-			var select2 = select.CreateStatement(this.Configuration);
+			var select2 = select.CreateStatement(new QueryMapper(this.Configuration));
 			return LoadCollection<T>(select2);
 		}
 
@@ -920,7 +921,7 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public object LoadValue<T>(SelectStatement<T> select)
 		{
-			var select2 = select.CreateStatement(this.Configuration);
+			var select2 = select.CreateStatement(new QueryMapper(this.Configuration));
 			return LoadValue(select2);
 		}
 
@@ -1139,7 +1140,7 @@ namespace Watsonia.Data
 
 		private void InsertItem(IDynamicProxy proxy, string tableName, Type tableType, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction)
 		{
-			var insert = Watsonia.Data.Insert.Into(tableName);
+			var insert = Watsonia.QueryBuilder.Insert.Into(tableName);
 			foreach (var property in this.Configuration.PropertiesToLoadAndSave(proxy.GetType()))
 			{
 				if (property.Name != primaryKeyColumnName)
@@ -1335,7 +1336,7 @@ namespace Watsonia.Data
 					}
 				}
 
-				var deleteQuery = Watsonia.Data.Delete.From(tableName).Where(primaryKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
+				var deleteQuery = Watsonia.QueryBuilder.Delete.From(tableName).Where(primaryKeyName, SqlOperator.Equals, proxy.PrimaryKeyValue);
 				Execute(deleteQuery, connectionToUse, transactionToUse);
 
 				// If a transaction was not passed in and we created our own, commit it

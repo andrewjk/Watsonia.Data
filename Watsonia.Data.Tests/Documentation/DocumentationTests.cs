@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Watsonia.Data.SqlServer;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data.Tests.Documentation
 {
@@ -14,7 +15,7 @@ namespace Watsonia.Data.Tests.Documentation
 	[TestClass]
 	public class DocumentationTests
 	{
-		private static DocumentationDatabase db = new DocumentationDatabase();
+		private static readonly DocumentationDatabase _db = new DocumentationDatabase();
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
@@ -24,32 +25,32 @@ namespace Watsonia.Data.Tests.Documentation
 				File.Create(@"Data\DocumentationTests.sqlite");
 			}
 
-			db.UpdateDatabase();
+			_db.UpdateDatabase();
 
 			// Let's first delete all of the authors and books
-			db.Execute(Delete.From("Book").Where(true));
-			db.Execute(Delete.From("Author").Where(true));
+			_db.Execute(Delete.From("Book").Where(true));
+			_db.Execute(Delete.From("Author").Where(true));
 
 			// Pop quiz: What do these authors have in common?
-			db.Insert(new Author { FirstName = "Stephen Jay", LastName = "Gould" });
-			db.Insert(new Author { FirstName = "Stephen", LastName = "Hawking" });
-			db.Insert(new Author { FirstName = "Stephen", LastName = "King" });
-			db.Insert(new Author { FirstName = "Amy", LastName = "Tan" });
-			db.Insert(new Author { FirstName = "John", LastName = "Updike" });
-			db.Insert(new Author { FirstName = "Thomas", LastName = "Pynchon" });
-			db.Insert(new Author { FirstName = "Tom", LastName = "Clancy" });
-			db.Insert(new Author { FirstName = "George", LastName = "Plimpton" });
-			db.Insert(new Author { FirstName = "J.K.", LastName = "Rowling" });
-			db.Insert(new Author { FirstName = "Michael", LastName = "Chabon" });
-			db.Insert(new Author { FirstName = "Johnathan", LastName = "Franzen" });
-			db.Insert(new Author { FirstName = "Tom", LastName = "Wolfe" });
-			db.Insert(new Author { FirstName = "Gore", LastName = "Vidal" });
-			db.Insert(new Author { FirstName = "Art", LastName = "Spieglman" });
-			db.Insert(new Author { FirstName = "Alan", LastName = "Moore" });
-			db.Insert(new Author { FirstName = "Dan", LastName = "Clowes" });
-			db.Insert(new Author { FirstName = "Mitch", LastName = "Albom" });
-			db.Insert(new Author { FirstName = "Gary", LastName = "Larson" });
-			db.Insert(new Author { FirstName = "Neil", LastName = "Gaiman" });
+			_db.Insert(new Author { FirstName = "Stephen Jay", LastName = "Gould" });
+			_db.Insert(new Author { FirstName = "Stephen", LastName = "Hawking" });
+			_db.Insert(new Author { FirstName = "Stephen", LastName = "King" });
+			_db.Insert(new Author { FirstName = "Amy", LastName = "Tan" });
+			_db.Insert(new Author { FirstName = "John", LastName = "Updike" });
+			_db.Insert(new Author { FirstName = "Thomas", LastName = "Pynchon" });
+			_db.Insert(new Author { FirstName = "Tom", LastName = "Clancy" });
+			_db.Insert(new Author { FirstName = "George", LastName = "Plimpton" });
+			_db.Insert(new Author { FirstName = "J.K.", LastName = "Rowling" });
+			_db.Insert(new Author { FirstName = "Michael", LastName = "Chabon" });
+			_db.Insert(new Author { FirstName = "Johnathan", LastName = "Franzen" });
+			_db.Insert(new Author { FirstName = "Tom", LastName = "Wolfe" });
+			_db.Insert(new Author { FirstName = "Gore", LastName = "Vidal" });
+			_db.Insert(new Author { FirstName = "Art", LastName = "Spieglman" });
+			_db.Insert(new Author { FirstName = "Alan", LastName = "Moore" });
+			_db.Insert(new Author { FirstName = "Dan", LastName = "Clowes" });
+			_db.Insert(new Author { FirstName = "Mitch", LastName = "Albom" });
+			_db.Insert(new Author { FirstName = "Gary", LastName = "Larson" });
+			_db.Insert(new Author { FirstName = "Neil", LastName = "Gaiman" });
 		}
 
 		[TestMethod]
@@ -59,7 +60,7 @@ namespace Watsonia.Data.Tests.Documentation
 			object existingAuthorID = null;
 
 			// Test a LINQ query
-			var query = from a in db.Query<Author>()
+			var query = from a in _db.Query<Author>()
 						where a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase)
 						select a;
 			foreach (var a in query)
@@ -73,26 +74,26 @@ namespace Watsonia.Data.Tests.Documentation
 
 			// Test a fluent SQL query
 			var query2 = Select.From("Author").Where("LastName", SqlOperator.StartsWith, "P");
-			Assert.AreEqual(2, db.LoadCollection<Author>(query2).Count);
+			Assert.AreEqual(2, _db.LoadCollection<Author>(query2).Count);
 
 			var query22 = Select.From<Author>().Where(a => a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase));
-			Assert.AreEqual(2, db.LoadCollection<Author>(query22).Count);
+			Assert.AreEqual(2, _db.LoadCollection<Author>(query22).Count);
 
 			// Test an SQL string
 			var query3 = "SELECT * FROM Author WHERE LastName LIKE @0";
-			Assert.AreEqual(2, db.LoadCollection<Author>(query3, "P%").Count);
+			Assert.AreEqual(2, _db.LoadCollection<Author>(query3, "P%").Count);
 
 			// Test loading a scalar value
 			var query4 = Select.From("Author").Count("*").Where("LastName", SqlOperator.StartsWith, "P");
-			var count = Convert.ToInt32(db.LoadValue(query4));
+			var count = Convert.ToInt32(_db.LoadValue(query4));
 			Assert.AreEqual(2, count);
 
 			var query44 = Select.From<Author>().Count().Where(a => a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase));
-			var count44 = Convert.ToInt32(db.LoadValue(query44));
+			var count44 = Convert.ToInt32(_db.LoadValue(query44));
 			Assert.AreEqual(2, count44);
 
 			// Test loading an item
-			var author = db.Load<Author>(existingAuthorID);
+			var author = _db.Load<Author>(existingAuthorID);
 			Assert.IsNotNull(author);
 		}
 
@@ -101,23 +102,23 @@ namespace Watsonia.Data.Tests.Documentation
 		{
 			// Get a random author's ID:
 			var selectAuthor = Select.From("Author").Take(1).Where("LastName", SqlOperator.StartsWith, "P");
-			var existingAuthors = db.LoadCollection<Author>(selectAuthor);
+			var existingAuthors = _db.LoadCollection<Author>(selectAuthor);
 			var existingAuthor = existingAuthors[0];
 			var existingAuthorID = ((IDynamicProxy)existingAuthor).PrimaryKeyValue;
 
 			// Update an existing author
-			var author = db.Load<Author>(existingAuthorID);
+			var author = _db.Load<Author>(existingAuthorID);
 			author.Rating = 85;
-			db.Save(author);
+			_db.Save(author);
 
 			// Create an author
-			var newAuthor = db.Create<Author>();
+			var newAuthor = _db.Create<Author>();
 			newAuthor.FirstName = "Eric";
 			newAuthor.LastName = "Blair";
-			db.Save(newAuthor);
+			_db.Save(newAuthor);
 
 			// Create an author more tersely
-			var newAuthor2 = db.Insert(new Author() { FirstName = "Eric", LastName = "Blair" });
+			var newAuthor2 = _db.Insert(new Author() { FirstName = "Eric", LastName = "Blair" });
 		}
 
 		[TestMethod]
@@ -125,19 +126,19 @@ namespace Watsonia.Data.Tests.Documentation
 		{
 			// Update using fluent SQL
 			var update = Update.Table("Author").Set("Rating", 95).Where("LastName", SqlOperator.StartsWith, "P");
-			db.Execute(update);
+			_db.Execute(update);
 
 			// Update using an SQL string
 			var update2 = "UPDATE Author SET Rating = 95 WHERE LastName LIKE @0";
-			db.Execute(update2, "P%");
+			_db.Execute(update2, "P%");
 
 			// Delete using fluent SQL
 			var delete = Delete.From("Author").Where("Rating", SqlOperator.IsLessThan, 80);
-			db.Execute(delete);
+			_db.Execute(delete);
 
 			// Delete using an SQL string
 			var delete2 = "DELETE FROM Author WHERE Rating < @0";
-			db.Execute(delete2, 80);
+			_db.Execute(delete2, 80);
 		}
 
 		[TestMethod]
@@ -151,16 +152,16 @@ namespace Watsonia.Data.Tests.Documentation
 			//db.Execute(insert);
 
 			var update = Update.Table<Author>().Set(a => a.Rating, 95).Where(a => a.LastName.StartsWith("P"));
-			db.Execute(update);
+			_db.Execute(update);
 
 			var delete = Delete.From<Author>().Where(a => a.Rating < 80);
-			db.Execute(delete);
+			_db.Execute(delete);
 		}
 
 		[TestMethod]
 		public void TestValidation()
 		{
-			var author = db.Create<Author>();
+			var author = _db.Create<Author>();
 
 			// There should be an error for the first and last name being required
 			Assert.IsFalse(author.IsValid, "Author should be invalid");
@@ -175,7 +176,7 @@ namespace Watsonia.Data.Tests.Documentation
 			Assert.AreEqual(0, author.ValidationErrors.Count, "Author validation error count should be 0");
 
 			// Add a book without a title
-			var book = db.Create<Book>();
+			var book = _db.Create<Book>();
 			author.Books.Add(book);
 
 			// There should be an error for the book's title being required
@@ -186,11 +187,11 @@ namespace Watsonia.Data.Tests.Documentation
 			book.Title = "1984";
 
 			// Add another dodgy book and make sure that saving it to the database fails
-			var book2 = db.Create<Book>();
+			var book2 = _db.Create<Book>();
 			author.Books.Add(book2);
 			try
 			{
-				db.Save(author);
+				_db.Save(author);
 				Assert.Fail("Book with no title shouldn't save");
 			}
 			catch (ValidationException)
@@ -203,12 +204,12 @@ namespace Watsonia.Data.Tests.Documentation
 			book2.Title = "Animal Farm";
 
 			// Add yet another dodgy book and make sure that saving it to the database fails
-			var book3 = db.Create<Book>();
+			var book3 = _db.Create<Book>();
 			book3.Title = "Bad Book";
 			author.Books.Add(book3);
 			try
 			{
-				db.Save(author);
+				_db.Save(author);
 				Assert.Fail("Book with bad title shouldn't save");
 			}
 			catch (ValidationException)
@@ -222,16 +223,16 @@ namespace Watsonia.Data.Tests.Documentation
 		public void TestHasChanges()
 		{
 			// Create an author and some books
-			var author = db.Create<Author>();
+			var author = _db.Create<Author>();
 			author.FirstName = "Ernest";
 			author.LastName = "Hemingway";
 			author.Rating = 95;
 
-			var book1 = db.Create<Book>();
+			var book1 = _db.Create<Book>();
 			book1.Title = "The Sun Also Rises";
 			author.Books.Add(book1);
 
-			var book2 = db.Create<Book>();
+			var book2 = _db.Create<Book>();
 			book2.Title = "The Old Man And The Sea";
 			author.Books.Add(book2);
 
@@ -241,7 +242,7 @@ namespace Watsonia.Data.Tests.Documentation
 			Assert.IsTrue(book2.IsNew, "Book 2 should be new");
 
 			// Save the author
-			db.Save(author);
+			_db.Save(author);
 
 			// Everything should be not new and have no changes
 			Assert.IsFalse(author.IsNew, "Author shouldn't be new");
@@ -262,7 +263,7 @@ namespace Watsonia.Data.Tests.Documentation
 			Assert.IsTrue(book2.HasChanges, "Book 2 should have changes");
 
 			// Save the author
-			db.Save(author);
+			_db.Save(author);
 
 			// Nothing should have changes
 			Assert.IsFalse(author.HasChanges, "Author shouldn't have changes");

@@ -5,6 +5,7 @@ using Microsoft.Data.Sqlite;
 using System.Reflection;
 using System.Text;
 using Watsonia.Data.Mapping;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data.SQLite
 {

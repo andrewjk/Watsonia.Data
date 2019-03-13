@@ -4,7 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
-using Watsonia.Data.Sql;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data.SqlServer
 {
@@ -19,8 +19,8 @@ namespace Watsonia.Data.SqlServer
 
 		public SqlCommand BuildCommand(Statement statement, DatabaseConfiguration configuration)
 		{
-			var builder = new SqlCommandBuilder();
-			builder.VisitStatement(statement, configuration);
+			var builder = new Watsonia.QueryBuilder.SqlServerCommandBuilder();
+			builder.VisitStatement(statement, new QueryMapper(configuration));
 
 			var command = new SqlCommand();
 			command.CommandText = builder.CommandText.ToString();
@@ -28,7 +28,7 @@ namespace Watsonia.Data.SqlServer
 			return command;
 		}
 
-		private void AddParameters(SqlCommandBuilder builder, SqlCommand command)
+		private void AddParameters(Watsonia.QueryBuilder.SqlCommandBuilder builder, SqlCommand command)
 		{
 			for (var i = 0; i < builder.ParameterValues.Count; i++)
 			{

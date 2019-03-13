@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data.Common;
 using Watsonia.Data.Mapping;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data
 {

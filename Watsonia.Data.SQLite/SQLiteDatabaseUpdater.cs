@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Watsonia.Data.Mapping;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data.SQLite
 {

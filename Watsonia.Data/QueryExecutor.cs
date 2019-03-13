@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Remotion.Linq;
-using Watsonia.Data.Sql;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data
 {
@@ -29,7 +29,7 @@ namespace Watsonia.Data
             SelectSourceExpander.Visit(queryModel, this.Database, this.Database.Configuration);
 
             // Create the select statement
-            var select = SelectStatementCreator.Visit(queryModel, this.Database.Configuration, true);
+            var select = StatementCreator.Visit(queryModel, new QueryMapper(this.Database.Configuration), true);
 
 			// Add include paths if necessary
 			if (!select.IsAggregate)
@@ -41,7 +41,7 @@ namespace Watsonia.Data
 			if (select.Source.PartType == StatementPartType.UserDefinedFunction)
 			{
 				var function = (UserDefinedFunction)select.Source;
-				function.Parameters.AddRange(this.Query.Parameters);
+				function.Parameters.AddRange(this.Query.Parameters.Select(p => new QueryBuilder.Parameter(p.Name, p.Value)));
 			}
 
 			// Check whether we need to expand fields (if the select has no fields)

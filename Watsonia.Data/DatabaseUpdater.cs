@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Watsonia.Data.Mapping;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data
 {
@@ -398,7 +399,7 @@ namespace Watsonia.Data
 			GatherMappedParametersFromConditionCollection(parameters, select.Conditions);
 			foreach (var source in select.SourceFields)
 			{
-				if (source is Sql.SelectExpression sourceSelect)
+				if (source is SelectExpression sourceSelect)
 				{
 					GatherMappedParametersFromConditionCollection(parameters, sourceSelect.Select.Conditions);
 				}
@@ -426,10 +427,10 @@ namespace Watsonia.Data
 
 		private void GatherMappedParametersFromCondition(ICollection<MappedParameter> parameters, Condition condition)
 		{
-			if (condition.Value is Sql.ConstantPart &&
-				((Sql.ConstantPart)condition.Value).Value is MappedParameter)
+			if (condition.Value is ConstantPart &&
+				((ConstantPart)condition.Value).Value is MappedParameter)
 			{
-				var parameterValue = ((Sql.ConstantPart)condition.Value).Value;
+				var parameterValue = ((ConstantPart)condition.Value).Value;
 				parameters.Add((MappedParameter)parameterValue);
 			}
 		}

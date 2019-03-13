@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 using System.Linq;
 using System.Text;
-using Watsonia.Data.Sql;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data.SQLite
 {
@@ -18,8 +18,8 @@ namespace Watsonia.Data.SQLite
 
 		public SqliteCommand BuildCommand(Statement statement, DatabaseConfiguration configuration)
 		{
-			var builder = new SqlCommandBuilder();
-			builder.VisitStatement(statement, configuration);
+			var builder = new Watsonia.QueryBuilder.SQLiteCommandBuilder();
+			builder.VisitStatement(statement, new QueryMapper(configuration));
 
 			var command = new SqliteCommand();
 			command.CommandText = builder.CommandText.ToString();

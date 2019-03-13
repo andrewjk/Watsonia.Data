@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Watsonia.Data.Mapping;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data.SqlServer
 {
@@ -302,6 +303,7 @@ namespace Watsonia.Data.SqlServer
 					return allowNulls ? typeof(bool?) : typeof(bool);
 				}
 				case "DATETIME":
+				case "DATETIME2":
 				{
 					return allowNulls ? typeof(DateTime?) : typeof(DateTime);
 				}

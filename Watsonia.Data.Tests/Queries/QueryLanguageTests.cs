@@ -1306,7 +1306,7 @@ namespace Watsonia.Data.Tests.Queries
 				"TestStringRemoveNoCount",
 				_db.Customers.Where(c => c.City.Remove(4) == "Seat"));
 		}
-		
+
 		[TestMethod]
 		public void TestDateTimeConstructYmd()
 		{

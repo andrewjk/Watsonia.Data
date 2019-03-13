@@ -5,6 +5,7 @@ using System.Data.Common;
 using Watsonia.Data.SqlServer;
 using System.IO;
 using System;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data.Tests.Entities
 {
