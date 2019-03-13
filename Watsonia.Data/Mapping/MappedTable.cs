@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Watsonia.Data
+namespace Watsonia.Data.Mapping
 {
 	/// <summary>
 	/// Represents a mapping from a class to a table in the database.

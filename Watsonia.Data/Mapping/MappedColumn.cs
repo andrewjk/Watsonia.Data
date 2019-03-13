@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Watsonia.Data
+namespace Watsonia.Data.Mapping
 {
 	/// <summary>
 	/// Represents a mapping from a property to a column in the database.

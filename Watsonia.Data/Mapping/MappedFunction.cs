@@ -1,7 +1,7 @@
 ﻿﻿using System.Collections.Generic;
 using System.Data.Common;
 
-namespace Watsonia.Data
+namespace Watsonia.Data.Mapping
 {
 	/// <summary>
 	/// Represents a mapping from a class to a user-defined function in the database.

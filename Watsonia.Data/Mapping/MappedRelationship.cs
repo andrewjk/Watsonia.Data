@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Watsonia.Data
+namespace Watsonia.Data.Mapping
 {
 	/// <summary>
 	/// Represents a mapping from a relationship to a foreign key constraint in the database.
