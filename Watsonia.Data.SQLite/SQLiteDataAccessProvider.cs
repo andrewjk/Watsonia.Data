@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using Watsonia.Data.Mapping;
 using Watsonia.QueryBuilder;
+using System.IO;
 
 namespace Watsonia.Data.SQLite
 {
@@ -55,8 +56,11 @@ namespace Watsonia.Data.SQLite
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		public void EnsureDatabaseDeleted(DatabaseConfiguration configuration)
 		{
-			// TODO:
-			throw new NotImplementedException();
+			var connectionBuilder = new SqliteConnectionStringBuilder(configuration.ConnectionString);
+			if (File.Exists(connectionBuilder.DataSource))
+			{
+				File.Delete(connectionBuilder.DataSource);
+			}
 		}
 
 		/// <summary>
@@ -65,8 +69,13 @@ namespace Watsonia.Data.SQLite
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		public void EnsureDatabaseCreated(DatabaseConfiguration configuration)
 		{
-			// TODO:
-			throw new NotImplementedException();
+			var connectionBuilder = new SqliteConnectionStringBuilder(configuration.ConnectionString);
+			if (!File.Exists(connectionBuilder.DataSource))
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(connectionBuilder.DataSource));
+				var fs = File.Create(connectionBuilder.DataSource);
+				fs.Close();
+			}
 		}
 
 		/// <summary>
