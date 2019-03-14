@@ -31,6 +31,18 @@ namespace Watsonia.Data
 		DbConnection OpenConnection(DatabaseConfiguration configuration);
 
 		/// <summary>
+		/// Ensures that the database is deleted.
+		/// </summary>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		void EnsureDatabaseDeleted(DatabaseConfiguration configuration);
+
+		/// <summary>
+		/// Ensures that the database is created.
+		/// </summary>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		void EnsureDatabaseCreated(DatabaseConfiguration configuration);
+
+		/// <summary>
 		/// Updates the database with any changes that have been made to tables and columns.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>

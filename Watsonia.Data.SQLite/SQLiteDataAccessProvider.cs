@@ -50,6 +50,26 @@ namespace Watsonia.Data.SQLite
 		}
 
 		/// <summary>
+		/// Ensures that the database is deleted.
+		/// </summary>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		public void EnsureDatabaseDeleted(DatabaseConfiguration configuration)
+		{
+			// TODO:
+			throw new NotImplementedException();
+		}
+
+		/// <summary>
+		/// Ensures that the database is created.
+		/// </summary>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		public void EnsureDatabaseCreated(DatabaseConfiguration configuration)
+		{
+			// TODO:
+			throw new NotImplementedException();
+		}
+
+		/// <summary>
 		/// Updates the database with any changes that have been made to tables and columns.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
@@ -71,7 +91,7 @@ namespace Watsonia.Data.SQLite
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration  configuration)
+		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
 		{
 			var updater = new SQLiteDatabaseUpdater(this, configuration);
 			return updater.GetUpdateScript(tables, views, procedures, functions);

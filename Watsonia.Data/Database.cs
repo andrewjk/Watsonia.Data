@@ -54,7 +54,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The configuration.
 		/// </value>
-		internal DatabaseConfiguration Configuration { get; private set; }
+		public DatabaseConfiguration Configuration { get; private set; }
 
 		/// <summary>
 		/// Gets or sets the name of the database to use when creating proxy objects to avoid the same
@@ -94,6 +94,23 @@ namespace Watsonia.Data
 		public DbConnection OpenConnection()
 		{
 			return this.Configuration.DataAccessProvider.OpenConnection(this.Configuration);
+		}
+
+		/// <summary>
+		/// Ensures that the database is deleted.
+		/// </summary>
+		public void EnsureDatabaseDeleted()
+		{
+			this.Configuration.DataAccessProvider.EnsureDatabaseDeleted(this.Configuration);
+		}
+
+		/// <summary>
+		/// Ensures that the database is created.
+		/// </summary>
+		public void EnsureDatabaseCreated()
+		{
+			this.Configuration.DataAccessProvider.EnsureDatabaseCreated(this.Configuration);
+			this.UpdateDatabase();
 		}
 
 		/// <summary>

@@ -50,6 +50,55 @@ namespace Watsonia.Data.SqlServer
 		}
 
 		/// <summary>
+		/// Ensures that the database is deleted.
+		/// </summary>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		public void EnsureDatabaseDeleted(DatabaseConfiguration configuration)
+		{
+			var connectionBuilder = new SqlConnectionStringBuilder(configuration.ConnectionString);
+			var databaseName = connectionBuilder.InitialCatalog;
+			connectionBuilder.InitialCatalog = "master";
+			using (var connection = new SqlConnection(connectionBuilder.ConnectionString))
+			{
+				connection.Open();
+				var commandText = $@"
+IF DB_ID('{databaseName}') IS NOT NULL
+BEGIN
+	ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+	DROP DATABASE [{databaseName}];
+END
+";
+				var command = new SqlCommand(commandText, connection);
+				command.ExecuteNonQuery();
+				connection.Close();
+			}
+		}
+
+		/// <summary>
+		/// Ensures that the database is created.
+		/// </summary>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		public void EnsureDatabaseCreated(DatabaseConfiguration configuration)
+		{
+			var connectionBuilder = new SqlConnectionStringBuilder(configuration.ConnectionString);
+			var databaseName = connectionBuilder.InitialCatalog;
+			connectionBuilder.InitialCatalog = "master";
+			using (var connection = new SqlConnection(connectionBuilder.ConnectionString))
+			{
+				connection.Open();
+				var commandText = $@"
+IF DB_ID('{databaseName}') IS NULL
+BEGIN
+	CREATE DATABASE [{databaseName}];
+END
+";
+				var command = new SqlCommand(commandText, connection);
+				command.ExecuteNonQuery();
+				connection.Close();
+			}
+		}
+
+		/// <summary>
 		/// Updates the database with any changes that have been made to tables and columns.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
