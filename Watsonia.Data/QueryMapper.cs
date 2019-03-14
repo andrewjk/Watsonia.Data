@@ -40,6 +40,11 @@ namespace Watsonia.Data
 			return _configuration.GetPrimaryKeyColumnName(type);
 		}
 
+		public override bool IsRelatedItem(PropertyInfo property)
+		{
+			return _configuration.IsRelatedItem(property);
+		}
+
 		public override string GetForeignKeyColumnName(PropertyInfo property)
 		{
 			return _configuration.GetForeignKeyColumnName(property);
