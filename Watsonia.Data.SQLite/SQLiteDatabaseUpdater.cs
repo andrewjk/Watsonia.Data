@@ -335,7 +335,8 @@ namespace Watsonia.Data.SQLite
 			{
 				return "BIT";
 			}
-			else if (column.ColumnType == typeof(DateTime) || column.ColumnType == typeof(DateTime?))
+			else if (column.ColumnType == typeof(DateTime) || column.ColumnType == typeof(DateTime?) ||
+				column.ColumnType == typeof(DateTimeOffset) || column.ColumnType == typeof(DateTimeOffset?))
 			{
 				return "DATETIME";
 			}
