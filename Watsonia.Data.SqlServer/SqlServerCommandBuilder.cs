@@ -35,6 +35,10 @@ namespace Watsonia.Data.SqlServer
 				var parameter = new SqlParameter();
 				parameter.ParameterName = "@" + i;
 				parameter.Value = builder.ParameterValues[i] ?? DBNull.Value;
+				if (parameter.DbType == DbType.DateTime)
+				{
+					parameter.DbType = DbType.DateTime2;
+				}
 				command.Parameters.Add(parameter);
 			}
 		}
@@ -76,6 +80,18 @@ namespace Watsonia.Data.SqlServer
 				parameter.Value = parameters[i].Value ?? DBNull.Value;
 				command.Parameters.Add(parameter);
 			}
+		}
+
+		private SqlParameter BuildParameter(string name, object value)
+		{
+			var parameter = new SqlParameter();
+			parameter.ParameterName = name;
+			parameter.Value = value ?? DBNull.Value;
+			if (parameter.DbType == DbType.DateTime)
+			{
+				parameter.DbType = DbType.DateTime2;
+			}
+			return parameter;
 		}
 	}
 }

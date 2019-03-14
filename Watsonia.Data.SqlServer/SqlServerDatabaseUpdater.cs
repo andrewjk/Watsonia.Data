@@ -455,7 +455,7 @@ namespace Watsonia.Data.SqlServer
 			}
 			else if (columnType == typeof(DateTime) || columnType == typeof(DateTime?))
 			{
-				return "DATETIME";
+				return "DATETIME2";
 			}
 			else if (columnType == typeof(DateTimeOffset) || columnType == typeof(DateTimeOffset?))
 			{
