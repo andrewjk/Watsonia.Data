@@ -31,10 +31,7 @@ namespace Watsonia.Data.SQLite
 		{
 			for (var i = 0; i < builder.ParameterValues.Count; i++)
 			{
-				var parameter = new SqliteParameter();
-				parameter.ParameterName = "@" + i;
-				parameter.Value = builder.ParameterValues[i] ?? DBNull.Value;
-				CheckParameterValue(parameter);
+				var parameter = BuildParameter("@" + i, builder.ParameterValues[i]);
 				command.Parameters.Add(parameter);
 			}
 		}
@@ -51,9 +48,7 @@ namespace Watsonia.Data.SQLite
 		{
 			for (var i = 0; i < parameters.Length; i++)
 			{
-				var parameter = new SqliteParameter();
-				parameter.ParameterName = "@" + i;
-				parameter.Value = parameters[i] ?? DBNull.Value;
+				var parameter = BuildParameter("@" + i, parameters[i]);
 				command.Parameters.Add(parameter);
 			}
 		}
@@ -71,16 +66,16 @@ namespace Watsonia.Data.SQLite
 		{
 			for (var i = 0; i < parameters.Length; i++)
 			{
-				var parameter = new SqliteParameter();
-				parameter.ParameterName = parameters[i].Name;
-				parameter.Value = parameters[i].Value ?? DBNull.Value;
-				CheckParameterValue(parameter);
+				var parameter = BuildParameter(parameters[i].Name, parameters[i].Value);
 				command.Parameters.Add(parameter);
 			}
 		}
 
-		private void CheckParameterValue(SqliteParameter parameter)
+		private SqliteParameter BuildParameter(string name, object value)
 		{
+			var parameter = new SqliteParameter();
+			parameter.ParameterName = name;
+			parameter.Value = value ?? DBNull.Value;
 			if (parameter.Value.GetType() == typeof(char))
 			{
 				// HACK: SQLite doesn't seem to handle chars correctly?
@@ -89,16 +84,17 @@ namespace Watsonia.Data.SQLite
 			else if (parameter.Value.GetType() == typeof(DateTime))
 			{
 				// HACK: Is there a better way to do this? SQLite doesn't seem to ignore times on dates...
-				var value = Convert.ToDateTime(parameter.Value);
-				if (value.Hour > 0 || value.Minute > 0 || value.Second > 0)
+				var parameterValue = Convert.ToDateTime(parameter.Value);
+				if (parameterValue.Hour > 0 || parameterValue.Minute > 0 || parameterValue.Second > 0)
 				{
-					parameter.Value = value.ToString("yyyy-MM-dd hh:mm:ss");
+					parameter.Value = parameterValue.ToString("yyyy-MM-dd hh:mm:ss");
 				}
 				else
 				{
-					parameter.Value = value.ToString("yyyy-MM-dd");
+					parameter.Value = parameterValue.ToString("yyyy-MM-dd");
 				}
 			}
+			return parameter;
 		}
 	}
 }
