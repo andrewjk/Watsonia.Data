@@ -2204,27 +2204,27 @@ namespace Watsonia.Data.Tests.Queries
 
 		private void TestQuery(string baseline, Expression query)
 		{
-			var select = _db.BuildSelectStatement(query);
-
-			// Test the SQLite command builder
-			var sqliteProvider = new SQLite.SQLiteDataAccessProvider();
-			var sqliteCommand = sqliteProvider.BuildCommand(select, _db.Configuration);
-			TestQuery(query, _sqliteBaselines[baseline], sqliteCommand, "*** SQLITE ***");
-
-			// Test the SQL Server command builder
-			var sqlServerProvider = new SqlServer.SqlServerDataAccessProvider();
-			var sqlServerCommand = sqlServerProvider.BuildCommand(select, _db.Configuration);
-			TestQuery(query, _sqlServerBaselines[baseline], sqlServerCommand, "*** SQL SERVER ***");
-		}
-
-		private void TestQuery(Expression query, string baseline, DbCommand command, string provider)
-		{
 			if (query.NodeType == ExpressionType.Convert && query.Type == typeof(object))
 			{
 				// Remove boxing
 				query = ((UnaryExpression)query).Operand;
 			}
 
+			var select = _db.BuildSelectStatement(query);
+
+			// Test the SQLite command builder
+			var sqliteProvider = new SQLite.SQLiteDataAccessProvider();
+			var sqliteCommand = sqliteProvider.BuildCommand(select, _db.Configuration);
+			TestQuery(_sqliteBaselines[baseline], sqliteCommand, "*** SQLITE ***");
+
+			// Test the SQL Server command builder
+			var sqlServerProvider = new SqlServer.SqlServerDataAccessProvider();
+			var sqlServerCommand = sqlServerProvider.BuildCommand(select, _db.Configuration);
+			TestQuery(_sqlServerBaselines[baseline], sqlServerCommand, "*** SQL SERVER ***");
+		}
+
+		private void TestQuery(string baseline, DbCommand command, string provider)
+		{
 			var expected = TrimExtraWhiteSpace(baseline.Replace("\n\n", ") ("));
 			var actual = TrimExtraWhiteSpace(command.CommandText.ToString());
 
