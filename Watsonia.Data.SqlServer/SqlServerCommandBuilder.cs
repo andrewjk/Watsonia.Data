@@ -32,13 +32,7 @@ namespace Watsonia.Data.SqlServer
 		{
 			for (var i = 0; i < builder.ParameterValues.Count; i++)
 			{
-				var parameter = new SqlParameter();
-				parameter.ParameterName = "@" + i;
-				parameter.Value = builder.ParameterValues[i] ?? DBNull.Value;
-				if (parameter.DbType == DbType.DateTime)
-				{
-					parameter.DbType = DbType.DateTime2;
-				}
+				var parameter = BuildParameter("@" + i, builder.ParameterValues[i]);
 				command.Parameters.Add(parameter);
 			}
 		}
@@ -55,9 +49,7 @@ namespace Watsonia.Data.SqlServer
 		{
 			for (var i = 0; i < parameters.Length; i++)
 			{
-				var parameter = new SqlParameter();
-				parameter.ParameterName = "@" + i;
-				parameter.Value = parameters[i] ?? DBNull.Value;
+				var parameter = BuildParameter("@" + i, parameters[i]);
 				command.Parameters.Add(parameter);
 			}
 		}
@@ -75,9 +67,7 @@ namespace Watsonia.Data.SqlServer
 		{
 			for (var i = 0; i < parameters.Length; i++)
 			{
-				var parameter = new SqlParameter();
-				parameter.ParameterName = parameters[i].Name;
-				parameter.Value = parameters[i].Value ?? DBNull.Value;
+				var parameter = BuildParameter(parameters[i].Name, parameters[i].Value);
 				command.Parameters.Add(parameter);
 			}
 		}
@@ -86,8 +76,11 @@ namespace Watsonia.Data.SqlServer
 		{
 			var parameter = new SqlParameter();
 			parameter.ParameterName = name;
-			parameter.Value = value ?? DBNull.Value;
-			if (parameter.DbType == DbType.DateTime)
+			var parameterValue = value ?? DBNull.Value;
+			parameter.Value = parameterValue;
+			// NOTE: Can't check parameter.DbType because it throws exceptions if the type can't be mapped
+			if (parameterValue.GetType() == typeof(DateTime) ||
+				parameterValue.GetType() == typeof(DateTime?))
 			{
 				parameter.DbType = DbType.DateTime2;
 			}

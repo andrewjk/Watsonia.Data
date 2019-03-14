@@ -75,25 +75,29 @@ namespace Watsonia.Data.SQLite
 		{
 			var parameter = new SqliteParameter();
 			parameter.ParameterName = name;
-			parameter.Value = value ?? DBNull.Value;
-			if (parameter.Value.GetType() == typeof(char))
+			// NOTE: Can't check parameter.DbType because it throws exceptions if the type can't be mapped
+			var parameterValue = value ?? DBNull.Value;
+			if (parameterValue.GetType() == typeof(char) ||
+				parameterValue.GetType() == typeof(char?))
 			{
 				// HACK: SQLite doesn't seem to handle chars correctly?
-				parameter.Value = parameter.Value.ToString();
+				parameterValue = parameterValue.ToString();
 			}
-			else if (parameter.Value.GetType() == typeof(DateTime))
+			else if (parameterValue.GetType() == typeof(DateTime) ||
+					 parameterValue.GetType() == typeof(DateTime?))
 			{
 				// HACK: Is there a better way to do this? SQLite doesn't seem to ignore times on dates...
-				var parameterValue = Convert.ToDateTime(parameter.Value);
-				if (parameterValue.Hour > 0 || parameterValue.Minute > 0 || parameterValue.Second > 0)
+				var dateValue = Convert.ToDateTime(parameterValue);
+				if (dateValue.Hour > 0 || dateValue.Minute > 0 || dateValue.Second > 0)
 				{
-					parameter.Value = parameterValue.ToString("yyyy-MM-dd hh:mm:ss");
+					parameterValue = dateValue.ToString("yyyy-MM-dd hh:mm:ss");
 				}
 				else
 				{
-					parameter.Value = parameterValue.ToString("yyyy-MM-dd");
+					parameterValue = dateValue.ToString("yyyy-MM-dd");
 				}
 			}
+			parameter.Value = parameterValue;
 			return parameter;
 		}
 	}
