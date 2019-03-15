@@ -15,7 +15,7 @@ namespace Watsonia.Data.Mapping
 		/// <value>
 		/// The name of the function.
 		/// </value>
-		public string Name { get; private set; }
+		public string Name { get; }
 
 		/// <summary>
 		/// Gets or sets the parameters for the function.
@@ -23,7 +23,7 @@ namespace Watsonia.Data.Mapping
 		/// <value>
 		/// The parameters.
 		/// </value>
-		public IList<MappedParameter> Parameters { get; set; } = new List<MappedParameter>();
+		public IList<MappedParameter> Parameters { get; } = new List<MappedParameter>();
 
 		/// <summary>
 		/// Gets or sets the statement that the function is built from.

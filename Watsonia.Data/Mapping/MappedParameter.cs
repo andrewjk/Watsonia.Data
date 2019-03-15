@@ -8,11 +8,11 @@ namespace Watsonia.Data.Mapping
 {
 	public class MappedParameter
 	{
-		public string Name { get; set; }
+		public string Name { get; }
 
-		public Type ParameterType { get; set; }
+		public Type ParameterType { get; }
 
-		public int MaxLength { get; set; }
+		public int MaxLength { get; }
 
 		public MappedParameter(string name, Type parameterType)
 		{

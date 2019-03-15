@@ -16,7 +16,7 @@ namespace Watsonia.Data.Mapping
 		/// <value>
 		/// The name of the foreign key constraint.
 		/// </value>
-		public string ConstraintName { get; private set; }
+		public string ConstraintName { get; }
 
 		/// <summary>
 		/// Gets or sets the type of the foreign table.
@@ -24,7 +24,7 @@ namespace Watsonia.Data.Mapping
 		/// <value>
 		/// The type of the foreign table.
 		/// </value>
-		public Type ForeignTableType { get; private set; }
+		public Type ForeignTableType { get; }
 
 		/// <summary>
 		/// Gets or sets the name of the foreign table.
@@ -32,7 +32,7 @@ namespace Watsonia.Data.Mapping
 		/// <value>
 		/// The name of the foreign table.
 		/// </value>
-		public string ForeignTableName { get; private set; }
+		public string ForeignTableName { get; }
 
 		/// <summary>
 		/// Gets or sets the name of the foreign table column.
@@ -40,7 +40,7 @@ namespace Watsonia.Data.Mapping
 		/// <value>
 		/// The name of the foreign table column.
 		/// </value>
-		public string ForeignTableColumnName { get; private set; }
+		public string ForeignTableColumnName { get; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MappedRelationship" /> class.

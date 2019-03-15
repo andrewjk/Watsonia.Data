@@ -15,7 +15,7 @@ namespace Watsonia.Data.Mapping
 		/// <value>
 		/// The name of the procedure.
 		/// </value>
-		public string Name { get; private set; }
+		public string Name { get; }
 
 		/// <summary>
 		/// Gets or sets the parameters for the procedure.

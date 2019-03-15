@@ -428,10 +428,10 @@ namespace Watsonia.Data
 		private void GatherMappedParametersFromCondition(ICollection<MappedParameter> parameters, Condition condition)
 		{
 			if (condition.Value is ConstantPart &&
-				((ConstantPart)condition.Value).Value is MappedParameter)
+				((ConstantPart)condition.Value).Value is Parameter)
 			{
-				var parameterValue = ((ConstantPart)condition.Value).Value;
-				parameters.Add((MappedParameter)parameterValue);
+				var parameterValue = (Parameter)((ConstantPart)condition.Value).Value;
+				parameters.Add(new MappedParameter(parameterValue.Name, parameterValue.ParameterType));
 			}
 		}
 	}
