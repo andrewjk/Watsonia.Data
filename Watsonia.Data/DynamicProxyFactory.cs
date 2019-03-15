@@ -479,7 +479,7 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldloc_0);
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Ldarg_1);
-			gen.Emit(OpCodes.Newobj, typeof(PrimaryKeyValueChangedEventArgs).GetConstructor(new[] { typeof(object) }));
+			gen.Emit(OpCodes.Newobj, typeof(EventArgs.PrimaryKeyValueChangedEventArgs).GetConstructor(new[] { typeof(object) }));
 			gen.EmitCall(OpCodes.Callvirt, typeof(PrimaryKeyValueChangedEventHandler).GetMethod("Invoke"), null);
 
 			// return;
@@ -1392,7 +1392,7 @@ namespace Watsonia.Data
 				property.Name + "Proxy_PrimaryKeyValueChanged",
 				MethodAttributes.Private | MethodAttributes.HideBySig,
 				null,
-				new Type[] { typeof(object), typeof(PrimaryKeyValueChangedEventArgs) });
+				new Type[] { typeof(object), typeof(EventArgs.PrimaryKeyValueChangedEventArgs) });
 
 			//MethodInfo getPropertyNameMethod = typeof(PrimaryKeyValueChangedEventArgs).GetMethod(
 			//	"get_PropertyName", Type.EmptyTypes);

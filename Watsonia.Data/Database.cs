@@ -11,6 +11,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using Watsonia.Data.EventArgs;
 using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data
@@ -1552,7 +1553,7 @@ namespace Watsonia.Data
 		/// </summary>
 		protected virtual void OnBeforeUpdateDatabase()
 		{
-			BeforeUpdateDatabase?.Invoke(this, EventArgs.Empty);
+			BeforeUpdateDatabase?.Invoke(this, System.EventArgs.Empty);
 		}
 
 		/// <summary>
@@ -1560,7 +1561,7 @@ namespace Watsonia.Data
 		/// </summary>
 		protected virtual void OnAfterUpdateDatabase()
 		{
-			AfterUpdateDatabase?.Invoke(this, EventArgs.Empty);
+			AfterUpdateDatabase?.Invoke(this, System.EventArgs.Empty);
 		}
 
 		/// <summary>
@@ -1569,7 +1570,7 @@ namespace Watsonia.Data
 		/// <param name="proxy">The proxy object that was created.</param>
 		protected virtual void OnAfterCreate(IDynamicProxy proxy)
 		{
-			AfterCreate?.Invoke(this, new EventArgs<IDynamicProxy>(proxy));
+			AfterCreate?.Invoke(this, new ItemEventArgs(proxy));
 		}
 
 		/// <summary>
@@ -1578,7 +1579,7 @@ namespace Watsonia.Data
 		/// <param name="proxy">The proxy object that was created.</param>
 		protected virtual void OnAfterLoad(IDynamicProxy proxy)
 		{
-			AfterLoad?.Invoke(this, new EventArgs<IDynamicProxy>(proxy));
+			AfterLoad?.Invoke(this, new ItemEventArgs(proxy));
 		}
 
 		/// <summary>
@@ -1587,7 +1588,7 @@ namespace Watsonia.Data
 		/// <param name="proxy">The proxy object that will be refreshed.</param>
 		protected virtual void OnBeforeRefresh(IDynamicProxy proxy)
 		{
-			BeforeRefresh?.Invoke(this, new EventArgs<IDynamicProxy>(proxy));
+			BeforeRefresh?.Invoke(this, new ItemEventArgs(proxy));
 		}
 
 		/// <summary>
@@ -1596,7 +1597,7 @@ namespace Watsonia.Data
 		/// <param name="proxy">The proxy object that was refreshed.</param>
 		protected virtual void OnAfterRefresh(IDynamicProxy proxy)
 		{
-			AfterRefresh?.Invoke(this, new EventArgs<IDynamicProxy>(proxy));
+			AfterRefresh?.Invoke(this, new ItemEventArgs(proxy));
 		}
 
 		/// <summary>
@@ -1605,7 +1606,7 @@ namespace Watsonia.Data
 		/// <param name="select">The statement that will be used to load the collection.</param>
 		protected virtual void OnBeforeLoadCollection(SelectStatement select)
 		{
-			BeforeLoadCollection?.Invoke(this, new EventArgs<SelectStatement>(select));
+			BeforeLoadCollection?.Invoke(this, new StatementEventArgs(select));
 		}
 
 		/// <summary>
@@ -1614,7 +1615,7 @@ namespace Watsonia.Data
 		/// <param name="collection">The collection that was loaded.</param>
 		protected virtual void OnAfterLoadCollection(IEnumerable collection)
 		{
-			AfterLoadCollection?.Invoke(this, new EventArgs<IEnumerable>(collection));
+			AfterLoadCollection?.Invoke(this, new CollectionEventArgs(collection));
 		}
 
 		/// <summary>
@@ -1623,7 +1624,7 @@ namespace Watsonia.Data
 		/// <param name="select">The statement that will be used to load the value.</param>
 		protected virtual void OnBeforeLoadValue(SelectStatement select)
 		{
-			BeforeLoadValue?.Invoke(this, new EventArgs<SelectStatement>(select));
+			BeforeLoadValue?.Invoke(this, new StatementEventArgs(select));
 		}
 
 		/// <summary>
@@ -1632,7 +1633,7 @@ namespace Watsonia.Data
 		/// <param name="value">The value that was loaded.</param>
 		protected virtual void OnAfterLoadValue(object value)
 		{
-			AfterLoadValue?.Invoke(this, new EventArgs<object>(value));
+			AfterLoadValue?.Invoke(this, new ValueEventArgs(value));
 		}
 
 		/// <summary>
@@ -1641,7 +1642,7 @@ namespace Watsonia.Data
 		/// <param name="proxy">The proxy object that will be saved.</param>
 		protected virtual void OnBeforeSave(IDynamicProxy proxy)
 		{
-			BeforeSave?.Invoke(this, new EventArgs<IDynamicProxy>(proxy));
+			BeforeSave?.Invoke(this, new ItemEventArgs(proxy));
 		}
 
 		/// <summary>
@@ -1650,7 +1651,7 @@ namespace Watsonia.Data
 		/// <param name="proxy">The proxy object that was saved.</param>
 		protected virtual void OnAfterSave(IDynamicProxy proxy)
 		{
-			AfterSave?.Invoke(this, new EventArgs<IDynamicProxy>(proxy));
+			AfterSave?.Invoke(this, new ItemEventArgs(proxy));
 		}
 
 		/// <summary>
@@ -1659,7 +1660,7 @@ namespace Watsonia.Data
 		/// <param name="item">The item that will be inserted.</param>
 		protected virtual void OnBeforeInsert(object item)
 		{
-			BeforeInsert?.Invoke(this, new EventArgs<object>(item));
+			BeforeInsert?.Invoke(this, new ValueEventArgs(item));
 		}
 
 		/// <summary>
@@ -1668,7 +1669,7 @@ namespace Watsonia.Data
 		/// <param name="proxy">The proxy object that was inserted.</param>
 		protected virtual void OnAfterInsert(IDynamicProxy proxy)
 		{
-			AfterInsert?.Invoke(this, new EventArgs<IDynamicProxy>(proxy));
+			AfterInsert?.Invoke(this, new ItemEventArgs(proxy));
 		}
 
 		/// <summary>
@@ -1677,7 +1678,7 @@ namespace Watsonia.Data
 		/// <param name="proxy">The proxy object that will be deleted.</param>
 		protected virtual void OnBeforeDelete(IDynamicProxy proxy)
 		{
-			BeforeDelete?.Invoke(this, new EventArgs<IDynamicProxy>(proxy));
+			BeforeDelete?.Invoke(this, new ItemEventArgs(proxy));
 		}
 
 		/// <summary>
@@ -1686,7 +1687,7 @@ namespace Watsonia.Data
 		/// <param name="proxy">The proxy object that was deleted.</param>
 		protected virtual void OnAfterDelete(IDynamicProxy proxy)
 		{
-			AfterDelete?.Invoke(this, new EventArgs<IDynamicProxy>(proxy));
+			AfterDelete?.Invoke(this, new ItemEventArgs(proxy));
 		}
 
 		/// <summary>
@@ -1695,7 +1696,7 @@ namespace Watsonia.Data
 		/// <param name="statement">The statement that will be executed.</param>
 		protected virtual void OnBeforeExecute(Statement statement)
 		{
-			BeforeExecute?.Invoke(this, new EventArgs<Statement>(statement));
+			BeforeExecute?.Invoke(this, new StatementEventArgs(statement));
 		}
 
 		/// <summary>
@@ -1704,7 +1705,7 @@ namespace Watsonia.Data
 		/// <param name="statement">The statement that was executed.</param>
 		protected virtual void OnAfterExecute(Statement statement)
 		{
-			AfterExecute?.Invoke(this, new EventArgs<Statement>(statement));
+			AfterExecute?.Invoke(this, new StatementEventArgs(statement));
 		}
 
 		/// <summary>
@@ -1713,7 +1714,7 @@ namespace Watsonia.Data
 		/// <param name="command">The command that will be executed.</param>
 		protected virtual void OnBeforeExecuteCommand(DbCommand command)
 		{
-			BeforeExecuteCommand?.Invoke(this, new EventArgs<DbCommand>(command));
+			BeforeExecuteCommand?.Invoke(this, new CommandEventArgs(command));
 		}
 
 		/// <summary>
@@ -1722,7 +1723,7 @@ namespace Watsonia.Data
 		/// <param name="statement">The statement that was executed.</param>
 		protected virtual void OnAfterExecuteCommand(DbCommand command)
 		{
-			AfterExecuteCommand?.Invoke(this, new EventArgs<DbCommand>(command));
+			AfterExecuteCommand?.Invoke(this, new CommandEventArgs(command));
 		}
 
 		protected string GetSqlStringFromCommand(DbCommand command)
