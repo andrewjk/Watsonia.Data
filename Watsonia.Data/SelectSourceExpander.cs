@@ -50,6 +50,10 @@ namespace Watsonia.Data
 		{
 			var visitor = new SelectSourceExpander(queryModel, database, configuration);
 
+			// Check the select clause (e.g. "from a.b.c" should add a join to "b")
+			queryModel.SelectClause.Selector = visitor.Visit(queryModel.SelectClause.Selector);
+
+			// Check the body clauses (e.g. "where a.b.c = 1" should add a join to "b")
 			// Copy the body clauses list with ToList() as we will be modifying it
 			foreach (var clause in queryModel.BodyClauses.ToList())
 			{
