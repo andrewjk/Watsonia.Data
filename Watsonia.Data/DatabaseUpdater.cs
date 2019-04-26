@@ -54,7 +54,7 @@ namespace Watsonia.Data
 			var procedures = new List<MappedProcedure>();
 			var functions = new List<MappedFunction>();
 			GetMappedObjects(tables, views, procedures, functions, configuration);
-			return configuration.DataAccessProvider.GetUnmappedColumns(tables, views, procedures, functions, configuration);
+			return configuration.DataAccessProvider.GetUnmappedColumns(tables, configuration);
 		}
 
 		private void GetMappedObjects(List<MappedTable> tables, List<MappedView> views, List<MappedProcedure> procedures, List<MappedFunction> functions, DatabaseConfiguration configuration)

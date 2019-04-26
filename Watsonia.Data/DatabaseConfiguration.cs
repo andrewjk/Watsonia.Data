@@ -315,7 +315,7 @@ namespace Watsonia.Data
 		/// </returns>
 		public bool IsRelatedCollection(PropertyInfo property)
 		{
-			return IsRelatedCollection(property, out var itemType);
+			return IsRelatedCollection(property, out _);
 		}
 
 		/// <summary>
@@ -440,7 +440,7 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="assembly">The assembly.</param>
 		/// <returns></returns>
-		internal IEnumerable<Type> TypesToMap(Assembly assembly)
+		public IEnumerable<Type> TypesToMap(Assembly assembly)
 		{
 			// HACK: This is hiding exceptions, should we have this be hidden behind a configuration switch?
 			Type[] typesInAssembly;
@@ -503,7 +503,7 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="property">The property.</param>
 		/// <returns></returns>
-		internal bool ShouldMapProperty(PropertyInfo property)
+		public virtual bool ShouldMapProperty(PropertyInfo property)
 		{
 			return true;
 		}
@@ -600,7 +600,7 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="property">The property.</param>
 		/// <returns></returns>
-		public bool ShouldCascade(PropertyInfo property)
+		public virtual bool ShouldCascade(PropertyInfo property)
 		{
 			// If it has a Cascade attribute then it should be cascaded
 			var attribute = GetCustomAttribute<CascadeAttribute>(property);

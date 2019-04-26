@@ -1,4 +1,4 @@
-
+﻿
 namespace Watsonia.Data
 {
 	/// <summary>
@@ -56,6 +56,7 @@ namespace Watsonia.Data
 		/// <param name="errorMessage">The error message to display to the end user.</param>
 		public ValidationError(object itemID, string itemName, string propertyName, string errorName, string errorMessage)
 		{
+			this.ItemID = itemID;
 			this.ItemName = itemName;
 			this.PropertyName = propertyName;
 			this.ErrorName = errorName;
@@ -63,10 +64,10 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
-		/// Returns a <see cref="System.String" /> that represents this instance.
+		/// Returns a <see cref="string" /> that represents this instance.
 		/// </summary>
 		/// <returns>
-		/// A <see cref="System.String" /> that represents this instance.
+		/// A <see cref="string" /> that represents this instance.
 		/// </returns>
 		public override string ToString()
 		{

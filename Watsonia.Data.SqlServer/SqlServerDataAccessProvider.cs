@@ -189,18 +189,15 @@ END
 		/// Gets columns that exist in the database but are not mapped.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
-		/// <param name="views">The views that should exist in the database.</param>
-		/// <param name="procedures">The stored procedures that should exist in the database.</param>
-		/// <param name="functions">The user-defined functions that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the unmapped columns.
 		/// </returns>
-		/// <exception cref="System.NotImplementedException"></exception>
-		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
+		/// <exception cref="NotImplementedException"></exception>
+		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
-			return updater.GetUnmappedColumns(tables, views);
+			return updater.GetUnmappedColumns(tables);
 		}
 	}
 }

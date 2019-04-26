@@ -148,7 +148,7 @@ namespace Watsonia.Data
 		/// <param name="key">The key.</param>
 		public void Remove(object key)
 		{
-			this.Items.TryRemove(key, out var value);
+			this.Items.TryRemove(key, out _);
 			for (var i = 0; i < this.ItemsByLoadedTime.Count; i++)
 			{
 				if (this.ItemsByLoadedTime[i].Item1 == key)

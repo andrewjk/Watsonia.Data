@@ -361,7 +361,7 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="item">The item.</param>
-		/// <exception cref="System.ArgumentException">item</exception>
+		/// <exception cref="ArgumentException">item</exception>
 		public void Refresh<T>(T item)
 		{
 			if ((item as IDynamicProxy) == null)
@@ -681,10 +681,7 @@ namespace Watsonia.Data
 			if (this.Configuration.IsRelatedCollection(propertyToLoad))
 			{
 				var itemType = TypeHelper.GetElementType(propertyToLoad.PropertyType);
-				var itemProxyType = DynamicProxyFactory.GetDynamicProxyType(itemType, this);
 				var foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(itemType, parentType);
-
-				var childParentIDProperty = itemProxyType.GetProperty(foreignKeyColumnName);
 				foreach (IDynamicProxy parent in parentCollection)
 				{
 					var children = propertyToLoad.PropertyType.IsInterface ?
@@ -816,7 +813,7 @@ namespace Watsonia.Data
 				case CollectionItemType.Value:
 				{
 					var value = TypeHelper.ChangeType(reader.GetValue(0), typeof(T));
-					return value != null ? (T)value : default(T);
+					return value != null ? (T)value : default;
 				}
 				case CollectionItemType.Anonymous:
 				{
@@ -1286,7 +1283,7 @@ namespace Watsonia.Data
 		/// <param name="item">The item.</param>
 		/// <param name="connection">The connection.</param>
 		/// <param name="transaction">The transaction.</param>
-		/// <exception cref="System.ArgumentException">item</exception>
+		/// <exception cref="ArgumentException">item</exception>
 		public void Delete<T>(T item, DbConnection connection = null, DbTransaction transaction = null)
 		{
 			Delete(item, typeof(T), connection, transaction);

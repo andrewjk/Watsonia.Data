@@ -19,7 +19,7 @@ namespace Watsonia.Data.SqlServer
 
 		public SqlCommand BuildCommand(Statement statement, DatabaseConfiguration configuration)
 		{
-			var builder = new Watsonia.QueryBuilder.SqlServerCommandBuilder();
+			var builder = new QueryBuilder.SqlServerCommandBuilder();
 			builder.VisitStatement(statement, new QueryMapper(configuration));
 
 			var command = new SqlCommand();
@@ -28,7 +28,7 @@ namespace Watsonia.Data.SqlServer
 			return command;
 		}
 
-		private void AddParameters(Watsonia.QueryBuilder.SqlCommandBuilder builder, SqlCommand command)
+		private void AddParameters(QueryBuilder.SqlCommandBuilder builder, SqlCommand command)
 		{
 			for (var i = 0; i < builder.ParameterValues.Count; i++)
 			{

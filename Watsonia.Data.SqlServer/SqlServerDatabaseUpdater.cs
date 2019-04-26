@@ -1066,7 +1066,7 @@ namespace Watsonia.Data.SqlServer
 			return command;
 		}
 
-		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views)
+		public string GetUnmappedColumns(IEnumerable<MappedTable> tables)
 		{
 			var columns = new StringBuilder();
 

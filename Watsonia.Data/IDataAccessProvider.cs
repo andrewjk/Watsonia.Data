@@ -69,14 +69,11 @@ namespace Watsonia.Data
 		/// Gets columns that exist in the database but are not mapped.
 		/// </summary>
 		/// <param name="tables">The tables that should exist in the database.</param>
-		/// <param name="views">The views that should exist in the database.</param>
-		/// <param name="procedures">The stored procedures that should exist in the database.</param>
-		/// <param name="functions">The user-defined functions that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the unmapped columns.
 		/// </returns>
-		string GetUnmappedColumns(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration);
+		string GetUnmappedColumns(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Builds a command to return the ID of the last inserted item.

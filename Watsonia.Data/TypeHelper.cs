@@ -115,7 +115,6 @@ namespace Watsonia.Data
 
 		public static bool IsInteger(Type type)
 		{
-			var nnType = GetNonNullableType(type);
 			switch (Type.GetTypeCode(type))
 			{
 				case TypeCode.SByte:

@@ -24,7 +24,7 @@ namespace Watsonia.Data.Mapping
 		{
 			this.Name = name;
 			this.ParameterType = parameterType;
-			this.MaxLength = MaxLength;
+			this.MaxLength = maxLength;
 		}
 
 		public override string ToString()

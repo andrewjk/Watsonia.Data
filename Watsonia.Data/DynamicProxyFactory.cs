@@ -15,8 +15,8 @@ namespace Watsonia.Data
 	{
 		private const string ProxyAssemblyName = "Watsonia.Data.DynamicProxies";
 
-		private static AssemblyBuilder _assemblyBuilder = null;
-		private static ModuleBuilder _moduleBuilder = null;
+		private static readonly AssemblyBuilder _assemblyBuilder = null;
+		private static readonly ModuleBuilder _moduleBuilder = null;
 		//private static string _exportPath = null;
 
 		private static readonly ConcurrentDictionary<string, Type> _cachedTypes = new ConcurrentDictionary<string, Type>();
@@ -153,12 +153,12 @@ namespace Watsonia.Data
 			//CreateInequalityOperator(type, parent, members);
 
 			// Add the constructor
-			AddConstructor(type, parentType, members, database);
+			AddConstructor(type, parentType, members);
 
 			return type.CreateTypeInfo();
 		}
 
-		private static void AddConstructor(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database)
+		private static void AddConstructor(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members)
 		{
 			var c = parentType.GetConstructor(
 				BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
@@ -453,12 +453,12 @@ namespace Watsonia.Data
 				null,
 				new Type[] { typeof(object) });
 
-			var valueParameter = onPrimaryKeyValueChangedMethod.DefineParameter(1, ParameterAttributes.None, "value");
+			onPrimaryKeyValueChangedMethod.DefineParameter(1, ParameterAttributes.None, "value");
 
 			var gen = onPrimaryKeyValueChangedMethod.GetILGenerator();
 
-			var handler = gen.DeclareLocal(typeof(PrimaryKeyValueChangedEventHandler));
-			var flag = gen.DeclareLocal(typeof(bool));
+			gen.DeclareLocal(typeof(PrimaryKeyValueChangedEventHandler));
+			gen.DeclareLocal(typeof(bool));
 
 			var exitLabel = gen.DefineLabel();
 
@@ -507,13 +507,13 @@ namespace Watsonia.Data
 					continue;
 				}
 
-				CreateOveriddenFieldProperty(type, parentType, property, members, database);
+				CreateOveriddenFieldProperty(type, property, members, database);
 			}
 
 			// Create the primary key property (e.g. ID or TableID) if it didn't already get created
 			if (members.GetPrimaryKeyMethod == null)
 			{
-				CreateFieldProperty(type, parentType, members.PrimaryKeyColumnName, members.PrimaryKeyColumnType, members, database);
+				CreateFieldProperty(type, members.PrimaryKeyColumnName, members.PrimaryKeyColumnType, members);
 			}
 
 			// Create the PrimaryKeyValue property which just wraps the primary key property
@@ -529,11 +529,11 @@ namespace Watsonia.Data
 					throw new InvalidOperationException(
 						$"The IsNew property on {parentType.FullName} must be of type {typeof(bool).FullName}");
 				}
-				CreateOverriddenProperty(type, isNewProperty, members, database);
+				CreateOverriddenProperty(type, isNewProperty, members);
 			}
 			else
 			{
-				CreateProperty(type, "IsNew", typeof(bool), members, database);
+				CreateProperty(type, "IsNew", typeof(bool), members);
 			}
 
 			// Create the HasChanges property
@@ -545,11 +545,11 @@ namespace Watsonia.Data
 					throw new InvalidOperationException(
 						$"The HasChanges property on {parentType.FullName} must be of type {typeof(bool).FullName}");
 				}
-				CreateOverriddenProperty(type, hasChangesProperty, members, database);
+				CreateOverriddenProperty(type, hasChangesProperty, members);
 			}
 			else
 			{
-				CreateProperty(type, "HasChanges", typeof(bool), members, database);
+				CreateProperty(type, "HasChanges", typeof(bool), members);
 			}
 
 			// Create the IsValid property
@@ -592,13 +592,13 @@ namespace Watsonia.Data
 					if (!members.GetPropertyMethods.ContainsKey(relatedItemIDPropertyName))
 					{
 						var primaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(parent);
-						CreateFieldProperty(type, parentType, relatedItemIDPropertyName, typeof(Nullable<>).MakeGenericType(primaryKeyColumnType), members, database);
+						CreateFieldProperty(type, relatedItemIDPropertyName, typeof(Nullable<>).MakeGenericType(primaryKeyColumnType), members);
 					}
 				}
 			}
 		}
 
-		private static void CheckCreatedProperty(PropertyInfo property, MethodBuilder getMethod, MethodBuilder setMethod, bool isOverridden, DynamicProxyTypeMembers members, Database database)
+		private static void CheckCreatedProperty(PropertyInfo property, MethodBuilder getMethod, MethodBuilder setMethod, bool isOverridden, DynamicProxyTypeMembers members)
 		{
 			// Add the get and set methods to the members class so that we can access them while building the proxy
 			members.GetPropertyMethods.Add(property.Name, getMethod);
@@ -639,7 +639,7 @@ namespace Watsonia.Data
 			}
 		}
 
-		private static void CreateProperty(TypeBuilder type, string propertyName, Type propertyType, DynamicProxyTypeMembers members, Database database, bool isReadOnly = false)
+		private static void CreateProperty(TypeBuilder type, string propertyName, Type propertyType, DynamicProxyTypeMembers members, bool isReadOnly = false)
 		{
 			var field = type.DefineField(
 				"_" + propertyName,
@@ -666,7 +666,7 @@ namespace Watsonia.Data
 				property.SetSetMethod(setMethod);
 			}
 
-			CheckCreatedProperty(property, getMethod, setMethod, false, members, database);
+			CheckCreatedProperty(property, getMethod, setMethod, false, members);
 		}
 
 		private static MethodBuilder CreatePropertyGetMethod(TypeBuilder type, string propertyName, Type propertyType, FieldBuilder privateField)
@@ -679,7 +679,7 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			var value = gen.DeclareLocal(propertyType);
+			gen.DeclareLocal(propertyType);
 
 			// return _property;
 			gen.Emit(OpCodes.Ldarg_0);
@@ -701,7 +701,7 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			var value = method.DefineParameter(1, ParameterAttributes.None, "value");
+			method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			// _property = value;
 			gen.Emit(OpCodes.Ldarg_0);
@@ -725,9 +725,9 @@ namespace Watsonia.Data
 			return method;
 		}
 
-		private static void CreateOverriddenProperty(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members, Database database, bool isReadOnly = false)
+		private static void CreateOverriddenProperty(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members, bool isReadOnly = false)
 		{
-			var field = type.DefineField(
+			type.DefineField(
 				"_" + property.Name,
 				property.PropertyType,
 				FieldAttributes.Private);
@@ -752,7 +752,7 @@ namespace Watsonia.Data
 				newProperty.SetSetMethod(setMethod);
 			}
 
-			CheckCreatedProperty(property, getMethod, setMethod, false, members, database);
+			CheckCreatedProperty(property, getMethod, setMethod, false, members);
 		}
 
 		private static MethodBuilder CreateOverriddenPropertyGetMethod(TypeBuilder type, PropertyInfo property)
@@ -765,7 +765,7 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			var value = gen.DeclareLocal(property.PropertyType);
+			gen.DeclareLocal(property.PropertyType);
 
 			var exitLabel = gen.DefineLabel();
 
@@ -791,7 +791,7 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			var value = method.DefineParameter(1, ParameterAttributes.None, "value");
+			method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			// base.Property = value;
 			gen.Emit(OpCodes.Ldarg_0);
@@ -815,7 +815,7 @@ namespace Watsonia.Data
 			return method;
 		}
 
-		private static void CreateFieldProperty(TypeBuilder type, Type parentType, string propertyName, Type propertyType, DynamicProxyTypeMembers members, Database database, bool isReadOnly = false)
+		private static void CreateFieldProperty(TypeBuilder type, string propertyName, Type propertyType, DynamicProxyTypeMembers members, bool isReadOnly = false)
 		{
 			var field = type.DefineField(
 				"_" + propertyName,
@@ -832,7 +832,7 @@ namespace Watsonia.Data
 			MethodBuilder setMethod = null;
 			if (!isReadOnly)
 			{
-				setMethod = CreateFieldPropertySetMethod(type, parentType, propertyName, propertyType, field, members);
+				setMethod = CreateFieldPropertySetMethod(type, propertyName, propertyType, field, members);
 			}
 
 			// Map the get and set methods created above to their corresponding property methods
@@ -842,7 +842,7 @@ namespace Watsonia.Data
 				property.SetSetMethod(setMethod);
 			}
 
-			CheckCreatedProperty(property, getMethod, setMethod, false, members, database);
+			CheckCreatedProperty(property, getMethod, setMethod, false, members);
 
 			members.ValueBagPropertyNames.Add(propertyName);
 		}
@@ -857,7 +857,7 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			var value = gen.DeclareLocal(propertyType);
+			gen.DeclareLocal(propertyType);
 
 			// return _property;
 			gen.Emit(OpCodes.Ldarg_0);
@@ -869,7 +869,7 @@ namespace Watsonia.Data
 			return method;
 		}
 
-		private static MethodBuilder CreateFieldPropertySetMethod(TypeBuilder type, Type parentType, string propertyName, Type propertyType, FieldBuilder privateField, DynamicProxyTypeMembers members)
+		private static MethodBuilder CreateFieldPropertySetMethod(TypeBuilder type, string propertyName, Type propertyType, FieldBuilder privateField, DynamicProxyTypeMembers members)
 		{
 			var method = type.DefineMethod(
 				"set_" + propertyName,
@@ -880,7 +880,7 @@ namespace Watsonia.Data
 			var checkOriginalValueMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"CheckOriginalValue").MakeGenericMethod(propertyType);
 
-			var value = method.DefineParameter(1, ParameterAttributes.None, "value");
+			method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			var gen = method.GetILGenerator();
 
@@ -913,7 +913,7 @@ namespace Watsonia.Data
 			return method;
 		}
 
-		private static void CreateOveriddenFieldProperty(TypeBuilder type, Type parentType, PropertyInfo property, DynamicProxyTypeMembers members, Database database, bool isReadOnly = false)
+		private static void CreateOveriddenFieldProperty(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members, Database database, bool isReadOnly = false)
 		{
 			var propertyBuilder = type.DefineProperty(
 				property.Name,
@@ -937,7 +937,7 @@ namespace Watsonia.Data
 
 			if (getMethod == null)
 			{
-				getMethod = CreateOverriddenFieldPropertyGetMethod(type, property, members);
+				getMethod = CreateOverriddenFieldPropertyGetMethod(type, property);
 			}
 
 			if (setMethod == null && !isReadOnly)
@@ -952,7 +952,7 @@ namespace Watsonia.Data
 				propertyBuilder.SetSetMethod(setMethod);
 			}
 
-			CheckCreatedProperty(property, getMethod, setMethod, true, members, database);
+			CheckCreatedProperty(property, getMethod, setMethod, true, members);
 
 			if (!isRelatedCollection)
 			{
@@ -973,8 +973,8 @@ namespace Watsonia.Data
 			var loadCollectionMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"LoadCollection", new Type[] { typeof(string) }).MakeGenericMethod(enumeratedType);
 
-			var list = gen.DeclareLocal(typeof(IList<>).MakeGenericType(enumeratedType));
-			var flag = gen.DeclareLocal(typeof(bool));
+			gen.DeclareLocal(typeof(IList<>).MakeGenericType(enumeratedType));
+			gen.DeclareLocal(typeof(bool));
 
 			var endIfLabel = gen.DefineLabel();
 			var exitLabel = gen.DefineLabel();
@@ -1039,7 +1039,7 @@ namespace Watsonia.Data
 			var addLoadedCollectionMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"AddLoadedCollection", new Type[] { typeof(string) });
 
-			var value = method.DefineParameter(1, ParameterAttributes.None, "value");
+			method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			var gen = method.GetILGenerator();
 
@@ -1059,7 +1059,7 @@ namespace Watsonia.Data
 			return method;
 		}
 
-		private static MethodBuilder CreateOverriddenFieldPropertyGetMethod(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members)
+		private static MethodBuilder CreateOverriddenFieldPropertyGetMethod(TypeBuilder type, PropertyInfo property)
 		{
 			var method = type.DefineMethod(
 				"get_" + property.Name,
@@ -1088,7 +1088,7 @@ namespace Watsonia.Data
 			var checkOriginalValueMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"CheckOriginalValue").MakeGenericMethod(property.PropertyType);
 
-			var value = method.DefineParameter(1, ParameterAttributes.None, "value");
+			method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			var gen = method.GetILGenerator();
 
@@ -1132,7 +1132,7 @@ namespace Watsonia.Data
 				{
 					primaryKeyColumnType = typeof(Nullable<>).MakeGenericType(primaryKeyColumnType);
 				}
-				CreateFieldProperty(type, property.DeclaringType, relatedItemIDPropertyName, primaryKeyColumnType, members, database);
+				CreateFieldProperty(type, relatedItemIDPropertyName, primaryKeyColumnType, members);
 			}
 
 			if (!members.SetPropertyMethods.ContainsKey(relatedItemIDPropertyName))
@@ -1176,9 +1176,9 @@ namespace Watsonia.Data
 			var loadItemMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"LoadItem", new Type[] { typeof(long), typeof(string) }).MakeGenericMethod(property.PropertyType);
 
-			var item = gen.DeclareLocal(property.PropertyType);
-			var itemID = gen.DeclareLocal(primaryKeyColumnType);
-			var flag = gen.DeclareLocal(typeof(bool));
+			gen.DeclareLocal(property.PropertyType);
+			gen.DeclareLocal(primaryKeyColumnType);
+			gen.DeclareLocal(typeof(bool));
 
 			var label28 = gen.DefineLabel();
 			var label29 = gen.DefineLabel();
@@ -1255,7 +1255,7 @@ namespace Watsonia.Data
 		{
 			MethodInfo setItemIDMethod = CreateItemSetIDMethod(type, property, members, database);
 
-			MethodInfo itemPrimaryKeyValueChangedHandler = CreateItemPrimaryKeyValueChangedEventHandler(type, property, setItemIDMethod, members, database);
+			MethodInfo itemPrimaryKeyValueChangedHandler = CreateItemPrimaryKeyValueChangedEventHandler(type, property, setItemIDMethod);
 
 			var method = type.DefineMethod(
 				"set_" + property.Name,
@@ -1263,17 +1263,8 @@ namespace Watsonia.Data
 				null,
 				new Type[] { property.PropertyType });
 
-			var typeOfMethod = typeof(Type).GetMethod(
-				"GetTypeFromHandle", new Type[] { typeof(RuntimeTypeHandle) });
-
-			var changeTypeMethod = typeof(Convert).GetMethod(
-				"ChangeType", new Type[] { typeof(object), typeof(Type) });
-
 			var addLoadedItemMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"AddLoadedItem", new Type[] { typeof(string) });
-
-			var getPrimaryKeyValueMethod = typeof(IDynamicProxy).GetMethod(
-				"get_PrimaryKeyValue", Type.EmptyTypes);
 
 			var eventHandlerConstructor = typeof(PrimaryKeyValueChangedEventHandler).GetConstructor(
 				new Type[] { typeof(object), typeof(IntPtr) });
@@ -1286,7 +1277,7 @@ namespace Watsonia.Data
 				"add_PrimaryKeyValueChanged",
 				new Type[] { typeof(PrimaryKeyValueChangedEventHandler) });
 
-			var value = method.DefineParameter(1, ParameterAttributes.None, "value");
+			method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			var gen = method.GetILGenerator();
 
@@ -1298,11 +1289,11 @@ namespace Watsonia.Data
 
 			var relatedItemIDPropertyName = database.Configuration.GetForeignKeyColumnName(property);
 
-			var flag = gen.DeclareLocal(typeof(bool));
-			var proxy = gen.DeclareLocal(typeof(IDynamicProxy));
-			var flag2 = gen.DeclareLocal(typeof(bool));
-			var proxy2 = gen.DeclareLocal(typeof(IDynamicProxy));
-			var itemID = gen.DeclareLocal(primaryKeyColumnType);
+			gen.DeclareLocal(typeof(bool));
+			gen.DeclareLocal(typeof(IDynamicProxy));
+			gen.DeclareLocal(typeof(bool));
+			gen.DeclareLocal(typeof(IDynamicProxy));
+			gen.DeclareLocal(primaryKeyColumnType);
 
 			var label47 = gen.DefineLabel();
 			var label128 = gen.DefineLabel();
@@ -1350,8 +1341,6 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldstr, property.Name);
 			gen.Emit(OpCodes.Callvirt, addLoadedItemMethod);
 
-			var originalPrimaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(property.PropertyType);
-
 			// IDynamicProxy thingProxy = (IDynamicProxy)value;
 			// SetThingID(thingProxy);
 			gen.Emit(OpCodes.Ldarg_1);
@@ -1386,7 +1375,7 @@ namespace Watsonia.Data
 			return method;
 		}
 
-		private static MethodBuilder CreateItemPrimaryKeyValueChangedEventHandler(TypeBuilder type, PropertyInfo property, MethodInfo setItemIDMethod, DynamicProxyTypeMembers members, Database database)
+		private static MethodBuilder CreateItemPrimaryKeyValueChangedEventHandler(TypeBuilder type, PropertyInfo property, MethodInfo setItemIDMethod)
 		{
 			var method = type.DefineMethod(
 				property.Name + "Proxy_PrimaryKeyValueChanged",
@@ -1408,10 +1397,10 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			var sender = method.DefineParameter(1, ParameterAttributes.None, "sender");
-			var e = method.DefineParameter(2, ParameterAttributes.None, "e");
+			method.DefineParameter(1, ParameterAttributes.None, "sender");
+			method.DefineParameter(2, ParameterAttributes.None, "e");
 
-			var thingProxy = gen.DeclareLocal(typeof(IDynamicProxy));
+			gen.DeclareLocal(typeof(IDynamicProxy));
 			//LocalBuilder flag = gen.DeclareLocal(typeof(bool));
 
 			//Label exitLabel = gen.DefineLabel();
@@ -1466,7 +1455,7 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			var value = method.DefineParameter(1, ParameterAttributes.None, "value");
+			method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			var relatedItemIDPropertyName = database.Configuration.GetForeignKeyColumnName(property);
 
@@ -1520,8 +1509,8 @@ namespace Watsonia.Data
 
 			var gen = getMethod.GetILGenerator();
 
-			var stateTracker = gen.DeclareLocal(typeof(DynamicProxyStateTracker));
-			var flag = gen.DeclareLocal(typeof(bool));
+			gen.DeclareLocal(typeof(DynamicProxyStateTracker));
+			gen.DeclareLocal(typeof(bool));
 
 			var endIfLabel = gen.DefineLabel();
 			var exitLabel = gen.DefineLabel();
@@ -1592,7 +1581,7 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			var value = gen.DeclareLocal(typeof(object));
+			gen.DeclareLocal(typeof(object));
 
 			var exitLabel = gen.DefineLabel();
 
@@ -1629,7 +1618,7 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			var value = method.DefineParameter(1, ParameterAttributes.None, "value");
+			method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			// this.ID = (long)Convert.ChangeType(value, typeof(long));
 			gen.Emit(OpCodes.Ldarg_0);
@@ -1757,7 +1746,7 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			var value = gen.DeclareLocal(propertyType);
+			gen.DeclareLocal(propertyType);
 
 			// return _property;
 			gen.Emit(OpCodes.Ldarg_0);
@@ -1777,7 +1766,7 @@ namespace Watsonia.Data
 				null,
 				new Type[] { propertyType });
 
-			var value = method.DefineParameter(1, ParameterAttributes.None, "value");
+			method.DefineParameter(1, ParameterAttributes.None, "value");
 
 			var gen = method.GetILGenerator();
 
@@ -1811,7 +1800,6 @@ namespace Watsonia.Data
 			// Set the original value for the primary key
 			CreateSetOriginalValueCall(gen, members, database.Configuration.GetPrimaryKeyColumnName(parentType), database.Configuration.GetPrimaryKeyColumnType(parentType), stateTrackerGetOriginalValuesMethod, dictionarySetItemMethod);
 
-			var things = new List<string>();
 			// Set the original values for each property
 			foreach (var property in database.Configuration.PropertiesToMap(parentType))
 			{
@@ -1926,10 +1914,10 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			var source = method.DefineParameter(1, ParameterAttributes.None, "source");
+			method.DefineParameter(1, ParameterAttributes.None, "source");
 
-			var i = gen.DeclareLocal(typeof(int));
-			var fieldName = gen.DeclareLocal(typeof(string));
+			gen.DeclareLocal(typeof(int));
+			gen.DeclareLocal(typeof(string));
 
 			// Define the locals for each nullable property in the switch statement
 			// These will be referred to by their index later on so we need to store that too
@@ -2217,10 +2205,10 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			var bag = method.DefineParameter(1, ParameterAttributes.None, "bag");
+			method.DefineParameter(1, ParameterAttributes.None, "bag");
 
 			// Preparing locals
-			var itemBag = gen.DeclareLocal(members.ValueBagType);
+			gen.DeclareLocal(members.ValueBagType);
 
 			// this.StateTracker.IsLoading = true;
 			gen.Emit(OpCodes.Ldarg_0);
@@ -2269,8 +2257,8 @@ namespace Watsonia.Data
 			var gen = method.GetILGenerator();
 
 			// Preparing locals
-			var itemBag = gen.DeclareLocal(members.ValueBagType);
-			var bag2 = gen.DeclareLocal(typeof(IValueBag));
+			gen.DeclareLocal(members.ValueBagType);
+			gen.DeclareLocal(typeof(IValueBag));
 
 			//// Preparing labels
 			//Label label271 = gen.DefineLabel();
@@ -2316,7 +2304,7 @@ namespace Watsonia.Data
 
 			if (methodReturnType != null)
 			{
-				var local = gen.DeclareLocal(methodReturnType);
+				gen.DeclareLocal(methodReturnType);
 			}
 			var exitLabel = gen.DefineLabel();
 

@@ -345,7 +345,7 @@ namespace Watsonia.Data
 		{
 			this.Validate();
 			return string.Join(Environment.NewLine,
-				Array.ConvertAll<ValidationError, string>(this.ValidationErrors.ToArray(), e => e.ErrorMessage));
+				Array.ConvertAll(this.ValidationErrors.ToArray(), e => e.ErrorMessage));
 		}
 
 		/// <summary>
@@ -356,17 +356,6 @@ namespace Watsonia.Data
 		public string GetErrorText(string propertyName)
 		{
 			var error = GetError(propertyName);
-			return (error != null) ? error.ErrorMessage : "";
-		}
-
-		/// <summary>
-		/// Gets the error text for the supplied property.
-		/// </summary>
-		/// <param name="property">The property.</param>
-		/// <returns>A string containing the error text or the empty string if there are no errors.</returns>
-		private string GetErrorText(PropertyInfo property)
-		{
-			var error = GetError(this.Item, property);
 			return (error != null) ? error.ErrorMessage : "";
 		}
 

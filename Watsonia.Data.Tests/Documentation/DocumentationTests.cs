@@ -77,7 +77,7 @@ namespace Watsonia.Data.Tests.Documentation
 			Assert.AreEqual(2, _db.LoadCollection<Author>(query2).Count);
 
 			var query22 = Select.From<Author>().Where(a => a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase));
-			Assert.AreEqual(2, _db.LoadCollection<Author>(query22).Count);
+			Assert.AreEqual(2, _db.LoadCollection(query22).Count);
 
 			// Test an SQL string
 			var query3 = "SELECT * FROM Author WHERE LastName LIKE @0";

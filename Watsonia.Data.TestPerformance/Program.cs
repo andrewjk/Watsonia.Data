@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -49,7 +49,7 @@ namespace Watsonia.Data.TestPerformance
 
 			if (db.Query<Post>().Count() == 0)
 			{
-				var posts = DataGenerator.GeneratePosts(db, PostCount);
+				DataGenerator.GeneratePosts(db, PostCount);
 				var sports = DataGenerator.GenerateSports(db, SportCount);
 				foreach (var sport in sports)
 				{

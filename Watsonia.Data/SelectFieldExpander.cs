@@ -14,12 +14,6 @@ namespace Watsonia.Data
 {
     internal class SelectFieldExpander : QueryModelVisitorBase
     {
-        private QueryModel QueryModel
-        {
-            get;
-            set;
-        }
-
         private SelectStatement Select
         {
             get;
@@ -32,16 +26,15 @@ namespace Watsonia.Data
             set;
         }
 
-        private SelectFieldExpander(QueryModel queryModel, SelectStatement select, DatabaseConfiguration configuration)
+        private SelectFieldExpander(SelectStatement select, DatabaseConfiguration configuration)
         {
-            this.QueryModel = queryModel;
             this.Select = select;
             this.Configuration = configuration;
         }
 
         public static void Visit(QueryModel queryModel, SelectStatement select, DatabaseConfiguration configuration)
         {
-            var visitor = new SelectFieldExpander(queryModel, select, configuration);
+            var visitor = new SelectFieldExpander(select, configuration);
             queryModel.Accept(visitor);
         }
 

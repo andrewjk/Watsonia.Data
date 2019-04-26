@@ -22,6 +22,7 @@ namespace Watsonia.Data
 			this.Database = database;
 		}
 
+		// TODO: This needs to be moved to Watsonia.QueryBuilder
 		internal SelectStatement BuildSelectStatement(QueryModel queryModel)
 		{
             // Add joins for fields in tables that haven't been joined explicitly
@@ -41,7 +42,7 @@ namespace Watsonia.Data
 			if (select.Source.PartType == StatementPartType.UserDefinedFunction)
 			{
 				var function = (UserDefinedFunction)select.Source;
-				function.Parameters.AddRange(this.Query.Parameters.Select(p => new QueryBuilder.Parameter(p.Name, p.Value)));
+				function.Parameters.AddRange(this.Query.Parameters.Select(p => new Parameter(p.Name, p.Value)));
 			}
 
 			// Check whether we need to expand fields (if the select has no fields)
