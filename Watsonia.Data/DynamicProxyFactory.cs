@@ -19,9 +19,13 @@ namespace Watsonia.Data
 		private static readonly ModuleBuilder _moduleBuilder = null;
 		//private static string _exportPath = null;
 
-		private static readonly ConcurrentDictionary<string, Type> _cachedTypes = new ConcurrentDictionary<string, Type>();
-		private static readonly ConcurrentDictionary<string, ConstructorInfo> _cachedConstructors = new ConcurrentDictionary<string, ConstructorInfo>();
-		private static readonly ConcurrentDictionary<string, ChildParentMapping> _cachedChildParentMappings = new ConcurrentDictionary<string, ChildParentMapping>();
+		private static readonly Dictionary<string, Type> _cachedTypes = new Dictionary<string, Type>();
+		private static readonly Dictionary<string, ConstructorInfo> _cachedConstructors = new Dictionary<string, ConstructorInfo>();
+		private static readonly Dictionary<string, ChildParentMapping> _cachedChildParentMappings = new Dictionary<string, ChildParentMapping>();
+
+		private static object _cachedTypesLock = new object();
+		private static object _cachedConstructorsLock = new object();
+		private static object _cachedChildParentMappingsLock = new object();
 
 		static DynamicProxyFactory()
 		{
@@ -71,19 +75,70 @@ namespace Watsonia.Data
 		internal static Type GetDynamicProxyType(Type parentType, Database database)
 		{
 			var proxyTypeName = GetDynamicTypeName(parentType, database);
-			return _cachedTypes.GetOrAdd(proxyTypeName,
-				(string s) => CreateType(proxyTypeName, parentType, database));
+			if (!_cachedTypes.ContainsKey(proxyTypeName))
+			{
+				lock (_cachedTypesLock)
+				{
+					if (!_cachedTypes.ContainsKey(proxyTypeName))
+					{
+						var type = CreateType(proxyTypeName, parentType, database);
+						_cachedTypes.Add(proxyTypeName, type);
+					}
+				}
+			}
+			return _cachedTypes[proxyTypeName];
 		}
 
 		internal static ConstructorInfo GetDynamicProxyConstructor(Type parentType, Database database)
 		{
 			var proxyTypeName = GetDynamicTypeName(parentType, database);
-			return _cachedConstructors.GetOrAdd(proxyTypeName,
-				(string s) =>
+			if (!_cachedConstructors.ContainsKey(proxyTypeName))
+			{
+				lock (_cachedConstructorsLock)
 				{
-					var proxyType = GetDynamicProxyType(parentType, database);
-					return proxyType.GetConstructor(Type.EmptyTypes);
-				});
+					if (!_cachedConstructors.ContainsKey(proxyTypeName))
+					{
+						var proxyType = GetDynamicProxyType(parentType, database);
+						var constructor = proxyType.GetConstructor(Type.EmptyTypes);
+						_cachedConstructors.Add(proxyTypeName, constructor);
+					}
+				}
+			}
+			return _cachedConstructors[proxyTypeName];
+		}
+
+		private static Type GetValueBagType(Type parentType, Database database, DynamicProxyTypeMembers members)
+		{
+			var valueBagTypeName = GetDynamicTypeName(parentType, database, "ValueBag");
+			if (!_cachedTypes.ContainsKey(valueBagTypeName))
+			{
+				lock (_cachedTypesLock)
+				{
+					if (!_cachedTypes.ContainsKey(valueBagTypeName))
+					{
+						var type = CreateValueBagType(valueBagTypeName, members);
+						_cachedTypes.Add(valueBagTypeName, type);
+					}
+				}
+			}
+			return _cachedTypes[valueBagTypeName];
+		}
+
+		private static ChildParentMapping GetChildParentMapping(Type parentType, Database database)
+		{
+			var childParentMappingName = GetDynamicTypeName(parentType, database, "ChildParentMapping");
+			if (!_cachedChildParentMappings.ContainsKey(childParentMappingName))
+			{
+				lock (_cachedChildParentMappingsLock)
+				{
+					if (!_cachedChildParentMappings.ContainsKey(childParentMappingName))
+					{
+						var mapping = LoadChildParentMapping(database);
+						_cachedChildParentMappings.Add(childParentMappingName, mapping);
+					}
+				}
+			}
+			return _cachedChildParentMappings[childParentMappingName];
 		}
 
 		internal static IDynamicProxy GetDynamicProxy(Type parentType, Database database)
@@ -106,9 +161,7 @@ namespace Watsonia.Data
 			System.Diagnostics.Trace.WriteLine("Creating " + typeName, "Dynamic Proxy");
 
 			// Get the child parent mapping
-			var childParentMappingName = GetDynamicTypeName(parentType, database, "ChildParentMapping");
-			var childParentMapping = _cachedChildParentMappings.GetOrAdd(childParentMappingName,
-				(string s) => LoadChildParentMapping(database));
+			var childParentMapping = GetChildParentMapping(parentType, database);
 
 			var members = new DynamicProxyTypeMembers();
 			members.PrimaryKeyColumnName = database.Configuration.GetPrimaryKeyColumnName(parentType);
@@ -133,9 +186,7 @@ namespace Watsonia.Data
 			AddProperties(type, parentType, members, database, childParentMapping);
 
 			// Create the ValueBag type, now that we know what properties there will be
-			var valueBagTypeName = GetDynamicTypeName(parentType, database, "ValueBag");
-			members.ValueBagType = _cachedTypes.GetOrAdd(valueBagTypeName,
-				(string s) => CreateValueBagType(valueBagTypeName, members));
+			members.ValueBagType = GetValueBagType(parentType, database, members);
 
 			// Add some methods
 			members.ResetOriginalValuesMethod = CreateResetOriginalValuesMethod(type, parentType, members, database, childParentMapping);
