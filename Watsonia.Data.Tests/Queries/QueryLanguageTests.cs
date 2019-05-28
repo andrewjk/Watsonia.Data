@@ -17,7 +17,7 @@ namespace Watsonia.Data.Tests.Queries
 	[TestClass]
 	public class QueryLanguageTests
 	{
-		private static NorthwindDatabase _db = new NorthwindDatabase();
+		private static readonly NorthwindDatabase _db = new NorthwindDatabase();
 		private static Dictionary<string, string> _sqlServerBaselines = new Dictionary<string, string>();
 		private static Dictionary<string, string> _sqliteBaselines = new Dictionary<string, string>();
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Data.Common;
+using System.Threading.Tasks;
 using Watsonia.Data.Mapping;
 using Watsonia.QueryBuilder;
 
@@ -28,19 +29,19 @@ namespace Watsonia.Data
 		/// <returns>
 		/// An open database connection.
 		/// </returns>
-		DbConnection OpenConnection(DatabaseConfiguration configuration);
+		Task<DbConnection> OpenConnectionAsync(DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Ensures that the database is deleted.
 		/// </summary>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		void EnsureDatabaseDeleted(DatabaseConfiguration configuration);
+		Task EnsureDatabaseDeletedAsync(DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Ensures that the database is created.
 		/// </summary>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		void EnsureDatabaseCreated(DatabaseConfiguration configuration);
+		Task EnsureDatabaseCreatedAsync(DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Updates the database with any changes that have been made to tables and columns.
@@ -50,7 +51,7 @@ namespace Watsonia.Data
 		/// <param name="procedures">The stored procedures that should exist in the database.</param>
 		/// <param name="functions">The user-defined functions that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration);
+		Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Gets the update script for any changes that have been made to tables and columns.
@@ -63,7 +64,7 @@ namespace Watsonia.Data
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration);
+		Task<string> GetUpdateScriptAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Gets columns that exist in the database but are not mapped.
@@ -73,7 +74,7 @@ namespace Watsonia.Data
 		/// <returns>
 		/// A string containing the unmapped columns.
 		/// </returns>
-		string GetUnmappedColumns(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration);
+		Task<string> GetUnmappedColumnsAsync(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Builds a command to return the ID of the last inserted item.

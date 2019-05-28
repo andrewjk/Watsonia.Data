@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Watsonia.Data.Mapping;
 using Watsonia.QueryBuilder;
 
@@ -12,7 +13,7 @@ namespace Watsonia.Data
 {
 	internal sealed class DatabaseUpdater
 	{
-		public void UpdateDatabase(DatabaseConfiguration configuration)
+		public async Task UpdateDatabaseAsync(DatabaseConfiguration configuration)
 		{
 			if (configuration == null)
 			{
@@ -24,10 +25,10 @@ namespace Watsonia.Data
 			var procedures = new List<MappedProcedure>();
 			var functions = new List<MappedFunction>();
 			GetMappedObjects(tables, views, procedures, functions, configuration);
-			configuration.DataAccessProvider.UpdateDatabase(tables, views, procedures, functions, configuration);
+			await configuration.DataAccessProvider.UpdateDatabaseAsync(tables, views, procedures, functions, configuration);
 		}
 
-		public string GetUpdateScript(DatabaseConfiguration configuration)
+		public async Task<string> GetUpdateScriptAsync(DatabaseConfiguration configuration)
 		{
 			if (configuration == null)
 			{
@@ -39,10 +40,10 @@ namespace Watsonia.Data
 			var procedures = new List<MappedProcedure>();
 			var functions = new List<MappedFunction>();
 			GetMappedObjects(tables, views, procedures, functions, configuration);
-			return configuration.DataAccessProvider.GetUpdateScript(tables, views, procedures, functions, configuration);
+			return await configuration.DataAccessProvider.GetUpdateScriptAsync(tables, views, procedures, functions, configuration);
 		}
 
-		public string GetUnmappedColumns(DatabaseConfiguration configuration)
+		public async Task<string> GetUnmappedColumnsAsync(DatabaseConfiguration configuration)
 		{
 			if (configuration == null)
 			{
@@ -54,7 +55,7 @@ namespace Watsonia.Data
 			var procedures = new List<MappedProcedure>();
 			var functions = new List<MappedFunction>();
 			GetMappedObjects(tables, views, procedures, functions, configuration);
-			return configuration.DataAccessProvider.GetUnmappedColumns(tables, configuration);
+			return await configuration.DataAccessProvider.GetUnmappedColumnsAsync(tables, configuration);
 		}
 
 		private void GetMappedObjects(List<MappedTable> tables, List<MappedView> views, List<MappedProcedure> procedures, List<MappedFunction> functions, DatabaseConfiguration configuration)

@@ -6,6 +6,7 @@ using Watsonia.Data.SqlServer;
 using System.IO;
 using System;
 using Watsonia.QueryBuilder;
+using System.Threading.Tasks;
 
 namespace Watsonia.Data.Tests.Entities
 {
@@ -18,14 +19,14 @@ namespace Watsonia.Data.Tests.Entities
 		private readonly static EntitiesDatabase _db = new EntitiesDatabase();
 
 		[ClassInitialize]
-		public static void Initialize(TestContext context)
+		public static async Task InitializeAsync(TestContext context)
 		{
 			if (!File.Exists(@"Data\EntitiesTests.sqlite"))
 			{
 				File.Create(@"Data\EntitiesTests.sqlite");
 			}
 
-			_db.UpdateDatabase();
+			await _db.UpdateDatabaseAsync();
 		}
 
 		[ClassCleanup]
@@ -34,54 +35,54 @@ namespace Watsonia.Data.Tests.Entities
 		}
 
 		[TestMethod]
-		public void TestCrudOperations()
+		public async Task TestCrudOperationsAsync()
 		{
 			// Delete all existing cruds
 			var deleteCruds = Delete.From("Crud").Where(true);
-			_db.Execute(deleteCruds);
+			await _db.ExecuteAsync(deleteCruds);
 
 			// Check that the delete worked
 			var countCruds = Select.From("Crud").Count("*");
-			Assert.AreEqual(0, Convert.ToInt32(_db.LoadValue(countCruds)));
+			Assert.AreEqual(0, Convert.ToInt32(await _db.LoadValueAsync(countCruds)));
 
 			// Insert a crud and check that the insert worked and the new ID is correctly set
 			var newCrud = _db.Create<Crud>();
 			newCrud.Name = "ABC";
-			_db.Save(newCrud);
-			Assert.AreEqual(1, Convert.ToInt32(_db.LoadValue(countCruds)));
+			await _db.SaveAsync(newCrud);
+			Assert.AreEqual(1, Convert.ToInt32(await _db.LoadValueAsync(countCruds)));
 			Assert.IsTrue(newCrud.ID > 0);
 
 			// Load the inserted crud
-			var crud = _db.Load<Crud>(newCrud.ID);
+			var crud = await _db.LoadAsync<Crud>(newCrud.ID);
 			Assert.AreEqual("ABC", crud.Name);
 
 			// Update the crud
 			crud.Name = "DEF";
-			_db.Save(crud);
+			await _db.SaveAsync(crud);
 
 			// Load the updated crud
-			var updatedCrud = _db.Load<Crud>(newCrud.ID);
+			var updatedCrud = await _db.LoadAsync<Crud>(newCrud.ID);
 			Assert.AreEqual("DEF", crud.Name);
 
 			// And delete it
-			_db.Delete(updatedCrud);
-			Assert.AreEqual(0, Convert.ToInt32(_db.LoadValue(countCruds)));
+			await _db.DeleteAsync(updatedCrud);
+			Assert.AreEqual(0, Convert.ToInt32(await _db.LoadValueAsync(countCruds)));
 		}
 
 		[TestMethod]
-		public void TestHasChanges()
+		public async Task TestHasChangesAsync()
 		{
 			// Delete all existing has changes items
 			var deleteHasChanges = Delete.From("HasChanges").Where(true);
-			_db.Execute(deleteHasChanges);
+			await _db.ExecuteAsync(deleteHasChanges);
 			var deleteHasChangesRelated = Delete.From("HasChangesRelated").Where(true);
-			_db.Execute(deleteHasChangesRelated);
+			await _db.ExecuteAsync(deleteHasChangesRelated);
 
 			// Check that the delete worked
 			var countHasChanges = Select.From("HasChanges").Count("*");
-			Assert.AreEqual(0, Convert.ToInt32(_db.LoadValue(countHasChanges)));
+			Assert.AreEqual(0, Convert.ToInt32(await _db.LoadValueAsync(countHasChanges)));
 			var countHasChangesRelated = Select.From("HasChangesRelated").Count("*");
-			Assert.AreEqual(0, Convert.ToInt32(_db.LoadValue(countHasChangesRelated)));
+			Assert.AreEqual(0, Convert.ToInt32(await _db.LoadValueAsync(countHasChangesRelated)));
 
 			// Create a HasChanges and check that it has no changes
 			var newHasChanges = _db.Create<HasChanges>();
@@ -92,12 +93,12 @@ namespace Watsonia.Data.Tests.Entities
 			var hasChangesRelated1 = _db.Create<HasChangesRelated>();
 			Assert.IsTrue(((IDynamicProxy)hasChangesRelated1).IsNew);
 			Assert.IsFalse(((IDynamicProxy)hasChangesRelated1).HasChanges);
-			_db.Save(hasChangesRelated1);
+			await _db.SaveAsync(hasChangesRelated1);
 
 			var hasChangesRelated2 = _db.Create<HasChangesRelated>();
 			Assert.IsTrue(((IDynamicProxy)hasChangesRelated2).IsNew);
 			Assert.IsFalse(((IDynamicProxy)hasChangesRelated2).HasChanges);
-			_db.Save(hasChangesRelated2);
+			await _db.SaveAsync(hasChangesRelated2);
 
 			// Even if we set things to their default values
 			newHasChanges.Bool = false;
@@ -110,14 +111,14 @@ namespace Watsonia.Data.Tests.Entities
 
 			// Insert it and check that the insert worked
 			newHasChanges.String = "ABC";
-			_db.Save(newHasChanges);
-			Assert.AreEqual(1, Convert.ToInt32(_db.LoadValue(countHasChanges)));
+			await _db.SaveAsync(newHasChanges);
+			Assert.AreEqual(1, Convert.ToInt32(await _db.LoadValueAsync(countHasChanges)));
 			Assert.IsFalse(((IDynamicProxy)newHasChanges).IsNew);
 			Assert.IsFalse(((IDynamicProxy)newHasChanges).HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)newHasChanges).StateTracker.ChangedFields.Count);
 
 			// Load the inserted HasChanges
-			var hasChanges = _db.Load<HasChanges>(((IDynamicProxy)newHasChanges).PrimaryKeyValue);
+			var hasChanges = await _db.LoadAsync<HasChanges>(((IDynamicProxy)newHasChanges).PrimaryKeyValue);
 			Assert.AreEqual("ABC", hasChanges.String);
 			Assert.IsFalse(((IDynamicProxy)hasChanges).IsNew);
 			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
@@ -240,7 +241,7 @@ namespace Watsonia.Data.Tests.Entities
 			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("RelatedID", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
-			_db.Save(hasChanges);
+			await _db.SaveAsync(hasChanges);
 			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
@@ -283,7 +284,7 @@ namespace Watsonia.Data.Tests.Entities
 			hasChanges.String = "JKL";
 			hasChanges.DecimalWithDefault = 200.2m;
 			hasChanges.Related = hasChangesRelated1;
-			_db.Save(hasChanges);
+			await _db.SaveAsync(hasChanges);
 			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
@@ -331,41 +332,41 @@ namespace Watsonia.Data.Tests.Entities
 		}
 
 		[TestMethod]
-		public void TestCollections()
+		public async Task TestCollectionsAsync()
 		{
 			// Delete all existing colls
 			var deleteCollections = Delete.From("Collection").Where(true);
-			_db.Execute(deleteCollections);
+			await _db.ExecuteAsync(deleteCollections);
 
-			_db.Insert(new Collection() { Value = 1, Description = "One" });
-			_db.Insert(new Collection() { Value = 2, Description = "Two" });
-			_db.Insert(new Collection() { Value = 3, Description = "Three" });
-			_db.Insert(new Collection() { Value = 4, Description = "Four" });
-			_db.Insert(new Collection() { Value = 5, Description = "Five" });
+			await _db.InsertAsync(new Collection() { Value = 1, Description = "One" });
+			await _db.InsertAsync(new Collection() { Value = 2, Description = "Two" });
+			await _db.InsertAsync(new Collection() { Value = 3, Description = "Three" });
+			await _db.InsertAsync(new Collection() { Value = 4, Description = "Four" });
+			await _db.InsertAsync(new Collection() { Value = 5, Description = "Five" });
 
 			// Load all of the colls except for one
 			var select = Select.From("Collection").Where("Description", SqlOperator.NotEquals, "Four").OrderBy("Description");
-			var collection = _db.LoadCollection<Collection>(select);
+			var collection = await _db.LoadCollectionAsync<Collection>(select);
 			Assert.AreEqual(4, collection.Count);
 			Assert.AreEqual("Two", collection[3].Description);
 
 			// Load all of the colls except for one with an IN statement
 			var select2 = Select.From("Collection").Where("Value", SqlOperator.IsIn, new int[] { 1, 2, 3, 5, 6}).OrderBy("Description");
-			var collection2 = _db.LoadCollection<Collection>(select2);
+			var collection2 = await _db.LoadCollectionAsync<Collection>(select2);
 			Assert.AreEqual(4, collection2.Count);
 			Assert.AreEqual("Two", collection2[3].Description);
 		}
 
 		[TestMethod]
-		public void TestLazyAndEagerLoading()
+		public async Task TestLazyAndEagerLoadingAsync()
 		{
 			// Delete all existing subchils, chils and pars
 			var deleteSubChildren = Delete.From("SubChild").Where(true);
-			_db.Execute(deleteSubChildren);
+			await _db.ExecuteAsync(deleteSubChildren);
 			var deleteChildren = Delete.From("Child").Where(true);
-			_db.Execute(deleteChildren);
+			await _db.ExecuteAsync(deleteChildren);
 			var deleteParents = Delete.From("Parent").Where(true);
-			_db.Execute(deleteParents);
+			await _db.ExecuteAsync(deleteParents);
 
 			// Add a couple of test pars
 			var newParent = _db.Create<Parent>();
@@ -374,18 +375,18 @@ namespace Watsonia.Data.Tests.Entities
 			newParent.Children[0].SubChildren.Add(_db.Create(new SubChild() { SubName = "SC1" }));
 			newParent.Children[0].SubChildren.Add(_db.Create(new SubChild() { SubName = "SC2" }));
 			newParent.Children.Add(_db.Create(new Child() { Value = 2, Description = "Two" }));
-			_db.Save(newParent);
+			await _db.SaveAsync(newParent);
 
 			var newParent2 = _db.Create<Parent>();
 			newParent2.Name = "P2";
 			newParent2.Children.Add(_db.Create(new Child() { Value = 3, Description = "Three" }));
 			newParent2.Children.Add(_db.Create(new Child() { Value = 4, Description = "Four" }));
 			newParent2.Children.Add(_db.Create(new Child() { Value = 5, Description = "Five" }));
-			_db.Save(newParent2);
+			await _db.SaveAsync(newParent2);
 
 			// Test lazy loading
 			var select = Select.From("Parent").Where("Name", SqlOperator.StartsWith, "P");
-			var collection = _db.LoadCollection<Parent>(select);
+			var collection = await _db.LoadCollectionAsync<Parent>(select);
 			Assert.AreEqual(2, collection.Count);
 			Assert.IsFalse(((IDynamicProxy)collection[0]).StateTracker.LoadedCollections.Contains("Children"));
 			Assert.AreEqual(2, collection[0].Children.Count);
@@ -393,63 +394,51 @@ namespace Watsonia.Data.Tests.Entities
 
 			// Test eager loading
 			var select2 = Select.From("Parent").Include("Children").Where("Name", SqlOperator.StartsWith, "P");
-			var collection2 = _db.LoadCollection<Parent>(select2);
+			var collection2 = await _db.LoadCollectionAsync<Parent>(select2);
 			Assert.AreEqual(2, collection2.Count);
 			Assert.IsTrue(((IDynamicProxy)collection2[0]).StateTracker.LoadedCollections.Contains("Children"));
 
 			// Test eager loading with dots
 			var select3 = Select.From("Parent").Include("Children").Include("Children.SubChildren").Where("Name", SqlOperator.StartsWith, "P");
-			var collection3 = _db.LoadCollection<Parent>(select3);
+			var collection3 = await _db.LoadCollectionAsync<Parent>(select3);
 			Assert.AreEqual(2, collection3.Count);
 			Assert.IsTrue(((IDynamicProxy)collection3[0]).StateTracker.LoadedCollections.Contains("Children"));
 			Assert.IsTrue(((IDynamicProxy)((Parent)collection3[0]).Children[0]).StateTracker.LoadedCollections.Contains("SubChildren"));
 		}
 
 		[TestMethod]
-		public void TestAggregateFunctions()
+		public async Task TestAggregateFunctionsAsync()
 		{
 			// Delete all existing aggs
 			var deleteAggregates = Delete.From("Aggregate").Where(true);
-			_db.Execute(deleteAggregates);
+			await _db.ExecuteAsync(deleteAggregates);
 
 			// Add some test aggs
-			_db.Insert(new Aggregate() { Value = 1 });
-			_db.Insert(new Aggregate() { Value = 3 });
-			_db.Insert(new Aggregate() { Value = 5 });
-			_db.Insert(new Aggregate() { Value = 7 });
-			_db.Insert(new Aggregate() { Value = 11 });
+			await _db.InsertAsync(new Aggregate() { Value = 1 });
+			await _db.InsertAsync(new Aggregate() { Value = 3 });
+			await _db.InsertAsync(new Aggregate() { Value = 5 });
+			await _db.InsertAsync(new Aggregate() { Value = 7 });
+			await _db.InsertAsync(new Aggregate() { Value = 11 });
 
 			// Test count
 			var selectCount = Select.From("Aggregate").Count("*");
-			Assert.AreEqual(5, Convert.ToInt32(_db.LoadValue(selectCount)));
+			Assert.AreEqual(5, Convert.ToInt32(await _db.LoadValueAsync(selectCount)));
 
 			// Test sum
 			var selectSum = Select.From("Aggregate").Sum("Value");
-			Assert.AreEqual(27d, Convert.ToDouble(_db.LoadValue(selectSum)));
+			Assert.AreEqual(27d, Convert.ToDouble(await _db.LoadValueAsync(selectSum)));
 
 			// Test average
 			var selectAverage = Select.From("Aggregate").Average("Value");
-			Assert.AreEqual(5.4, Convert.ToDouble(_db.LoadValue(selectAverage)));
+			Assert.AreEqual(5.4, Convert.ToDouble(await _db.LoadValueAsync(selectAverage)));
 
 			// Test minimum
 			var selectMin = Select.From("Aggregate").Min("Value");
-			Assert.AreEqual(1d, Convert.ToDouble(_db.LoadValue(selectMin)));
+			Assert.AreEqual(1d, Convert.ToDouble(await _db.LoadValueAsync(selectMin)));
 
 			// Test maximum
 			var selectMax = Select.From("Aggregate").Max("Value");
-			Assert.AreEqual(11d, Convert.ToDouble(_db.LoadValue(selectMax)));
-		}
-
-		private void ExecuteNonQuery(string sql)
-		{
-			using (var connection = new SqlConnection(_db.Configuration.ConnectionString))
-			{
-				connection.Open();
-				using (var command = new SqlCommand(sql, connection))
-				{
-					command.ExecuteNonQuery();
-				}
-			}
+			Assert.AreEqual(11d, Convert.ToDouble(await _db.LoadValueAsync(selectMax)));
 		}
 
 		[TestMethod]

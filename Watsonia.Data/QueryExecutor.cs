@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Remotion.Linq;
 using Watsonia.QueryBuilder;
 
@@ -59,17 +60,18 @@ namespace Watsonia.Data
 		public IEnumerable<T2> ExecuteCollection<T2>(QueryModel queryModel)
 		{
 			var select = BuildSelectStatement(queryModel);
-			return this.Database.LoadCollection<T2>(select);
+			return Task.Run(() => this.Database.LoadCollectionAsync<T2>(select)).GetAwaiter().GetResult();
 		}
 
 		public T2 ExecuteScalar<T2>(QueryModel queryModel)
 		{
-			return ExecuteCollection<T2>(queryModel).Single();
+			var sequence = Task.Run(() => ExecuteCollection<T2>(queryModel)).GetAwaiter().GetResult();
+			return sequence.Single();
 		}
 
 		public T2 ExecuteSingle<T2>(QueryModel queryModel, bool returnDefaultWhenEmpty)
 		{
-			var sequence = ExecuteCollection<T2>(queryModel);
+			var sequence = Task.Run(() => ExecuteCollection<T2>(queryModel)).GetAwaiter().GetResult();
 			return returnDefaultWhenEmpty ? sequence.SingleOrDefault() : sequence.Single();
 		}
 	}

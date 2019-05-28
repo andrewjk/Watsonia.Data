@@ -11,7 +11,6 @@ Have better error messages
 Test using Guids for IDs
 	And compound IDs
 	And no IDs
-Add async support - something like EntityFrameworkQueryableExtensions.cs?
 Duplicate less code between SQLite and SQL Server
 Fix up the documentation
 	Make a list of conventions

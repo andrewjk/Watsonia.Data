@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data
@@ -141,7 +142,8 @@ namespace Watsonia.Data
 				var tableName = this.Database.Configuration.GetTableName(tableType);
 				var foreignKeyColumnName = this.Database.Configuration.GetForeignKeyColumnName(tableType, this.Item.GetType().BaseType);
 				var select = Select.From(tableName).Where(foreignKeyColumnName, SqlOperator.Equals, this.Item.PrimaryKeyValue);
-				var collection = this.Database.LoadCollection<T>(select);
+				// HACK: Have to run this synchronously until we have time to update the generated proxy code
+				var collection = Task.Run(() => this.Database.LoadCollectionAsync<T>(select)).GetAwaiter().GetResult();
 				SetCollection(propertyName, (IList)collection);
 				return collection;
 			}
@@ -205,7 +207,8 @@ namespace Watsonia.Data
 			}
 			else
 			{
-				return this.Database.Load<T>(id);
+				// HACK: Have to run this synchronously until we have time to update the generated proxy code
+				return Task.Run(() => this.Database.LoadAsync<T>(id)).GetAwaiter().GetResult();
 			}
 		}
 
@@ -225,7 +228,8 @@ namespace Watsonia.Data
 			}
 			else
 			{
-				return this.Database.Load<T>(id);
+				// HACK: Have to run this synchronously until we have time to update the generated proxy code
+				return Task.Run(() => this.Database.LoadAsync<T>(id)).GetAwaiter().GetResult();
 			}
 		}
 

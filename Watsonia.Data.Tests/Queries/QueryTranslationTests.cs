@@ -16,7 +16,7 @@ namespace Watsonia.Data.Tests.Queries
 	[TestClass]
 	public class QueryTranslationTests
 	{
-		private static NorthwindDatabase _db = new NorthwindDatabase();
+		private static readonly NorthwindDatabase _db = new NorthwindDatabase();
 		private static Dictionary<string, string> _baselines = new Dictionary<string, string>();
 
 		[ClassInitialize]

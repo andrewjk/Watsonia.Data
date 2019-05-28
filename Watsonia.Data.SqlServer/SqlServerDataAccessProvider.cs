@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Data.SqlClient;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Watsonia.Data.Mapping;
 using Watsonia.QueryBuilder;
 
@@ -42,10 +43,10 @@ namespace Watsonia.Data.SqlServer
 		/// <returns>
 		/// An open database connection.
 		/// </returns>
-		public DbConnection OpenConnection(DatabaseConfiguration configuration)
+		public async Task<DbConnection> OpenConnectionAsync(DatabaseConfiguration configuration)
 		{
 			var connection = new SqlConnection(configuration.ConnectionString);
-			connection.Open();
+			await connection.OpenAsync();
 			return connection;
 		}
 
@@ -53,14 +54,14 @@ namespace Watsonia.Data.SqlServer
 		/// Ensures that the database is deleted.
 		/// </summary>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		public void EnsureDatabaseDeleted(DatabaseConfiguration configuration)
+		public async Task EnsureDatabaseDeletedAsync(DatabaseConfiguration configuration)
 		{
 			var connectionBuilder = new SqlConnectionStringBuilder(configuration.ConnectionString);
 			var databaseName = connectionBuilder.InitialCatalog;
 			connectionBuilder.InitialCatalog = "master";
 			using (var connection = new SqlConnection(connectionBuilder.ConnectionString))
 			{
-				connection.Open();
+				await connection.OpenAsync();
 				var commandText = $@"
 IF DB_ID('{databaseName}') IS NOT NULL
 BEGIN
@@ -69,7 +70,7 @@ BEGIN
 END
 ";
 				var command = new SqlCommand(commandText, connection);
-				command.ExecuteNonQuery();
+				await command.ExecuteNonQueryAsync();
 				connection.Close();
 			}
 		}
@@ -78,14 +79,14 @@ END
 		/// Ensures that the database is created.
 		/// </summary>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		public void EnsureDatabaseCreated(DatabaseConfiguration configuration)
+		public async Task EnsureDatabaseCreatedAsync(DatabaseConfiguration configuration)
 		{
 			var connectionBuilder = new SqlConnectionStringBuilder(configuration.ConnectionString);
 			var databaseName = connectionBuilder.InitialCatalog;
 			connectionBuilder.InitialCatalog = "master";
 			using (var connection = new SqlConnection(connectionBuilder.ConnectionString))
 			{
-				connection.Open();
+				await connection.OpenAsync();
 				var commandText = $@"
 IF DB_ID('{databaseName}') IS NULL
 BEGIN
@@ -93,7 +94,7 @@ BEGIN
 END
 ";
 				var command = new SqlCommand(commandText, connection);
-				command.ExecuteNonQuery();
+				await command.ExecuteNonQueryAsync();
 				connection.Close();
 			}
 		}
@@ -106,10 +107,10 @@ END
 		/// <param name="procedures">The stored procedures that should exist in the database.</param>
 		/// <param name="functions">The user-defined functions that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
+		public async Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
-			updater.UpdateDatabase(tables, views, procedures, functions);
+			await updater.UpdateDatabaseAsync(tables, views, procedures, functions);
 		}
 
 		/// <summary>
@@ -123,10 +124,10 @@ END
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
+		public async Task<string> GetUpdateScriptAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
-			return updater.GetUpdateScript(tables, views, procedures, functions);
+			return await updater.GetUpdateScriptAsync(tables, views, procedures, functions);
 		}
 
 		/// <summary>
@@ -194,10 +195,10 @@ END
 		/// A string containing the unmapped columns.
 		/// </returns>
 		/// <exception cref="NotImplementedException"></exception>
-		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration)
+		public async Task<string> GetUnmappedColumnsAsync(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
-			return updater.GetUnmappedColumns(tables);
+			return await updater.GetUnmappedColumnsAsync(tables);
 		}
 	}
 }

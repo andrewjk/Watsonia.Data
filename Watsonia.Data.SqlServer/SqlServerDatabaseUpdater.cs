@@ -35,28 +35,28 @@ namespace Watsonia.Data.SqlServer
 			_configuration = configuration;
 		}
 
-		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
+		public async Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
 		{
-			UpdateDatabase(tables, views, procedures, functions, true);
+			await UpdateDatabaseAsync(tables, views, procedures, functions, true);
 		}
 
-		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
+		public async Task<string> GetUpdateScriptAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
 		{
 			var script = new StringBuilder();
-			UpdateDatabase(tables, views, procedures, functions, false, script);
+			await UpdateDatabaseAsync(tables, views, procedures, functions, false, script);
 			return script.ToString();
 		}
 
-		protected virtual void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, bool doUpdate, StringBuilder script = null)
+		protected virtual async Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, bool doUpdate, StringBuilder script = null)
 		{
-			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
+			using (var connection = await _dataAccessProvider.OpenConnectionAsync(_configuration))
 			{
 				// Load the existing tables and columns
-				var existingTables = LoadExistingTables(connection);
-				var existingColumns = LoadExistingColumns(connection);
-				var existingViews = LoadExistingViews(connection);
-				var existingProcedures = LoadExistingProcedures(connection);
-				var existingFunctions = LoadExistingFunctions(connection);
+				var existingTables = await LoadExistingTablesAsync(connection);
+				var existingColumns = await LoadExistingColumnsAsync(connection);
+				var existingViews = await LoadExistingViewsAsync(connection);
+				var existingProcedures = await LoadExistingProceduresAsync(connection);
+				var existingFunctions = await LoadExistingFunctionsAsync(connection);
 
 				// First pass - create or update tables and columns
 				foreach (var table in tables)
@@ -70,19 +70,19 @@ namespace Watsonia.Data.SqlServer
 							if (existingColumns.ContainsKey(key))
 							{
 								// The column exists so we need to check whether it should be updated
-								UpdateColumn(table, existingColumns[key], column, connection, doUpdate, script);
+								await UpdateColumnAsync(table, existingColumns[key], column, connection, doUpdate, script);
 							}
 							else
 							{
 								// The column doesn't exist so it needs to be created
-								CreateColumn(table, column, connection, doUpdate, script);
+								await CreateColumnAsync(table, column, connection, doUpdate, script);
 							}
 						}
 					}
 					else
 					{
 						// The table doesn't exist so it needs to be created
-						CreateTable(table, connection, doUpdate, script);
+						await CreateTableAsync(table, connection, doUpdate, script);
 					}
 				}
 
@@ -90,18 +90,18 @@ namespace Watsonia.Data.SqlServer
 				foreach (var table in tables.Where(t => t.Values.Count > 0))
 				{
 					var tableExists = existingTables.ContainsKey(table.Name.ToUpperInvariant());
-					UpdateTableData(table, connection, doUpdate, script, tableExists);
+					await UpdateTableDataAsync(table, connection, doUpdate, script, tableExists);
 				}
 
 				// Third pass - create relationship constraints
-				var existingForeignKeys = LoadExistingForeignKeys(connection);
+				var existingForeignKeys = await LoadExistingForeignKeysAsync(connection);
 				foreach (var table in tables)
 				{
 					foreach (var column in table.Columns.Where(c => c.Relationship != null))
 					{
 						if (!existingForeignKeys.Contains(column.Relationship.ConstraintName))
 						{
-							CreateForeignKey(table, column, connection, doUpdate, script);
+							await CreateForeignKeyAsync(table, column, connection, doUpdate, script);
 							existingForeignKeys.Add(column.Relationship.ConstraintName);
 						}
 					}
@@ -114,12 +114,12 @@ namespace Watsonia.Data.SqlServer
 					if (existingViews.ContainsKey(key))
 					{
 						// The view exists so we need to check whether it should be updated
-						UpdateView(view, existingViews[key], connection, doUpdate, script);
+						await UpdateViewAsync(view, existingViews[key], connection, doUpdate, script);
 					}
 					else
 					{
 						// The view doesn't exist so it needs to be created
-						CreateView(view, connection, doUpdate, script);
+						await CreateViewAsync(view, connection, doUpdate, script);
 					}
 				}
 
@@ -130,12 +130,12 @@ namespace Watsonia.Data.SqlServer
 					if (existingProcedures.ContainsKey(key))
 					{
 						// The procedure exists so we need to check whether it should be updated
-						UpdateProcedure(procedure, existingProcedures[key], connection, doUpdate, script);
+						await UpdateProcedureAsync(procedure, existingProcedures[key], connection, doUpdate, script);
 					}
 					else
 					{
 						// The procedure doesn't exist so it needs to be created
-						CreateProcedure(procedure, connection, doUpdate, script);
+						await CreateProcedureAsync(procedure, connection, doUpdate, script);
 					}
 				}
 
@@ -146,25 +146,25 @@ namespace Watsonia.Data.SqlServer
 					if (existingFunctions.ContainsKey(key))
 					{
 						// The function exists so we need to check whether it should be updated
-						UpdateFunction(function, existingFunctions[key], connection, doUpdate, script);
+						await UpdateFunctionAsync(function, existingFunctions[key], connection, doUpdate, script);
 					}
 					else
 					{
 						// The function doesn't exist so it needs to be created
-						CreateFunction(function, connection, doUpdate, script);
+						await CreateFunctionAsync(function, connection, doUpdate, script);
 					}
 				}
 			}
 		}
 
-		protected virtual Dictionary<string, MappedTable> LoadExistingTables(DbConnection connection)
+		protected virtual async Task<Dictionary<string, MappedTable>> LoadExistingTablesAsync(DbConnection connection)
 		{
 			var existingTables = new Dictionary<string, MappedTable>();
 			using (var existingTablesCommand = CreateCommand(connection))
 			{
 				existingTablesCommand.CommandText = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES";
 				existingTablesCommand.Connection = connection;
-				using (var reader = existingTablesCommand.ExecuteReader())
+				using (var reader = await existingTablesCommand.ExecuteReaderAsync())
 				{
 					while (reader.Read())
 					{
@@ -177,14 +177,14 @@ namespace Watsonia.Data.SqlServer
 			return existingTables;
 		}
 
-		protected virtual Dictionary<string, MappedColumn> LoadExistingColumns(DbConnection connection)
+		protected virtual async Task<Dictionary<string, MappedColumn>> LoadExistingColumnsAsync(DbConnection connection)
 		{
 			var existingColumns = new Dictionary<string, MappedColumn>();
 			using (var existingColumnsCommand = CreateCommand(connection))
 			{
 				existingColumnsCommand.CommandText = "SELECT TABLE_NAME, COLUMN_NAME, IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, COLUMN_DEFAULT FROM INFORMATION_SCHEMA.COLUMNS";
 				existingColumnsCommand.Connection = connection;
-				using (var reader = existingColumnsCommand.ExecuteReader())
+				using (var reader = await existingColumnsCommand.ExecuteReaderAsync())
 				{
 					while (reader.Read())
 					{
@@ -216,7 +216,7 @@ namespace Watsonia.Data.SqlServer
 			return existingColumns;
 		}
 
-		protected virtual Dictionary<string, MappedView> LoadExistingViews(DbConnection connection)
+		protected virtual async Task<Dictionary<string, MappedView>> LoadExistingViewsAsync(DbConnection connection)
 		{
 			var existingViews = new Dictionary<string, MappedView>();
 			if (!this.CompactEdition)
@@ -225,7 +225,7 @@ namespace Watsonia.Data.SqlServer
 				{
 					existingViewsCommand.CommandText = "SELECT TABLE_NAME, VIEW_DEFINITION FROM INFORMATION_SCHEMA.VIEWS";
 					existingViewsCommand.Connection = connection;
-					using (var reader = existingViewsCommand.ExecuteReader())
+					using (var reader = await existingViewsCommand.ExecuteReaderAsync())
 					{
 						while (reader.Read())
 						{
@@ -242,7 +242,7 @@ namespace Watsonia.Data.SqlServer
 			return existingViews;
 		}
 
-		protected virtual Dictionary<string, MappedProcedure> LoadExistingProcedures(DbConnection connection)
+		protected virtual async Task<Dictionary<string, MappedProcedure>> LoadExistingProceduresAsync(DbConnection connection)
 		{
 			var existingProcedures = new Dictionary<string, MappedProcedure>();
 			if (!this.CompactEdition)
@@ -251,7 +251,7 @@ namespace Watsonia.Data.SqlServer
 				{
 					existingProceduresCommand.CommandText = "SELECT ROUTINE_NAME, ROUTINE_DEFINITION FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_TYPE = 'PROCEDURE'";
 					existingProceduresCommand.Connection = connection;
-					using (var reader = existingProceduresCommand.ExecuteReader())
+					using (var reader = await existingProceduresCommand.ExecuteReaderAsync())
 					{
 						while (reader.Read())
 						{
@@ -268,7 +268,7 @@ namespace Watsonia.Data.SqlServer
 			return existingProcedures;
 		}
 
-		protected virtual Dictionary<string, MappedFunction> LoadExistingFunctions(DbConnection connection)
+		protected virtual async Task<Dictionary<string, MappedFunction>> LoadExistingFunctionsAsync(DbConnection connection)
 		{
 			var existingFunctions = new Dictionary<string, MappedFunction>();
 			if (!this.CompactEdition)
@@ -277,7 +277,7 @@ namespace Watsonia.Data.SqlServer
 				{
 					existingFunctionsCommand.CommandText = "SELECT ROUTINE_NAME, ROUTINE_DEFINITION FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_TYPE = 'FUNCTION'";
 					existingFunctionsCommand.Connection = connection;
-					using (var reader = existingFunctionsCommand.ExecuteReader())
+					using (var reader = await existingFunctionsCommand.ExecuteReaderAsync())
 					{
 						while (reader.Read())
 						{
@@ -357,14 +357,14 @@ namespace Watsonia.Data.SqlServer
 			}
 		}
 
-		protected virtual List<string> LoadExistingForeignKeys(DbConnection connection)
+		protected virtual async Task<List<string>> LoadExistingForeignKeysAsync(DbConnection connection)
 		{
 			var existingForeignKeys = new List<string>();
 			using (var existingForeignKeysCommand = CreateCommand(connection))
 			{
 				existingForeignKeysCommand.CommandText = "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS";
 				existingForeignKeysCommand.Connection = connection;
-				using (var reader = existingForeignKeysCommand.ExecuteReader())
+				using (var reader = await existingForeignKeysCommand.ExecuteReaderAsync())
 				{
 					while (reader.Read())
 					{
@@ -375,7 +375,7 @@ namespace Watsonia.Data.SqlServer
 			return existingForeignKeys;
 		}
 
-		protected virtual void CreateTable(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
+		protected virtual async Task CreateTableAsync(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var b = new StringBuilder();
 			b.AppendLine($"CREATE TABLE [{table.Name}] (");
@@ -389,17 +389,17 @@ namespace Watsonia.Data.SqlServer
 			{
 				command.CommandText = b.ToString();
 				command.Connection = connection;
-				ExecuteSql(command, doUpdate, script);
+				await ExecuteSqlAsync(command, doUpdate, script);
 			}
 		}
 
-		protected virtual void CreateColumn(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
+		protected virtual async Task CreateColumnAsync(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			using (var command = CreateCommand(connection))
 			{
 				command.CommandText = $"ALTER TABLE [{table.Name}] ADD {ColumnText(table, column, true, true)}";
 				command.Connection = connection;
-				ExecuteSql(command, doUpdate, script);
+				await ExecuteSqlAsync(command, doUpdate, script);
 			}
 		}
 
@@ -574,7 +574,7 @@ namespace Watsonia.Data.SqlServer
 			}
 		}
 
-		protected virtual void CreateForeignKey(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
+		protected virtual async Task CreateForeignKeyAsync(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			using (var command = CreateCommand(connection))
 			{
@@ -584,11 +584,11 @@ namespace Watsonia.Data.SqlServer
 				var foreignTableColumnName = column.Relationship.ForeignTableColumnName;
 				command.CommandText = $"ALTER TABLE [{table.Name}] {maybeCheck} ADD CONSTRAINT [{constraintName}] FOREIGN KEY ([{column.Name}]) REFERENCES [{foreignTableName}] ({foreignTableColumnName})";
 				command.Connection = connection;
-				ExecuteSql(command, doUpdate, script);
+				await ExecuteSqlAsync(command, doUpdate, script);
 			}
 		}
 
-		protected virtual void UpdateColumn(MappedTable table, MappedColumn oldColumn, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
+		protected virtual async Task UpdateColumnAsync(MappedTable table, MappedColumn oldColumn, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			if (oldColumn.AllowNulls && !column.AllowNulls)
 			{
@@ -598,7 +598,7 @@ namespace Watsonia.Data.SqlServer
 				{
 					command.CommandText = $"UPDATE [{table.Name}] SET {column.Name} = {ColumnDefaultText(column)} WHERE {column.Name} IS NULL";
 					command.Connection = connection;
-					ExecuteSql(command, doUpdate, script);
+					await ExecuteSqlAsync(command, doUpdate, script);
 				}
 			}
 
@@ -614,47 +614,47 @@ namespace Watsonia.Data.SqlServer
 				using (var command = CreateCommand(connection))
 				{
 					// Drop all constraints before updating the column.  They will be re-created later
-					var constraints = GetColumnConstraintsToDrop(table, column, connection);
+					var constraints = await GetColumnConstraintsToDropAsync(table, column, connection);
 					if (constraints.Count > 0)
 					{
 						command.CommandText = string.Join(Environment.NewLine, constraints.ToArray());
 						command.Connection = connection;
-						ExecuteSql(command, doUpdate, script);
+						await ExecuteSqlAsync(command, doUpdate, script);
 					}
 
 					// Update the column
 					command.CommandText = $"ALTER TABLE [{table.Name}] ALTER COLUMN {ColumnText(table, column, false, false)}";
-					ExecuteSql(command, doUpdate, script);
+					await ExecuteSqlAsync(command, doUpdate, script);
 
 					// If the column is the primary key, add that constraint back now
 					if (column.IsPrimaryKey)
 					{
 						command.CommandText = $"ALTER TABLE [{table.Name}] ADD CONSTRAINT [{table.PrimaryKeyConstraintName}] PRIMARY KEY {((this.CompactEdition ? "" : "CLUSTERED"))} ([{table.PrimaryKeyColumnName}]{((this.CompactEdition ? "" : " ASC"))})";
-						ExecuteSql(command, doUpdate, script);
+						await ExecuteSqlAsync(command, doUpdate, script);
 					}
 
 					// If the column has a default value, add that constraint back now
 					if (column.DefaultValue != null)
 					{
 						command.CommandText = $"ALTER TABLE [{table.Name}] ADD CONSTRAINT [{column.DefaultValueConstraintName}] DEFAULT {ColumnDefaultText(column)} FOR [{column.Name}]";
-						ExecuteSql(command, doUpdate, script);
+						await ExecuteSqlAsync(command, doUpdate, script);
 					}
 				}
 			}
 		}
 
-		protected virtual List<string> GetColumnConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
+		protected virtual async Task<List<string>> GetColumnConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
-			constraints.AddRange(GetForeignKeyConstraintsToDrop(table, column, connection));
-			constraints.AddRange(GetPrimaryKeyConstraintsToDrop(table, column, connection));
-			constraints.AddRange(GetDefaultValueConstraintsToDrop(table, column, connection));
+			constraints.AddRange(await GetForeignKeyConstraintsToDropAsync(table, column, connection));
+			constraints.AddRange(await GetPrimaryKeyConstraintsToDropAsync(table, column, connection));
+			constraints.AddRange(await GetDefaultValueConstraintsToDropAsync(table, column, connection));
 
 			return constraints;
 		}
 
-		protected virtual List<string> GetForeignKeyConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
+		protected virtual async Task<List<string>> GetForeignKeyConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -677,7 +677,7 @@ namespace Watsonia.Data.SqlServer
 					$"WHERE (PK.TABLE_NAME = '{table.Name}' AND PT.COLUMN_NAME = '{column.Name}') " +
 					$"	OR (FK.TABLE_NAME = '{table.Name}' AND CU.COLUMN_NAME = '{column.Name}')";
 				command.Connection = connection;
-				using (var reader = command.ExecuteReader())
+				using (var reader = await command.ExecuteReaderAsync())
 				{
 					while (reader.Read())
 					{
@@ -691,7 +691,7 @@ namespace Watsonia.Data.SqlServer
 			return constraints;
 		}
 
-		protected virtual List<string> GetPrimaryKeyConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
+		protected virtual async Task<List<string>> GetPrimaryKeyConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -705,7 +705,7 @@ namespace Watsonia.Data.SqlServer
 					"WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' " +
 					$"	AND C.TABLE_NAME = '{table.Name}' AND CU.COLUMN_NAME = '{column.Name}' ";
 				command.Connection = connection;
-				using (var reader = command.ExecuteReader())
+				using (var reader = await command.ExecuteReaderAsync())
 				{
 					while (reader.Read())
 					{
@@ -718,7 +718,7 @@ namespace Watsonia.Data.SqlServer
 			return constraints;
 		}
 
-		protected virtual List<string> GetDefaultValueConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
+		protected virtual async Task<List<string>> GetDefaultValueConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -738,7 +738,7 @@ namespace Watsonia.Data.SqlServer
 					"	INNER JOIN sys.default_constraints c on a.default_object_id = c.object_id " +
 					$"WHERE b.name = '{table.Name}' AND a.name = '{column.Name}' ";
 				command.Connection = connection;
-				using (var reader = command.ExecuteReader())
+				using (var reader = await command.ExecuteReaderAsync())
 				{
 					while (reader.Read())
 					{
@@ -751,7 +751,7 @@ namespace Watsonia.Data.SqlServer
 			return constraints;
 		}
 
-		protected virtual void UpdateTableData(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script, bool tableExists)
+		protected virtual async Task UpdateTableDataAsync(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script, bool tableExists)
 		{
 			// TODO: This is a bit messy and could be tidied up a bit
 			var existingTableData = new List<int>();
@@ -763,7 +763,7 @@ namespace Watsonia.Data.SqlServer
 				using (var existingTableDataCommand = _dataAccessProvider.BuildCommand(selectExistingTableData, _configuration))
 				{
 					existingTableDataCommand.Connection = connection;
-					using (var reader = existingTableDataCommand.ExecuteReader())
+					using (var reader = await existingTableDataCommand.ExecuteReaderAsync())
 					{
 						while (reader.Read())
 						{
@@ -783,7 +783,7 @@ namespace Watsonia.Data.SqlServer
 					{
 						identityInsertCommand.Connection = connection;
 						identityInsertCommand.CommandText = "SET IDENTITY_INSERT " + table.Name + " ON";
-						ExecuteSql(identityInsertCommand, doUpdate, script);
+						await ExecuteSqlAsync(identityInsertCommand, doUpdate, script);
 
 						var insertData = Insert.Into(table.Name);
 						foreach (var key in data.Keys)
@@ -793,17 +793,17 @@ namespace Watsonia.Data.SqlServer
 						using (var command = _dataAccessProvider.BuildCommand(insertData, _configuration))
 						{
 							command.Connection = connection;
-							ExecuteSql(command, doUpdate, script);
+							await ExecuteSqlAsync(command, doUpdate, script);
 						}
 
 						identityInsertCommand.CommandText = "SET IDENTITY_INSERT " + table.Name + " OFF";
-						ExecuteSql(identityInsertCommand, doUpdate, script);
+						await ExecuteSqlAsync(identityInsertCommand, doUpdate, script);
 					}
 				}
 			}
 		}
 
-		protected virtual void CreateView(MappedView view, DbConnection connection, bool doUpdate, StringBuilder script)
+		protected virtual async Task CreateViewAsync(MappedView view, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			if (this.CompactEdition)
 			{
@@ -816,11 +816,11 @@ namespace Watsonia.Data.SqlServer
 			{
 				command.CommandText = commandText;
 				command.Connection = connection;
-				ExecuteSql(command, doUpdate, script);
+				await ExecuteSqlAsync(command, doUpdate, script);
 			}
 		}
 
-		protected virtual void UpdateView(MappedView view, MappedView oldView, DbConnection connection, bool doUpdate, StringBuilder script)
+		protected virtual async Task UpdateViewAsync(MappedView view, MappedView oldView, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var commandText = BuildViewSql(view);
 			if (oldView.SelectStatementText != commandText)
@@ -829,7 +829,7 @@ namespace Watsonia.Data.SqlServer
 				{
 					command.CommandText = commandText.Replace("CREATE VIEW", "ALTER VIEW");
 					command.Connection = connection;
-					ExecuteSql(command, doUpdate, script);
+					await ExecuteSqlAsync(command, doUpdate, script);
 				}
 			}
 		}
@@ -861,7 +861,7 @@ namespace Watsonia.Data.SqlServer
 			return b.ToString();
 		}
 
-		protected virtual void CreateProcedure(MappedProcedure procedure, DbConnection connection, bool doUpdate, StringBuilder script)
+		protected virtual async Task CreateProcedureAsync(MappedProcedure procedure, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			if (this.CompactEdition)
 			{
@@ -874,11 +874,11 @@ namespace Watsonia.Data.SqlServer
 			{
 				command.CommandText = commandText;
 				command.Connection = connection;
-				ExecuteSql(command, doUpdate, script);
+				await ExecuteSqlAsync(command, doUpdate, script);
 			}
 		}
 
-		protected virtual void UpdateProcedure(MappedProcedure procedure, MappedProcedure oldProcedure, DbConnection connection, bool doUpdate, StringBuilder script)
+		protected virtual async Task UpdateProcedureAsync(MappedProcedure procedure, MappedProcedure oldProcedure, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var commandText = BuildProcedureSql(procedure);
 			if (oldProcedure.StatementText != commandText)
@@ -887,7 +887,7 @@ namespace Watsonia.Data.SqlServer
 				{
 					command.CommandText = commandText.Replace("CREATE PROCEDURE", "ALTER PROCEDURE");
 					command.Connection = connection;
-					ExecuteSql(command, doUpdate, script);
+					await ExecuteSqlAsync(command, doUpdate, script);
 				}
 			}
 		}
@@ -940,7 +940,7 @@ namespace Watsonia.Data.SqlServer
 			return b.ToString();
 		}
 
-		protected virtual void CreateFunction(MappedFunction function, DbConnection connection, bool doUpdate, StringBuilder script)
+		protected virtual async Task CreateFunctionAsync(MappedFunction function, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			if (this.CompactEdition)
 			{
@@ -953,11 +953,11 @@ namespace Watsonia.Data.SqlServer
 			{
 				command.CommandText = commandText;
 				command.Connection = connection;
-				ExecuteSql(command, doUpdate, script);
+				await ExecuteSqlAsync(command, doUpdate, script);
 			}
 		}
 
-		protected virtual void UpdateFunction(MappedFunction function, MappedFunction oldFunction, DbConnection connection, bool doUpdate, StringBuilder script)
+		protected virtual async Task UpdateFunctionAsync(MappedFunction function, MappedFunction oldFunction, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var commandText = BuildFunctionSql(function);
 			if (oldFunction.StatementText != commandText)
@@ -966,7 +966,7 @@ namespace Watsonia.Data.SqlServer
 				{
 					command.CommandText = commandText.Replace("CREATE FUNCTION", "ALTER FUNCTION");
 					command.Connection = connection;
-					ExecuteSql(command, doUpdate, script);
+					await ExecuteSqlAsync(command, doUpdate, script);
 				}
 			}
 		}
@@ -1024,7 +1024,7 @@ namespace Watsonia.Data.SqlServer
 			return b.ToString();
 		}
 
-		protected virtual void ExecuteSql(DbCommand command, bool doUpdate, StringBuilder script)
+		protected virtual async Task ExecuteSqlAsync(DbCommand command, bool doUpdate, StringBuilder script)
 		{
 			if (script != null)
 			{
@@ -1055,7 +1055,7 @@ namespace Watsonia.Data.SqlServer
 
 			if (doUpdate)
 			{
-				command.ExecuteNonQuery();
+				await command.ExecuteNonQueryAsync();
 			}
 		}
 
@@ -1066,14 +1066,14 @@ namespace Watsonia.Data.SqlServer
 			return command;
 		}
 
-		public string GetUnmappedColumns(IEnumerable<MappedTable> tables)
+		public async Task<string> GetUnmappedColumnsAsync(IEnumerable<MappedTable> tables)
 		{
 			var columns = new StringBuilder();
 
-			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
+			using (var connection = await _dataAccessProvider.OpenConnectionAsync(_configuration))
 			{
 				// Load the existing columns
-				var existingColumns = LoadExistingColumns(connection);
+				var existingColumns = await LoadExistingColumnsAsync(connection);
 
 				// Check whether each existing column is mapped
 				foreach (var columnKey in existingColumns.Keys)

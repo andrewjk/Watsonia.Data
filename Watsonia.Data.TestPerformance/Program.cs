@@ -19,12 +19,12 @@ namespace Watsonia.Data.TestPerformance
 		private const int TeamsPerSportCount = 10;
 		private const int PlayersPerTeamCount = 10;
 
-		public static void Main(string[] args)
+		public static async Task Main(/* string[] args */)
 		{
 			var db = new WatsoniaDatabase();
 
 			Console.WriteLine("Checking database...");
-			CheckDatabase(db);
+			await CheckDatabaseAsync(db);
 
 			Console.WriteLine("Running tests...");
 			var testResults = RunTests();
@@ -35,7 +35,7 @@ namespace Watsonia.Data.TestPerformance
 			Console.ReadKey();
 		}
 
-		private static void CheckDatabase(WatsoniaDatabase db)
+		private static async Task CheckDatabaseAsync(WatsoniaDatabase db)
 		{
 			if (!Directory.Exists("Data"))
 			{
@@ -45,15 +45,15 @@ namespace Watsonia.Data.TestPerformance
 			{
 				File.Create(@"Data\Performance.sqlite");
 			}
-			db.UpdateDatabase();
+			await db.UpdateDatabaseAsync();
 
 			if (db.Query<Post>().Count() == 0)
 			{
-				DataGenerator.GeneratePosts(db, PostCount);
-				var sports = DataGenerator.GenerateSports(db, SportCount);
+				await DataGenerator.GeneratePosts(db, PostCount);
+				var sports = await DataGenerator.GenerateSports(db, SportCount);
 				foreach (var sport in sports)
 				{
-					var teams = DataGenerator.GenerateTeams(db, sport, TeamsPerSportCount);
+					var teams = await DataGenerator.GenerateTeams(db, sport, TeamsPerSportCount);
 					foreach (var team in teams)
 					{
 						var players = DataGenerator.GeneratePlayers(db, team, PlayersPerTeamCount);

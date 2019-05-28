@@ -21,7 +21,7 @@ namespace Watsonia.Data.TestPerformance
 			watch.Start();
 			using (var db = new WatsoniaDatabase())
 			{
-				var posts = db.LoadCollection<Post>("SELECT ID, Text, DateCreated, DateModified FROM Posts").ToList();
+				var posts = db.LoadCollectionAsync<Post>("SELECT ID, Text, DateCreated, DateModified FROM Posts").GetAwaiter().GetResult();
 				foreach (var p in posts)
 				{
 					this.LoadedItems.Add("Post: " + p.ID);
@@ -38,7 +38,7 @@ namespace Watsonia.Data.TestPerformance
 			using (var db = new WatsoniaDatabase())
 			{
 				// TODO: LoadItem?
-				var player = db.LoadCollection<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamID FROM Players WHERE ID = @0", id).First();
+				var player = db.LoadCollectionAsync<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamID FROM Players WHERE ID = @0", id).GetAwaiter().GetResult().First();
 				this.LoadedItems.Add("Player: " + player.ID);
 			}
 			watch.Stop();
@@ -51,7 +51,7 @@ namespace Watsonia.Data.TestPerformance
 			watch.Start();
 			using (var db = new WatsoniaDatabase())
 			{
-				var players = db.LoadCollection<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamID FROM Players WHERE TeamID = @0", teamID);
+				var players = db.LoadCollectionAsync<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamID FROM Players WHERE TeamID = @0", teamID).GetAwaiter().GetResult();
 				foreach (var p in players)
 				{
 					this.LoadedItems.Add("Player: " + p.ID);
@@ -67,11 +67,11 @@ namespace Watsonia.Data.TestPerformance
 			watch.Start();
 			using (var db = new WatsoniaDatabase())
 			{
-				var players = db.LoadCollection<Player>("" +
+				var players = db.LoadCollectionAsync<Player>("" +
 					"SELECT p.ID, p.FirstName, p.LastName, p.DateOfBirth, p.TeamID, t.ID as TeamID, t.Name, t.SportID " +
 					"FROM Teams t " +
 					"INNER JOIN Players p ON t.ID = p.TeamID " +
-					"WHERE t.SportID = @0", sportID);
+					"WHERE t.SportID = @0", sportID).GetAwaiter().GetResult();
 				foreach (var p in players)
 				{
 					this.LoadedItems.Add("Team Player: " + p.ID);

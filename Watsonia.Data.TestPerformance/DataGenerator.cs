@@ -9,7 +9,7 @@ namespace Watsonia.Data.TestPerformance
 {
 	internal static class DataGenerator
 	{
-		internal static List<Post> GeneratePosts(WatsoniaDatabase db, int count)
+		internal static async Task<List<Post>> GeneratePosts(WatsoniaDatabase db, int count)
 		{
 			var posts = new List<Post>();
 
@@ -19,13 +19,13 @@ namespace Watsonia.Data.TestPerformance
 				post.Text = new string('x', 2000);
 				post.DateCreated = DateTime.Now;
 				post.DateModified = DateTime.Now;
-				db.Save(post);
+				await db.SaveAsync(post);
 			}
 
 			return posts;
 		}
 
-		internal static List<Player> GeneratePlayers(WatsoniaDatabase db, Team team, int count)
+		internal static async Task<List<Player>> GeneratePlayers(WatsoniaDatabase db, Team team, int count)
 		{
 			var players = new List<Player>();
 
@@ -47,13 +47,13 @@ namespace Watsonia.Data.TestPerformance
 				//player.ID = (((teamId - 1) * count) + (i + 1));
 				players.Add(player);
 
-				db.Save(player);
+				await db.SaveAsync(player);
 			}
 
 			return players;
 		}
 
-		internal static List<Team> GenerateTeams(WatsoniaDatabase db, Sport sport, int count)
+		internal static async Task<List<Team>> GenerateTeams(WatsoniaDatabase db, Sport sport, int count)
 		{
 			var teams = new List<Team>();
 
@@ -74,13 +74,13 @@ namespace Watsonia.Data.TestPerformance
 				//team.ID = (((sportId - 1) * count) + (i + 1));
 				teams.Add(team);
 
-				db.Save(team);
+				await db.SaveAsync(team);
 			}
 
 			return teams;
 		}
 
-		internal static List<Sport> GenerateSports(WatsoniaDatabase db, int count)
+		internal static async Task<List<Sport>> GenerateSports(WatsoniaDatabase db, int count)
 		{
 			var sports = new List<Sport>();
 			var allSportNames = Names.GetSportNames();
@@ -94,7 +94,7 @@ namespace Watsonia.Data.TestPerformance
 				//sport.ID = i + 1;
 				sports.Add(sport);
 
-				db.Save(sport);
+				await db.SaveAsync(sport);
 			}
 
 			return sports;

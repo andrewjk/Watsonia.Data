@@ -23,9 +23,9 @@ namespace Watsonia.Data
 		private static readonly Dictionary<string, ConstructorInfo> _cachedConstructors = new Dictionary<string, ConstructorInfo>();
 		private static readonly Dictionary<string, ChildParentMapping> _cachedChildParentMappings = new Dictionary<string, ChildParentMapping>();
 
-		private static object _cachedTypesLock = new object();
-		private static object _cachedConstructorsLock = new object();
-		private static object _cachedChildParentMappingsLock = new object();
+		private static readonly object _cachedTypesLock = new object();
+		private static readonly object _cachedConstructorsLock = new object();
+		private static readonly object _cachedChildParentMappingsLock = new object();
 
 		static DynamicProxyFactory()
 		{

@@ -10,14 +10,15 @@ namespace Watsonia.Data.Tests.Cache
 	[TestClass]
 	public class CacheTests
 	{
-		private static CacheDatabase db = new CacheDatabase();
+		private static readonly CacheDatabase _db = new CacheDatabase();
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
 		{
-			var author = db.Create<Author>();
-			var book = db.Create<Book>();
-			var chapter = db.Create<Chapter>();
+			// Create the proxies first so that their bags also get created
+			_ = _db.Create<Author>();
+			_ = _db.Create<Book>();
+			_ = _db.Create<Chapter>();
 		}
 
 		[TestMethod]
@@ -63,7 +64,7 @@ namespace Watsonia.Data.Tests.Cache
 			Assert.IsTrue(chapterProperties.Any(p => p.Name == "BookID"));
 
 			// Check SetValuesFromBag
-			var author = db.Create<Author>();
+			var author = _db.Create<Author>();
 			authorProperties.First(p => p.Name == "ID").SetValue(authorBag, 25);
 			authorProperties.First(p => p.Name == "FirstName").SetValue(authorBag, "Dan");
 			authorProperties.First(p => p.Name == "LastName").SetValue(authorBag, "Brown");
@@ -240,18 +241,18 @@ namespace Watsonia.Data.Tests.Cache
 		}
 
 		[TestMethod]
-		public void TestLoadAndRemove()
+		public async Task TestLoadAndRemoveAsync()
 		{
 			var db = new Northwind.NorthwindDatabase();
 
 			// Make sure the price is correct initially
 			var sql = "UPDATE Products SET UnitPrice = @0 WHERE ProductName = 'Aniseed Syrup'";
-			db.Execute(sql, 10);
+			await db.ExecuteAsync(sql, 10);
 
 			var syrup = db.Query<Northwind.Product>().FirstOrDefault(p => p.ProductName == "Aniseed Syrup");
 
 			// Check that the product can be loaded
-			var syrup1 = db.LoadOrDefault<Northwind.Product>(syrup.ProductID);
+			var syrup1 = await db.LoadOrDefaultAsync<Northwind.Product>(syrup.ProductID);
 			Assert.IsNotNull(syrup1);
 			Assert.AreEqual(10, syrup1.UnitPrice);
 
@@ -263,20 +264,20 @@ namespace Watsonia.Data.Tests.Cache
 			Assert.IsFalse(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
 
 			// Get the product back in the cache
-			var syrup2 = db.Load<Northwind.Product>(syrup.ProductID);
+			var syrup2 = await db.LoadAsync<Northwind.Product>(syrup.ProductID);
 			Assert.IsTrue(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
 
 			// Update the product's price in the database and test that it doesn't get updated until
 			// we remove and re-load the item
-			db.Execute(sql, 11);
+			await db.ExecuteAsync(sql, 11);
 
-			var syrup3 = db.Load<Northwind.Product>(syrup.ProductID);
+			var syrup3 = await db.LoadAsync<Northwind.Product>(syrup.ProductID);
 			Assert.AreEqual(10, syrup3.UnitPrice);
 
 			Database.Cache.RemoveItemByKey(cacheKey, syrup.ProductID);
 			Assert.IsFalse(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
 
-			var syrup4 = db.Load<Northwind.Product>(syrup.ProductID);
+			var syrup4 = await db.LoadAsync<Northwind.Product>(syrup.ProductID);
 			Assert.AreEqual(11, syrup4.UnitPrice);
 
 			// Check that clearing works
@@ -285,12 +286,12 @@ namespace Watsonia.Data.Tests.Cache
 			Assert.IsFalse(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
 
 			// Set the price back to what it was
-			db.Execute(sql, 10);
+			await db.ExecuteAsync(sql, 10);
 		}
 
 		private class TestValueBag : IValueBag
 		{
-			public int ID;
+			public int ID { get; set; }
 		}
 	}
 }

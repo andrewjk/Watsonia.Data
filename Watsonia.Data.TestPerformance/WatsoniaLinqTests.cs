@@ -19,7 +19,7 @@ namespace Watsonia.Data.TestPerformance
 			watch.Start();
 			using (var db = new WatsoniaDatabase())
 			{
-				var posts = db.Query<Post>().ToList();
+				var posts = db.Query<Post>();
 				foreach (var p in posts)
 				{
 					this.LoadedItems.Add("Post: " + p.ID);
@@ -35,8 +35,8 @@ namespace Watsonia.Data.TestPerformance
 			watch.Start();
 			using (var db = new WatsoniaDatabase())
 			{
-				var player = db.Load<Player>(id);
-				this.LoadedItems.Add("Player: " + player.ID);
+				var player = db.LoadAsync<Player>(id);
+				this.LoadedItems.Add("Player: " + player.Id);
 			}
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
@@ -48,7 +48,7 @@ namespace Watsonia.Data.TestPerformance
 			watch.Start();
 			using (var db = new WatsoniaDatabase())
 			{
-				var players = db.Query<Player>().Where(x => x.TeamsID == teamID).ToList();
+				var players = db.Query<Player>().Where(x => x.TeamsID == teamID);
 				foreach (var p in players)
 				{
 					this.LoadedItems.Add("Player: " + p.ID);
@@ -64,7 +64,7 @@ namespace Watsonia.Data.TestPerformance
 			watch.Start();
 			using (var db = new WatsoniaDatabase())
 			{
-				var teams = db.Query<Team>().Include(x => x.Players).Where(x => x.SportsID == sportID).ToList();
+				var teams = db.Query<Team>().Include(x => x.Players).Where(x => x.SportsID == sportID);
 				foreach (var t in teams)
 				{
 					foreach (var p in t.Players)

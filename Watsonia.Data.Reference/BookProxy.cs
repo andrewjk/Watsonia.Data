@@ -408,7 +408,7 @@ namespace Watsonia.Data.Reference
 				return true;
 			}
 
-			if (((object)a == null) || ((object)b == null))
+			if ((a is null) || (b is null))
 			{
 				return false;
 			}
@@ -423,11 +423,7 @@ namespace Watsonia.Data.Reference
 
 		private void OnPrimaryKeyValueChanged(object value)
 		{
-			var changed = PrimaryKeyValueChanged;
-			if (changed != null)
-			{
-				changed(this, new PrimaryKeyValueChangedEventArgs(value));
-			}
+			PrimaryKeyValueChanged?.Invoke(this, new PrimaryKeyValueChangedEventArgs(value));
 		}
 
 		public void ResetOriginalValues()
