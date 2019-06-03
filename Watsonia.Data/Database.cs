@@ -1479,7 +1479,7 @@ namespace Watsonia.Data
 		}
 
 		[Obsolete]
-		public void Execute(SelectStatement statement, DbConnection connection = null, DbTransaction transaction = null)
+		public void Execute(Statement statement, DbConnection connection = null, DbTransaction transaction = null)
 		{
 			Task.Run(() => ExecuteAsync(statement, connection, transaction)).GetAwaiter().GetResult();
 		}
