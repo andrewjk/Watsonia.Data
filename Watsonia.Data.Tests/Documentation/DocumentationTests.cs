@@ -123,6 +123,27 @@ namespace Watsonia.Data.Tests.Documentation
 		}
 
 		[TestMethod]
+		public async Task TestDeletingEntitiesAsync()
+		{
+			await _db.InsertAsync(new Author { FirstName = "James", LastName = "Frey" });
+			await _db.InsertAsync(new Author { FirstName = "Helen", LastName = "Demidenko" });
+
+			// Delete item
+			var jf = _db.Query<Author>().FirstOrDefault(a => a.FirstName == "James" && a.LastName == "Frey");
+			Assert.IsNotNull(jf);
+			await _db.DeleteAsync(jf);
+			var jfGone = _db.Query<Author>().FirstOrDefault(a => a.FirstName == "James" && a.LastName == "Frey");
+			Assert.IsNull(jfGone);
+
+			// Delete by id
+			var hd = _db.Query<Author>().FirstOrDefault(a => a.FirstName == "Helen" && a.LastName == "Demidenko");
+			Assert.IsNotNull(hd);
+			await _db.DeleteAsync<Author>(hd.ID);
+			var hdGone = _db.Query<Author>().FirstOrDefault(a => a.FirstName == "Helen" && a.LastName == "Demidenko");
+			Assert.IsNull(hdGone);
+		}
+
+		[TestMethod]
 		public async Task TestBulkInsertUpdateAndDeleteAsync()
 		{
 			// Update using fluent SQL

@@ -320,9 +320,6 @@ namespace Watsonia.Data
 					this.Configuration.GetCacheMaxItems(typeof(T)))) : null;
 			if (cache != null && cache.ContainsKey(id))
 			{
-				// It's in there
-				System.Diagnostics.Trace.WriteLine("Getting " + tableName + " with ID " + id + " from the cache", "Dynamic Proxy");
-
 				item = Create<T>();
 				proxy = (IDynamicProxy)item;
 				proxy.SetValuesFromBag(cache.GetValues(id));
@@ -1353,7 +1350,7 @@ namespace Watsonia.Data
 		/// <param name="transaction">The transaction.</param>
 		public async Task DeleteAsync<T>(object id, DbConnection connection = null, DbTransaction transaction = null)
 		{
-			var item = LoadAsync<T>(id);
+			var item = await LoadAsync<T>(id);
 			await DeleteAsync(item, connection, transaction);
 		}
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -9,6 +9,8 @@ namespace Watsonia.Data.Tests.Documentation
 {
 	public class Author
 	{
+		public virtual long ID { get; set; }
+
 		public virtual bool IsNew { get; set; }
 
 		public virtual bool HasChanges { get; set; }
