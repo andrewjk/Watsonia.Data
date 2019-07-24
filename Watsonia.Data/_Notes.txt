@@ -1,8 +1,5 @@
 ﻿THINGS TO WORK ON:
 
-Allow properties to be abstract as well as virtual (specifically for IsValid and ValidationErrors)?
-	And change ValidationErrors to an IList
-Implement INotifyingDataError
 Have better error messages
 	When a standard overridden property is of the wrong type e.g. if HasChanges is a string
 	When a standard overridden property has the wrong access type e.g. if HasChanges only has a getter
@@ -20,6 +17,8 @@ Performance improvements!
 	Should we store table name and related table names in the proxy? Or cache mappings in the database?  
 	Basically, remove the using System.Reflection directive in Database and DynamicProxyStateTracker
 	Also, use something better than Dictionary<string, object> (or anything that uses objects)
+	Should we use a ValueBag to store StateTracker.OriginalValues?
+	Can we get rid of ChangeType as much as possible?
 LoadedCollections and LoadedItems should probably be a collection of collections and items, rather than names?
 Put it up on NuGet
 Have a poke through the generated assembly to see where things can be improved
@@ -29,18 +28,12 @@ Should primary key columns be nullable?  New items could have their ID set to nu
 rid of GetPrimaryKeyNewItemValue
 Add attributes for basically everything that can be set in the configuration
 
-Having methods defined on IDynamicProxy introduces the risk of clashes with base class names.  We should
-probably allow the user to set method names in DatabaseConfiguration that override base class methods
-and then we just create calls to the appropriate methods in DynamicProxyStateTracker
-
 Use Merge to insert/update large amounts of data?  It's what EF Core seems to do...
-
-Get the query building functionality from Watsonia.QueryBuilder
-Check that the types match in DataEntity.Equals
 
 Can we do e.g. (from a in db.Query<Thing>() where !a.IsActive).Delete() ?!
 Can we do e.g. (from a in db.Query<Thing>() where !a.IsActive).Update(a => a.IsActive, true) ?!
 	(see the OpenIddict stores...)
+Or db.DeleteWhere(a => !a.IsActive), db.UpdateWhere(a => !a.IsActive, a => a.Blah, true)?
 
 SqlBulkInsert?!
 
