@@ -12,7 +12,7 @@ namespace Watsonia.Data
 		/// <summary>
 		/// Occurs when the value of the primary key value has changed.
 		/// </summary>
-		event PrimaryKeyValueChangedEventHandler PrimaryKeyValueChanged;
+		event PrimaryKeyValueChangedEventHandler __PrimaryKeyValueChanged;
 
 		/// <summary>
 		/// Gets the state tracker.
@@ -31,29 +31,29 @@ namespace Watsonia.Data
 		/// <value>
 		/// The primary key value.
 		/// </value>
-		object PrimaryKeyValue { get; set; }
+		object __PrimaryKeyValue { get; set; }
 
 		/// <summary>
-		/// Resets the original values after loading or saving.
+		/// Sets the original values after loading or saving.
 		/// </summary>
-		void ResetOriginalValues();
+		void __SetOriginalValues();
 
 		/// <summary>
 		/// Sets the item's property values from a data reader.
 		/// </summary>
 		/// <param name="source">The data reader.</param>
-		void SetValuesFromReader(DbDataReader source);
+		void __SetValuesFromReader(DbDataReader source);
 
 		/// <summary>
 		/// Sets the item's property values from a value bag.
 		/// </summary>
 		/// <param name="bag">The value bag.</param>
-		void SetValuesFromBag(IValueBag bag);
+		void __SetValuesFromBag(IValueBag bag);
 
 		/// <summary>
 		/// Gets a value bag from the item's property values.
 		/// </summary>
 		/// <returns></returns>
-		IValueBag GetBagFromValues();
+		IValueBag __GetBagFromValues();
 	}
 }

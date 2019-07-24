@@ -118,7 +118,7 @@ namespace Watsonia.Data.Tests.Entities
 			Assert.AreEqual(0, ((IDynamicProxy)newHasChanges).StateTracker.ChangedFields.Count);
 
 			// Load the inserted HasChanges
-			var hasChanges = await _db.LoadAsync<HasChanges>(((IDynamicProxy)newHasChanges).PrimaryKeyValue);
+			var hasChanges = await _db.LoadAsync<HasChanges>(((IDynamicProxy)newHasChanges).__PrimaryKeyValue);
 			Assert.AreEqual("ABC", hasChanges.String);
 			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.IsNew);
 			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);

@@ -63,7 +63,7 @@ namespace Watsonia.Data.Tests.Cache
 			Assert.IsTrue(chapterProperties.Any(p => p.Name == "PageCount"));
 			Assert.IsTrue(chapterProperties.Any(p => p.Name == "BookID"));
 
-			// Check SetValuesFromBag
+			// Check __SetValuesFromBag
 			var author = _db.Create<Author>();
 			authorProperties.First(p => p.Name == "ID").SetValue(authorBag, 25);
 			authorProperties.First(p => p.Name == "FirstName").SetValue(authorBag, "Dan");
@@ -73,8 +73,8 @@ namespace Watsonia.Data.Tests.Cache
 			authorProperties.First(p => p.Name == "Age").SetValue(authorBag, null);
 			authorProperties.First(p => p.Name == "Rating").SetValue(authorBag, 10);
 			var authorProxy = (IDynamicProxy)author;
-			authorProxy.SetValuesFromBag(authorBag);
-			Assert.AreEqual(25, (long)authorProxy.PrimaryKeyValue);
+			authorProxy.__SetValuesFromBag(authorBag);
+			Assert.AreEqual(25, (long)authorProxy.__PrimaryKeyValue);
 			Assert.AreEqual("Dan", author.FirstName);
 			Assert.AreEqual("Brown", author.LastName);
 			Assert.AreEqual("dan.brown@example.com", author.Email);
@@ -82,8 +82,8 @@ namespace Watsonia.Data.Tests.Cache
 			Assert.AreEqual(null, author.Age);
 			Assert.AreEqual(10, author.Rating);
 
-			// Check GetBagFromValues
-			var authorBag2 = authorProxy.GetBagFromValues();
+			// Check __GetBagFromValues
+			var authorBag2 = authorProxy.__GetBagFromValues();
 			Assert.AreEqual(25, (long)authorProperties.First(p => p.Name == "ID").GetValue(authorBag2));
 			Assert.AreEqual("Dan", authorProperties.First(p => p.Name == "FirstName").GetValue(authorBag2));
 			Assert.AreEqual("Brown", authorProperties.First(p => p.Name == "LastName").GetValue(authorBag2));

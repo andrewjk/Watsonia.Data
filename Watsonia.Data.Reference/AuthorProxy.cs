@@ -11,7 +11,7 @@ namespace Watsonia.Data.Reference
 {
 	public class AuthorProxy : Author, IDynamicProxy
 	{
-		public event PrimaryKeyValueChangedEventHandler PrimaryKeyValueChanged;
+		public event PrimaryKeyValueChangedEventHandler __PrimaryKeyValueChanged;
 
 		private DynamicProxyStateTracker _stateTracker;
 		public DynamicProxyStateTracker StateTracker
@@ -42,7 +42,7 @@ namespace Watsonia.Data.Reference
 			}
 		}
 
-		public object PrimaryKeyValue
+		public object __PrimaryKeyValue
 		{
 			get
 			{
@@ -178,7 +178,7 @@ namespace Watsonia.Data.Reference
 				this.Rating = 5;
 			}
 
-			this.ResetOriginalValues();
+			this.__SetOriginalValues();
 
 			this.StateTracker.IsLoading = false;
 		}
@@ -215,10 +215,10 @@ namespace Watsonia.Data.Reference
 
 		private void OnPrimaryKeyValueChanged(object value)
 		{
-			PrimaryKeyValueChanged?.Invoke(this, new PrimaryKeyValueChangedEventArgs(value));
+			__PrimaryKeyValueChanged?.Invoke(this, new PrimaryKeyValueChangedEventArgs(value));
 		}
 
-		public void ResetOriginalValues()
+		public void __SetOriginalValues()
 		{
 			this.StateTracker.OriginalValues["FirstName"] = this.FirstName;
 			this.StateTracker.OriginalValues["LastName"] = this.LastName;
@@ -228,7 +228,7 @@ namespace Watsonia.Data.Reference
 			this.StateTracker.OriginalValues["Rating"] = this.Rating;
 		}
 
-		public void SetValuesFromReader(DbDataReader source)
+		public void __SetValuesFromReader(DbDataReader source)
 		{
 			this.StateTracker.IsLoading = true;
 
@@ -259,12 +259,12 @@ namespace Watsonia.Data.Reference
 				}
 			}
 
-			this.ResetOriginalValues();
+			this.__SetOriginalValues();
 
 			this.StateTracker.IsLoading = false;
 		}
 
-		public void SetValuesFromBag(IValueBag bag)
+		public void __SetValuesFromBag(IValueBag bag)
 		{
 			this.StateTracker.IsLoading = true;
 
@@ -276,12 +276,12 @@ namespace Watsonia.Data.Reference
 			this.Age = authorBag.Age;
 			this.Rating = authorBag.Rating;
 
-			this.ResetOriginalValues();
+			this.__SetOriginalValues();
 
 			this.StateTracker.IsLoading = false;
 		}
 
-		public IValueBag GetBagFromValues()
+		public IValueBag __GetBagFromValues()
 		{
 			var authorBag = new AuthorValueBag();
 			authorBag.FirstName = this.FirstName;

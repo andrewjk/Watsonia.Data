@@ -178,7 +178,7 @@ namespace Watsonia.Data
 				parentType,
 				new Type[] { typeof(IDynamicProxy) });
 
-			// Add the PrimaryKeyValueChanged event
+			// Add the __PrimaryKeyValueChanged event
 			var primaryKeyValueChangedEventField = CreatePrimaryKeyValueChangedEvent(type);
 			members.OnPrimaryKeyValueChangedMethod = CreateOnPrimaryKeyValueChangedMethod(type, primaryKeyValueChangedEventField);
 
@@ -419,7 +419,7 @@ namespace Watsonia.Data
 				gen.MarkLabel(endIfShouldSetDefaultValueLabel);
 			}
 
-			// this.ResetOriginalValues();
+			// this.__SetOriginalValues();
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.ResetOriginalValuesMethod);
 
@@ -435,13 +435,13 @@ namespace Watsonia.Data
 
 		private static FieldBuilder CreatePrimaryKeyValueChangedEvent(TypeBuilder type)
 		{
-			// public event PrimaryKeyValueChangedEventHandler PrimaryKeyValueChanged;
+			// public event PrimaryKeyValueChangedEventHandler __PrimaryKeyValueChanged;
 			var eventField = type.DefineField(
-				"PrimaryKeyValueChanged",
+				"__PrimaryKeyValueChanged",
 				typeof(PrimaryKeyValueChangedEventHandler),
 				FieldAttributes.Private);
 			var eventBuilder = type.DefineEvent(
-				"PrimaryKeyValueChanged",
+				"__PrimaryKeyValueChanged",
 				EventAttributes.None,
 				typeof(PrimaryKeyValueChangedEventHandler));
 
@@ -513,7 +513,7 @@ namespace Watsonia.Data
 
 			var exitLabel = gen.DefineLabel();
 
-			// PrimaryKeyValueChangedEventHandler changed = PrimaryKeyValueChanged;
+			// PrimaryKeyValueChangedEventHandler changed = __PrimaryKeyValueChanged;
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Ldfld, primaryKeyValueChangedEventField);
 
@@ -567,7 +567,7 @@ namespace Watsonia.Data
 				CreateFieldProperty(type, members.PrimaryKeyColumnName, members.PrimaryKeyColumnType, members);
 			}
 
-			// Create the PrimaryKeyValue property which just wraps the primary key property
+			// Create the __PrimaryKeyValue property which just wraps the primary key property
 			CreatePrimaryKeyValueProperty(type, members);
 
 			// Create the related item properties
@@ -1088,11 +1088,11 @@ namespace Watsonia.Data
 				new Type[] { typeof(object), typeof(IntPtr) });
 
 			var removePrimaryKeyValueChangedMethod = typeof(IDynamicProxy).GetMethod(
-				"remove_PrimaryKeyValueChanged",
+				"remove___PrimaryKeyValueChanged",
 				new Type[] { typeof(PrimaryKeyValueChangedEventHandler) });
 
 			var addPrimaryKeyValueChangedMethod = typeof(IDynamicProxy).GetMethod(
-				"add_PrimaryKeyValueChanged",
+				"add___PrimaryKeyValueChanged",
 				new Type[] { typeof(PrimaryKeyValueChangedEventHandler) });
 
 			method.DefineParameter(1, ParameterAttributes.None, "value");
@@ -1127,7 +1127,7 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Brfalse_S, label47);
 
 			// IDynamicProxy thingProxy = (IDynamicProxy)base.Property;
-			// thingProxy.PrimaryKeyValueChanged -= ThingProxy_PrimaryKeyValueChanged;
+			// thingProxy.__PrimaryKeyValueChanged -= ThingProxy_PrimaryKeyValueChanged;
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, property.GetGetMethod());
 			gen.Emit(OpCodes.Castclass, typeof(IDynamicProxy));
@@ -1168,7 +1168,7 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldloc_3);
 			gen.Emit(OpCodes.Call, setItemIDMethod);
 
-			// thingProxy.PrimaryKeyValueChanged += ThingProxy_PrimaryKeyValueChanged;
+			// thingProxy.__PrimaryKeyValueChanged += ThingProxy_PrimaryKeyValueChanged;
 			gen.Emit(OpCodes.Ldloc_3);
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Ldftn, itemPrimaryKeyValueChangedHandler);
@@ -1244,7 +1244,7 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Call, setItemIDMethod);
 
 			//// TODO: How do you call the same method?
-			////// thingProxy.PrimaryKeyValueChanged -= ThingProxy_PrimaryKeyValueChanged;
+			////// thingProxy.__PrimaryKeyValueChanged -= ThingProxy_PrimaryKeyValueChanged;
 			////gen.Emit(OpCodes.Ldloc_0);
 			////gen.Emit(OpCodes.Ldarg_0);
 			////gen.Emit(OpCodes.Ldftn, method);
@@ -1269,7 +1269,7 @@ namespace Watsonia.Data
 			var primaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(property.PropertyType);
 
 			var getPrimaryKeyValueMethod = typeof(IDynamicProxy).GetMethod(
-				"get_PrimaryKeyValue", Type.EmptyTypes);
+				"get___PrimaryKeyValue", Type.EmptyTypes);
 
 			var gen = method.GetILGenerator();
 
@@ -1277,7 +1277,7 @@ namespace Watsonia.Data
 
 			var relatedItemIDPropertyName = database.Configuration.GetForeignKeyColumnName(property);
 
-			// this.ThingID = (long)value.PrimaryKeyValue;
+			// this.ThingID = (long)value.__PrimaryKeyValue;
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Ldarg_1);
 			gen.Emit(OpCodes.Callvirt, getPrimaryKeyValueMethod);
@@ -1377,7 +1377,7 @@ namespace Watsonia.Data
 		private static void CreatePrimaryKeyValueProperty(TypeBuilder type, DynamicProxyTypeMembers members)
 		{
 			var property = type.DefineProperty(
-				"PrimaryKeyValue",
+				"__PrimaryKeyValue",
 				PropertyAttributes.None,
 				typeof(object),
 				null);
@@ -1392,7 +1392,7 @@ namespace Watsonia.Data
 		private static MethodBuilder CreatePrimaryKeyValuePropertyGetMethod(TypeBuilder type, DynamicProxyTypeMembers members)
 		{
 			var method = type.DefineMethod(
-				"get_PrimaryKeyValue",
+				"get___PrimaryKeyValue",
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
 				typeof(object),
 				Type.EmptyTypes);
@@ -1423,7 +1423,7 @@ namespace Watsonia.Data
 		private static MethodBuilder CreatePrimaryKeyValuePropertySetMethod(TypeBuilder type, DynamicProxyTypeMembers members)
 		{
 			var method = type.DefineMethod(
-				"set_PrimaryKeyValue",
+				"set___PrimaryKeyValue",
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
 				null,
 				new Type[] { typeof(object) });
@@ -1599,10 +1599,10 @@ namespace Watsonia.Data
 
 		private static MethodBuilder CreateResetOriginalValuesMethod(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database, ChildParentMapping childParentMapping)
 		{
-			// TODO: Should also clear ChangedFields here rather than in SetValuesFromReader
+			// TODO: Should also clear ChangedFields here rather than in __SetValuesFromReader
 
 			var method = type.DefineMethod(
-				"ResetOriginalValues",
+				"__SetOriginalValues",
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
 				null,
 				Type.EmptyTypes);
@@ -1681,7 +1681,7 @@ namespace Watsonia.Data
 		private static void CreateSetValuesFromReaderMethod(TypeBuilder type, DynamicProxyTypeMembers members)
 		{
 			var method = type.DefineMethod(
-				"SetValuesFromReader",
+				"__SetValuesFromReader",
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
 				null,
 				new Type[] { typeof(DbDataReader) });
@@ -1919,7 +1919,7 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Callvirt, getFieldCountMethod);
 			gen.Emit(OpCodes.Blt, startFieldLoop);
 
-			// this.ResetOriginalValues();
+			// this.__SetOriginalValues();
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.ResetOriginalValuesMethod);
 
@@ -1999,7 +1999,7 @@ namespace Watsonia.Data
 		private static void CreateSetValuesFromBagMethod(TypeBuilder type, DynamicProxyTypeMembers members)
 		{
 			var method = type.DefineMethod(
-				"SetValuesFromBag",
+				"__SetValuesFromBag",
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
 				null,
 				new Type[] { typeof(IValueBag) });
@@ -2034,7 +2034,7 @@ namespace Watsonia.Data
 				gen.Emit(OpCodes.Callvirt, members.SetPropertyMethods[key]);
 			}
 
-			// this.ResetOriginalValues();
+			// this.__SetOriginalValues();
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.ResetOriginalValuesMethod);
 
@@ -2051,7 +2051,7 @@ namespace Watsonia.Data
 		private static void CreateGetBagFromValuesMethod(TypeBuilder type, DynamicProxyTypeMembers members)
 		{
 			var method = type.DefineMethod(
-				"GetBagFromValues",
+				"__GetBagFromValues",
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
 				typeof(IValueBag),
 				Type.EmptyTypes);

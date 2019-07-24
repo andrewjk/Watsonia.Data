@@ -45,8 +45,8 @@ namespace Watsonia.Data.Tests.DynamicProxy
 			var a = DynamicProxyFactory.GetDynamicProxy<Customer>(_db);
 			var b = DynamicProxyFactory.GetDynamicProxy<Customer>(_db);
 
-			((IDynamicProxy)a).PrimaryKeyValue = 5;
-			((IDynamicProxy)b).PrimaryKeyValue = 5;
+			((IDynamicProxy)a).__PrimaryKeyValue = 5;
+			((IDynamicProxy)b).__PrimaryKeyValue = 5;
 	
 			Assert.AreEqual(true, a.Equals(b), "Using Equals failed");
 			Assert.AreNotEqual("", a.GetHashCode(), "GetHashCode failed");
@@ -56,7 +56,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 			Assert.AreEqual(false, a != b, "Using != failed");
 
 			var c = DynamicProxyFactory.GetDynamicProxy<Order>(_db);
-			((IDynamicProxy)c).PrimaryKeyValue = 5;
+			((IDynamicProxy)c).__PrimaryKeyValue = 5;
 			Assert.AreEqual(false, a.Equals(c), "Comparing different types failed");
 		}
 
@@ -115,7 +115,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 
 			// Updating Jerry's ID (like, for instance, when saving a new customer) should update the CustomerID too
 			var eventIsFiringOk = false;
-			((IDynamicProxy)jerry).PrimaryKeyValueChanged += delegate
+			((IDynamicProxy)jerry).__PrimaryKeyValueChanged += delegate
 			{
 				eventIsFiringOk = true;
 			};

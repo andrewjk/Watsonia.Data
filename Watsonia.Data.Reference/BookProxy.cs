@@ -12,7 +12,7 @@ namespace Watsonia.Data.Reference
 {
 	public class BookProxy : Book, IDynamicProxy
 	{
-		public event PrimaryKeyValueChangedEventHandler PrimaryKeyValueChanged;
+		public event PrimaryKeyValueChangedEventHandler __PrimaryKeyValueChanged;
 
 		private DynamicProxyStateTracker _stateTracker;
 		public DynamicProxyStateTracker StateTracker
@@ -43,7 +43,7 @@ namespace Watsonia.Data.Reference
 			}
 		}
 
-		public object PrimaryKeyValue
+		public object __PrimaryKeyValue
 		{
 			get
 			{
@@ -97,7 +97,7 @@ namespace Watsonia.Data.Reference
 				if (base.Author != null)
 				{
 					var authorProxy = (IDynamicProxy)base.Author;
-					authorProxy.PrimaryKeyValueChanged -= AuthorProxy_PrimaryKeyValueChanged;
+					authorProxy.__PrimaryKeyValueChanged -= AuthorProxy_PrimaryKeyValueChanged;
 				}
 				base.Author = value;
 				if (value != null)
@@ -105,7 +105,7 @@ namespace Watsonia.Data.Reference
 					this.StateTracker.AddLoadedItem("Author");
 					var authorProxy = (IDynamicProxy)value;
 					SetAuthorID(authorProxy);
-					authorProxy.PrimaryKeyValueChanged += AuthorProxy_PrimaryKeyValueChanged;
+					authorProxy.__PrimaryKeyValueChanged += AuthorProxy_PrimaryKeyValueChanged;
 				}
 				else
 				{
@@ -116,7 +116,7 @@ namespace Watsonia.Data.Reference
 
 		private void SetAuthorID(IDynamicProxy value)
 		{
-			this.AuthorID = (string)value.PrimaryKeyValue;
+			this.AuthorID = (string)value.__PrimaryKeyValue;
 		}
 
 		private void AuthorProxy_PrimaryKeyValueChanged(object sender, PrimaryKeyValueChangedEventArgs e)
@@ -368,7 +368,7 @@ namespace Watsonia.Data.Reference
 				this.Price = 10;
 			}
 
-			this.ResetOriginalValues();
+			this.__SetOriginalValues();
 
 			this.StateTracker.IsLoading = false;
 		}
@@ -405,17 +405,17 @@ namespace Watsonia.Data.Reference
 
 		private void OnPrimaryKeyValueChanged(object value)
 		{
-			PrimaryKeyValueChanged?.Invoke(this, new PrimaryKeyValueChangedEventArgs(value));
+			__PrimaryKeyValueChanged?.Invoke(this, new PrimaryKeyValueChangedEventArgs(value));
 		}
 
-		public void ResetOriginalValues()
+		public void __SetOriginalValues()
 		{
 			this.StateTracker.OriginalValues["Title"] = this.Title;
 			this.StateTracker.OriginalValues["AuthorID"] = this.AuthorID;
 			this.StateTracker.OriginalValues["FirstName"] = this.Price;
 		}
 
-		public void SetValuesFromReader(DbDataReader source)
+		public void __SetValuesFromReader(DbDataReader source)
 		{
 			this.StateTracker.IsLoading = true;
 
@@ -486,12 +486,12 @@ namespace Watsonia.Data.Reference
 				}
 			}
 
-			this.ResetOriginalValues();
+			this.__SetOriginalValues();
 
 			this.StateTracker.IsLoading = false;
 		}
 
-		public void SetValuesFromBag(IValueBag bag)
+		public void __SetValuesFromBag(IValueBag bag)
 		{
 			this.StateTracker.IsLoading = true;
 
@@ -517,12 +517,12 @@ namespace Watsonia.Data.Reference
 			this.ByteNullable = bookBag.ByteNullable;
 			this.Guid = bookBag.Guid;
 
-			this.ResetOriginalValues();
+			this.__SetOriginalValues();
 
 			this.StateTracker.IsLoading = false;
 		}
 
-		public IValueBag GetBagFromValues()
+		public IValueBag __GetBagFromValues()
 		{
 			var bookBag = new BookValueBag();
 			bookBag.Title = this.Title;

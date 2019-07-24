@@ -68,7 +68,7 @@ namespace Watsonia.Data.Tests.Documentation
 			{
 				if (existingAuthorID == null)
 				{
-					existingAuthorID = ((IDynamicProxy)a).PrimaryKeyValue;
+					existingAuthorID = ((IDynamicProxy)a).__PrimaryKeyValue;
 				}
 			}
 			Assert.AreEqual(2, query.ToList().Count);
@@ -105,7 +105,7 @@ namespace Watsonia.Data.Tests.Documentation
 			var selectAuthor = Select.From("Author").Take(1).Where("LastName", SqlOperator.StartsWith, "P");
 			var existingAuthors = await _db.LoadCollectionAsync<Author>(selectAuthor);
 			var existingAuthor = existingAuthors[0];
-			var existingAuthorID = ((IDynamicProxy)existingAuthor).PrimaryKeyValue;
+			var existingAuthorID = ((IDynamicProxy)existingAuthor).__PrimaryKeyValue;
 
 			// Update an existing author
 			var author = await _db.LoadAsync<Author>(existingAuthorID);

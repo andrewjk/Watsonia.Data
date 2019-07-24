@@ -470,10 +470,7 @@ namespace Watsonia.Data
 		{
 			// Don't map the properties that we add to the proxy
 			if (property.Name == "StateTracker" ||
-				property.Name == "Database" ||
-				property.Name == "PrimaryKeyValue" ||
-				property.Name == "IsNew" ||
-				property.Name == "HasChanges")
+				property.Name == "__PrimaryKeyValue")
 			{
 				return false;
 			}

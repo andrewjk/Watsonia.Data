@@ -158,7 +158,7 @@ namespace Watsonia.Data
 				var tableType = typeof(T);
 				var tableName = this.Database.Configuration.GetTableName(tableType);
 				var foreignKeyColumnName = this.Database.Configuration.GetForeignKeyColumnName(tableType, this.Item.GetType().BaseType);
-				var select = Select.From(tableName).Where(foreignKeyColumnName, SqlOperator.Equals, this.Item.PrimaryKeyValue);
+				var select = Select.From(tableName).Where(foreignKeyColumnName, SqlOperator.Equals, this.Item.__PrimaryKeyValue);
 				// HACK: Have to run this synchronously until we have time to update the generated proxy code
 				var collection = Task.Run(() => this.Database.LoadCollectionAsync<T>(select)).GetAwaiter().GetResult();
 				SetCollection(propertyName, (IList)collection);
@@ -203,7 +203,7 @@ namespace Watsonia.Data
 			this.SavedCollectionIDs.Add(propertyName, new List<object>());
 			for (var i = 0; i < collection.Count; i++)
 			{
-				this.SavedCollectionIDs[propertyName].Add(((IDynamicProxy)collection[i]).PrimaryKeyValue);
+				this.SavedCollectionIDs[propertyName].Add(((IDynamicProxy)collection[i]).__PrimaryKeyValue);
 			}
 		}
 
@@ -261,7 +261,7 @@ namespace Watsonia.Data
 			// If it doesn't it must be a related item (e.g. Book), which will be covered when
 			// the ID value is set (e.g. BookID)
 			// OR this property is being set from within the constructor (where the original
-			// values haven't been created yet) or from SetValuesFromReader (where the original
+			// values haven't been created yet) or from __SetValuesFromReader (where the original
 			// values have been cleared out in preparation for new ones)
 			if (this.OriginalValues.ContainsKey(propertyName))
 			{
@@ -348,7 +348,7 @@ namespace Watsonia.Data
 			{
 				foreach (var error in ((IValidatableObject)item).Validate(null))
 				{
-					var itemID = this.Item.PrimaryKeyValue;
+					var itemID = this.Item.__PrimaryKeyValue;
 					var itemName = item.GetType().BaseType.Name;
 					var propertyName = string.Join(", ", error.MemberNames);
 					var newError = new ValidationError(itemID, itemName, propertyName, "Error", error.ErrorMessage);
@@ -405,7 +405,7 @@ namespace Watsonia.Data
 			}
 
 			// Remove the errors for this item
-			var itemID = this.Item.PrimaryKeyValue;
+			var itemID = this.Item.__PrimaryKeyValue;
 			var itemName = item.GetType().BaseType.Name;
 			var propertyName = property.Name;
 			this.ValidationErrors.RemoveAll(e =>
@@ -481,7 +481,7 @@ namespace Watsonia.Data
 			}
 			else
 			{
-				return this.Item.PrimaryKeyValue.GetHashCode();
+				return this.Item.__PrimaryKeyValue.GetHashCode();
 			}
 		}
 
@@ -512,7 +512,7 @@ namespace Watsonia.Data
 				}
 				else
 				{
-					return (this.Item.PrimaryKeyValue.Equals(other.PrimaryKeyValue));
+					return (this.Item.__PrimaryKeyValue.Equals(other.__PrimaryKeyValue));
 				}
 			}
 			else
