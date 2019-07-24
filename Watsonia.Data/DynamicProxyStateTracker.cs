@@ -250,7 +250,7 @@ namespace Watsonia.Data
 			}
 		}
 
-		public void CheckOriginalValue<T>(string propertyName, T newValue)
+		public void SetFieldValue<T>(string propertyName, T newValue)
 		{
 			if (this.IsLoading)
 			{

@@ -38,7 +38,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				_id = value;
-				this.StateTracker.CheckOriginalValue("ID", value);
+				this.StateTracker.SetFieldValue("ID", value);
 				OnPrimaryKeyValueChanged(value);
 			}
 		}
@@ -64,7 +64,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.Title = value;
-				this.StateTracker.CheckOriginalValue("Title", value);
+				this.StateTracker.SetFieldValue("Title", value);
 			}
 		}
 
@@ -78,7 +78,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				_authorID = value;
-				this.StateTracker.CheckOriginalValue("AuthorID", value);
+				this.StateTracker.SetFieldValue("AuthorID", value);
 			}
 		}
 
@@ -134,7 +134,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.Price = value;
-				this.StateTracker.CheckOriginalValue("Price", value);
+				this.StateTracker.SetFieldValue("Price", value);
 			}
 		}
 
@@ -147,7 +147,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.Bool = value;
-				this.StateTracker.CheckOriginalValue("Bool", value);
+				this.StateTracker.SetFieldValue("Bool", value);
 			}
 		}
 
@@ -160,7 +160,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.BoolNullable = value;
-				this.StateTracker.CheckOriginalValue("BoolNullable", value);
+				this.StateTracker.SetFieldValue("BoolNullable", value);
 			}
 		}
 
@@ -173,7 +173,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.DateTime = value;
-				this.StateTracker.CheckOriginalValue("DateTime", value);
+				this.StateTracker.SetFieldValue("DateTime", value);
 			}
 		}
 
@@ -186,7 +186,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.DateTimeNullable = value;
-				this.StateTracker.CheckOriginalValue("DateTimeNullable", value);
+				this.StateTracker.SetFieldValue("DateTimeNullable", value);
 			}
 		}
 
@@ -199,7 +199,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.Decimal = value;
-				this.StateTracker.CheckOriginalValue("Decimal", value);
+				this.StateTracker.SetFieldValue("Decimal", value);
 			}
 		}
 
@@ -212,7 +212,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.DecimalNullable = value;
-				this.StateTracker.CheckOriginalValue("DecimalNullable", value);
+				this.StateTracker.SetFieldValue("DecimalNullable", value);
 			}
 		}
 
@@ -225,7 +225,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.Double = value;
-				this.StateTracker.CheckOriginalValue("Double", value);
+				this.StateTracker.SetFieldValue("Double", value);
 			}
 		}
 
@@ -238,7 +238,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.DoubleNullable = value;
-				this.StateTracker.CheckOriginalValue("DoubleNullable", value);
+				this.StateTracker.SetFieldValue("DoubleNullable", value);
 			}
 		}
 
@@ -251,7 +251,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.Short = value;
-				this.StateTracker.CheckOriginalValue("Short", value);
+				this.StateTracker.SetFieldValue("Short", value);
 			}
 		}
 
@@ -264,7 +264,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.ShortNullable = value;
-				this.StateTracker.CheckOriginalValue("ShortNullable", value);
+				this.StateTracker.SetFieldValue("ShortNullable", value);
 			}
 		}
 
@@ -277,7 +277,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.Int = value;
-				this.StateTracker.CheckOriginalValue("Int", value);
+				this.StateTracker.SetFieldValue("Int", value);
 			}
 		}
 
@@ -290,7 +290,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.IntNullable = value;
-				this.StateTracker.CheckOriginalValue("IntNullable", value);
+				this.StateTracker.SetFieldValue("IntNullable", value);
 			}
 		}
 
@@ -303,7 +303,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.Long = value;
-				this.StateTracker.CheckOriginalValue("Long", value);
+				this.StateTracker.SetFieldValue("Long", value);
 			}
 		}
 
@@ -316,7 +316,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.LongNullable = value;
-				this.StateTracker.CheckOriginalValue("LongNullable", value);
+				this.StateTracker.SetFieldValue("LongNullable", value);
 			}
 		}
 
@@ -329,7 +329,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.Byte = value;
-				this.StateTracker.CheckOriginalValue("Byte", value);
+				this.StateTracker.SetFieldValue("Byte", value);
 			}
 		}
 
@@ -342,7 +342,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.ByteNullable = value;
-				this.StateTracker.CheckOriginalValue("ByteNullable", value);
+				this.StateTracker.SetFieldValue("ByteNullable", value);
 			}
 		}
 
@@ -355,7 +355,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.Guid = value;
-				this.StateTracker.CheckOriginalValue("Guid", value);
+				this.StateTracker.SetFieldValue("Guid", value);
 			}
 		}
 

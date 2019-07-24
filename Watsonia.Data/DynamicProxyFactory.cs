@@ -696,7 +696,7 @@ namespace Watsonia.Data
 				new Type[] { propertyType });
 
 			var checkOriginalValueMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"CheckOriginalValue").MakeGenericMethod(propertyType);
+				"SetFieldValue").MakeGenericMethod(propertyType);
 
 			method.DefineParameter(1, ParameterAttributes.None, "value");
 
@@ -707,7 +707,7 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldarg_1);
 			gen.Emit(OpCodes.Stfld, privateField);
 
-			// this.StateTracker.CheckOriginalValue("Thing", value);
+			// this.StateTracker.SetFieldValue("Thing", value);
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
 			gen.Emit(OpCodes.Ldstr, propertyName);
@@ -904,7 +904,7 @@ namespace Watsonia.Data
 				new Type[] { property.PropertyType });
 
 			var checkOriginalValueMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"CheckOriginalValue").MakeGenericMethod(property.PropertyType);
+				"SetFieldValue").MakeGenericMethod(property.PropertyType);
 
 			method.DefineParameter(1, ParameterAttributes.None, "value");
 
@@ -915,7 +915,7 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldarg_1);
 			gen.Emit(OpCodes.Call, property.GetSetMethod());
 
-			// this.StateTracker.CheckOriginalValue("Thing", value);
+			// this.StateTracker.SetFieldValue("Thing", value);
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
 			gen.Emit(OpCodes.Ldstr, property.Name);
