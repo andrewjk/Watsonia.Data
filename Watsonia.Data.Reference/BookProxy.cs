@@ -363,10 +363,7 @@ namespace Watsonia.Data.Reference
 		{
 			this.StateTracker.IsLoading = true;
 
-			if (!this.StateTracker.SetFields.Contains("Price"))
-			{
-				this.Price = 10;
-			}
+			this.Price = 10;
 
 			this.__SetOriginalValues();
 

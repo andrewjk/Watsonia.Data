@@ -10,12 +10,22 @@ namespace Watsonia.Data.Tests.DynamicProxy
 	{
 		public virtual string Name { get; set; }
 
-		public virtual string Description { get; set; }
+		private string _description = "Hey";
+		public virtual string Description
+		{
+			get
+			{
+				return _description;
+			}
+			set
+			{
+				_description = value;
+			}
+		}
 
 		public ConstructorInitializer()
 		{
 			this.Name = "Hello";
-			this.Description = "Hey";
 		}
 	}
 }

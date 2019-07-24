@@ -78,14 +78,6 @@ namespace Watsonia.Data
 		public List<string> ChangedFields { get; } = new List<string>();
 
 		/// <summary>
-		/// Gets the fields with values that have been set.
-		/// </summary>
-		/// <value>
-		/// The set fields.
-		/// </value>
-		public List<string> SetFields { get; } = new List<string>();
-
-		/// <summary>
 		/// Gets the loaded collections, which are saved with this item.
 		/// </summary>
 		/// <value>
@@ -283,12 +275,6 @@ namespace Watsonia.Data
 					}
 				}
 				this.HasChanges = (this.ChangedFields.Count > 0);
-			}
-
-			// It's been changed now, so it should be validated
-			if (!this.SetFields.Contains(propertyName))
-			{
-				this.SetFields.Add(propertyName);
 			}
 		}
 

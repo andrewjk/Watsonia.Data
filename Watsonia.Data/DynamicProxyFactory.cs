@@ -230,15 +230,6 @@ namespace Watsonia.Data
 			var stateTrackerIsLoadingMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"set_IsLoading", new Type[] { typeof(bool) });
 
-			// TODO: Rather than abusing the SetFields (and requiring it be public!), I could
-			// be checking whether the value == the default value? (In this case, I might need
-			// to take the DefaultValue attribute into account)
-			var stateTrackerSetFieldsMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"get_SetFields", Type.EmptyTypes);
-
-			var stringListContainsMethod = typeof(List<>).MakeGenericType(typeof(string)).GetMethod(
-				"Contains", new Type[] { typeof(string) });
-
 			var gen = constructor.GetILGenerator();
 
 			// base.ctor()
@@ -251,19 +242,11 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldc_I4_1);
 			gen.Emit(OpCodes.Callvirt, stateTrackerIsLoadingMethod);
 
+			var stringIndex = 0;
+
 			// Set the default values
 			foreach (var propertyName in members.DefaultValues.Keys)
 			{
-				var endIfShouldSetDefaultValueLabel = gen.DefineLabel();
-
-				// if (!this.StateTracker.ChangedFields.Contains("Property"))
-				gen.Emit(OpCodes.Ldarg_0);
-				gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-				gen.Emit(OpCodes.Callvirt, stateTrackerSetFieldsMethod);
-				gen.Emit(OpCodes.Ldstr, propertyName);
-				gen.Emit(OpCodes.Callvirt, stringListContainsMethod);
-				gen.Emit(OpCodes.Brtrue_S, endIfShouldSetDefaultValueLabel);
-
 				var value = members.DefaultValues[propertyName];
 				var isNullable = false;
 				var propertyType = members.GetPropertyMethods[propertyName].ReturnType;
@@ -275,9 +258,44 @@ namespace Watsonia.Data
 
 				if (propertyType == typeof(string))
 				{
+					var endIfLabel = gen.DefineLabel();
+					var ifresult = gen.DeclareLocal(typeof(bool));
+
+					// if (this.Property == null)
+					gen.Emit(OpCodes.Ldarg_0);
+					gen.Emit(OpCodes.Callvirt, members.GetPropertyMethods[propertyName]);
+					gen.Emit(OpCodes.Ldnull);
+					gen.Emit(OpCodes.Ceq);
+					gen.Emit(OpCodes.Stloc_S, ifresult);
+					gen.Emit(OpCodes.Ldloc_S, ifresult);
+					gen.Emit(OpCodes.Brfalse_S, endIfLabel);
+
+					// this.Property = value;
 					gen.Emit(OpCodes.Ldarg_0);
 					gen.Emit(OpCodes.Ldstr, (string)value);
 					gen.Emit(OpCodes.Callvirt, members.SetPropertyMethods[propertyName]);
+
+					//// if (this.Property == null)
+					//gen.Emit(OpCodes.Ldarg_0);
+					//gen.Emit(OpCodes.Callvirt, members.GetPropertyMethods[propertyName]);
+					//gen.Emit(OpCodes.Ldnull);
+					//gen.Emit(OpCodes.Ceq);
+					////gen.Emit(OpCodes.Ldc_I4_0);
+					////gen.Emit(OpCodes.Ceq);
+					////gen.Emit(OpCodes.Stloc_S, stringIndex);
+					////gen.Emit(OpCodes.Ldloc_S, stringIndex);
+					////gen.Emit(OpCodes.Brtrue_S, endIfLabel);
+					//gen.Emit(OpCodes.Stloc_S, stringIndex);
+					//gen.Emit(OpCodes.Ldloc_S, stringIndex);
+					//gen.Emit(OpCodes.Brfalse_S, endIfLabel);
+					//
+					//gen.Emit(OpCodes.Ldarg_0);
+					//gen.Emit(OpCodes.Ldstr, (string)value);
+					//gen.Emit(OpCodes.Callvirt, members.SetPropertyMethods[propertyName]);
+
+					gen.MarkLabel(endIfLabel);
+
+					stringIndex += 1;
 				}
 				else if (propertyType == typeof(DateTime))
 				{
@@ -415,8 +433,6 @@ namespace Watsonia.Data
 					// to get things to work
 					System.Diagnostics.Trace.WriteLine($"Unsupported default value type for {propertyName}: {propertyType}");
 				}
-
-				gen.MarkLabel(endIfShouldSetDefaultValueLabel);
 			}
 
 			// this.__SetOriginalValues();

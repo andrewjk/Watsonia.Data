@@ -149,34 +149,29 @@ namespace Watsonia.Data.Reference
 			}
 		}
 
+		public virtual string Blah { get; set; }
+
+		public virtual string Hurr { get; set; }
+
 		public AuthorProxy()
 		{
 			this.StateTracker.IsLoading = true;
 
-			if (!this.StateTracker.SetFields.Contains("FirstName"))
+			if (this.FirstName == null)
 			{
 				this.FirstName = "";
 			}
-			if (!this.StateTracker.SetFields.Contains("LastName"))
+			if (this.LastName == null)
 			{
 				this.LastName = "";
 			}
-			if (!this.StateTracker.SetFields.Contains("Email"))
+			if (this.Email == null)
 			{
 				this.Email = "";
 			}
-			if (!this.StateTracker.SetFields.Contains("DateOfBirth"))
-			{
-				this.DateOfBirth = new DateTime(10000, DateTimeKind.Local);
-			}
-			if (!this.StateTracker.SetFields.Contains("Age"))
-			{
-				this.Age = 18;
-			}
-			if (!this.StateTracker.SetFields.Contains("Rating"))
-			{
-				this.Rating = 5;
-			}
+			this.DateOfBirth = new DateTime(10000, DateTimeKind.Local);
+			this.Age = 18;
+			this.Rating = 5;
 
 			this.__SetOriginalValues();
 
