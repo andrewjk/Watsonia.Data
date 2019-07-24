@@ -9,10 +9,6 @@ namespace Watsonia.Data.Tests.Documentation
 {
 	public class Book : IValidatableObject
 	{
-		public bool IsNew { get; set; }
-
-		public bool HasChanges { get; set; }
-
 		[Required]
 		public virtual string Title { get; set; }
 

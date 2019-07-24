@@ -186,24 +186,24 @@ namespace Watsonia.Data.Tests.Documentation
 			var author = _db.Create<Author>();
 
 			// There should be an error for the first and last name being required
-			Assert.IsFalse(author.IsValid, "Author should be invalid");
-			Assert.AreEqual(2, author.ValidationErrors.Count, "Author validation error count should be 2");
+			Assert.IsFalse(((IDynamicProxy)author).StateTracker.IsValid, "Author should be invalid");
+			Assert.AreEqual(2, ((IDynamicProxy)author).StateTracker.ValidationErrors.Count, "Author validation error count should be 2");
 
 			// Fix those errors
 			author.FirstName = "Eric";
 			author.LastName = "Blair";
 
 			// There shouldn't be any errors now
-			Assert.IsTrue(author.IsValid, "Author should be valid");
-			Assert.AreEqual(0, author.ValidationErrors.Count, "Author validation error count should be 0");
+			Assert.IsTrue(((IDynamicProxy)author).StateTracker.IsValid, "Author should be valid");
+			Assert.AreEqual(0, ((IDynamicProxy)author).StateTracker.ValidationErrors.Count, "Author validation error count should be 0");
 
 			// Add a book without a title
 			var book = _db.Create<Book>();
 			author.Books.Add(book);
 
 			// There should be an error for the book's title being required
-			Assert.IsFalse(author.IsValid, "Author should be invalid because of a book");
-			Assert.AreEqual(1, author.ValidationErrors.Count, "Author validation error count should be 1");
+			Assert.IsFalse(((IDynamicProxy)author).StateTracker.IsValid, "Author should be invalid because of a book");
+			Assert.AreEqual(1, ((IDynamicProxy)author).StateTracker.ValidationErrors.Count, "Author validation error count should be 1");
 
 			// Fix up the book
 			book.Title = "1984";
@@ -219,8 +219,8 @@ namespace Watsonia.Data.Tests.Documentation
 			catch (ValidationException)
 			{
 			}
-			Assert.AreEqual(1, author.ValidationErrors.Count, "Book validation error count should be 1");
-			Assert.AreEqual("Title", author.ValidationErrors[0].PropertyName, "Book validation error should be title");
+			Assert.AreEqual(1, ((IDynamicProxy)author).StateTracker.ValidationErrors.Count, "Book validation error count should be 1");
+			Assert.AreEqual("Title", ((IDynamicProxy)author).StateTracker.ValidationErrors[0].PropertyName, "Book validation error should be title");
 
 			// Fix up that book too
 			book2.Title = "Animal Farm";
@@ -237,8 +237,8 @@ namespace Watsonia.Data.Tests.Documentation
 			catch (ValidationException)
 			{
 			}
-			Assert.AreEqual(1, author.ValidationErrors.Count, "Bad book validation error count should be 1");
-			Assert.AreEqual("Nope", author.ValidationErrors[0].ErrorMessage, "Book validation error should be nope");
+			Assert.AreEqual(1, ((IDynamicProxy)author).StateTracker.ValidationErrors.Count, "Bad book validation error count should be 1");
+			Assert.AreEqual("Nope", ((IDynamicProxy)author).StateTracker.ValidationErrors[0].ErrorMessage, "Book validation error should be nope");
 		}
 
 		[TestMethod]
@@ -259,38 +259,38 @@ namespace Watsonia.Data.Tests.Documentation
 			author.Books.Add(book2);
 
 			// Everything should be new
-			Assert.IsTrue(author.IsNew, "Author should be new");
-			Assert.IsTrue(book1.IsNew, "Book 1 should be new");
-			Assert.IsTrue(book2.IsNew, "Book 2 should be new");
+			Assert.IsTrue(((IDynamicProxy)author).StateTracker.IsNew, "Author should be new");
+			Assert.IsTrue(((IDynamicProxy)book1).StateTracker.IsNew, "Book 1 should be new");
+			Assert.IsTrue(((IDynamicProxy)book2).StateTracker.IsNew, "Book 2 should be new");
 
 			// Save the author
 			await _db.SaveAsync(author);
 
 			// Everything should be not new and have no changes
-			Assert.IsFalse(author.IsNew, "Author shouldn't be new");
-			Assert.IsFalse(book1.IsNew, "Book 1 shouldn't be new");
-			Assert.IsFalse(book2.IsNew, "Book 2 shouldn't be new");
+			Assert.IsFalse(((IDynamicProxy)author).StateTracker.IsNew, "Author shouldn't be new");
+			Assert.IsFalse(((IDynamicProxy)book1).StateTracker.IsNew, "Book 1 shouldn't be new");
+			Assert.IsFalse(((IDynamicProxy)book2).StateTracker.IsNew, "Book 2 shouldn't be new");
 
-			Assert.IsFalse(author.HasChanges, "Author shouldn't have changes");
-			Assert.IsFalse(book1.HasChanges, "Book 1 shouldn't have changes");
-			Assert.IsFalse(book2.HasChanges, "Book 2 shouldn't have changes");
+			Assert.IsFalse(((IDynamicProxy)author).StateTracker.HasChanges, "Author shouldn't have changes");
+			Assert.IsFalse(((IDynamicProxy)book1).StateTracker.HasChanges, "Book 1 shouldn't have changes");
+			Assert.IsFalse(((IDynamicProxy)book2).StateTracker.HasChanges, "Book 2 shouldn't have changes");
 
 			// Oops, fix some mistakes
 			book1.Title = "The Sun Also Rises";
 			book2.Title = "The Old Man and the Sea";
 
 			// Some things should have changes
-			Assert.IsFalse(author.HasChanges, "Author shouldn't have changes");
-			Assert.IsFalse(book1.HasChanges, "Book 1 shouldn't have changes");
-			Assert.IsTrue(book2.HasChanges, "Book 2 should have changes");
+			Assert.IsFalse(((IDynamicProxy)author).StateTracker.HasChanges, "Author shouldn't have changes");
+			Assert.IsFalse(((IDynamicProxy)book1).StateTracker.HasChanges, "Book 1 shouldn't have changes");
+			Assert.IsTrue(((IDynamicProxy)book2).StateTracker.HasChanges, "Book 2 should have changes");
 
 			// Save the author
 			await _db.SaveAsync(author);
 
 			// Nothing should have changes
-			Assert.IsFalse(author.HasChanges, "Author shouldn't have changes");
-			Assert.IsFalse(book1.HasChanges, "Book 1 shouldn't have changes");
-			Assert.IsFalse(book2.HasChanges, "Book 2 shouldn't have changes");
+			Assert.IsFalse(((IDynamicProxy)author).StateTracker.HasChanges, "Author shouldn't have changes");
+			Assert.IsFalse(((IDynamicProxy)book1).StateTracker.HasChanges, "Book 1 shouldn't have changes");
+			Assert.IsFalse(((IDynamicProxy)book2).StateTracker.HasChanges, "Book 2 shouldn't have changes");
 		}
 	}
 }

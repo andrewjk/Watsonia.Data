@@ -18,7 +18,8 @@ namespace Watsonia.Data
 	{
 		private int? _oldHashCode;
 
-		// TODO: Investigate creating a typed class to hold original values rather than having to use ChangeType
+		// PERF: Investigate creating a typed class to hold original values rather than having to use ChangeType
+		// PERF: Make this generic with TKey
 
 		/// <summary>
 		/// Gets or sets the database.
@@ -29,6 +30,14 @@ namespace Watsonia.Data
 		internal Database Database { get; set; }
 
 		/// <summary>
+		/// Gets or sets the item that this DynamicProxyStateTracker is tracking.
+		/// </summary>
+		/// <value>
+		/// The item.
+		/// </value>
+		public IDynamicProxy Item { get; set; }
+
+		/// <summary>
 		/// Gets or sets a value indicating whether this instance is currently being loaded from the database.
 		/// </summary>
 		/// <value>
@@ -37,12 +46,20 @@ namespace Watsonia.Data
 		public bool IsLoading { get; set; }
 
 		/// <summary>
-		/// Gets or sets the item that this DynamicProxyStateTracker is tracking.
+		/// Gets or sets a value indicating whether this instance is new (i.e. doesn't exist in the database).
 		/// </summary>
 		/// <value>
-		/// The item.
+		///   <c>true</c> if this instance is new; otherwise, <c>false</c>.
 		/// </value>
-		public IDynamicProxy Item { get; set; }
+		public bool IsNew { get; internal set; }
+
+		/// <summary>
+		/// Gets or sets a value indicating whether this instance has changes.
+		/// </summary>
+		/// <value>
+		///	  <c>true</c> if this instance has changes; otherwise, <c>false</c>.
+		/// </value>
+		public bool HasChanges { get; internal set; }
 
 		/// <summary>
 		/// Gets the original values of the item, which correspond to the values stored in the database.
@@ -92,7 +109,7 @@ namespace Watsonia.Data
 		/// The loaded items.
 		/// </value>
 		public List<string> LoadedItems { get; } = new List<string>();
-		
+
 		/// <summary>
 		/// Gets a value indicating whether this instance is valid.
 		/// </summary>
@@ -130,7 +147,7 @@ namespace Watsonia.Data
 		/// <returns>The loaded collection.</returns>
 		public IList<T> LoadCollection<T>(string propertyName)
 		{
-			if (this.Item.IsNew)
+			if (this.IsNew)
 			{
 				var collection = new List<T>();
 				SetCollection(propertyName, (IList)collection);
@@ -233,7 +250,6 @@ namespace Watsonia.Data
 			}
 		}
 
-		// TODO: That shouldn't be public
 		public void CheckOriginalValue<T>(string propertyName, T newValue)
 		{
 			if (this.IsLoading)
@@ -266,7 +282,7 @@ namespace Watsonia.Data
 						this.ChangedFields.Add(propertyName);
 					}
 				}
-				this.Item.HasChanges = (this.ChangedFields.Count > 0);
+				this.HasChanges = (this.ChangedFields.Count > 0);
 			}
 
 			// It's been changed now, so it should be validated
@@ -332,7 +348,7 @@ namespace Watsonia.Data
 			{
 				foreach (var error in ((IValidatableObject)item).Validate(null))
 				{
-					var itemID = item.PrimaryKeyValue;
+					var itemID = this.Item.PrimaryKeyValue;
 					var itemName = item.GetType().BaseType.Name;
 					var propertyName = string.Join(", ", error.MemberNames);
 					var newError = new ValidationError(itemID, itemName, propertyName, "Error", error.ErrorMessage);
@@ -389,7 +405,7 @@ namespace Watsonia.Data
 			}
 
 			// Remove the errors for this item
-			var itemID = item.PrimaryKeyValue;
+			var itemID = this.Item.PrimaryKeyValue;
 			var itemName = item.GetType().BaseType.Name;
 			var propertyName = property.Name;
 			this.ValidationErrors.RemoveAll(e =>
@@ -443,7 +459,7 @@ namespace Watsonia.Data
 			}
 			return property.Name;
 		}
-		
+
 		/// <summary>
 		/// Gets the item hash code.
 		/// </summary>
@@ -458,7 +474,7 @@ namespace Watsonia.Data
 
 			// When this instance is new we use the base GetHashCode() and remember it so that an instance can
 			// never change its hash code
-			if (this.Item.IsNew)
+			if (this.IsNew)
 			{
 				_oldHashCode = System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this.Item);
 				return _oldHashCode.Value;
@@ -480,7 +496,7 @@ namespace Watsonia.Data
 			{
 				return false;
 			}
-			else if (this.Item.IsNew && other.IsNew)
+			else if (this.IsNew && other.StateTracker.IsNew)
 			{
 				return ReferenceEquals(this.Item, other);
 			}

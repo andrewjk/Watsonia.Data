@@ -37,10 +37,6 @@ namespace Watsonia.Data.Tests.DynamicProxy
 			var orderIDProperty = orderProxy.GetType().GetProperty("ID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 			Assert.AreNotEqual(null, orderIDProperty);
 			orderIDProperty.SetValue(orderProxy, -1, null);
-
-			// Test that the IsNew property is created
-			var isNewProperty = orderProxy.GetType().GetProperty("IsNew", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-			Assert.AreNotEqual(null, isNewProperty);
 		}
 
 		[TestMethod]
@@ -205,15 +201,15 @@ namespace Watsonia.Data.Tests.DynamicProxy
 
 			child1.Name = "Good";
 			child2.Name = "Baaaaaaaaaad";
-			Assert.IsFalse(invalidProxy.IsValid);
+			Assert.IsFalse(invalidProxy.StateTracker.IsValid);
 
 			child1.Name = "Baaaaaaaaaad";
 			child2.Name = "Good";
-			Assert.IsFalse(invalidProxy.IsValid);
+			Assert.IsFalse(invalidProxy.StateTracker.IsValid);
 
 			child1.Name = "Good";
 			child2.Name = "Yep";
-			Assert.IsTrue(invalidProxy.IsValid);
+			Assert.IsTrue(invalidProxy.StateTracker.IsValid);
 		}
 	}
 }

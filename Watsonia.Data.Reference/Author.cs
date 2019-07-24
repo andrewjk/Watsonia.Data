@@ -10,10 +10,6 @@ namespace Watsonia.Data.Reference
 {
 	public class Author
 	{
-		public virtual bool IsNew { get; set; }
-
-		public virtual bool HasChanges { get; set; }
-
 		public virtual string FirstName { get; set; }
 		
 		public virtual string LastName { get; set; }

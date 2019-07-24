@@ -54,8 +54,6 @@ namespace Watsonia.Data.Reference
 				this.ID = (long)Convert.ChangeType(value, typeof(long));
 			}
 		}
-		public bool IsNew { get; set; }
-		public bool HasChanges { get; set; }
 
 		public override string Title
 		{
@@ -358,22 +356,6 @@ namespace Watsonia.Data.Reference
 			{
 				base.Guid = value;
 				this.StateTracker.CheckOriginalValue("Guid", value);
-			}
-		}
-
-		public bool IsValid
-		{
-			get
-			{
-				return this.StateTracker.IsValid;
-			}
-		}
-
-		public IList<ValidationError> ValidationErrors
-		{
-			get
-			{
-				return this.StateTracker.ValidationErrors;
 			}
 		}
 

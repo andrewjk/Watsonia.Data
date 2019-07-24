@@ -570,63 +570,6 @@ namespace Watsonia.Data
 			// Create the PrimaryKeyValue property which just wraps the primary key property
 			CreatePrimaryKeyValueProperty(type, members);
 
-			// Create the IsNew property
-			var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
-			var isNewProperty = parentType.GetProperty("IsNew", flags);
-			if (isNewProperty != null)
-			{
-				if (isNewProperty.PropertyType != typeof(bool))
-				{
-					throw new InvalidOperationException(
-						$"The IsNew property on {parentType.FullName} must be of type {typeof(bool).FullName}");
-				}
-				CreateOverriddenProperty(type, isNewProperty, members);
-			}
-			else
-			{
-				CreateProperty(type, "IsNew", typeof(bool), members);
-			}
-
-			// Create the HasChanges property
-			var hasChangesProperty = parentType.GetProperty("HasChanges", flags);
-			if (hasChangesProperty != null)
-			{
-				if (hasChangesProperty.PropertyType != typeof(bool))
-				{
-					throw new InvalidOperationException(
-						$"The HasChanges property on {parentType.FullName} must be of type {typeof(bool).FullName}");
-				}
-				CreateOverriddenProperty(type, hasChangesProperty, members);
-			}
-			else
-			{
-				CreateProperty(type, "HasChanges", typeof(bool), members);
-			}
-
-			// Create the IsValid property
-			var isValidProperty = parentType.GetProperty("IsValid", flags);
-			if (isValidProperty != null)
-			{
-				if (isValidProperty.PropertyType != typeof(bool))
-				{
-					throw new InvalidOperationException(
-						$"The IsValid property on {parentType.FullName} must be of type {typeof(bool).FullName}");
-				}
-			}
-			CreateIsValidProperty(type, members);
-
-			// Create the ValidationErrors property
-			var validationErrorsProperty = parentType.GetProperty("ValidationErrors", flags);
-			if (validationErrorsProperty != null)
-			{
-				if (validationErrorsProperty.PropertyType != typeof(IList<ValidationError>))
-				{
-					throw new InvalidOperationException(
-						$"The ValidationErrors property on {parentType.FullName} must be of type {"IList<ValidationError>"}");
-				}
-			}
-			CreateValidationErrorsProperty(type, members);
-
 			// Create the related item properties
 			foreach (var property in members.BaseItemProperties)
 			{
@@ -688,182 +631,6 @@ namespace Watsonia.Data
 
 				return;
 			}
-		}
-
-		private static void CreateProperty(TypeBuilder type, string propertyName, Type propertyType, DynamicProxyTypeMembers members, bool isReadOnly = false)
-		{
-			var field = type.DefineField(
-				"_" + propertyName,
-				propertyType,
-				FieldAttributes.Private);
-
-			var property = type.DefineProperty(
-				propertyName,
-				PropertyAttributes.None,
-				propertyType,
-				null);
-
-			var getMethod = CreatePropertyGetMethod(type, propertyName, propertyType, field);
-			MethodBuilder setMethod = null;
-			if (!isReadOnly)
-			{
-				setMethod = CreatePropertySetMethod(type, propertyName, propertyType, field, members);
-			}
-
-			// Map the get and set methods created above to their corresponding property methods
-			property.SetGetMethod(getMethod);
-			if (!isReadOnly)
-			{
-				property.SetSetMethod(setMethod);
-			}
-
-			CheckCreatedProperty(property, getMethod, setMethod, false, members);
-		}
-
-		private static MethodBuilder CreatePropertyGetMethod(TypeBuilder type, string propertyName, Type propertyType, FieldBuilder privateField)
-		{
-			var method = type.DefineMethod(
-				"get_" + propertyName,
-				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
-				propertyType,
-				Type.EmptyTypes);
-
-			var gen = method.GetILGenerator();
-
-			gen.DeclareLocal(propertyType);
-
-			// return _property;
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Ldfld, privateField);
-			gen.Emit(OpCodes.Stloc_0);
-			gen.Emit(OpCodes.Ldloc_0);
-			gen.Emit(OpCodes.Ret);
-
-			return method;
-		}
-
-		private static MethodBuilder CreatePropertySetMethod(TypeBuilder type, string propertyName, Type propertyType, FieldBuilder privateField, DynamicProxyTypeMembers members)
-		{
-			var method = type.DefineMethod(
-				"set_" + propertyName,
-				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
-				null,
-				new Type[] { propertyType });
-
-			var gen = method.GetILGenerator();
-
-			method.DefineParameter(1, ParameterAttributes.None, "value");
-
-			// _property = value;
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Ldarg_1);
-			gen.Emit(OpCodes.Stfld, privateField);
-
-			// TODO: Ugh, this should only be fired if its value has changed
-			if (propertyName == members.PrimaryKeyColumnName)
-			{
-				gen.Emit(OpCodes.Ldarg_0);
-				gen.Emit(OpCodes.Ldarg_1);
-				if (members.PrimaryKeyColumnType.IsValueType)
-				{
-					gen.Emit(OpCodes.Box, members.PrimaryKeyColumnType);
-				}
-				gen.Emit(OpCodes.Call, members.OnPrimaryKeyValueChangedMethod);
-			}
-
-			gen.Emit(OpCodes.Ret);
-
-			return method;
-		}
-
-		private static void CreateOverriddenProperty(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members, bool isReadOnly = false)
-		{
-			type.DefineField(
-				"_" + property.Name,
-				property.PropertyType,
-				FieldAttributes.Private);
-
-			var newProperty = type.DefineProperty(
-				property.Name,
-				PropertyAttributes.None,
-				property.PropertyType,
-				null);
-
-			var getMethod = CreateOverriddenPropertyGetMethod(type, property);
-			MethodBuilder setMethod = null;
-			if (!isReadOnly)
-			{
-				setMethod = CreateOverriddenPropertySetMethod(type, property, members);
-			}
-
-			// Map the get and set methods created above to their corresponding property methods
-			newProperty.SetGetMethod(getMethod);
-			if (!isReadOnly)
-			{
-				newProperty.SetSetMethod(setMethod);
-			}
-
-			CheckCreatedProperty(property, getMethod, setMethod, false, members);
-		}
-
-		private static MethodBuilder CreateOverriddenPropertyGetMethod(TypeBuilder type, PropertyInfo property)
-		{
-			var method = type.DefineMethod(
-				"get_" + property.Name,
-				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
-				property.PropertyType,
-				Type.EmptyTypes);
-
-			var gen = method.GetILGenerator();
-
-			gen.DeclareLocal(property.PropertyType);
-
-			var exitLabel = gen.DefineLabel();
-
-			// return base.Property;
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, property.GetGetMethod());
-			gen.Emit(OpCodes.Stloc_0);
-			gen.Emit(OpCodes.Br_S, exitLabel);
-			gen.MarkLabel(exitLabel);
-			gen.Emit(OpCodes.Ldloc_0);
-			gen.Emit(OpCodes.Ret);
-
-			return method;
-		}
-
-		private static MethodBuilder CreateOverriddenPropertySetMethod(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members)
-		{
-			var method = type.DefineMethod(
-				"set_" + property.Name,
-				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
-				null,
-				new Type[] { property.PropertyType });
-
-			var gen = method.GetILGenerator();
-
-			method.DefineParameter(1, ParameterAttributes.None, "value");
-
-			// base.Property = value;
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Ldarg_1);
-			gen.Emit(OpCodes.Call, property.GetSetMethod());
-
-			// TODO: Ugh, this should only be fired if its value has changed
-			if (property.Name == members.PrimaryKeyColumnName)
-			{
-				gen.Emit(OpCodes.Ldarg_0);
-				gen.Emit(OpCodes.Ldarg_1);
-				if (members.PrimaryKeyColumnType.IsValueType)
-				{
-					gen.Emit(OpCodes.Box, members.PrimaryKeyColumnType);
-				}
-				gen.Emit(OpCodes.Call, members.OnPrimaryKeyValueChangedMethod);
-			}
-
-			gen.Emit(OpCodes.Ret);
-
-			return method;
 		}
 
 		private static void CreateFieldProperty(TypeBuilder type, string propertyName, Type propertyType, DynamicProxyTypeMembers members, bool isReadOnly = false)
@@ -1688,61 +1455,61 @@ namespace Watsonia.Data
 			return method;
 		}
 
-		private static void CreateIsValidProperty(TypeBuilder type, DynamicProxyTypeMembers members)
-		{
-			var property = type.DefineProperty(
-				"IsValid",
-				PropertyAttributes.None,
-				typeof(bool),
-				null);
+		//////private static void CreateIsValidProperty(TypeBuilder type, DynamicProxyTypeMembers members)
+		//////{
+		//////	var property = type.DefineProperty(
+		//////		"IsValid",
+		//////		PropertyAttributes.None,
+		//////		typeof(bool),
+		//////		null);
 
-			var getMethod = type.DefineMethod(
-				"get_IsValid",
-				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
-				typeof(bool),
-				Type.EmptyTypes);
+		//////	var getMethod = type.DefineMethod(
+		//////		"get_IsValid",
+		//////		MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
+		//////		typeof(bool),
+		//////		Type.EmptyTypes);
 
-			var getIsValidMethod = typeof(DynamicProxyStateTracker).GetMethod("get_IsValid");
+		//////	var getIsValidMethod = typeof(DynamicProxyStateTracker).GetMethod("get_IsValid");
 
-			var gen = getMethod.GetILGenerator();
+		//////	var gen = getMethod.GetILGenerator();
 
-			// return this.StateTracker.IsValid;
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-			gen.Emit(OpCodes.Callvirt, getIsValidMethod);
-			gen.Emit(OpCodes.Ret);
+		//////	// return this.StateTracker.IsValid;
+		//////	gen.Emit(OpCodes.Ldarg_0);
+		//////	gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
+		//////	gen.Emit(OpCodes.Callvirt, getIsValidMethod);
+		//////	gen.Emit(OpCodes.Ret);
 
-			// Map the get method to its corresponding property method
-			property.SetGetMethod(getMethod);
-		}
+		//////	// Map the get method to its corresponding property method
+		//////	property.SetGetMethod(getMethod);
+		//////}
 
-		private static void CreateValidationErrorsProperty(TypeBuilder type, DynamicProxyTypeMembers members)
-		{
-			var property = type.DefineProperty(
-				"ValidationErrors",
-				PropertyAttributes.None,
-				typeof(IList<ValidationError>),
-				null);
+		//////private static void CreateValidationErrorsProperty(TypeBuilder type, DynamicProxyTypeMembers members)
+		//////{
+		//////	var property = type.DefineProperty(
+		//////		"ValidationErrors",
+		//////		PropertyAttributes.None,
+		//////		typeof(IList<ValidationError>),
+		//////		null);
 
-			var getMethod = type.DefineMethod(
-				"get_ValidationErrors",
-				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
-				typeof(IList<ValidationError>),
-				Type.EmptyTypes);
+		//////	var getMethod = type.DefineMethod(
+		//////		"get_ValidationErrors",
+		//////		MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig,
+		//////		typeof(IList<ValidationError>),
+		//////		Type.EmptyTypes);
 
-			var getValidationErrorsMethod = typeof(DynamicProxyStateTracker).GetMethod("get_ValidationErrors");
+		//////	var getValidationErrorsMethod = typeof(DynamicProxyStateTracker).GetMethod("get_ValidationErrors");
 
-			var gen = getMethod.GetILGenerator();
+		//////	var gen = getMethod.GetILGenerator();
 
-			// return this.StateTracker.ValidationErrors;
-			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-			gen.Emit(OpCodes.Callvirt, getValidationErrorsMethod);
-			gen.Emit(OpCodes.Ret);
+		//////	// return this.StateTracker.ValidationErrors;
+		//////	gen.Emit(OpCodes.Ldarg_0);
+		//////	gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
+		//////	gen.Emit(OpCodes.Callvirt, getValidationErrorsMethod);
+		//////	gen.Emit(OpCodes.Ret);
 
-			// Map the get method to its corresponding property method
-			property.SetGetMethod(getMethod);
-		}
+		//////	// Map the get method to its corresponding property method
+		//////	property.SetGetMethod(getMethod);
+		//////}
 
 		private static Type CreateValueBagType(string typeName, DynamicProxyTypeMembers members)
 		{

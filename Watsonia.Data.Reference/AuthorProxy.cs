@@ -54,30 +54,6 @@ namespace Watsonia.Data.Reference
 			}
 		}
 
-		public override bool IsNew
-		{
-			get
-			{
-				return base.IsNew;
-			}
-			set
-			{
-				base.IsNew = value;
-			}
-		}
-
-		public override bool HasChanges
-		{
-			get
-			{
-				return base.HasChanges;
-			}
-			set
-			{
-				base.HasChanges = value;
-			}
-		}
-
 		public override string FirstName
 		{
 			get
@@ -170,22 +146,6 @@ namespace Watsonia.Data.Reference
 			{
 				base.Books = value;
 				this.StateTracker.AddLoadedCollection("Books");
-			}
-		}
-
-		public bool IsValid
-		{
-			get
-			{
-				return this.StateTracker.IsValid;
-			}
-		}
-
-		public IList<ValidationError> ValidationErrors
-		{
-			get
-			{
-				return this.StateTracker.ValidationErrors;
 			}
 		}
 

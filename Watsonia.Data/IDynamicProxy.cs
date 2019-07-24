@@ -34,44 +34,6 @@ namespace Watsonia.Data
 		object PrimaryKeyValue { get; set; }
 
 		/// <summary>
-		/// Gets or sets a value indicating whether this instance is new (i.e. doesn't exist in the database).
-		/// </summary>
-		/// <value>
-		///   <c>true</c> if this instance is new; otherwise, <c>false</c>.
-		/// </value>
-		bool IsNew { get; set; }
-
-		/// <summary>
-		/// Gets or sets a value indicating whether this instance has changes.
-		/// </summary>
-		/// <value>
-		///	  <c>true</c> if this instance has changes; otherwise, <c>false</c>.
-		/// </value>
-		bool HasChanges { get; set; }
-
-		/// <summary>
-		/// Gets a value indicating whether this instance is in a valid state.
-		/// </summary>
-		/// <value>
-		///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.
-		/// </value>
-		bool IsValid
-		{
-			get;
-		}
-
-		/// <summary>
-		/// Gets the validation errors that apply to this instance.
-		/// </summary>
-		/// <value>
-		/// The validation errors.
-		/// </value>
-		IList<ValidationError> ValidationErrors
-		{
-			get;
-		}
-
-		/// <summary>
 		/// Resets the original values after loading or saving.
 		/// </summary>
 		void ResetOriginalValues();

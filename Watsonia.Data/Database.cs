@@ -176,7 +176,7 @@ namespace Watsonia.Data
 			var newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
 			var proxy = (IDynamicProxy)newItem;
 			//proxy.ID = -1;
-			proxy.IsNew = true;
+			proxy.StateTracker.IsNew = true;
 
 			OnAfterCreate(proxy);
 
@@ -194,7 +194,7 @@ namespace Watsonia.Data
 			var newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
 			var proxy = (IDynamicProxy)newItem;
 			//proxy.ID = -1;
-			proxy.IsNew = true;
+			proxy.StateTracker.IsNew = true;
 			LoadValues(item, proxy);
 
 			OnAfterCreate(proxy);
@@ -323,8 +323,8 @@ namespace Watsonia.Data
 				item = Create<T>();
 				proxy = (IDynamicProxy)item;
 				proxy.SetValuesFromBag(cache.GetValues(id));
-				proxy.IsNew = false;
-				proxy.HasChanges = false;
+				proxy.StateTracker.IsNew = false;
+				proxy.StateTracker.HasChanges = false;
 			}
 			else
 			{
@@ -343,8 +343,8 @@ namespace Watsonia.Data
 							item = Create<T>();
 							proxy = (IDynamicProxy)item;
 							proxy.SetValuesFromReader(reader);
-							proxy.IsNew = false;
-							proxy.HasChanges = false;
+							proxy.StateTracker.IsNew = false;
+							proxy.StateTracker.HasChanges = false;
 
 							// Add or update it in the cache
 							if (cache != null)
@@ -1047,11 +1047,11 @@ namespace Watsonia.Data
 
 			OnBeforeSave(proxy);
 
-			if (!proxy.IsValid)
+			if (!proxy.StateTracker.IsValid)
 			{
 				var ex = new ValidationException(
 					$"Validation failed for {item.GetType().BaseType.Name}: {item.ToString()}");
-				ex.ValidationErrors.AddRange(proxy.ValidationErrors);
+				ex.ValidationErrors.AddRange(proxy.StateTracker.ValidationErrors);
 				throw ex;
 			}
 
@@ -1123,7 +1123,7 @@ namespace Watsonia.Data
 						// re-saved as part of a related collection
 						newRelatedItems.Add(relatedItem);
 					}
-					else if (relatedItem.IsNew)
+					else if (relatedItem.StateTracker.IsNew)
 					{
 						var message = $"The related item '{tableType.Name}.{propertyName}' must be saved before the parent '{tableType.Name}'.";
 						throw new InvalidOperationException(message);
@@ -1131,7 +1131,7 @@ namespace Watsonia.Data
 				}
 			}
 
-			if (proxy.IsNew)
+			if (proxy.StateTracker.IsNew)
 			{
 				// Insert the item
 				await InsertItemAsync(proxy, tableName, tableType, primaryKeyColumnName, connection, transaction);
@@ -1139,7 +1139,7 @@ namespace Watsonia.Data
 			else
 			{
 				// Only update the item if its fields have been changed
-				if (proxy.HasChanges)
+				if (proxy.StateTracker.HasChanges)
 				{
 					await UpdateItemAsync(proxy, tableName, primaryKeyColumnName, connection, transaction);
 				}
@@ -1175,7 +1175,7 @@ namespace Watsonia.Data
 				{
 					if (this.Configuration.ShouldCascade(property))
 					{
-						if (childItem.IsNew || newRelatedItems.Contains(childItem))
+						if (childItem.StateTracker.IsNew || newRelatedItems.Contains(childItem))
 						{
 							// Set the parent ID of the item in the collection
 							var parentIDPropertyName = this.Configuration.GetForeignKeyColumnName(childItem.GetType().BaseType, tableType);
@@ -1216,7 +1216,7 @@ namespace Watsonia.Data
 			}
 
 			proxy.ResetOriginalValues();
-			proxy.HasChanges = false;
+			proxy.StateTracker.HasChanges = false;
 		}
 
 		private async Task InsertItemAsync(IDynamicProxy proxy, string tableName, Type tableType, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction)
@@ -1247,7 +1247,7 @@ namespace Watsonia.Data
 				getPrimaryKeyValueCommand.Transaction = transaction;
 				var primaryKeyValue = await getPrimaryKeyValueCommand.ExecuteScalarAsync();
 				proxy.PrimaryKeyValue = Convert.ChangeType(primaryKeyValue, this.Configuration.GetPrimaryKeyColumnType(tableType));
-				proxy.IsNew = false;
+				proxy.StateTracker.IsNew = false;
 			}
 		}
 
@@ -1619,7 +1619,7 @@ namespace Watsonia.Data
 
 		private void LoadValues(object source, IDynamicProxy destination)
 		{
-			if (!destination.IsNew)
+			if (!destination.StateTracker.IsNew)
 			{
 				destination.StateTracker.IsLoading = true;
 			}

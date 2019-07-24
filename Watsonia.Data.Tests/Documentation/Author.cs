@@ -11,26 +11,6 @@ namespace Watsonia.Data.Tests.Documentation
 	{
 		public virtual long ID { get; set; }
 
-		public virtual bool IsNew { get; set; }
-
-		public virtual bool HasChanges { get; set; }
-
-		public virtual bool IsValid
-		{
-			get
-			{
-				return true;
-			}
-		}
-
-		public virtual IList<ValidationError> ValidationErrors
-		{
-			get
-			{
-				return new List<ValidationError>();
-			}
-		}
-
 		public virtual void Undo()
 		{
 		}

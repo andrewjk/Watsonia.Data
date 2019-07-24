@@ -86,18 +86,18 @@ namespace Watsonia.Data.Tests.Entities
 
 			// Create a HasChanges and check that it has no changes
 			var newHasChanges = _db.Create<HasChanges>();
-			Assert.IsTrue(((IDynamicProxy)newHasChanges).IsNew);
-			Assert.IsFalse(((IDynamicProxy)newHasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)newHasChanges).StateTracker.IsNew);
+			Assert.IsFalse(((IDynamicProxy)newHasChanges).StateTracker.HasChanges);
 
 			// Create two related items and check that they have no changes
 			var hasChangesRelated1 = _db.Create<HasChangesRelated>();
-			Assert.IsTrue(((IDynamicProxy)hasChangesRelated1).IsNew);
-			Assert.IsFalse(((IDynamicProxy)hasChangesRelated1).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChangesRelated1).StateTracker.IsNew);
+			Assert.IsFalse(((IDynamicProxy)hasChangesRelated1).StateTracker.HasChanges);
 			await _db.SaveAsync(hasChangesRelated1);
 
 			var hasChangesRelated2 = _db.Create<HasChangesRelated>();
-			Assert.IsTrue(((IDynamicProxy)hasChangesRelated2).IsNew);
-			Assert.IsFalse(((IDynamicProxy)hasChangesRelated2).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChangesRelated2).StateTracker.IsNew);
+			Assert.IsFalse(((IDynamicProxy)hasChangesRelated2).StateTracker.HasChanges);
 			await _db.SaveAsync(hasChangesRelated2);
 
 			// Even if we set things to their default values
@@ -106,157 +106,157 @@ namespace Watsonia.Data.Tests.Entities
 			newHasChanges.DateTimeNullable = null;
 			newHasChanges.Direction = CardinalDirection.Unknown;
 			newHasChanges.DecimalWithDefault = 5.5m;
-			Assert.IsFalse(((IDynamicProxy)newHasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)newHasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)newHasChanges).StateTracker.ChangedFields.Count);
 
 			// Insert it and check that the insert worked
 			newHasChanges.String = "ABC";
 			await _db.SaveAsync(newHasChanges);
 			Assert.AreEqual(1, Convert.ToInt32(await _db.LoadValueAsync(countHasChanges)));
-			Assert.IsFalse(((IDynamicProxy)newHasChanges).IsNew);
-			Assert.IsFalse(((IDynamicProxy)newHasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)newHasChanges).StateTracker.IsNew);
+			Assert.IsFalse(((IDynamicProxy)newHasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)newHasChanges).StateTracker.ChangedFields.Count);
 
 			// Load the inserted HasChanges
 			var hasChanges = await _db.LoadAsync<HasChanges>(((IDynamicProxy)newHasChanges).PrimaryKeyValue);
 			Assert.AreEqual("ABC", hasChanges.String);
-			Assert.IsFalse(((IDynamicProxy)hasChanges).IsNew);
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.IsNew);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			// Make sure that setting things to their existing values doesn't change HasChanges
 			hasChanges.String = "ABC";
 			hasChanges.DecimalWithDefault = 5.5m;
 			hasChanges.Int = 0;
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			// Start setting things and checking that it's all good
 			hasChanges.Bool = true;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("Bool", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.Bool = false;
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			hasChanges.BoolNullable = true;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("BoolNullable", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.BoolNullable = false;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("BoolNullable", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.BoolNullable = null;
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			hasChanges.Int = 10;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("Int", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.Int = 0;
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			hasChanges.IntNullable = 11;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("IntNullable", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.IntNullable = 0;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("IntNullable", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.IntNullable = null;
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			hasChanges.Decimal = 12.2m;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("Decimal", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.Decimal = 0;
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			hasChanges.DecimalNullable = 13.3m;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("DecimalNullable", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.DecimalNullable = 0;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("DecimalNullable", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.DecimalNullable = null;
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			hasChanges.DateTime = DateTime.Now;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("DateTime", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.DateTime = new DateTime(1900, 1, 1);
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			hasChanges.DateTimeNullable = DateTime.Now.AddDays(1);
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("DateTimeNullable", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.DateTimeNullable = DateTime.MinValue;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("DateTimeNullable", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.DateTimeNullable = null;
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			hasChanges.Direction = CardinalDirection.East;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("Direction", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.Direction = CardinalDirection.Unknown;
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			hasChanges.String = "DEFGH";
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("String", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.String = "ABC";
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			// Test setting a related item
 			hasChanges.Related = hasChangesRelated1;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("RelatedID", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			hasChanges.Related = null;
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			hasChanges.Related = hasChangesRelated2;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("RelatedID", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			await _db.SaveAsync(hasChanges);
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			hasChanges.Related = hasChangesRelated1;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("RelatedID", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 
 			hasChanges.Related = null;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(1, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("RelatedID", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 
 			hasChanges.Related = hasChangesRelated2;
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			// Test setting multiple things
@@ -264,7 +264,7 @@ namespace Watsonia.Data.Tests.Entities
 			hasChanges.Int = 500;
 			hasChanges.Bool = true;
 			hasChanges.String = "GHI";
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(4, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("IntNullable", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			Assert.AreEqual("Int", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[1]);
@@ -285,7 +285,7 @@ namespace Watsonia.Data.Tests.Entities
 			hasChanges.DecimalWithDefault = 200.2m;
 			hasChanges.Related = hasChangesRelated1;
 			await _db.SaveAsync(hasChanges);
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 
 			hasChanges.Bool = false;
@@ -300,7 +300,7 @@ namespace Watsonia.Data.Tests.Entities
 			hasChanges.String = "MNO";
 			hasChanges.DecimalWithDefault = 500.5m;
 			hasChanges.Related = hasChangesRelated2;
-			Assert.IsTrue(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsTrue(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(12, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 			Assert.AreEqual("Bool", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[0]);
 			Assert.AreEqual("BoolNullable", ((IDynamicProxy)hasChanges).StateTracker.ChangedFields[1]);
@@ -327,7 +327,7 @@ namespace Watsonia.Data.Tests.Entities
 			hasChanges.String = "JKL";
 			hasChanges.DecimalWithDefault = 200.2m;
 			hasChanges.Related = hasChangesRelated1;
-			Assert.IsFalse(((IDynamicProxy)hasChanges).HasChanges);
+			Assert.IsFalse(((IDynamicProxy)hasChanges).StateTracker.HasChanges);
 			Assert.AreEqual(0, ((IDynamicProxy)hasChanges).StateTracker.ChangedFields.Count);
 		}
 
