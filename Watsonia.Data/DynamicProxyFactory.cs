@@ -1954,12 +1954,6 @@ namespace Watsonia.Data
 			MethodInfo getStringMethod = null;
 			MethodInfo getGuidMethod = null;
 
-			var stateTrackerGetChangedFieldsMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"get_ChangedFields", Type.EmptyTypes);
-
-			var removeStringMethod = typeof(List<>).MakeGenericType(typeof(string)).GetMethod(
-				"Remove", new Type[] { typeof(string) });
-
 			var getFieldCountMethod = typeof(DbDataReader).GetMethod(
 				"get_FieldCount", Type.EmptyTypes);
 
@@ -2136,14 +2130,6 @@ namespace Watsonia.Data
 					}
 					gen.Emit(OpCodes.Call, members.SetPropertyMethods[key]);
 				}
-
-				// this.StateTracker.ChangedFields.Remove("Property");
-				gen.Emit(OpCodes.Ldarg_0);
-				gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
-				gen.Emit(OpCodes.Callvirt, stateTrackerGetChangedFieldsMethod);
-				gen.Emit(OpCodes.Ldstr, key);
-				gen.Emit(OpCodes.Callvirt, removeStringMethod);
-				gen.Emit(OpCodes.Pop);
 
 				index += 1;
 

@@ -270,10 +270,7 @@ namespace Watsonia.Data.Reference
 
 		public void SetValuesFromReader(DbDataReader source)
 		{
-			//if (!this.IsNew)
-			//{
 			this.StateTracker.IsLoading = true;
-			//}
 
 			for (var i = 0; i < source.FieldCount; i++)
 			{
@@ -282,19 +279,16 @@ namespace Watsonia.Data.Reference
 					case "ID":
 					{
 						this.ID = source.GetInt64(i);
-						this.StateTracker.ChangedFields.Remove("ID");
 						break;
 					}
 					case "FIRSTNAME":
 					{
 						this.FirstName = source.GetString(i);
-						this.StateTracker.ChangedFields.Remove("FirstName");
 						break;
 					}
 					case "LASTNAME":
 					{
 						this.LastName = source.GetString(i);
-						this.StateTracker.ChangedFields.Remove("LastName");
 						break;
 					}
 					// etc.
