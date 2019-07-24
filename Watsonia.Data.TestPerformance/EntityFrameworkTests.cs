@@ -10,7 +10,10 @@ namespace Watsonia.Data.TestPerformance
 {
 	public class EntityFrameworkTests : IPerformanceTests
 	{
-		public List<string> LoadedItems { get; } = new List<string>();
+		public List<long> LoadedPosts { get; } = new List<long>();
+		public List<long> LoadedPlayers { get; } = new List<long>();
+		public List<long> LoadedPlayersForTeam { get; } = new List<long>();
+		public List<long> LoadedTeamsForSport { get; } = new List<long>();
 
 		public long GetAllPosts()
 		{
@@ -21,7 +24,7 @@ namespace Watsonia.Data.TestPerformance
 				var posts = context.Posts;
 				foreach (var p in posts)
 				{
-					this.LoadedItems.Add("Post: " + p.ID);
+					this.LoadedPosts.Add(p.ID);
 				}
 			}
 			watch.Stop();
@@ -34,8 +37,8 @@ namespace Watsonia.Data.TestPerformance
 			watch.Start();
 			using (var context = new EntityFrameworkContext())
 			{
-				var player = context.Players.Find(id);
-				this.LoadedItems.Add("Player: " + player.ID);
+				var p = context.Players.Find(id);
+				this.LoadedPlayers.Add(p.ID);
 			}
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
@@ -50,7 +53,7 @@ namespace Watsonia.Data.TestPerformance
 				var players = context.Players.AsNoTracking().Where(x => x.TeamsID == teamID);
 				foreach (var p in players)
 				{
-					this.LoadedItems.Add("Player: " + p.ID);
+					this.LoadedPlayersForTeam.Add(p.ID);
 				}
 			}
 			watch.Stop();
@@ -68,7 +71,7 @@ namespace Watsonia.Data.TestPerformance
 				{
 					foreach (var p in t.Players)
 					{
-						this.LoadedItems.Add("Team Player: " + p.ID);
+						this.LoadedTeamsForSport.Add(p.ID);
 					}
 				}
 			}

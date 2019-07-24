@@ -21,6 +21,11 @@ namespace Watsonia.Data.TestPerformance
 
 		public static async Task Main(/* string[] args */)
 		{
+			var color = Console.ForegroundColor;
+			var backColor = Console.BackgroundColor;
+
+			Console.BackgroundColor = ConsoleColor.Black;
+
 			var db = new WatsoniaDatabase();
 
 			Console.WriteLine("Checking database...");
@@ -30,6 +35,9 @@ namespace Watsonia.Data.TestPerformance
 			var testResults = RunTests();
 
 			ProcessResults(testResults);
+
+			Console.ForegroundColor = color;
+			Console.BackgroundColor = backColor;
 
 			// Pause until a key is pressed
 			Console.ReadKey();
@@ -65,31 +73,53 @@ namespace Watsonia.Data.TestPerformance
 		private static List<TestResult> RunTests()
 		{
 			var testResults = new List<TestResult>();
+			var frameworkCount = 0;
 
 			for (var i = 0; i < RunCount; i++)
 			{
-				Console.WriteLine("{0}/{1}", i + 1, RunCount);
+				if (i > 0)
+				{
+					Console.SetCursorPosition(0, Console.CursorTop);
+				}
+				Console.Write("{0}/{1}", i + 1, RunCount);
 
 				var adoTests = new AdoNetTests();
-				testResults.AddRange(RunTests(i, TestFramework.AdoNet, adoTests));
+				var adoResults = RunTests(i, TestFramework.AdoNet, adoTests);
+				testResults.AddRange(adoResults);
 
 				var dapperTests = new DapperTests();
-				testResults.AddRange(RunTests(i, TestFramework.Dapper, dapperTests));
+				var dapperResults = RunTests(i, TestFramework.Dapper, dapperTests);
+				testResults.AddRange(dapperResults);
 
 				var efTests = new EntityFrameworkTests();
-				testResults.AddRange(RunTests(i, TestFramework.EntityFramework, efTests));
+				var efResults = RunTests(i, TestFramework.EntityFramework, efTests);
+				testResults.AddRange(efResults);
 
 				var wsqlTests = new WatsoniaSqlTests();
-				testResults.AddRange(RunTests(i, TestFramework.WatsoniaSql, wsqlTests));
+				var wsqlResults = RunTests(i, TestFramework.WatsoniaSql, wsqlTests);
+				testResults.AddRange(wsqlResults);
 
 				var wlinqTests = new WatsoniaLinqTests();
-				testResults.AddRange(RunTests(i, TestFramework.WatsoniaLinq, wlinqTests));
+				var wlinqResults = RunTests(i, TestFramework.WatsoniaLinq, wlinqTests);
+				testResults.AddRange(wlinqResults);
+
+				if (i == 0)
+				{
+					frameworkCount = testResults.Count;
+				}
+			}
+			Console.WriteLine();
+
+			// Make sure everything's ok...
+			for (var i = 0; i < frameworkCount; i++)
+			{
+				CompareResults(testResults[0], testResults[i], testResults[i].Framework.ToString());
 			}
 
 			return testResults;
 		}
 
-		public static List<TestResult> RunTests(int number, TestFramework framework, IPerformanceTests tests)
+		private static List<TestResult> RunTests(int number, TestFramework framework, IPerformanceTests tests)
 		{
 			var results = new List<TestResult>();
 
@@ -120,15 +150,47 @@ namespace Watsonia.Data.TestPerformance
 				teamsForSportResults.Add(tests.GetTeamsForSport(i));
 			}
 			result.TeamsForSportMilliseconds = Math.Round(teamsForSportResults.Average(), 2);
+
+			result.LoadedPosts = tests.LoadedPosts;
+			result.LoadedPlayers = tests.LoadedPlayers;
+			result.LoadedPlayersForTeam = tests.LoadedPlayersForTeam;
+			result.LoadedTeamsForSport = tests.LoadedTeamsForSport;
+
 			results.Add(result);
 
 			return results;
 		}
 
-		public static void ProcessResults(List<TestResult> results)
+		private static void CompareResults(TestResult a, TestResult b, string framework)
 		{
-			var lines = new List<string>();
+			bool result = true;
 
+			if (a.LoadedPosts.Count != b.LoadedPosts.Count ||
+				a.LoadedPlayers.Count != b.LoadedPlayers.Count ||
+				a.LoadedPlayersForTeam.Count != b.LoadedPlayersForTeam.Count ||
+				a.LoadedTeamsForSport.Count != b.LoadedTeamsForSport.Count)
+			{
+				result = false;
+			}
+
+			if (result)
+			{
+
+			}
+
+			if (!result)
+			{
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine($"{framework} has incorrect results");
+				Console.ForegroundColor = ConsoleColor.Gray;
+			}
+		}
+
+		private static void ProcessResults(List<TestResult> results)
+		{
+			var lines = new List<ConsoleLine>();
+
+			var haveBaseline = false;
 			double baselineAllPosts = 0;
 			double baselinePlayerByID = 0;
 			double baselinePlayersForTeam = 0;
@@ -137,69 +199,110 @@ namespace Watsonia.Data.TestPerformance
 			var groupedResults = results.GroupBy(x => x.Framework);
 			foreach (var group in groupedResults)
 			{
-				lines.Add(group.Key.ToString() + " Results");
+				lines.Add(new ConsoleLine($"{group.Key} Results", ConsoleColor.DarkCyan));
 
-				var lineParts = new List<string[]>();
-				var lineWidths = new List<int>();
+				lines.Add(new ConsoleLine(
+					new ConsoleLinePart("Run"),
+					new ConsoleLinePart("All Posts"),
+					new ConsoleLinePart("Player by ID"),
+					new ConsoleLinePart("Players per Team"),
+					new ConsoleLinePart("Teams per Sport")
+				));
 
-				lineParts.Add(new string[] { "Run", "All Posts", "Player by ID", "Players per Team", "Teams per Sport" });
-				var orderedResults = group.OrderBy(x => x.Number);
-				foreach (var orderResult in orderedResults)
-				{
-					lineParts.Add(new string[] {
-						orderResult.Number.ToString(),
-						orderResult.AllPostsMilliseconds.ToString(),
-						orderResult.PlayerByIDMilliseconds.ToString(),
-						orderResult.PlayersForTeamMilliseconds.ToString(),
-						orderResult.TeamsForSportMilliseconds.ToString()
-					});
-				}
+				//var orderedResults = group.OrderBy(x => x.Number);
+				//foreach (var orderResult in orderedResults)
+				//{
+				//	lineParts.Add(new string[] {
+				//		orderResult.Number.ToString(),
+				//		orderResult.AllPostsMilliseconds.ToString(),
+				//		orderResult.PlayerByIDMilliseconds.ToString(),
+				//		orderResult.PlayersForTeamMilliseconds.ToString(),
+				//		orderResult.TeamsForSportMilliseconds.ToString()
+				//	});
+				//}
+
+				// Max
+				var maxAllPosts = group.Max(x => x.AllPostsMilliseconds);
+				var maxPlayerByID = group.Max(x => x.PlayerByIDMilliseconds);
+				var maxPlayersForTeam = group.Max(x => x.PlayersForTeamMilliseconds);
+				var maxTeamsForSport = group.Max(x => x.TeamsForSportMilliseconds);
+				lines.Add(new ConsoleLine(
+					new ConsoleLinePart("Max"),
+					new ConsoleLinePart(maxAllPosts.ToString()),
+					new ConsoleLinePart(maxPlayerByID.ToString()),
+					new ConsoleLinePart(maxPlayersForTeam.ToString()),
+					new ConsoleLinePart(maxTeamsForSport.ToString())
+				));
+
+				// Average
 				var averageAllPosts = group.Average(x => x.AllPostsMilliseconds);
 				var averagePlayerByID = group.Average(x => x.PlayerByIDMilliseconds);
 				var averagePlayersForTeam = group.Average(x => x.PlayersForTeamMilliseconds);
 				var averageTeamsForSport = group.Average(x => x.TeamsForSportMilliseconds);
-				lineParts.Add(new string[] {
-					"Avg",
-					averageAllPosts.ToString(),
-					averagePlayerByID.ToString(),
-					averagePlayersForTeam.ToString(),
-					averageTeamsForSport.ToString()
-				});
-				baselineAllPosts = baselineAllPosts == 0 ? averageAllPosts : baselineAllPosts;
-				baselinePlayerByID = baselinePlayerByID == 0 ? averagePlayerByID : baselinePlayerByID;
-				baselinePlayersForTeam = baselinePlayersForTeam == 0 ? averagePlayersForTeam : baselinePlayersForTeam;
-				baselineTeamsForSport = baselineTeamsForSport == 0 ? averageTeamsForSport : baselineTeamsForSport;
-				lineParts.Add(new string[] {
-					"%",
-					(averageAllPosts / baselineAllPosts).ToString("p"),
-					(averagePlayerByID / baselinePlayerByID).ToString("p"),
-					(averagePlayersForTeam / baselinePlayersForTeam).ToString("p"),
-					(averageTeamsForSport / baselineTeamsForSport).ToString("p")
-				});
+				lines.Add(new ConsoleLine(
+					new ConsoleLinePart("Avg"),
+					new ConsoleLinePart(averageAllPosts.ToString()),
+					new ConsoleLinePart(averagePlayerByID.ToString()),
+					new ConsoleLinePart(averagePlayersForTeam.ToString()),
+					new ConsoleLinePart(averageTeamsForSport.ToString())
+				));
 
-				for (var i = 0; i < lineParts[0].Length; i++)
+				// Baseline (if first result)
+				if (!haveBaseline)
 				{
-					lineWidths.Add(0);
-					foreach (var part in lineParts)
+					baselineAllPosts = averageAllPosts;
+					baselinePlayerByID = averagePlayerByID;
+					baselinePlayersForTeam = averagePlayersForTeam;
+					baselineTeamsForSport = averageTeamsForSport;
+					haveBaseline = true;
+				}
+
+				// Percentage of baseline
+				var percentAllPosts = averageAllPosts / baselineAllPosts;
+				var percentPlayerByID = averagePlayerByID / baselinePlayerByID;
+				var percentPlayersForTeam = averagePlayersForTeam / baselinePlayersForTeam;
+				var percentTeamsForSport = averageTeamsForSport / baselineTeamsForSport;
+
+				lines.Add(new ConsoleLine(
+					new ConsoleLinePart("%"),
+					new ConsoleLinePart(percentAllPosts.ToString("p"), ColorForPercent(percentAllPosts)),
+					new ConsoleLinePart(percentPlayerByID.ToString("p"), ColorForPercent(percentPlayerByID)),
+					new ConsoleLinePart(percentPlayersForTeam.ToString("p"), ColorForPercent(percentPlayersForTeam)),
+					new ConsoleLinePart(percentTeamsForSport.ToString("p"), ColorForPercent(percentTeamsForSport))
+				));
+
+				// Get maxwidths
+				var lineWidths = new List<int>();
+				foreach (var line in lines.Where(l => l.Parts.Count > 1))
+				{
+					for (var i = 0; i < line.Parts.Count; i++)
 					{
-						lineWidths[i] = Math.Max(lineWidths[i], part[i].Length);
+						if (lineWidths.Count <= i)
+						{
+							lineWidths.Add(0);
+						}
+						lineWidths[i] = Math.Max(lineWidths[i], line.Parts[i].Text.Length);
 					}
 				}
 
-				foreach (var part in lineParts)
+				// Set widths
+				foreach (var line in lines)
 				{
-					for (var i = 0; i < part.Length; i++)
+					for (var i = 0; i < line.Parts.Count; i++)
 					{
-						part[i]  = part[i].PadRight(lineWidths[i] + 2);
+						line.Parts[i].Text = line.Parts[i].Text.PadRight(lineWidths[i] + 2);
 					}
-
-					lines.Add(string.Join("", part));
 				}
 			}
 
 			foreach (var line in lines)
 			{
-				Console.WriteLine(line);
+				foreach (var part in line.Parts)
+				{
+					Console.ForegroundColor = part.Color;
+					Console.Write(part.Text);
+				}
+				Console.WriteLine();
 			}
 
 			var logFile = $@"Data\Log {DateTime.Now:yyyy-MM-dd-HH-mm-ss}.txt";
@@ -209,6 +312,30 @@ namespace Watsonia.Data.TestPerformance
 				{
 					writer.WriteLine(line);
 				}
+			}
+		}
+
+		private static ConsoleColor ColorForPercent(double percentAllPosts)
+		{
+			if (percentAllPosts <= 1)
+			{
+				return ConsoleColor.Green;
+			}
+			else if (percentAllPosts <= 1.5)
+			{
+				return ConsoleColor.DarkGreen;
+			}
+			else if (percentAllPosts <= 5.0)
+			{
+				return ConsoleColor.DarkYellow;
+			}
+			else if (percentAllPosts <= 10.00)
+			{
+				return ConsoleColor.Yellow;
+			}
+			else
+			{
+				return ConsoleColor.Red;
 			}
 		}
 	}

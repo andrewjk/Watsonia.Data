@@ -13,7 +13,10 @@ namespace Watsonia.Data.TestPerformance
 {
 	public class DapperTests : IPerformanceTests
 	{
-		public List<string> LoadedItems { get; } = new List<string>();
+		public List<long> LoadedPosts { get; } = new List<long>();
+		public List<long> LoadedPlayers { get; } = new List<long>();
+		public List<long> LoadedPlayersForTeam { get; } = new List<long>();
+		public List<long> LoadedTeamsForSport { get; } = new List<long>();
 
 		public long GetAllPosts()
 		{
@@ -25,7 +28,7 @@ namespace Watsonia.Data.TestPerformance
 				var posts = conn.Query<Player>("SELECT ID, Text, DateCreated, DateModified FROM Posts").ToList();
 				foreach (var p in posts)
 				{
-					this.LoadedItems.Add("Post: " + p.ID);
+					this.LoadedPosts.Add(p.ID);
 				}
 			}
 			watch.Stop();
@@ -39,8 +42,8 @@ namespace Watsonia.Data.TestPerformance
 			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
 			{
 				conn.Open();
-				var player = conn.Query<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamID FROM Players WHERE ID = @ID", new { ID = id }).First();
-				this.LoadedItems.Add("Player: " + player.ID);
+				var p = conn.Query<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE ID = @ID", new { ID = id }).First();
+				this.LoadedPlayers.Add(p.ID);
 			}
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
@@ -53,10 +56,10 @@ namespace Watsonia.Data.TestPerformance
 			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
 			{
 				conn.Open();
-				var players = conn.Query<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamID FROM Players WHERE TeamID = @ID", new { ID = teamID });
+				var players = conn.Query<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE TeamsID = @ID", new { ID = teamID });
 				foreach (var p in players)
 				{
-					this.LoadedItems.Add("Player: " + p.ID);
+					this.LoadedPlayersForTeam.Add(p.ID);
 				}
 			}
 			watch.Stop();
@@ -71,13 +74,13 @@ namespace Watsonia.Data.TestPerformance
 			{
 				conn.Open();
 				var players = conn.Query<Player, Team, Player>("" +
-					"SELECT p.ID, p.FirstName, p.LastName, p.DateOfBirth, p.TeamID, t.ID as TeamID, t.Name, t.SportID " +
+					"SELECT p.ID, p.FirstName, p.LastName, p.DateOfBirth, p.TeamsID, t.ID as TeamsID, t.Name, t.SportsID " +
 					"FROM Teams t " +
-					"INNER JOIN Players p ON t.ID = p.TeamID " +
-					"WHERE t.SportID = @ID", (player, team) => { return player; }, splitOn: "TeamID", param: new { ID = sportID });
+					"INNER JOIN Players p ON t.ID = p.TeamsID " +
+					"WHERE t.SportsID = @ID", (player, team) => { return player; }, splitOn: "TeamsID", param: new { ID = sportID });
 				foreach (var p in players)
 				{
-					this.LoadedItems.Add("Team Player: " + p.ID);
+					this.LoadedTeamsForSport.Add(p.ID);
 				}
 			}
 			watch.Stop();

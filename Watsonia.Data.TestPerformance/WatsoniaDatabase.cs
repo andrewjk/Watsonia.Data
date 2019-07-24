@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
+using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data.TestPerformance
 {
@@ -13,6 +15,14 @@ namespace Watsonia.Data.TestPerformance
 		public WatsoniaDatabase()
 			: base(new WatsoniaConfiguration(ConnectionString, EntityNamespace))
 		{
+		}
+
+		protected override void OnBeforeExecuteCommand(DbCommand command)
+		{
+#if DEBUG
+			var sqlString = GetSqlStringFromCommand(command);
+			System.Diagnostics.Trace.WriteLine(sqlString, "Executed SQL");
+#endif
 		}
 	}
 }
