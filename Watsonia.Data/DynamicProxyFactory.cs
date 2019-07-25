@@ -598,11 +598,15 @@ namespace Watsonia.Data
 				foreach (var parent in childParentMapping[parentType])
 				{
 					// If the ID property doesn't exist, create it
-					var relatedItemIDPropertyName = database.Configuration.GetForeignKeyColumnName(parentType, parent);
-					if (!members.GetPropertyMethods.ContainsKey(relatedItemIDPropertyName))
+					var propertyName = database.Configuration.GetForeignKeyColumnName(parentType, parent);
+					if (!members.GetPropertyMethods.ContainsKey(propertyName))
 					{
-						var primaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(parent);
-						CreateFieldProperty(type, relatedItemIDPropertyName, typeof(Nullable<>).MakeGenericType(primaryKeyColumnType), members);
+						var propertyType = database.Configuration.GetPrimaryKeyColumnType(parent);
+						if (propertyType.IsValueType)
+						{
+							propertyType = typeof(Nullable<>).MakeGenericType(propertyType);
+						}
+						CreateFieldProperty(type, propertyName, propertyType, members);
 					}
 				}
 			}
@@ -1631,10 +1635,8 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			// Set the original value for the primary key
-			CreateSetOriginalValueCall(gen, members, database.Configuration.GetPrimaryKeyColumnName(parentType), database.Configuration.GetPrimaryKeyColumnType(parentType), stateTrackerGetOriginalValuesMethod, dictionarySetItemMethod);
-
 			// Set the original values for each property
+			var propertyNames = new List<string>();
 			foreach (var property in database.Configuration.PropertiesToMap(parentType))
 			{
 				// Check whether the property is a related collection
@@ -1643,13 +1645,13 @@ namespace Watsonia.Data
 					continue;
 				}
 
-				var key = property.Name;
+				var propertyName = property.Name;
 				var propertyType = property.PropertyType;
 
 				// Check whether the property is a related item
 				if (database.Configuration.IsRelatedItem(property))
 				{
-					key = database.Configuration.GetForeignKeyColumnName(property);
+					propertyName = database.Configuration.GetForeignKeyColumnName(property);
 					propertyType = database.Configuration.GetPrimaryKeyColumnType(property.PropertyType);
 					if (propertyType.IsValueType)
 					{
@@ -1657,7 +1659,16 @@ namespace Watsonia.Data
 					}
 				}
 
-				CreateSetOriginalValueCall(gen, members, key, propertyType, stateTrackerGetOriginalValuesMethod, dictionarySetItemMethod);
+				CreateSetOriginalValueCall(gen, members, propertyName, propertyType, stateTrackerGetOriginalValuesMethod, dictionarySetItemMethod);
+				propertyNames.Add(propertyName);
+			}
+
+			// Set the original value for the primary key
+			var primaryKeyName = database.Configuration.GetPrimaryKeyColumnName(parentType);
+			if (!propertyNames.Contains(primaryKeyName))
+			{
+				var primaryKeyType = database.Configuration.GetPrimaryKeyColumnType(parentType);
+				CreateSetOriginalValueCall(gen, members, primaryKeyName, primaryKeyType, stateTrackerGetOriginalValuesMethod, dictionarySetItemMethod);
 			}
 
 			// Set the original values for the related item properties for parent-child relationships
@@ -1666,9 +1677,16 @@ namespace Watsonia.Data
 			{
 				foreach (var parent in childParentMapping[parentType])
 				{
-					var key = database.Configuration.GetForeignKeyColumnName(parentType, parent);
-					var propertyType = database.Configuration.GetPrimaryKeyColumnType(parent);
-					CreateSetOriginalValueCall(gen, members, key, propertyType, stateTrackerGetOriginalValuesMethod, dictionarySetItemMethod);
+					var propertyName = database.Configuration.GetForeignKeyColumnName(parentType, parent);
+					if (!propertyNames.Contains(propertyName))
+					{
+						var propertyType = database.Configuration.GetPrimaryKeyColumnType(parent);
+						if (propertyType.IsValueType)
+						{
+							propertyType = typeof(Nullable<>).MakeGenericType(propertyType);
+						}
+						CreateSetOriginalValueCall(gen, members, propertyName, propertyType, stateTrackerGetOriginalValuesMethod, dictionarySetItemMethod);
+					}
 				}
 			}
 
@@ -1678,15 +1696,15 @@ namespace Watsonia.Data
 			return method;
 		}
 
-		private static void CreateSetOriginalValueCall(ILGenerator gen, DynamicProxyTypeMembers members, string key, Type propertyType, MethodInfo stateTrackerGetOriginalValuesMethod, MethodInfo dictionarySetItemMethod)
+		private static void CreateSetOriginalValueCall(ILGenerator gen, DynamicProxyTypeMembers members, string propertyName, Type propertyType, MethodInfo stateTrackerGetOriginalValuesMethod, MethodInfo dictionarySetItemMethod)
 		{
 			// this.StateTracker.OriginalValues["Property"] = this.Property;
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
 			gen.Emit(OpCodes.Callvirt, stateTrackerGetOriginalValuesMethod);
-			gen.Emit(OpCodes.Ldstr, key);
+			gen.Emit(OpCodes.Ldstr, propertyName);
 			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Callvirt, members.GetPropertyMethods[key]);
+			gen.Emit(OpCodes.Callvirt, members.GetPropertyMethods[propertyName]);
 			if (propertyType.IsValueType)
 			{
 				gen.Emit(OpCodes.Box, propertyType);
