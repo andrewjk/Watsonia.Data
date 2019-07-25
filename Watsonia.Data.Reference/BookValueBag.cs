@@ -10,7 +10,7 @@ namespace Watsonia.Data.Reference
 	public sealed class BookValueBag : IValueBag
 	{
 		public string Title { get; set; }
-		public string AuthorID { get; set; }
+		public long? AuthorID { get; set; }
 		public decimal Price { get; set; }
 
 		public bool Bool { get; set; }

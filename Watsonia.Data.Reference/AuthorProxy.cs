@@ -149,10 +149,6 @@ namespace Watsonia.Data.Reference
 			}
 		}
 
-		public virtual string Blah { get; set; }
-
-		public virtual string Hurr { get; set; }
-
 		public AuthorProxy()
 		{
 			this.StateTracker.IsLoading = true;

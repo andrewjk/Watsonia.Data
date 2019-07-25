@@ -28,8 +28,8 @@ namespace Watsonia.Data.Reference
 			}
 		}
 
-		private long? _id;
-		public long? ID
+		private long _id;
+		public long ID
 		{
 			get
 			{
@@ -68,8 +68,8 @@ namespace Watsonia.Data.Reference
 			}
 		}
 
-		private string _authorID = null;
-		public string AuthorID
+		private long? _authorID = null;
+		public long? AuthorID
 		{
 			get
 			{
@@ -88,7 +88,7 @@ namespace Watsonia.Data.Reference
 			{
 				if (base.Author == null && this.AuthorID != null)
 				{
-					base.Author = this.StateTracker.LoadItem<Author>(this.AuthorID, "Author");
+					base.Author = this.StateTracker.LoadItem<Author>(this.AuthorID.Value, "Author");
 				}
 				return base.Author;
 			}
@@ -116,7 +116,7 @@ namespace Watsonia.Data.Reference
 
 		private void SetAuthorID(IDynamicProxy value)
 		{
-			this.AuthorID = (string)value.__PrimaryKeyValue;
+			this.AuthorID = (long?)value.__PrimaryKeyValue;
 		}
 
 		private void AuthorProxy_PrimaryKeyValueChanged(object sender, PrimaryKeyValueChangedEventArgs e)
@@ -409,7 +409,11 @@ namespace Watsonia.Data.Reference
 		{
 			this.StateTracker.OriginalValues["Title"] = this.Title;
 			this.StateTracker.OriginalValues["AuthorID"] = this.AuthorID;
-			this.StateTracker.OriginalValues["FirstName"] = this.Price;
+			this.StateTracker.OriginalValues["Price"] = this.Price;
+			this.StateTracker.OriginalValues["Bool"] = this.Bool;
+			this.StateTracker.OriginalValues["BoolNullable"] = this.BoolNullable;
+			this.StateTracker.OriginalValues["Int"] = this.Int;
+			this.StateTracker.OriginalValues["IntNullable"] = this.IntNullable;
 		}
 
 		public void __SetValuesFromReader(DbDataReader source)
@@ -423,25 +427,28 @@ namespace Watsonia.Data.Reference
 					case "ID":
 					{
 						this.ID = source.GetInt64(i);
-						this.StateTracker.ChangedFields.Remove("ID");
 						break;
 					}
 					case "AUTHORID":
 					{
-						this.AuthorID = source.GetString(i);
-						this.StateTracker.ChangedFields.Remove("AUTHORID");
+						if (source.IsDBNull(i))
+						{
+							this.AuthorID = null;
+						}
+						else
+						{
+							this.AuthorID = source.GetInt64(i);
+						}
 						break;
 					}
 					case "PRICE":
 					{
 						this.Price = source.GetDecimal(i);
-						this.StateTracker.ChangedFields.Remove("PRICE");
 						break;
 					}
 					case "BOOL":
 					{
 						this.Bool = source.GetBoolean(i);
-						this.StateTracker.ChangedFields.Remove("BOOL");
 						break;
 					}
 					case "BOOLNULLABLE":
@@ -454,13 +461,11 @@ namespace Watsonia.Data.Reference
 						{
 							this.BoolNullable = source.GetBoolean(i);
 						}
-						this.StateTracker.ChangedFields.Remove("BOOLNULLABLE");
 						break;
 					}
 					case "INT":
 					{
 						this.Int = source.GetInt32(i);
-						this.StateTracker.ChangedFields.Remove("INT");
 						break;
 					}
 					case "INTNULLABLE":
@@ -473,9 +478,9 @@ namespace Watsonia.Data.Reference
 						{
 							this.IntNullable = source.GetInt32(i);
 						}
-						this.StateTracker.ChangedFields.Remove("INTNULLABLE");
 						break;
 					}
+					// etc.
 					default:
 					{
 						break;
