@@ -24,7 +24,7 @@ namespace Watsonia.Data.TestPerformance
 			watch.Start();
 			using (var db = new WatsoniaDatabase())
 			{
-				var posts = db.LoadCollectionAsync<Post>("SELECT ID, Text, DateCreated, DateModified FROM Posts").GetAwaiter().GetResult();
+				var posts = Task.Run(() => db.LoadCollectionAsync<Post>("SELECT ID, Text, DateCreated, DateModified FROM Posts")).GetAwaiter().GetResult();
 				foreach (var p in posts)
 				{
 					this.LoadedPosts.Add(p.ID);
@@ -41,7 +41,7 @@ namespace Watsonia.Data.TestPerformance
 			using (var db = new WatsoniaDatabase())
 			{
 				// TODO: LoadItem?
-				var p = db.LoadCollectionAsync<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE ID = @0", id).GetAwaiter().GetResult().First();
+				var p = Task.Run(() => db.LoadCollectionAsync<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE ID = @0", id)).GetAwaiter().GetResult().First();
 				this.LoadedPlayers.Add(p.ID);
 			}
 			watch.Stop();
@@ -54,7 +54,7 @@ namespace Watsonia.Data.TestPerformance
 			watch.Start();
 			using (var db = new WatsoniaDatabase())
 			{
-				var players = db.LoadCollectionAsync<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE TeamsID = @0", teamID).GetAwaiter().GetResult();
+				var players = Task.Run(() => db.LoadCollectionAsync<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE TeamsID = @0", teamID)).GetAwaiter().GetResult();
 				foreach (var p in players)
 				{
 					this.LoadedPlayersForTeam.Add(p.ID);
@@ -70,11 +70,14 @@ namespace Watsonia.Data.TestPerformance
 			watch.Start();
 			using (var db = new WatsoniaDatabase())
 			{
-				var players = db.LoadCollectionAsync<Player>("" +
-					"SELECT p.ID, p.FirstName, p.LastName, p.DateOfBirth, p.TeamsID, t.ID as TeamsID, t.Name, t.SportsID " +
-					"FROM Teams t " +
-					"INNER JOIN Players p ON t.ID = p.TeamsID " +
-					"WHERE t.SportsID = @0", sportID).GetAwaiter().GetResult();
+				var players = Task.Run(() =>
+				{
+					return db.LoadCollectionAsync<Player>("" +
+						"SELECT p.ID, p.FirstName, p.LastName, p.DateOfBirth, p.TeamsID, t.ID as TeamsID, t.Name, t.SportsID " +
+						"FROM Teams t " +
+						"INNER JOIN Players p ON t.ID = p.TeamsID " +
+						"WHERE t.SportsID = @0", sportID);
+				}).GetAwaiter().GetResult();
 				foreach (var p in players)
 				{
 					this.LoadedTeamsForSport.Add(p.ID);

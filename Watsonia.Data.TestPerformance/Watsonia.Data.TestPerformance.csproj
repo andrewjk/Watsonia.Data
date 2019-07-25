@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <None Update="Data\Performance.sqlite">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

@@ -38,8 +38,8 @@ namespace Watsonia.Data.TestPerformance
 			watch.Start();
 			using (var db = new WatsoniaDatabase())
 			{
-				var p = db.LoadAsync<Player>(id);
-				this.LoadedPlayers.Add(p.Id);
+				var p = Task.Run(() => db.LoadAsync<Player>(id)).GetAwaiter().GetResult();
+				this.LoadedPlayers.Add(p.ID);
 			}
 			watch.Stop();
 			return watch.ElapsedMilliseconds;

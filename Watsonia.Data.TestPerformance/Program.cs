@@ -87,21 +87,29 @@ namespace Watsonia.Data.TestPerformance
 				var adoResults = RunTests(i, TestFramework.AdoNet, adoTests);
 				testResults.AddRange(adoResults);
 
+				// Dapper is fast
 				var dapperTests = new DapperTests();
 				var dapperResults = RunTests(i, TestFramework.Dapper, dapperTests);
 				testResults.AddRange(dapperResults);
 
+				// EntityFramework is full-featured
 				var efTests = new EntityFrameworkTests();
 				var efResults = RunTests(i, TestFramework.EntityFramework, efTests);
 				testResults.AddRange(efResults);
 
-				var wsqlTests = new WatsoniaSqlTests();
-				var wsqlResults = RunTests(i, TestFramework.WatsoniaSql, wsqlTests);
-				testResults.AddRange(wsqlResults);
+				// TODO: Should we test an "optimised" EF? No change tracking etc?
 
+				// HACK: The Linq option will be slightly slower as it is creating proxies - but there's no way to remove types from assemblies
+
+				// Use Linq for a better dev experience
 				var wlinqTests = new WatsoniaLinqTests();
 				var wlinqResults = RunTests(i, TestFramework.WatsoniaLinq, wlinqTests);
 				testResults.AddRange(wlinqResults);
+
+				// Use SQL for speed
+				var wsqlTests = new WatsoniaSqlTests();
+				var wsqlResults = RunTests(i, TestFramework.WatsoniaSql, wsqlTests);
+				testResults.AddRange(wsqlResults);
 
 				if (i == 0)
 				{
@@ -163,7 +171,8 @@ namespace Watsonia.Data.TestPerformance
 
 		private static void CompareResults(TestResult a, TestResult b, string framework)
 		{
-			bool result = true;
+			var result = true;
+			var badthing = "";
 
 			if (a.LoadedPosts.Count != b.LoadedPosts.Count ||
 				a.LoadedPlayers.Count != b.LoadedPlayers.Count ||
@@ -173,17 +182,57 @@ namespace Watsonia.Data.TestPerformance
 				result = false;
 			}
 
-			if (result)
+			if (result && !CompareLists(a.LoadedPosts, b.LoadedPosts))
 			{
+				result = false;
+				badthing = "loaded posts";
+			}
 
+			if (result && !CompareLists(a.LoadedPlayers, b.LoadedPlayers))
+			{
+				result = false;
+				badthing = "loaded players";
+			}
+
+			if (result && !CompareLists(a.LoadedPlayersForTeam, b.LoadedPlayersForTeam))
+			{
+				result = false;
+				badthing = "loaded players for team";
+			}
+
+			if (result && !CompareLists(a.LoadedTeamsForSport, b.LoadedTeamsForSport))
+			{
+				result = false;
+				badthing = "loaded teams for sport";
 			}
 
 			if (!result)
 			{
 				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine($"{framework} has incorrect results");
+				Console.WriteLine($"{framework} has incorrect results for {badthing}");
 				Console.ForegroundColor = ConsoleColor.Gray;
 			}
+		}
+
+		private static bool CompareLists(List<long> a, List<long> b)
+		{
+			if (a.Count != b.Count)
+			{
+				return false;
+			}
+
+			a.Sort();
+			b.Sort();
+
+			for (var i = 0; i < a.Count; i++ )
+			{
+				if (a[i] != b[i])
+				{
+					return false;
+				}
+			}
+
+			return true;
 		}
 
 		private static void ProcessResults(List<TestResult> results)
@@ -327,11 +376,11 @@ namespace Watsonia.Data.TestPerformance
 			}
 			else if (percentAllPosts <= 5.0)
 			{
-				return ConsoleColor.DarkYellow;
+				return ConsoleColor.Yellow;
 			}
 			else if (percentAllPosts <= 10.00)
 			{
-				return ConsoleColor.Yellow;
+				return ConsoleColor.Magenta;
 			}
 			else
 			{
