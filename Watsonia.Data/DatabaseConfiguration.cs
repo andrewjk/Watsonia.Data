@@ -34,7 +34,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The entity namespace.
 		/// </value>
-		public string EntityNamespace { get; set; }
+		public string EntityNamespace { get; set; } = "$";
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DatabaseConfiguration" /> class.
