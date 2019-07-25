@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 
@@ -37,7 +37,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 				if (_dateOfBirth != value)
 				{
 					_dateOfBirth = value;
-					this.BirthdayMessage = DateTime.Today.DayOfYear == value.DayOfYear ? $"Happy birthday, {this.Name}!" : "It's not your birthday...";
+					this.BirthdayMessage = (DateTime.Today.Month == value.Month && DateTime.Today.Day == value.Day) ? $"Happy birthday, {this.Name}!" : "It's not your birthday...";
 				}
 			}
 		}
