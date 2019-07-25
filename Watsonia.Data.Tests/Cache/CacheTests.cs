@@ -259,13 +259,13 @@ namespace Watsonia.Data.Tests.Cache
 			var cacheKey = DynamicProxyFactory.GetDynamicTypeName(typeof(Northwind.Product), db);
 
 			// Check that the product is in the cache and can be removed
-			Assert.IsTrue(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
-			Database.Cache.RemoveItemByKey(cacheKey, syrup.ProductID);
-			Assert.IsFalse(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
+			Assert.IsTrue(db.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
+			db.Cache.RemoveItemByKey(cacheKey, syrup.ProductID);
+			Assert.IsFalse(db.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
 
 			// Get the product back in the cache
 			var syrup2 = await db.LoadAsync<Northwind.Product>(syrup.ProductID);
-			Assert.IsTrue(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
+			Assert.IsTrue(db.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
 
 			// Update the product's price in the database and test that it doesn't get updated until
 			// we remove and re-load the item
@@ -274,16 +274,16 @@ namespace Watsonia.Data.Tests.Cache
 			var syrup3 = await db.LoadAsync<Northwind.Product>(syrup.ProductID);
 			Assert.AreEqual(10, syrup3.UnitPrice);
 
-			Database.Cache.RemoveItemByKey(cacheKey, syrup.ProductID);
-			Assert.IsFalse(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
+			db.Cache.RemoveItemByKey(cacheKey, syrup.ProductID);
+			Assert.IsFalse(db.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
 
 			var syrup4 = await db.LoadAsync<Northwind.Product>(syrup.ProductID);
 			Assert.AreEqual(11, syrup4.UnitPrice);
 
 			// Check that clearing works
-			Assert.IsTrue(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
-			Database.Cache.Clear();
-			Assert.IsFalse(Database.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
+			Assert.IsTrue(db.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
+			db.Cache.Clear();
+			Assert.IsFalse(db.Cache.ContainsItemWithKey(cacheKey, syrup.ProductID));
 
 			// Set the price back to what it was
 			await db.ExecuteAsync(sql, 10);

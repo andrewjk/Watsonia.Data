@@ -48,7 +48,7 @@ namespace Watsonia.Data
 		/// <summary>
 		/// The cache.
 		/// </summary>
-		internal static DatabaseItemCache Cache { get; } = new DatabaseItemCache();
+		internal DatabaseItemCache Cache { get; } = new DatabaseItemCache();
 
 		/// <summary>
 		/// Gets the configuration options used for mapping to and accessing the database.
@@ -313,7 +313,7 @@ namespace Watsonia.Data
 			// First, check the cache
 			var cacheKey = DynamicProxyFactory.GetDynamicTypeName(typeof(T), this);
 			var cache = this.Configuration.ShouldCacheType(typeof(T)) ?
-				Database.Cache.GetOrAdd(
+				this.Cache.GetOrAdd(
 				cacheKey,
 				(string s) => new ItemCache(
 					this.Configuration.GetCacheExpiryLength(typeof(T)),
@@ -1149,7 +1149,7 @@ namespace Watsonia.Data
 			if (this.Configuration.ShouldCacheType(tableType))
 			{
 				var cacheKey = DynamicProxyFactory.GetDynamicTypeName(tableType, this);
-				var cache = Database.Cache.GetOrAdd(
+				var cache = this.Cache.GetOrAdd(
 					cacheKey,
 					(string s) => new ItemCache(
 						this.Configuration.GetCacheExpiryLength(tableType),
