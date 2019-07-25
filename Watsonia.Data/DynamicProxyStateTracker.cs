@@ -252,9 +252,6 @@ namespace Watsonia.Data
 			// Check whether the original values contains the key
 			// If it doesn't it must be a related item (e.g. Book), which will be covered when
 			// the ID value is set (e.g. BookID)
-			// OR this property is being set from within the constructor (where the original
-			// values haven't been created yet) or from __SetValuesFromReader (where the original
-			// values have been cleared out in preparation for new ones)
 			if (this.OriginalValues.ContainsKey(propertyName))
 			{
 				// If the property is being set to its original value, clear it out of the changed fields

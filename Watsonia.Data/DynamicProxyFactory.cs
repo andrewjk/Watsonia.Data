@@ -189,7 +189,7 @@ namespace Watsonia.Data
 			members.ValueBagType = GetValueBagType(parentType, database, members);
 
 			// Add some methods
-			members.ResetOriginalValuesMethod = CreateResetOriginalValuesMethod(type, parentType, members, database, childParentMapping);
+			members.SetOriginalValuesMethod = CreateSetOriginalValuesMethod(type, parentType, members, database, childParentMapping);
 			CreateSetValuesFromReaderMethod(type, members);
 			CreateSetValuesFromBagMethod(type, members);
 			CreateGetBagFromValuesMethod(type, members);
@@ -437,7 +437,7 @@ namespace Watsonia.Data
 
 			// this.__SetOriginalValues();
 			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.ResetOriginalValuesMethod);
+			gen.Emit(OpCodes.Call, members.SetOriginalValuesMethod);
 
 			// this.StateTracker.IsLoading = false;
 			gen.Emit(OpCodes.Ldarg_0);
@@ -1613,7 +1613,7 @@ namespace Watsonia.Data
 			return method;
 		}
 
-		private static MethodBuilder CreateResetOriginalValuesMethod(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database, ChildParentMapping childParentMapping)
+		private static MethodBuilder CreateSetOriginalValuesMethod(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database, ChildParentMapping childParentMapping)
 		{
 			// TODO: Should also clear ChangedFields here rather than in __SetValuesFromReader
 
@@ -1937,7 +1937,7 @@ namespace Watsonia.Data
 
 			// this.__SetOriginalValues();
 			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.ResetOriginalValuesMethod);
+			gen.Emit(OpCodes.Call, members.SetOriginalValuesMethod);
 
 			// this.StateTracker.IsLoading = false;
 			gen.Emit(OpCodes.Ldarg_0);
@@ -2052,7 +2052,7 @@ namespace Watsonia.Data
 
 			// this.__SetOriginalValues();
 			gen.Emit(OpCodes.Ldarg_0);
-			gen.Emit(OpCodes.Call, members.ResetOriginalValuesMethod);
+			gen.Emit(OpCodes.Call, members.SetOriginalValuesMethod);
 
 			// this.StateTracker.IsLoading = false;
 			gen.Emit(OpCodes.Ldarg_0);

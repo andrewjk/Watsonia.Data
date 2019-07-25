@@ -37,7 +37,7 @@ namespace Watsonia.Data
 
 		public Dictionary<string, object> DefaultValues { get; } = new Dictionary<string, object>();
 
-		public MethodBuilder ResetOriginalValuesMethod { get; set; }
+		public MethodBuilder SetOriginalValuesMethod { get; set; }
 
 		public MethodBuilder OnPrimaryKeyValueChangedMethod { get; set; }
 	}
