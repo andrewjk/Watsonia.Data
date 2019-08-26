@@ -20,7 +20,7 @@ namespace Watsonia.Data
 	/// <summary>
 	/// Provides functionality for accessing and updating a database.
 	/// </summary>
-	public class Database : IDisposable
+	public class Database
 	{
 		// TODO: Validation stuff
 
@@ -1653,16 +1653,6 @@ namespace Watsonia.Data
 			}
 
 			destination.StateTracker.IsLoading = false;
-		}
-
-		/// <summary>
-		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-		/// </summary>
-		public void Dispose()
-		{
-			// NOTE: This is here just in case it's ever needed, really.  I figure it's better to have code with using blocks
-			// up front rather than forcing them to be retro-fitted later on
-			// Dispose might one day be needed to clean up transactions or connections or the like
 		}
 
 		/// <summary>
