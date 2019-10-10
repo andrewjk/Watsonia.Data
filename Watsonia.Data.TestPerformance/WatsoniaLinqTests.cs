@@ -20,13 +20,11 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var db = new WatsoniaDatabase())
+			var db = new WatsoniaDatabase();
+			var posts = db.Query<Post>();
+			foreach (var p in posts)
 			{
-				var posts = db.Query<Post>();
-				foreach (var p in posts)
-				{
-					this.LoadedPosts.Add(p.ID);
-				}
+				this.LoadedPosts.Add(p.ID);
 			}
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
@@ -36,11 +34,9 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var db = new WatsoniaDatabase())
-			{
-				var p = Task.Run(() => db.LoadAsync<Player>(id)).GetAwaiter().GetResult();
-				this.LoadedPlayers.Add(p.ID);
-			}
+			var db = new WatsoniaDatabase();
+			var p = Task.Run(() => db.LoadAsync<Player>(id)).GetAwaiter().GetResult();
+			this.LoadedPlayers.Add(p.ID);
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
 		}
@@ -49,13 +45,11 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var db = new WatsoniaDatabase())
+			var db = new WatsoniaDatabase();
+			var players = db.Query<Player>().Where(x => x.TeamsID == teamID);
+			foreach (var p in players)
 			{
-				var players = db.Query<Player>().Where(x => x.TeamsID == teamID);
-				foreach (var p in players)
-				{
-					this.LoadedPlayersForTeam.Add(p.ID);
-				}
+				this.LoadedPlayersForTeam.Add(p.ID);
 			}
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
@@ -65,15 +59,13 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var db = new WatsoniaDatabase())
+			var db = new WatsoniaDatabase();
+			var teams = db.Query<Team>().Include(x => x.Players).Where(x => x.SportsID == sportID);
+			foreach (var t in teams)
 			{
-				var teams = db.Query<Team>().Include(x => x.Players).Where(x => x.SportsID == sportID);
-				foreach (var t in teams)
+				foreach (var p in t.Players)
 				{
-					foreach (var p in t.Players)
-					{
-						this.LoadedTeamsForSport.Add(p.ID);
-					}
+					this.LoadedTeamsForSport.Add(p.ID);
 				}
 			}
 			watch.Stop();

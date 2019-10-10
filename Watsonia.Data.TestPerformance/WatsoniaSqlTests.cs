@@ -22,13 +22,11 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var db = new WatsoniaDatabase())
+			var db = new WatsoniaDatabase();
+			var posts = Task.Run(() => db.LoadCollectionAsync<Post>("SELECT ID, Text, DateCreated, DateModified FROM Posts")).GetAwaiter().GetResult();
+			foreach (var p in posts)
 			{
-				var posts = Task.Run(() => db.LoadCollectionAsync<Post>("SELECT ID, Text, DateCreated, DateModified FROM Posts")).GetAwaiter().GetResult();
-				foreach (var p in posts)
-				{
-					this.LoadedPosts.Add(p.ID);
-				}
+				this.LoadedPosts.Add(p.ID);
 			}
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
@@ -38,12 +36,10 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var db = new WatsoniaDatabase())
-			{
-				// TODO: LoadItem?
-				var p = Task.Run(() => db.LoadCollectionAsync<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE ID = @0", id)).GetAwaiter().GetResult().First();
-				this.LoadedPlayers.Add(p.ID);
-			}
+			var db = new WatsoniaDatabase();
+			// TODO: LoadItem?
+			var p = Task.Run(() => db.LoadCollectionAsync<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE ID = @0", id)).GetAwaiter().GetResult().First();
+			this.LoadedPlayers.Add(p.ID);
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
 		}
@@ -52,13 +48,11 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var db = new WatsoniaDatabase())
+			var db = new WatsoniaDatabase();
+			var players = Task.Run(() => db.LoadCollectionAsync<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE TeamsID = @0", teamID)).GetAwaiter().GetResult();
+			foreach (var p in players)
 			{
-				var players = Task.Run(() => db.LoadCollectionAsync<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE TeamsID = @0", teamID)).GetAwaiter().GetResult();
-				foreach (var p in players)
-				{
-					this.LoadedPlayersForTeam.Add(p.ID);
-				}
+				this.LoadedPlayersForTeam.Add(p.ID);
 			}
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
@@ -68,20 +62,18 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var db = new WatsoniaDatabase())
+			var db = new WatsoniaDatabase();
+			var players = Task.Run(() =>
 			{
-				var players = Task.Run(() =>
-				{
-					return db.LoadCollectionAsync<Player>("" +
-						"SELECT p.ID, p.FirstName, p.LastName, p.DateOfBirth, p.TeamsID, t.ID as TeamsID, t.Name, t.SportsID " +
-						"FROM Teams t " +
-						"INNER JOIN Players p ON t.ID = p.TeamsID " +
-						"WHERE t.SportsID = @0", sportID);
-				}).GetAwaiter().GetResult();
-				foreach (var p in players)
-				{
-					this.LoadedTeamsForSport.Add(p.ID);
-				}
+				return db.LoadCollectionAsync<Player>("" +
+					"SELECT p.ID, p.FirstName, p.LastName, p.DateOfBirth, p.TeamsID, t.ID as TeamsID, t.Name, t.SportsID " +
+					"FROM Teams t " +
+					"INNER JOIN Players p ON t.ID = p.TeamsID " +
+					"WHERE t.SportsID = @0", sportID);
+			}).GetAwaiter().GetResult();
+			foreach (var p in players)
+			{
+				this.LoadedTeamsForSport.Add(p.ID);
 			}
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
