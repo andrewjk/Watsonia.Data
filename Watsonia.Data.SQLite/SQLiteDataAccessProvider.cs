@@ -57,12 +57,8 @@ namespace Watsonia.Data.SQLite
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		public Task EnsureDatabaseDeletedAsync(DatabaseConfiguration configuration)
 		{
-			var connectionBuilder = new SqliteConnectionStringBuilder(configuration.ConnectionString);
-			if (File.Exists(connectionBuilder.DataSource))
-			{
-				File.Delete(connectionBuilder.DataSource);
-			}
-			return Task.FromResult(0);
+			var updater = new SQLiteDatabaseUpdater(this, configuration);
+			return updater.EnsureDatabaseDeletedAsync();
 		}
 
 		/// <summary>
@@ -71,14 +67,8 @@ namespace Watsonia.Data.SQLite
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		public Task EnsureDatabaseCreatedAsync(DatabaseConfiguration configuration)
 		{
-			var connectionBuilder = new SqliteConnectionStringBuilder(configuration.ConnectionString);
-			if (!File.Exists(connectionBuilder.DataSource))
-			{
-				Directory.CreateDirectory(Path.GetDirectoryName(connectionBuilder.DataSource));
-				var fs = File.Create(connectionBuilder.DataSource);
-				fs.Close();
-			}
-			return Task.FromResult(0);
+			var updater = new SQLiteDatabaseUpdater(this, configuration);
+			return updater.EnsureDatabaseCreatedAsync();
 		}
 
 		/// <summary>

@@ -56,23 +56,8 @@ namespace Watsonia.Data.SqlServer
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		public async Task EnsureDatabaseDeletedAsync(DatabaseConfiguration configuration)
 		{
-			var connectionBuilder = new SqlConnectionStringBuilder(configuration.ConnectionString);
-			var databaseName = connectionBuilder.InitialCatalog;
-			connectionBuilder.InitialCatalog = "master";
-			using (var connection = new SqlConnection(connectionBuilder.ConnectionString))
-			{
-				await connection.OpenAsync();
-				var commandText = $@"
-IF DB_ID('{databaseName}') IS NOT NULL
-BEGIN
-	ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-	DROP DATABASE [{databaseName}];
-END
-";
-				var command = new SqlCommand(commandText, connection);
-				await command.ExecuteNonQueryAsync();
-				connection.Close();
-			}
+			var updater = new SqlServerDatabaseUpdater(this, configuration);
+			await updater.EnsureDatabaseDeletedAsync();
 		}
 
 		/// <summary>
@@ -81,22 +66,8 @@ END
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		public async Task EnsureDatabaseCreatedAsync(DatabaseConfiguration configuration)
 		{
-			var connectionBuilder = new SqlConnectionStringBuilder(configuration.ConnectionString);
-			var databaseName = connectionBuilder.InitialCatalog;
-			connectionBuilder.InitialCatalog = "master";
-			using (var connection = new SqlConnection(connectionBuilder.ConnectionString))
-			{
-				await connection.OpenAsync();
-				var commandText = $@"
-IF DB_ID('{databaseName}') IS NULL
-BEGIN
-	CREATE DATABASE [{databaseName}];
-END
-";
-				var command = new SqlCommand(commandText, connection);
-				await command.ExecuteNonQueryAsync();
-				connection.Close();
-			}
+			var updater = new SqlServerDatabaseUpdater(this, configuration);
+			await updater.EnsureDatabaseCreatedAsync();
 		}
 
 		/// <summary>

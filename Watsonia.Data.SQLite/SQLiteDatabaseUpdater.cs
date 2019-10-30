@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Watsonia.Data.Mapping;
 using Watsonia.QueryBuilder;
+using System.IO;
 
 namespace Watsonia.Data.SQLite
 {
@@ -19,6 +20,28 @@ namespace Watsonia.Data.SQLite
 		{
 			_dataAccessProvider = dataAccessProvider;
 			_configuration = configuration;
+		}
+
+		public Task EnsureDatabaseDeletedAsync()
+		{
+			var connectionBuilder = new SqliteConnectionStringBuilder(_configuration.ConnectionString);
+			if (File.Exists(connectionBuilder.DataSource))
+			{
+				File.Delete(connectionBuilder.DataSource);
+			}
+			return Task.FromResult(0);
+		}
+
+		public Task EnsureDatabaseCreatedAsync()
+		{
+			var connectionBuilder = new SqliteConnectionStringBuilder(_configuration.ConnectionString);
+			if (!File.Exists(connectionBuilder.DataSource))
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(connectionBuilder.DataSource));
+				var fs = File.Create(connectionBuilder.DataSource);
+				fs.Close();
+			}
+			return Task.FromResult(0);
 		}
 
 		public async Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
@@ -272,7 +295,7 @@ namespace Watsonia.Data.SQLite
 			{
 				var b = new StringBuilder();
 				b.AppendLine($"CREATE TABLE [{table.Name}] (");
-				b.Append(string.Join(", ", Array.ConvertAll(table.Columns.ToArray(), c => ColumnText(table, c, true, true))));
+				b.Append(string.Join(", ", Array.ConvertAll(table.Columns.ToArray(), c => ColumnText(c, true))));
 				b.AppendLine(",");
 				b.AppendLine($"CONSTRAINT [{table.PrimaryKeyConstraintName}] PRIMARY KEY ([{table.PrimaryKeyColumnName}] ASC)");
 				b.Append(")");
@@ -286,13 +309,13 @@ namespace Watsonia.Data.SQLite
 		{
 			using (var command = CreateCommand(connection))
 			{
-				command.CommandText = $"ALTER TABLE [{table.Name}] ADD {ColumnText(table, column, true, true)}";
+				command.CommandText = $"ALTER TABLE [{table.Name}] ADD {ColumnText(column, true)}";
 				command.Connection = connection;
 				await ExecuteSqlAsync(command, doUpdate, script);
 			}
 		}
 
-		protected virtual string ColumnText(MappedTable table, MappedColumn column, bool includeDefault, bool includeIdentity)
+		protected virtual string ColumnText(MappedColumn column, bool includeDefault)
 		{
 			var b = new StringBuilder();
 			b.Append($"[{column.Name}] {ColumnTypeText(column)}");
@@ -488,7 +511,7 @@ namespace Watsonia.Data.SQLite
 					}
 
 					// Update the column
-					command.CommandText = $"ALTER TABLE [{table.Name}] ALTER COLUMN {ColumnText(table, column, false, false)}";
+					command.CommandText = $"ALTER TABLE [{table.Name}] ALTER COLUMN {ColumnText(column, false)}";
 					await ExecuteSqlAsync(command, doUpdate, script);
 
 					// If the column is the primary key, add that constraint back now

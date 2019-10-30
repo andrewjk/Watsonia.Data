@@ -15,24 +15,57 @@ namespace Watsonia.Data.SqlServer
 		protected IDataAccessProvider _dataAccessProvider;
 		protected DatabaseConfiguration _configuration;
 
-		private bool _compactEdition = false;
-
-		protected virtual bool CompactEdition
-		{
-			get
-			{
-				return _compactEdition;
-			}
-			set
-			{
-				_compactEdition = value;
-			}
-		}
+		protected virtual bool CompactEdition { get; set; }
 
 		public SqlServerDatabaseUpdater(IDataAccessProvider dataAccessProvider, DatabaseConfiguration configuration)
 		{
 			_dataAccessProvider = dataAccessProvider;
 			_configuration = configuration;
+		}
+
+		public async Task EnsureDatabaseDeletedAsync()
+		{
+			var connectionBuilder = new SqlConnectionStringBuilder(_configuration.ConnectionString);
+			var databaseName = connectionBuilder.InitialCatalog;
+			connectionBuilder.InitialCatalog = "master";
+			using (var connection = new SqlConnection(connectionBuilder.ConnectionString))
+			{
+				await connection.OpenAsync();
+				var commandText = $@"
+IF DB_ID('{databaseName}') IS NOT NULL
+BEGIN
+	ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+	DROP DATABASE [{databaseName}];
+END
+";
+				using (var command = new SqlCommand(commandText, connection))
+				{
+					await command.ExecuteNonQueryAsync();
+					connection.Close();
+				}
+			}
+		}
+
+		public async Task EnsureDatabaseCreatedAsync()
+		{
+			var connectionBuilder = new SqlConnectionStringBuilder(_configuration.ConnectionString);
+			var databaseName = connectionBuilder.InitialCatalog;
+			connectionBuilder.InitialCatalog = "master";
+			using (var connection = new SqlConnection(connectionBuilder.ConnectionString))
+			{
+				await connection.OpenAsync();
+				var commandText = $@"
+IF DB_ID('{databaseName}') IS NULL
+BEGIN
+	CREATE DATABASE [{databaseName}];
+END
+";
+				using (var command = new SqlCommand(commandText, connection))
+				{
+					await command.ExecuteNonQueryAsync();
+					connection.Close();
+				}
+			}
 		}
 
 		public async Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
