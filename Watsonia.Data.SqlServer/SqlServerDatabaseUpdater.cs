@@ -10,12 +10,12 @@ using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data.SqlServer
 {
-	public class SqlServerDatabaseUpdater
+	internal class SqlServerDatabaseUpdater
 	{
-		protected IDataAccessProvider _dataAccessProvider;
-		protected DatabaseConfiguration _configuration;
+		private readonly IDataAccessProvider _dataAccessProvider;
+		private readonly DatabaseConfiguration _configuration;
 
-		protected virtual bool CompactEdition { get; set; }
+		private bool CompactEdition { get; set; }
 
 		public SqlServerDatabaseUpdater(IDataAccessProvider dataAccessProvider, DatabaseConfiguration configuration)
 		{
@@ -80,7 +80,7 @@ END
 			return script.ToString();
 		}
 
-		protected virtual async Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, bool doUpdate, StringBuilder script = null)
+		private async Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, bool doUpdate, StringBuilder script = null)
 		{
 			using (var connection = await _dataAccessProvider.OpenConnectionAsync(_configuration))
 			{
@@ -190,7 +190,7 @@ END
 			}
 		}
 
-		protected virtual async Task<Dictionary<string, MappedTable>> LoadExistingTablesAsync(DbConnection connection)
+		private async Task<Dictionary<string, MappedTable>> LoadExistingTablesAsync(DbConnection connection)
 		{
 			var existingTables = new Dictionary<string, MappedTable>();
 			using (var existingTablesCommand = CreateCommand(connection))
@@ -210,7 +210,7 @@ END
 			return existingTables;
 		}
 
-		protected virtual async Task<Dictionary<string, MappedColumn>> LoadExistingColumnsAsync(DbConnection connection)
+		private async Task<Dictionary<string, MappedColumn>> LoadExistingColumnsAsync(DbConnection connection)
 		{
 			var existingColumns = new Dictionary<string, MappedColumn>();
 			using (var existingColumnsCommand = CreateCommand(connection))
@@ -249,7 +249,7 @@ END
 			return existingColumns;
 		}
 
-		protected virtual async Task<Dictionary<string, MappedView>> LoadExistingViewsAsync(DbConnection connection)
+		private async Task<Dictionary<string, MappedView>> LoadExistingViewsAsync(DbConnection connection)
 		{
 			var existingViews = new Dictionary<string, MappedView>();
 			if (!this.CompactEdition)
@@ -275,7 +275,7 @@ END
 			return existingViews;
 		}
 
-		protected virtual async Task<Dictionary<string, MappedProcedure>> LoadExistingProceduresAsync(DbConnection connection)
+		private async Task<Dictionary<string, MappedProcedure>> LoadExistingProceduresAsync(DbConnection connection)
 		{
 			var existingProcedures = new Dictionary<string, MappedProcedure>();
 			if (!this.CompactEdition)
@@ -301,7 +301,7 @@ END
 			return existingProcedures;
 		}
 
-		protected virtual async Task<Dictionary<string, MappedFunction>> LoadExistingFunctionsAsync(DbConnection connection)
+		private async Task<Dictionary<string, MappedFunction>> LoadExistingFunctionsAsync(DbConnection connection)
 		{
 			var existingFunctions = new Dictionary<string, MappedFunction>();
 			if (!this.CompactEdition)
@@ -327,7 +327,7 @@ END
 			return existingFunctions;
 		}
 
-		protected virtual Type FrameworkTypeFromDatabase(string databaseTypeName, bool allowNulls)
+		private Type FrameworkTypeFromDatabase(string databaseTypeName, bool allowNulls)
 		{
 			switch (databaseTypeName.ToUpperInvariant())
 			{
@@ -390,7 +390,7 @@ END
 			}
 		}
 
-		protected virtual async Task<List<string>> LoadExistingForeignKeysAsync(DbConnection connection)
+		private async Task<List<string>> LoadExistingForeignKeysAsync(DbConnection connection)
 		{
 			var existingForeignKeys = new List<string>();
 			using (var existingForeignKeysCommand = CreateCommand(connection))
@@ -408,7 +408,7 @@ END
 			return existingForeignKeys;
 		}
 
-		protected virtual async Task CreateTableAsync(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task CreateTableAsync(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var b = new StringBuilder();
 			b.AppendLine($"CREATE TABLE [{table.Name}] (");
@@ -426,7 +426,7 @@ END
 			}
 		}
 
-		protected virtual async Task CreateColumnAsync(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task CreateColumnAsync(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			using (var command = CreateCommand(connection))
 			{
@@ -436,7 +436,7 @@ END
 			}
 		}
 
-		protected virtual string ColumnText(MappedTable table, MappedColumn column, bool includeDefault, bool includeIdentity)
+		private string ColumnText(MappedTable table, MappedColumn column, bool includeDefault, bool includeIdentity)
 		{
 			var b = new StringBuilder();
 			b.Append($"[{column.Name}] {ColumnTypeText(column)}");
@@ -475,12 +475,12 @@ END
 			return b.ToString();
 		}
 
-		protected virtual string ColumnTypeText(MappedColumn column)
+		private string ColumnTypeText(MappedColumn column)
 		{
 			return ColumnTypeText(column.ColumnType, column.MaxLength);
 		}
 
-		protected virtual string ColumnTypeText(Type columnType, int maxLength)
+		private string ColumnTypeText(Type columnType, int maxLength)
 		{
 			if (columnType == typeof(bool) || columnType == typeof(bool?))
 			{
@@ -562,7 +562,7 @@ END
 			}
 		}
 
-		protected virtual string ColumnDefaultText(MappedColumn column)
+		private string ColumnDefaultText(MappedColumn column)
 		{
 			// TODO: This isn't really the best spot for this
 			if (column.ColumnType == typeof(bool) || column.ColumnType == typeof(bool?))
@@ -607,7 +607,7 @@ END
 			}
 		}
 
-		protected virtual async Task CreateForeignKeyAsync(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task CreateForeignKeyAsync(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			using (var command = CreateCommand(connection))
 			{
@@ -621,7 +621,7 @@ END
 			}
 		}
 
-		protected virtual async Task UpdateColumnAsync(MappedTable table, MappedColumn oldColumn, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task UpdateColumnAsync(MappedTable table, MappedColumn oldColumn, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			if (oldColumn.AllowNulls && !column.AllowNulls)
 			{
@@ -676,7 +676,7 @@ END
 			}
 		}
 
-		protected virtual async Task<List<string>> GetColumnConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
+		private async Task<List<string>> GetColumnConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -687,7 +687,7 @@ END
 			return constraints;
 		}
 
-		protected virtual async Task<List<string>> GetForeignKeyConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
+		private async Task<List<string>> GetForeignKeyConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -724,7 +724,7 @@ END
 			return constraints;
 		}
 
-		protected virtual async Task<List<string>> GetPrimaryKeyConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
+		private async Task<List<string>> GetPrimaryKeyConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -751,7 +751,7 @@ END
 			return constraints;
 		}
 
-		protected virtual async Task<List<string>> GetDefaultValueConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
+		private async Task<List<string>> GetDefaultValueConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -784,7 +784,7 @@ END
 			return constraints;
 		}
 
-		protected virtual async Task UpdateTableDataAsync(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script, bool tableExists)
+		private async Task UpdateTableDataAsync(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script, bool tableExists)
 		{
 			// TODO: This is a bit messy and could be tidied up a bit
 			var existingTableData = new List<int>();
@@ -836,7 +836,7 @@ END
 			}
 		}
 
-		protected virtual async Task CreateViewAsync(MappedView view, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task CreateViewAsync(MappedView view, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			if (this.CompactEdition)
 			{
@@ -853,7 +853,7 @@ END
 			}
 		}
 
-		protected virtual async Task UpdateViewAsync(MappedView view, MappedView oldView, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task UpdateViewAsync(MappedView view, MappedView oldView, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var commandText = BuildViewSql(view);
 			if (oldView.SelectStatementText != commandText)
@@ -867,7 +867,7 @@ END
 			}
 		}
 
-		protected virtual string BuildViewSql(MappedView view)
+		private string BuildViewSql(MappedView view)
 		{
 			var b = new StringBuilder();
 			b.AppendLine($"CREATE VIEW [{view.Name}] AS");
@@ -894,7 +894,7 @@ END
 			return b.ToString();
 		}
 
-		protected virtual async Task CreateProcedureAsync(MappedProcedure procedure, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task CreateProcedureAsync(MappedProcedure procedure, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			if (this.CompactEdition)
 			{
@@ -911,7 +911,7 @@ END
 			}
 		}
 
-		protected virtual async Task UpdateProcedureAsync(MappedProcedure procedure, MappedProcedure oldProcedure, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task UpdateProcedureAsync(MappedProcedure procedure, MappedProcedure oldProcedure, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var commandText = BuildProcedureSql(procedure);
 			if (oldProcedure.StatementText != commandText)
@@ -925,7 +925,7 @@ END
 			}
 		}
 
-		protected virtual string BuildProcedureSql(MappedProcedure procedure)
+		private string BuildProcedureSql(MappedProcedure procedure)
 		{
 			var b = new StringBuilder();
 			b.AppendLine($"CREATE PROCEDURE [{procedure.Name}]");
@@ -973,7 +973,7 @@ END
 			return b.ToString();
 		}
 
-		protected virtual async Task CreateFunctionAsync(MappedFunction function, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task CreateFunctionAsync(MappedFunction function, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			if (this.CompactEdition)
 			{
@@ -990,7 +990,7 @@ END
 			}
 		}
 
-		protected virtual async Task UpdateFunctionAsync(MappedFunction function, MappedFunction oldFunction, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task UpdateFunctionAsync(MappedFunction function, MappedFunction oldFunction, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var commandText = BuildFunctionSql(function);
 			if (oldFunction.StatementText != commandText)
@@ -1004,7 +1004,7 @@ END
 			}
 		}
 
-		protected virtual string BuildFunctionSql(MappedFunction function)
+		private string BuildFunctionSql(MappedFunction function)
 		{
 			var b = new StringBuilder();
 			b.AppendLine($"CREATE FUNCTION [{function.Name}]");
@@ -1057,7 +1057,7 @@ END
 			return b.ToString();
 		}
 
-		protected virtual async Task ExecuteSqlAsync(DbCommand command, bool doUpdate, StringBuilder script)
+		private async Task ExecuteSqlAsync(DbCommand command, bool doUpdate, StringBuilder script)
 		{
 			if (script != null)
 			{
@@ -1092,7 +1092,7 @@ END
 			}
 		}
 
-		protected virtual DbCommand CreateCommand(DbConnection connection)
+		private DbCommand CreateCommand(DbConnection connection)
 		{
 			var command = new SqlCommand();
 			command.Connection = (SqlConnection)connection;

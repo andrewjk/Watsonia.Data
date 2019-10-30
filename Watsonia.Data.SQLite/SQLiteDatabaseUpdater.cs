@@ -11,10 +11,10 @@ using System.IO;
 
 namespace Watsonia.Data.SQLite
 {
-	public class SQLiteDatabaseUpdater
+	internal class SQLiteDatabaseUpdater
 	{
-		protected IDataAccessProvider _dataAccessProvider;
-		protected DatabaseConfiguration _configuration;
+		private readonly IDataAccessProvider _dataAccessProvider;
+		private readonly DatabaseConfiguration _configuration;
 
 		public SQLiteDatabaseUpdater(IDataAccessProvider dataAccessProvider, DatabaseConfiguration configuration)
 		{
@@ -56,7 +56,7 @@ namespace Watsonia.Data.SQLite
 			return script.ToString();
 		}
 
-		protected virtual async Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, bool doUpdate, StringBuilder script = null)
+		private async Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, bool doUpdate, StringBuilder script = null)
 		{
 			using (var connection = await _dataAccessProvider.OpenConnectionAsync(_configuration))
 			{
@@ -131,7 +131,7 @@ namespace Watsonia.Data.SQLite
 			}
 		}
 
-		protected virtual async Task<Dictionary<string, MappedTable>> LoadExistingTablesAsync(DbConnection connection)
+		private async Task<Dictionary<string, MappedTable>> LoadExistingTablesAsync(DbConnection connection)
 		{
 			var existingTables = new Dictionary<string, MappedTable>();
 			using (var existingTablesCommand = CreateCommand(connection))
@@ -151,7 +151,7 @@ namespace Watsonia.Data.SQLite
 			return existingTables;
 		}
 
-		protected virtual async Task<Dictionary<string, MappedColumn>> LoadExistingColumnsAsync(Dictionary<string, MappedTable> existingTables, DbConnection connection)
+		private async Task<Dictionary<string, MappedColumn>> LoadExistingColumnsAsync(Dictionary<string, MappedTable> existingTables, DbConnection connection)
 		{
 			var existingColumns = new Dictionary<string, MappedColumn>();
 			foreach (var table in existingTables.Values)
@@ -194,7 +194,7 @@ namespace Watsonia.Data.SQLite
 			return existingColumns;
 		}
 
-		protected virtual async Task<Dictionary<string, MappedView>> LoadExistingViewsAsync(DbConnection connection)
+		private async Task<Dictionary<string, MappedView>> LoadExistingViewsAsync(DbConnection connection)
 		{
 			var existingViews = new Dictionary<string, MappedView>();
 			using (var existingViewsCommand = CreateCommand(connection))
@@ -217,7 +217,7 @@ namespace Watsonia.Data.SQLite
 			return existingViews;
 		}
 
-		protected virtual Type FrameworkTypeFromDatabase(string databaseTypeName, bool allowNulls)
+		private Type FrameworkTypeFromDatabase(string databaseTypeName, bool allowNulls)
 		{
 			var typeName = databaseTypeName.Contains("(") ? databaseTypeName.Substring(0, databaseTypeName.IndexOf("(")) : databaseTypeName;
 
@@ -268,7 +268,7 @@ namespace Watsonia.Data.SQLite
 			}
 		}
 
-		protected virtual List<string> LoadExistingForeignKeys(DbConnection connection)
+		private List<string> LoadExistingForeignKeys(DbConnection connection)
 		{
 			var existingForeignKeys = new List<string>();
 
@@ -289,7 +289,7 @@ namespace Watsonia.Data.SQLite
 			return existingForeignKeys;
 		}
 
-		protected virtual async Task CreateTableAsync(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task CreateTableAsync(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			using (var command = CreateCommand(connection))
 			{
@@ -305,7 +305,7 @@ namespace Watsonia.Data.SQLite
 			}
 		}
 
-		protected virtual async Task CreateColumnAsync(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task CreateColumnAsync(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			using (var command = CreateCommand(connection))
 			{
@@ -315,7 +315,7 @@ namespace Watsonia.Data.SQLite
 			}
 		}
 
-		protected virtual string ColumnText(MappedColumn column, bool includeDefault)
+		private string ColumnText(MappedColumn column, bool includeDefault)
 		{
 			var b = new StringBuilder();
 			b.Append($"[{column.Name}] {ColumnTypeText(column)}");
@@ -347,7 +347,7 @@ namespace Watsonia.Data.SQLite
 			return b.ToString();
 		}
 
-		protected virtual string ColumnTypeText(MappedColumn column)
+		private string ColumnTypeText(MappedColumn column)
 		{
 			if (column.IsPrimaryKey)
 			{
@@ -404,7 +404,7 @@ namespace Watsonia.Data.SQLite
 			}
 		}
 
-		protected virtual string ColumnDefaultText(MappedColumn column)
+		private string ColumnDefaultText(MappedColumn column)
 		{
 			// TODO: This isn't really the best spot for this
 			if (column.ColumnType == typeof(bool) || column.ColumnType == typeof(bool?))
@@ -449,7 +449,7 @@ namespace Watsonia.Data.SQLite
 			}
 		}
 
-		protected virtual void CreateForeignKey(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
+		private void CreateForeignKey(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			// TODO: Uh, can't ALTER TABLE to add foreign keys in SQLite
 			//using (var command = CreateCommand(connection))
@@ -463,7 +463,7 @@ namespace Watsonia.Data.SQLite
 			//}
 		}
 
-		protected virtual async Task UpdateColumnAsync(MappedTable table, MappedColumn oldColumn, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task UpdateColumnAsync(MappedTable table, MappedColumn oldColumn, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			if (!column.IsPrimaryKey)
 			{
@@ -531,7 +531,7 @@ namespace Watsonia.Data.SQLite
 			}
 		}
 
-		protected virtual List<string> GetColumnConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
+		private List<string> GetColumnConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -542,7 +542,7 @@ namespace Watsonia.Data.SQLite
 			return constraints;
 		}
 
-		protected virtual List<string> GetForeignKeyConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
+		private List<string> GetForeignKeyConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -580,7 +580,7 @@ namespace Watsonia.Data.SQLite
 			return constraints;
 		}
 
-		protected virtual List<string> GetPrimaryKeyConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
+		private List<string> GetPrimaryKeyConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -608,7 +608,7 @@ namespace Watsonia.Data.SQLite
 			return constraints;
 		}
 
-		protected virtual List<string> GetDefaultValueConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
+		private List<string> GetDefaultValueConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -636,7 +636,7 @@ namespace Watsonia.Data.SQLite
 			return constraints;
 		}
 
-		protected virtual async Task UpdateTableDataAsync(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task UpdateTableDataAsync(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			// TODO: This is a bit messy and could be tidied up a bit
 			var existingTableData = new List<int>();
@@ -678,7 +678,7 @@ namespace Watsonia.Data.SQLite
 			}
 		}
 
-		protected virtual async Task CreateViewAsync(MappedView view, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task CreateViewAsync(MappedView view, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var b = new StringBuilder();
 			b.AppendLine($"CREATE VIEW [{view.Name}] AS");
@@ -695,7 +695,7 @@ namespace Watsonia.Data.SQLite
 			}
 		}
 
-		protected virtual async Task UpdateViewAsync(MappedView view, MappedView oldView, DbConnection connection, bool doUpdate, StringBuilder script)
+		private async Task UpdateViewAsync(MappedView view, MappedView oldView, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var b = new StringBuilder();
 			b.AppendLine($"CREATE VIEW [{view.Name}] AS");
@@ -715,7 +715,7 @@ namespace Watsonia.Data.SQLite
 			}
 		}
 
-		protected virtual async Task ExecuteSqlAsync(DbCommand command, bool doUpdate, StringBuilder script)
+		private async Task ExecuteSqlAsync(DbCommand command, bool doUpdate, StringBuilder script)
 		{
 			if (script != null)
 			{
@@ -750,7 +750,7 @@ namespace Watsonia.Data.SQLite
 			}
 		}
 
-		protected virtual DbCommand CreateCommand(DbConnection connection)
+		private DbCommand CreateCommand(DbConnection connection)
 		{
 			var command = new SqliteCommand();
 			command.Connection = (SqliteConnection)connection;
