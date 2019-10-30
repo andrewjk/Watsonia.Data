@@ -6,7 +6,7 @@ namespace Watsonia.Data.DataAnnotations
 	/// An attribute to place on entity properties when the items they contain should be saved with the entity.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Property)]
-	public class CascadeAttribute : Attribute
+	public sealed class CascadeAttribute : Attribute
 	{
 		/// <summary>
 		/// Gets or sets a value indicating whether the item contained in this property should be saved with its parent.

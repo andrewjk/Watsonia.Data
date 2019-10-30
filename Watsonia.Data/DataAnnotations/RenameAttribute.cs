@@ -6,7 +6,7 @@ namespace Watsonia.Data.DataAnnotations
 	/// An attribute to place on entity properties when their columns should be renamed in the database.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Property)]
-	public class RenameAttribute : Attribute
+	public sealed class RenameAttribute : Attribute
 	{
 		/// <summary>
 		/// Gets or sets the old name of the field.
