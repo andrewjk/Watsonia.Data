@@ -389,7 +389,7 @@ namespace Watsonia.Data
 			if ((item as IDynamicProxy) == null)
 			{
 				var message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
-				throw new ArgumentException(message, "item");
+				throw new ArgumentException(message, nameof(item));
 			}
 
 			var proxy = (IDynamicProxy)item;
@@ -1040,7 +1040,7 @@ namespace Watsonia.Data
 			if ((item as IDynamicProxy) == null)
 			{
 				var message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
-				throw new ArgumentException(message, "item");
+				throw new ArgumentException(message, nameof(item));
 			}
 
 			var proxy = (IDynamicProxy)item;
@@ -1288,7 +1288,7 @@ namespace Watsonia.Data
 			if ((item as IDynamicProxy) == null)
 			{
 				var message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
-				throw new ArgumentException(message, "item");
+				throw new ArgumentException(message, nameof(item));
 			}
 
 			var proxy = (IDynamicProxy)item;
@@ -1384,7 +1384,7 @@ namespace Watsonia.Data
 			if ((item as IDynamicProxy) == null)
 			{
 				var message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
-				throw new ArgumentException(message, "item");
+				throw new ArgumentException(message, nameof(item));
 			}
 
 			var proxy = (IDynamicProxy)item;

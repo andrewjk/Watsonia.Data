@@ -17,7 +17,7 @@ namespace Watsonia.Data
 		{
 			if (configuration == null)
 			{
-				throw new ArgumentNullException("configuration");
+				throw new ArgumentNullException(nameof(configuration));
 			}
 
 			var tables = new List<MappedTable>();
@@ -32,7 +32,7 @@ namespace Watsonia.Data
 		{
 			if (configuration == null)
 			{
-				throw new ArgumentNullException("configuration");
+				throw new ArgumentNullException(nameof(configuration));
 			}
 
 			var tables = new List<MappedTable>();
@@ -47,7 +47,7 @@ namespace Watsonia.Data
 		{
 			if (configuration == null)
 			{
-				throw new ArgumentNullException("configuration");
+				throw new ArgumentNullException(nameof(configuration));
 			}
 
 			var tables = new List<MappedTable>();
@@ -62,27 +62,27 @@ namespace Watsonia.Data
 		{
 			if (tables == null)
 			{
-				throw new ArgumentNullException("tables");
+				throw new ArgumentNullException(nameof(tables));
 			}
 
 			if (views == null)
 			{
-				throw new ArgumentNullException("views");
+				throw new ArgumentNullException(nameof(views));
 			}
 
 			if (procedures == null)
 			{
-				throw new ArgumentNullException("procedures");
+				throw new ArgumentNullException(nameof(procedures));
 			}
 
 			if (functions == null)
 			{
-				throw new ArgumentNullException("functions");
+				throw new ArgumentNullException(nameof(functions));
 			}
 
 			if (configuration == null)
 			{
-				throw new ArgumentNullException("configuration");
+				throw new ArgumentNullException(nameof(configuration));
 			}
 
 			tables.Clear();
