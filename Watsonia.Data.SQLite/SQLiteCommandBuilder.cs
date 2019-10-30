@@ -18,7 +18,7 @@ namespace Watsonia.Data.SQLite
 
 		public SqliteCommand BuildCommand(Statement statement, DatabaseConfiguration configuration)
 		{
-			var builder = new QueryBuilder.SQLiteCommandBuilder();
+			var builder = new QueryBuilder.SQLite.SQLiteCommandBuilder();
 			builder.VisitStatement(statement, new QueryMapper(configuration));
 
 			var command = new SqliteCommand();

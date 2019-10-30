@@ -19,7 +19,7 @@ namespace Watsonia.Data.SqlServer
 
 		public SqlCommand BuildCommand(Statement statement, DatabaseConfiguration configuration)
 		{
-			var builder = new QueryBuilder.SqlServerCommandBuilder();
+			var builder = new QueryBuilder.SqlServer.SqlServerCommandBuilder();
 			builder.VisitStatement(statement, new QueryMapper(configuration));
 
 			var command = new SqlCommand();
