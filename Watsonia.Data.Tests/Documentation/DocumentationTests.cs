@@ -19,7 +19,7 @@ namespace Watsonia.Data.Tests.Documentation
 		private static readonly DocumentationDatabase _db = new DocumentationDatabase();
 
 		[ClassInitialize]
-		public static async Task InitializeAsync(TestContext context)
+		public static async Task InitializeAsync(TestContext _)
 		{
 			if (!File.Exists(@"Data\DocumentationTests.sqlite"))
 			{

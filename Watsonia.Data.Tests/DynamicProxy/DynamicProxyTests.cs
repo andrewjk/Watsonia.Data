@@ -13,7 +13,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		private static readonly DynamicProxyDatabase _db = new DynamicProxyDatabase();
 
 		[ClassInitialize]
-		public static async Task InitializeAsync(TestContext context)
+		public static async Task InitializeAsync(TestContext _)
 		{
 			if (!File.Exists(@"Data\DynamicProxyTests.sqlite"))
 			{

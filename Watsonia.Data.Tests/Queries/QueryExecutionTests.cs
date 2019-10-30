@@ -18,7 +18,7 @@ namespace Watsonia.Data.Tests.Queries
 		private static readonly NorthwindDatabase _db = new NorthwindDatabase();
 
 		[ClassInitialize]
-		public static void Initialize(TestContext context)
+		public static void Initialize(TestContext _)
 		{
 		}
 		

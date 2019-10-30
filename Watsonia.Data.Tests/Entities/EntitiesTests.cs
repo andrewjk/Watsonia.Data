@@ -19,7 +19,7 @@ namespace Watsonia.Data.Tests.Entities
 		private readonly static EntitiesDatabase _db = new EntitiesDatabase();
 
 		[ClassInitialize]
-		public static async Task InitializeAsync(TestContext context)
+		public static async Task InitializeAsync(TestContext _)
 		{
 			if (!File.Exists(@"Data\EntitiesTests.sqlite"))
 			{

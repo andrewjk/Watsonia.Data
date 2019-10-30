@@ -13,7 +13,7 @@ namespace Watsonia.Data.Tests.Cache
 		private static readonly CacheDatabase _db = new CacheDatabase();
 
 		[ClassInitialize]
-		public static void Initialize(TestContext context)
+		public static void Initialize(TestContext _)
 		{
 			// Create the proxies first so that their bags also get created
 			_ = _db.Create<Author>();

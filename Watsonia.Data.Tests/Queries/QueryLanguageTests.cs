@@ -22,7 +22,7 @@ namespace Watsonia.Data.Tests.Queries
 		private static Dictionary<string, string> _sqliteBaselines = new Dictionary<string, string>();
 
 		[ClassInitialize]
-		public static void Initialize(TestContext context)
+		public static void Initialize(TestContext _)
 		{
 			var sqlServerFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryLanguageBaselinesSqlServer.xml";
 			if (!string.IsNullOrEmpty(sqlServerFileName) && File.Exists(sqlServerFileName))

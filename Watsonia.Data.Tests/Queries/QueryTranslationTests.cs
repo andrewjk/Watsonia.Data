@@ -20,7 +20,7 @@ namespace Watsonia.Data.Tests.Queries
 		private static Dictionary<string, string> _baselines = new Dictionary<string, string>();
 
 		[ClassInitialize]
-		public static void Initialize(TestContext context)
+		public static void Initialize(TestContext _)
 		{
 			var fileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryTranslationBaselines.xml";
 			if (!string.IsNullOrEmpty(fileName) && File.Exists(fileName))
