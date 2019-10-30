@@ -24,13 +24,11 @@ namespace Watsonia.Data.TestPerformance
 			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
 			{
 				conn.Open();
-				using (var command = new SqliteCommand("SELECT ID, Text, DateCreated, DateModified FROM Posts", conn))
-				using (var reader = command.ExecuteReader())
+				using var command = new SqliteCommand("SELECT ID, Text, DateCreated, DateModified FROM Posts", conn);
+				using var reader = command.ExecuteReader();
+				while (reader.Read())
 				{
-					while (reader.Read())
-					{
-						this.LoadedPosts.Add((long)reader["ID"]);
-					}
+					this.LoadedPosts.Add((long)reader["ID"]);
 				}
 			}
 			watch.Stop();
@@ -44,16 +42,12 @@ namespace Watsonia.Data.TestPerformance
 			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
 			{
 				conn.Open();
-				using (var command = new SqliteCommand("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE ID = @ID", conn))
+				using var command = new SqliteCommand("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE ID = @ID", conn);
+				command.Parameters.Add(new SqliteParameter("@ID", id));
+				using var reader = command.ExecuteReader();
+				while (reader.Read())
 				{
-					command.Parameters.Add(new SqliteParameter("@ID", id));
-					using (var reader = command.ExecuteReader())
-					{
-						while (reader.Read())
-						{
-							this.LoadedPlayers.Add((long)reader["ID"]);
-						}
-					}
+					this.LoadedPlayers.Add((long)reader["ID"]);
 				}
 			}
 			watch.Stop();
@@ -67,16 +61,12 @@ namespace Watsonia.Data.TestPerformance
 			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
 			{
 				conn.Open();
-				using (var command = new SqliteCommand("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE TeamsID = @ID", conn))
+				using var command = new SqliteCommand("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE TeamsID = @ID", conn);
+				command.Parameters.Add(new SqliteParameter("@ID", teamID));
+				using var reader = command.ExecuteReader();
+				while (reader.Read())
 				{
-					command.Parameters.Add(new SqliteParameter("@ID", teamID));
-					using (var reader = command.ExecuteReader())
-					{
-						while (reader.Read())
-						{
-							this.LoadedPlayersForTeam.Add((long)reader["ID"]);
-						}
-					}
+					this.LoadedPlayersForTeam.Add((long)reader["ID"]);
 				}
 			}
 			watch.Stop();
@@ -95,16 +85,12 @@ namespace Watsonia.Data.TestPerformance
 					"FROM Players p " +
 					"INNER JOIN Teams t ON p.TeamsID = t.ID " +
 					"WHERE t.SportsID = @ID";
-				using (var command = new SqliteCommand(query, conn))
+				using var command = new SqliteCommand(query, conn);
+				command.Parameters.Add(new SqliteParameter("@ID", sportID));
+				using var reader = command.ExecuteReader();
+				while (reader.Read())
 				{
-					command.Parameters.Add(new SqliteParameter("@ID", sportID));
-					using (var reader = command.ExecuteReader())
-					{
-						while (reader.Read())
-						{
-							this.LoadedTeamsForSport.Add((long)reader["ID"]);
-						}
-					}
+					this.LoadedTeamsForSport.Add((long)reader["ID"]);
 				}
 			}
 			watch.Stop();

@@ -355,12 +355,10 @@ namespace Watsonia.Data.TestPerformance
 			}
 
 			var logFile = $@"Data\Log {DateTime.Now:yyyy-MM-dd-HH-mm-ss}.txt";
-			using (var writer = new StreamWriter(logFile))
+			using var writer = new StreamWriter(logFile);
+			foreach (var line in lines)
 			{
-				foreach (var line in lines)
-				{
-					writer.WriteLine(line);
-				}
+				writer.WriteLine(line);
 			}
 		}
 
