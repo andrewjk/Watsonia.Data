@@ -23,7 +23,8 @@ namespace Watsonia.Data.Tests.Entities
 		{
 			if (!File.Exists(@"Data\EntitiesTests.sqlite"))
 			{
-				File.Create(@"Data\EntitiesTests.sqlite");
+				var file = File.Create(@"Data\EntitiesTests.sqlite");
+				file.Dispose();
 			}
 
 			await _db.UpdateDatabaseAsync();

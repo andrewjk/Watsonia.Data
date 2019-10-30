@@ -9,7 +9,7 @@ using Watsonia.Data.TestPerformance.Entities;
 namespace Watsonia.Data.TestPerformance
 {
 	// So this is mostly adapted from https://www.exceptionnotfound.net/dapper-vs-entity-framework-vs-ado-net-performance-benchmarking/
-	public class Program
+	public static class Program
 	{
 		private const int RunCount = 10;
 		private const int MaxOperations = 50;
@@ -51,7 +51,8 @@ namespace Watsonia.Data.TestPerformance
 			}
 			if (!File.Exists(@"Data\Performance.sqlite"))
 			{
-				File.Create(@"Data\Performance.sqlite");
+				var file = File.Create(@"Data\Performance.sqlite");
+				file.Dispose();
 			}
 			await db.UpdateDatabaseAsync();
 

@@ -23,7 +23,8 @@ namespace Watsonia.Data.Tests.Documentation
 		{
 			if (!File.Exists(@"Data\DocumentationTests.sqlite"))
 			{
-				File.Create(@"Data\DocumentationTests.sqlite");
+				var file = File.Create(@"Data\DocumentationTests.sqlite");
+				file.Dispose();
 			}
 
 			await _db.UpdateDatabaseAsync();
