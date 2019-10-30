@@ -22,7 +22,7 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			var db = new WatsoniaDatabase();
+			var db = new WatsoniaDatabase("Sql");
 			var posts = Task.Run(() => db.LoadCollectionAsync<Post>("SELECT ID, Text, DateCreated, DateModified FROM Posts")).GetAwaiter().GetResult();
 			foreach (var p in posts)
 			{
@@ -36,7 +36,7 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			var db = new WatsoniaDatabase();
+			var db = new WatsoniaDatabase("Sql");
 			// TODO: LoadItem?
 			var p = Task.Run(() => db.LoadCollectionAsync<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE ID = @0", id)).GetAwaiter().GetResult().First();
 			this.LoadedPlayers.Add(p.ID);
@@ -48,7 +48,7 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			var db = new WatsoniaDatabase();
+			var db = new WatsoniaDatabase("Sql");
 			var players = Task.Run(() => db.LoadCollectionAsync<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE TeamsID = @0", teamID)).GetAwaiter().GetResult();
 			foreach (var p in players)
 			{
@@ -62,7 +62,7 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			var db = new WatsoniaDatabase();
+			var db = new WatsoniaDatabase("Sql");
 			var players = Task.Run(() =>
 			{
 				return db.LoadCollectionAsync<Player>("" +

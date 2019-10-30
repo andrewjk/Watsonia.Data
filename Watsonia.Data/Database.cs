@@ -65,7 +65,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The name of the database.
 		/// </value>
-		internal string DatabaseName { get; set; }
+		public string DatabaseName { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Database" /> class.

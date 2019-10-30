@@ -12,9 +12,13 @@ namespace Watsonia.Data.TestPerformance
 		public const string ConnectionString = @"Data Source=Data\Performance.sqlite";
 		private const string EntityNamespace = "Watsonia.Data.TestPerformance.Entities";
 
-		public WatsoniaDatabase()
+		public WatsoniaDatabase(string dbname = null)
 			: base(new WatsoniaConfiguration(ConnectionString, EntityNamespace))
 		{
+			if (!string.IsNullOrEmpty(dbname))
+			{
+				this.DatabaseName = dbname;
+			}
 		}
 
 		protected override void OnBeforeExecuteCommand(DbCommand command)

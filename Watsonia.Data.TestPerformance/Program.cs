@@ -100,8 +100,6 @@ namespace Watsonia.Data.TestPerformance
 
 				// TODO: Should we test an "optimised" EF? No change tracking etc?
 
-				// HACK: The Linq option will be slightly slower as it is creating proxies - but there's no way to remove types from assemblies
-
 				// Use Linq for a better dev experience
 				var wlinqTests = new WatsoniaLinqTests();
 				var wlinqResults = RunTests(i, TestFramework.WatsoniaLinq, wlinqTests);
@@ -291,10 +289,10 @@ namespace Watsonia.Data.TestPerformance
 				var averageTeamsForSport = group.Average(x => x.TeamsForSportMilliseconds);
 				lines.Add(new ConsoleLine(
 					new ConsoleLinePart("Avg"),
-					new ConsoleLinePart(averageAllPosts.ToString()),
-					new ConsoleLinePart(averagePlayerByID.ToString()),
-					new ConsoleLinePart(averagePlayersForTeam.ToString()),
-					new ConsoleLinePart(averageTeamsForSport.ToString())
+					new ConsoleLinePart(averageAllPosts.ToString("n4")),
+					new ConsoleLinePart(averagePlayerByID.ToString("n4")),
+					new ConsoleLinePart(averagePlayersForTeam.ToString("n4")),
+					new ConsoleLinePart(averageTeamsForSport.ToString("n4"))
 				));
 
 				// Baseline (if first result)
