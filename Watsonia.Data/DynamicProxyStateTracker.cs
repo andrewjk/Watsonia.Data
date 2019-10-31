@@ -181,12 +181,11 @@ namespace Watsonia.Data
 					if (property.PropertyType.IsAssignableFrom(this.Item.GetType()) &&
 						property.PropertyType != typeof(object))
 					{
-						foreach (var item in collection)
+						foreach (IDynamicProxy item in collection)
 						{
-							var proxyItem = (IDynamicProxy)item;
-							proxyItem.StateTracker.IsLoading = true;
-							property.SetValue(item, this.Item, null);
-							proxyItem.StateTracker.IsLoading = false;
+							item.StateTracker.IsLoading = true;
+							item.__SetValue(property.Name, this.Item);
+							item.StateTracker.IsLoading = false;
 						}
 					}
 				}

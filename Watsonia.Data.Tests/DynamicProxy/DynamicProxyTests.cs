@@ -17,7 +17,8 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		{
 			if (!File.Exists(@"Data\DynamicProxyTests.sqlite"))
 			{
-				File.Create(@"Data\DynamicProxyTests.sqlite");
+				var file = File.Create(@"Data\DynamicProxyTests.sqlite");
+				file.Dispose();
 			}
 
 			await _db.UpdateDatabaseAsync();
@@ -210,6 +211,18 @@ namespace Watsonia.Data.Tests.DynamicProxy
 			child1.Name = "Good";
 			child2.Name = "Yep";
 			Assert.IsTrue(invalidProxy.StateTracker.IsValid);
+		}
+
+		[TestMethod]
+		public void TestGetAndSetValue()
+		{
+			var customer = _db.Create<Customer>();
+
+			customer.Age = 55;
+			Assert.AreEqual(55, ((IDynamicProxy)customer).__GetValue("age"));
+
+			((IDynamicProxy)customer).__SetValue("age", 66);
+			Assert.AreEqual(66, customer.Age);
 		}
 	}
 }

@@ -34,6 +34,20 @@ namespace Watsonia.Data
 		object __PrimaryKeyValue { get; set; }
 
 		/// <summary>
+		/// Sets the value of the property with the supplied name.
+		/// </summary>
+		/// <param name="name">The property name.</param>
+		/// <param name="value">The value.</param>
+		void __SetValue(string name, object value);
+
+		/// <summary>
+		/// Gets the value of the property with the supplied name.
+		/// </summary>
+		/// <param name="name">The property name.</param>
+		/// <returns></returns>
+		object __GetValue(string name);
+
+		/// <summary>
 		/// Sets the original values after loading or saving.
 		/// </summary>
 		void __SetOriginalValues();

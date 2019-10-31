@@ -209,6 +209,8 @@ namespace Watsonia.Data
 			members.ValueBagType = GetValueBagType(parentType, database, members);
 
 			// Add some methods
+			CreateGetValueMethod(type, members);
+			CreateSetValueMethod(type, members);
 			members.SetOriginalValuesMethod = CreateSetOriginalValuesMethod(type, parentType, members, database, childParentMapping);
 			CreateSetValuesFromReaderMethod(type, members);
 			CreateSetValuesFromBagMethod(type, members);
@@ -1011,6 +1013,10 @@ namespace Watsonia.Data
 			// Map the get and set methods created above to their corresponding property methods
 			propertyBuilder.SetGetMethod(getMethod);
 			propertyBuilder.SetSetMethod(setMethod);
+
+			// Add the get and set methods to the members class so that we can access them while building the proxy
+			members.GetRelatedItemPropertyMethods.Add(property.Name, getMethod);
+			members.SetRelatedItemPropertyMethods.Add(property.Name, setMethod);
 		}
 
 		private static MethodBuilder CreateOverriddenItemPropertyGetMethod(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members, Database database)
@@ -1633,6 +1639,156 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ldarg_1);
 			gen.Emit(OpCodes.Stfld, privateField);
 			gen.Emit(OpCodes.Ret);
+
+			return method;
+		}
+
+		private static MethodBuilder CreateGetValueMethod(TypeBuilder type, DynamicProxyTypeMembers members)
+		{
+			var method = type.DefineMethod(
+				"__GetValue",
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+				typeof(object),
+				new Type[] { typeof(string) });
+
+			var toUpperMethod = typeof(string).GetMethod("ToUpperInvariant", Type.EmptyTypes);
+
+			var stringEqualityMethod = typeof(string).GetMethod("op_Equality", new Type[] { typeof(string), typeof(string) });
+
+			var gen = method.GetILGenerator();
+
+			gen.DeclareLocal(typeof(string));
+
+			var endSwitch = gen.DefineLabel();
+
+			var allGetPropertyMethods = members.GetPropertyMethods.Union(members.GetRelatedItemPropertyMethods).ToDictionary(s => s.Key, s => s.Value);
+
+			// Define the labels for each property in the switch statement
+			var propertyLabels = new Dictionary<string, Label>();
+			foreach (var key in allGetPropertyMethods.Keys)
+			{
+				var pl = gen.DefineLabel();
+				propertyLabels.Add(key, pl);
+			}
+
+			// switch (name.ToUpperInvariant())
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Callvirt, toUpperMethod);
+			gen.Emit(OpCodes.Stloc_0);
+			gen.Emit(OpCodes.Ldloc_0);
+			gen.Emit(OpCodes.Brfalse, endSwitch);
+
+			foreach (var key in allGetPropertyMethods.Keys)
+			{
+				// case "PROPERTY":
+				gen.Emit(OpCodes.Ldloc_0);
+				gen.Emit(OpCodes.Ldstr, key.ToUpperInvariant());
+				gen.Emit(OpCodes.Call, stringEqualityMethod);
+				gen.Emit(OpCodes.Brtrue, propertyLabels[key]);
+			}
+
+			gen.Emit(OpCodes.Br, endSwitch);
+
+			foreach (var key in allGetPropertyMethods.Keys)
+			{
+				gen.MarkLabel(propertyLabels[key]);
+
+				var propertyType = allGetPropertyMethods[key].ReturnType;
+
+				// return this.Property;
+				gen.Emit(OpCodes.Ldarg_0);
+				gen.Emit(OpCodes.Callvirt, allGetPropertyMethods[key]);
+				if (propertyType.IsValueType)
+				{
+					gen.Emit(OpCodes.Box, propertyType);
+				}
+				gen.Emit(OpCodes.Ret);
+			}
+
+			gen.MarkLabel(endSwitch);
+
+			// throw new ArgumentException(name)
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Newobj, typeof(ArgumentException).GetConstructor(new Type[] { typeof(string) }));
+			gen.Emit(OpCodes.Throw);
+
+			return method;
+		}
+
+		private static MethodBuilder CreateSetValueMethod(TypeBuilder type, DynamicProxyTypeMembers members)
+		{
+			var method = type.DefineMethod(
+				"__SetValue",
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+				null,
+				new Type[] { typeof(string), typeof(object) });
+
+			var toUpperMethod = typeof(string).GetMethod("ToUpperInvariant", Type.EmptyTypes);
+
+			var stringEqualityMethod = typeof(string).GetMethod("op_Equality", new Type[] { typeof(string), typeof(string) });
+
+			var gen = method.GetILGenerator();
+
+			gen.DeclareLocal(typeof(string));
+
+			var endSwitch = gen.DefineLabel();
+
+			var allGetPropertyMethods = members.GetPropertyMethods.Union(members.GetRelatedItemPropertyMethods).ToDictionary(s => s.Key, s => s.Value);
+			var allSetPropertyMethods = members.SetPropertyMethods.Union(members.SetRelatedItemPropertyMethods).ToDictionary(s => s.Key, s => s.Value);
+
+			// Define the labels for each property in the switch statement
+			var propertyLabels = new Dictionary<string, Label>();
+			foreach (var key in allSetPropertyMethods.Keys)
+			{
+				var pl = gen.DefineLabel();
+				propertyLabels.Add(key, pl);
+			}
+
+			// switch (name.ToUpperInvariant())
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Callvirt, toUpperMethod);
+			gen.Emit(OpCodes.Stloc_0);
+			gen.Emit(OpCodes.Ldloc_0);
+			gen.Emit(OpCodes.Brfalse, endSwitch);
+
+			foreach (var key in allSetPropertyMethods.Keys)
+			{
+				// case "PROPERTY":
+				gen.Emit(OpCodes.Ldloc_0);
+				gen.Emit(OpCodes.Ldstr, key.ToUpperInvariant());
+				gen.Emit(OpCodes.Call, stringEqualityMethod);
+				gen.Emit(OpCodes.Brtrue, propertyLabels[key]);
+			}
+
+			gen.Emit(OpCodes.Br, endSwitch);
+
+			foreach (var key in allSetPropertyMethods.Keys)
+			{
+				gen.MarkLabel(propertyLabels[key]);
+
+				var propertyType = allGetPropertyMethods[key].ReturnType;
+
+				// this.Property = (type)value;
+				gen.Emit(OpCodes.Ldarg_0);
+				gen.Emit(OpCodes.Ldarg_2);
+				if (propertyType.IsValueType)
+				{
+					gen.Emit(OpCodes.Unbox_Any, propertyType);
+				}
+				else
+				{
+					gen.Emit(OpCodes.Castclass, propertyType);
+				}
+				gen.Emit(OpCodes.Callvirt, allSetPropertyMethods[key]);
+				gen.Emit(OpCodes.Ret);
+			}
+
+			gen.MarkLabel(endSwitch);
+
+			// throw new ArgumentException(name)
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Newobj, typeof(ArgumentException).GetConstructor(new Type[] { typeof(string) }));
+			gen.Emit(OpCodes.Throw);
 
 			return method;
 		}

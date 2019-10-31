@@ -209,6 +209,62 @@ namespace Watsonia.Data.Reference
 			__PrimaryKeyValueChanged?.Invoke(this, new PrimaryKeyValueChangedEventArgs(value));
 		}
 
+		public void __SetValue(string name, object value)
+		{
+			switch (name.ToUpperInvariant())
+			{
+				case "FIRSTNAME":
+				{
+					this.FirstName = (string)value;
+					break;
+				}
+				case "DATEOFBIRTH":
+				{
+					this.DateOfBirth = (DateTime?)value;
+					break;
+				}
+				case "AGE":
+				{
+					this.Age = (int?)value;
+					break;
+				}
+				case "RATING":
+				{
+					this.Rating = (double)value;
+					break;
+				}
+				default:
+				{
+					throw new ArgumentException(name);
+				}
+			}
+		}
+
+		public object __GetValue(string name)
+		{
+			switch (name.ToUpperInvariant())
+			{
+				case "FIRSTNAME":
+				{
+					return this.FirstName;
+				}
+				case "DATEOFBIRTH":
+				{
+					return this.DateOfBirth;
+				}
+				case "AGE":
+				{
+					return this.Age;
+				}
+				case "RATING":
+				{
+					return this.Rating;
+				}
+			}
+
+			throw new ArgumentException(name);
+		}
+
 		public void __SetOriginalValues()
 		{
 			this.StateTracker.OriginalValues["FirstName"] = this.FirstName;

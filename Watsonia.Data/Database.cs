@@ -397,7 +397,7 @@ namespace Watsonia.Data
 			OnBeforeRefresh(proxy);
 
 			var newItem = await LoadAsync<T>(proxy.__PrimaryKeyValue);
-			LoadValues(newItem, (IDynamicProxy)item);
+			LoadValues(newItem, proxy);
 
 			// Refresh any loaded children
 			foreach (var collectionPropertyName in proxy.StateTracker.LoadedCollections)
@@ -411,7 +411,7 @@ namespace Watsonia.Data
 				var select = Select.From(tableName).Where(foreignKeyColumnName, SqlOperator.Equals, proxy.__PrimaryKeyValue);
 
 				// We know that this is an IList because we created it as an List in the DynamicProxyFactory
-				await RefreshCollectionAsync(select, elementType, (IList)property.GetValue(item, null));
+				await RefreshCollectionAsync(select, elementType, (IList)proxy.__GetValue(property.Name));
 			}
 
 			OnAfterRefresh(proxy);
@@ -717,16 +717,16 @@ namespace Watsonia.Data
 					var children = propertyToLoad.PropertyType.IsInterface ?
 						(IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(itemType)) :
 						(IList)Activator.CreateInstance(propertyToLoad.PropertyType);
-					foreach (var child in childCollection)
+					foreach (IDynamicProxy child in childCollection)
 					{
-						var parentID = child.GetType().GetProperty(foreignKeyColumnName).GetValue(child);
+						var parentID = child.__GetValue(foreignKeyColumnName);
 						if (parent.__PrimaryKeyValue.Equals(parentID))
 						{
 							children.Add(child);
 						}
 					}
 					parent.StateTracker.SetCollection(pathToLoad, children);
-					propertyToLoad.SetValue(parent, children);
+					parent.__SetValue(propertyToLoad.Name, children);
 
 					if (pathIndex < paths.Length - 1)
 					{
@@ -749,7 +749,7 @@ namespace Watsonia.Data
 					{
 						if (((IDynamicProxy)child).__PrimaryKeyValue.Equals(parentChildID))
 						{
-							propertyToLoad.SetValue(parent, child);
+							parent.__SetValue(propertyToLoad.Name, child);
 
 							if (pathIndex < paths.Length - 1)
 							{
@@ -1106,7 +1106,7 @@ namespace Watsonia.Data
 			foreach (var propertyName in proxy.StateTracker.LoadedItems)
 			{
 				var property = tableType.GetProperty(propertyName);
-				var relatedItem = (IDynamicProxy)property.GetValue(proxy, null);
+				var relatedItem = (IDynamicProxy)proxy.__GetValue(propertyName);
 				if (relatedItem != null)
 				{
 					if (this.Configuration.ShouldCascadeInternal(property))
@@ -1115,8 +1115,7 @@ namespace Watsonia.Data
 
 						// Update the related item ID property
 						var relatedItemIDPropertyName = this.Configuration.GetForeignKeyColumnName(property);
-						var relatedItemIDProperty = proxy.GetType().GetProperty(relatedItemIDPropertyName);
-						relatedItemIDProperty.SetValue(proxy, relatedItem.__PrimaryKeyValue, null);
+						proxy.__SetValue(relatedItemIDPropertyName, relatedItem.__PrimaryKeyValue);
 
 						// Add the related item to a list so that we can check whether it needs to be
 						// re-saved as part of a related collection
@@ -1170,7 +1169,7 @@ namespace Watsonia.Data
 
 				// Save items and collect the item IDs while we're at it
 				var collectionIDs = new List<object>();
-				foreach (IDynamicProxy childItem in ((IEnumerable)property.GetValue(proxy, null)))
+				foreach (IDynamicProxy childItem in (IEnumerable)proxy.__GetValue(collectionPropertyName))
 				{
 					if (this.Configuration.ShouldCascade(property))
 					{
@@ -1178,8 +1177,7 @@ namespace Watsonia.Data
 						{
 							// Set the parent ID of the item in the collection
 							var parentIDPropertyName = this.Configuration.GetForeignKeyColumnName(childItem.GetType().BaseType, tableType);
-							var parentIDProperty = childItem.GetType().GetProperty(parentIDPropertyName);
-							parentIDProperty.SetValue(childItem, proxy.__PrimaryKeyValue, null);
+							childItem.__SetValue(parentIDPropertyName, proxy.__PrimaryKeyValue);
 						}
 						await SaveItemAsync(childItem, connection, transaction);
 					}
@@ -1227,11 +1225,11 @@ namespace Watsonia.Data
 				{
 					if (property.PropertyType == typeof(string))
 					{
-						insert.Value(property.Name, property.GetValue(proxy, null) ?? "");
+						insert.Value(property.Name, proxy.__GetValue(property.Name) ?? "");
 					}
 					else
 					{
-						insert.Value(property.Name, property.GetValue(proxy, null));
+						insert.Value(property.Name, proxy.__GetValue(property.Name));
 					}
 				}
 			}
@@ -1262,11 +1260,11 @@ namespace Watsonia.Data
 				{
 					if (property.PropertyType == typeof(string))
 					{
-						update.Set(property.Name, property.GetValue(proxy, null) ?? "");
+						update.Set(property.Name, proxy.__GetValue(property.Name) ?? "");
 					}
 					else
 					{
-						update.Set(property.Name, property.GetValue(proxy, null));
+						update.Set(property.Name, proxy.__GetValue(property.Name));
 					}
 					doUpdate = true;
 				}
@@ -1299,7 +1297,7 @@ namespace Watsonia.Data
 					if (proxy.StateTracker.LoadedCollections.Contains(property.Name))
 					{
 						var collectionIDs = new List<object>();
-						foreach (var cascadeItem in ((IEnumerable)property.GetValue(proxy, null)))
+						foreach (var cascadeItem in (IEnumerable)proxy.__GetValue(property.Name))
 						{
 							UpdateSavedCollectionIDs(cascadeItem);
 							collectionIDs.Add(((IDynamicProxy)cascadeItem).__PrimaryKeyValue);
@@ -1412,9 +1410,7 @@ namespace Watsonia.Data
 					if (this.Configuration.IsRelatedItem(property))
 					{
 						var deleteKeyPropertyName = this.Configuration.GetForeignKeyColumnName(property);
-						var deleteKeyProperty = proxy.GetType().GetProperty(deleteKeyPropertyName,
-							BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-						var deletePrimaryKeyValue = deleteKeyProperty.GetValue(proxy);
+						var deletePrimaryKeyValue = proxy.__GetValue(deleteKeyPropertyName);
 						if (deletePrimaryKeyValue != null)
 						{
 							var deletePrimaryKeyName = this.Configuration.GetPrimaryKeyColumnName(deleteType);

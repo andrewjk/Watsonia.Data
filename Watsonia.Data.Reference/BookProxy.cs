@@ -405,6 +405,37 @@ namespace Watsonia.Data.Reference
 			__PrimaryKeyValueChanged?.Invoke(this, new PrimaryKeyValueChangedEventArgs(value));
 		}
 
+		public void __SetValue(string name, object value)
+		{
+			switch (name.ToUpperInvariant())
+			{
+				case "ID":
+				{
+					this.ID = (long)value;
+					break;
+				}
+				// etc
+				default:
+				{
+					throw new ArgumentException(name);
+				}
+			}
+		}
+
+		public object __GetValue(string name)
+		{
+			switch (name.ToUpperInvariant())
+			{
+				case "ID":
+				{
+					return this.ID;
+				}
+				// etc
+			}
+
+			throw new ArgumentException(name);
+		}
+
 		public void __SetOriginalValues()
 		{
 			this.StateTracker.OriginalValues["Title"] = this.Title;
