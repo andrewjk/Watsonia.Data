@@ -1894,7 +1894,7 @@ namespace Watsonia.Data
 				"__SetValuesFromReader",
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
 				null,
-				new Type[] { typeof(DbDataReader) });
+				new Type[] { typeof(DbDataReader), typeof(string[]) });
 
 			var stateTrackerIsLoadingMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"set_IsLoading", new Type[] { typeof(bool) });
@@ -1989,13 +1989,12 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Br, endFieldLoop);
 			gen.MarkLabel(startFieldLoop);
 
-			// switch (source.GetName(i).ToUpperInvariant())
-			gen.Emit(OpCodes.Ldarg_1);
+			// switch (fieldNames[i])
+			gen.Emit(OpCodes.Ldarg_2);
 			gen.Emit(OpCodes.Ldloc_0);
-			gen.Emit(OpCodes.Callvirt, readerGetNameMethod);
-			gen.Emit(OpCodes.Callvirt, toUpperInvariantMethod);
-			gen.Emit(OpCodes.Dup);
+			gen.Emit(OpCodes.Ldelem_Ref);
 			gen.Emit(OpCodes.Stloc_1);
+			gen.Emit(OpCodes.Ldloc_1);
 			gen.Emit(OpCodes.Brfalse, endSwitch);
 
 			foreach (var key in members.SetPropertyMethods.Keys)

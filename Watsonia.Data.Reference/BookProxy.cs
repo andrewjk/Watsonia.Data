@@ -447,13 +447,13 @@ namespace Watsonia.Data.Reference
 			this.StateTracker.OriginalValues["IntNullable"] = this.IntNullable;
 		}
 
-		public void __SetValuesFromReader(DbDataReader source)
+		public void __SetValuesFromReader(DbDataReader source, string[] fieldNames)
 		{
 			this.StateTracker.IsLoading = true;
 
-			for (var i = 0; i < source.FieldCount; i++)
+			for (var i = 0; i < fieldNames.Length; i++)
 			{
-				switch (source.GetName(i).ToUpperInvariant())
+				switch (fieldNames[i])
 				{
 					case "ID":
 					{

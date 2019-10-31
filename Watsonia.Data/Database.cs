@@ -338,11 +338,12 @@ namespace Watsonia.Data
 					OnBeforeExecuteCommand(command);
 					using (var reader = await command.ExecuteReaderAsync())
 					{
+						var fieldNames = GetReaderFieldNames(reader);
 						if (await reader.ReadAsync())
 						{
 							item = Create<T>();
 							proxy = (IDynamicProxy)item;
-							proxy.__SetValuesFromReader(reader);
+							proxy.__SetValuesFromReader(reader, fieldNames);
 							proxy.StateTracker.IsNew = false;
 							proxy.StateTracker.HasChanges = false;
 
@@ -444,9 +445,10 @@ namespace Watsonia.Data
 				OnBeforeExecuteCommand(command);
 				using (var reader = await command.ExecuteReaderAsync())
 				{
+					var fieldNames = GetReaderFieldNames(reader);
 					while (await reader.ReadAsync())
 					{
-						var newItem = LoadItemInCollection<T>(reader, itemType);
+						var newItem = LoadItemInCollection<T>(reader, itemType, fieldNames);
 						result.Add(newItem);
 					}
 				}
@@ -476,12 +478,13 @@ namespace Watsonia.Data
 				OnBeforeExecuteCommand(command);
 				using (var reader = await command.ExecuteReaderAsync())
 				{
+					var fieldNames = GetReaderFieldNames(reader);
 					while (await reader.ReadAsync())
 					{
 						var proxyConstructor = DynamicProxyFactory.GetDynamicProxyConstructor(itemType, this);
 						var proxy = proxyConstructor.Create();
 						proxy.StateTracker.Database = this;
-						proxy.__SetValuesFromReader(reader);
+						proxy.__SetValuesFromReader(reader, fieldNames);
 						result.Add(proxy);
 					}
 				}
@@ -781,7 +784,7 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public async Task<IList<T>> LoadCollectionAsync<T>(SelectStatement<T> select)
 		{
-			var select2 = select.CreateStatement(new QueryMapper(this.Configuration));
+			var select2 = (SelectStatement)select.CreateStatement(new QueryMapper(this.Configuration));
 			return await LoadCollectionAsync<T>(select2);
 		}
 
@@ -811,9 +814,10 @@ namespace Watsonia.Data
 				OnBeforeExecuteCommand(command);
 				using (var reader = await command.ExecuteReaderAsync())
 				{
+					var fieldNames = GetReaderFieldNames(reader);
 					while (await reader.ReadAsync())
 					{
-						var newItem = LoadItemInCollection<T>(reader, itemType);
+						var newItem = LoadItemInCollection<T>(reader, itemType, fieldNames);
 						result.Add(newItem);
 					}
 				}
@@ -848,7 +852,7 @@ namespace Watsonia.Data
 			}
 		}
 
-		private T LoadItemInCollection<T>(DbDataReader reader, CollectionItemType itemType)
+		private T LoadItemInCollection<T>(DbDataReader reader, CollectionItemType itemType, string[] fieldNames)
 		{
 			switch (itemType)
 			{
@@ -872,14 +876,14 @@ namespace Watsonia.Data
 				{
 					var proxy = DynamicProxyFactory.GetDynamicProxyConstructor(typeof(T), this).Create();
 					proxy.StateTracker.Database = this;
-					proxy.__SetValuesFromReader(reader);
+					proxy.__SetValuesFromReader(reader, fieldNames);
 					return (T)proxy;
 				}
 				case CollectionItemType.MappedObject:
 				{
 					var newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
 					var proxy = (IDynamicProxy)newItem;
-					proxy.__SetValuesFromReader(reader);
+					proxy.__SetValuesFromReader(reader, fieldNames);
 					return newItem;
 				}
 				case CollectionItemType.PlainObject:
@@ -902,10 +906,11 @@ namespace Watsonia.Data
 				OnBeforeExecuteCommand(command);
 				using (var reader = await command.ExecuteReaderAsync())
 				{
+					var fieldNames = GetReaderFieldNames(reader);
 					while (await reader.ReadAsync())
 					{
 						var proxy = DynamicProxyFactory.GetDynamicProxy(elementType, this);
-						proxy.__SetValuesFromReader(reader);
+						proxy.__SetValuesFromReader(reader, fieldNames);
 						result.Add(proxy);
 					}
 				}
@@ -989,7 +994,7 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public async Task<object> LoadValueAsync<T>(SelectStatement<T> select)
 		{
-			var select2 = select.CreateStatement(new QueryMapper(this.Configuration));
+			var select2 = (SelectStatement)select.CreateStatement(new QueryMapper(this.Configuration));
 			return await LoadValueAsync(select2);
 		}
 
@@ -1648,6 +1653,16 @@ namespace Watsonia.Data
 			}
 
 			destination.StateTracker.IsLoading = false;
+		}
+
+		private string[] GetReaderFieldNames(DbDataReader reader)
+		{
+			var result = new string[reader.FieldCount];
+			for (var i = 0; i < reader.FieldCount; i++)
+			{
+				result[i] = reader.GetName(i).ToUpperInvariant();
+			}
+			return result;
 		}
 
 		/// <summary>

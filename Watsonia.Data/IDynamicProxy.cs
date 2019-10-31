@@ -56,7 +56,7 @@ namespace Watsonia.Data
 		/// Sets the item's property values from a data reader.
 		/// </summary>
 		/// <param name="source">The data reader.</param>
-		void __SetValuesFromReader(DbDataReader source);
+		void __SetValuesFromReader(DbDataReader source, string[] fieldNames);
 
 		/// <summary>
 		/// Sets the item's property values from a value bag.
