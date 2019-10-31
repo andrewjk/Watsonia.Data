@@ -37,7 +37,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				_id = value;
-				this.StateTracker.SetFieldValue("ID", value);
+				this.StateTracker.SetFieldValue(nameof(ID), value);
 				OnPrimaryKeyValueChanged(value);
 			}
 		}
@@ -63,7 +63,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.FirstName = value;
-				this.StateTracker.SetFieldValue("FirstName", value);
+				this.StateTracker.SetFieldValue(nameof(FirstName), value);
 			}
 		}
 
@@ -76,7 +76,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.LastName = value;
-				this.StateTracker.SetFieldValue("LastName", value);
+				this.StateTracker.SetFieldValue(nameof(LastName), value);
 			}
 		}
 
@@ -89,7 +89,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.Email = value;
-				this.StateTracker.SetFieldValue("Email", value);
+				this.StateTracker.SetFieldValue(nameof(Email), value);
 			}
 		}
 		
@@ -102,7 +102,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.DateOfBirth = value;
-				this.StateTracker.SetFieldValue("DateOfBirth", value);
+				this.StateTracker.SetFieldValue(nameof(DateOfBirth), value);
 			}
 		}
 		
@@ -115,7 +115,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.Age = value;
-				this.StateTracker.SetFieldValue("Age", value);
+				this.StateTracker.SetFieldValue(nameof(Age), value);
 			}
 		}
 
@@ -128,7 +128,7 @@ namespace Watsonia.Data.Reference
 			set
 			{
 				base.Rating = value;
-				this.StateTracker.SetFieldValue("Rating", value);
+				this.StateTracker.SetFieldValue(nameof(Rating), value);
 			}
 		}
 
@@ -138,14 +138,14 @@ namespace Watsonia.Data.Reference
 			{
 				if (base.Books == null)
 				{
-					base.Books = this.StateTracker.LoadCollection<Book>("Books");
+					base.Books = this.StateTracker.LoadCollection<Book>(nameof(Books));
 				}
 				return base.Books;
 			}
 			set
 			{
 				base.Books = value;
-				this.StateTracker.AddLoadedCollection("Books");
+				this.StateTracker.AddLoadedCollection(nameof(Books));
 			}
 		}
 

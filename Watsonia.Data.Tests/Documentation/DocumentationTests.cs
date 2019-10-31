@@ -121,6 +121,7 @@ namespace Watsonia.Data.Tests.Documentation
 
 			// Create an author more tersely
 			var newAuthor2 = await _db.InsertAsync(new Author() { FirstName = "Eric", LastName = "Blair" });
+			Assert.IsNotNull(newAuthor2);
 		}
 
 		[TestMethod]
