@@ -84,14 +84,23 @@ namespace Watsonia.Data.TestPerformance
 				}
 				Console.Write("{0}/{1}", i + 1, RunCount);
 
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
+
 				var adoTests = new AdoNetTests();
 				var adoResults = RunTests(i, TestFramework.AdoNet, adoTests);
 				testResults.AddRange(adoResults);
+
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
 
 				// Dapper is fast
 				var dapperTests = new DapperTests();
 				var dapperResults = RunTests(i, TestFramework.Dapper, dapperTests);
 				testResults.AddRange(dapperResults);
+
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
 
 				// EntityFramework is full-featured
 				var efTests = new EntityFrameworkTests();
@@ -100,15 +109,24 @@ namespace Watsonia.Data.TestPerformance
 
 				// TODO: Should we test an "optimised" EF? No change tracking etc?
 
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
+
 				// Use Linq for a better dev experience
 				var wlinqTests = new WatsoniaLinqTests();
 				var wlinqResults = RunTests(i, TestFramework.WatsoniaLinq, wlinqTests);
 				testResults.AddRange(wlinqResults);
 
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
+
 				// Use SQL for speed
 				var wsqlTests = new WatsoniaSqlTests();
 				var wsqlResults = RunTests(i, TestFramework.WatsoniaSql, wsqlTests);
 				testResults.AddRange(wsqlResults);
+
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
 
 				if (i == 0)
 				{
