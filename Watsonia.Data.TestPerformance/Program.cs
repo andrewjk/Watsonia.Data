@@ -89,7 +89,7 @@ namespace Watsonia.Data.TestPerformance
 
 				var adoTests = new AdoNetTests();
 				var adoResults = RunTests(i, TestFramework.AdoNet, adoTests);
-				testResults.AddRange(adoResults);
+				testResults.Add(adoResults);
 
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
@@ -97,7 +97,7 @@ namespace Watsonia.Data.TestPerformance
 				// Dapper is fast
 				var dapperTests = new DapperTests();
 				var dapperResults = RunTests(i, TestFramework.Dapper, dapperTests);
-				testResults.AddRange(dapperResults);
+				testResults.Add(dapperResults);
 
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
@@ -105,7 +105,7 @@ namespace Watsonia.Data.TestPerformance
 				// EntityFramework is full-featured
 				var efTests = new EntityFrameworkTests();
 				var efResults = RunTests(i, TestFramework.EntityFramework, efTests);
-				testResults.AddRange(efResults);
+				testResults.Add(efResults);
 
 				// TODO: Should we test an "optimised" EF? No change tracking etc?
 
@@ -113,9 +113,10 @@ namespace Watsonia.Data.TestPerformance
 				GC.WaitForPendingFinalizers();
 
 				// Use Linq for a better dev experience
+
 				var wlinqTests = new WatsoniaLinqTests();
 				var wlinqResults = RunTests(i, TestFramework.WatsoniaLinq, wlinqTests);
-				testResults.AddRange(wlinqResults);
+				testResults.Add(wlinqResults);
 
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
@@ -123,7 +124,7 @@ namespace Watsonia.Data.TestPerformance
 				// Use SQL for speed
 				var wsqlTests = new WatsoniaSqlTests();
 				var wsqlResults = RunTests(i, TestFramework.WatsoniaSql, wsqlTests);
-				testResults.AddRange(wsqlResults);
+				testResults.Add(wsqlResults);
 
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
@@ -144,11 +145,10 @@ namespace Watsonia.Data.TestPerformance
 			return testResults;
 		}
 
-		private static List<TestResult> RunTests(int number, TestFramework framework, IPerformanceTests tests)
+		private static TestResult RunTests(int number, TestFramework framework, IPerformanceTests tests)
 		{
-			var results = new List<TestResult>();
-
 			var result = new TestResult() { Number = number, Framework = framework };
+
 			var allPostsResults = new List<long>();
 			for (var i = 1; i <= Math.Min(MaxOperations, PostCount); i++)
 			{
@@ -169,6 +169,7 @@ namespace Watsonia.Data.TestPerformance
 				playersForTeamResults.Add(tests.GetPlayersForTeam(i));
 			}
 			result.PlayersForTeamMilliseconds = Math.Round(playersForTeamResults.Average(), 2);
+
 			var teamsForSportResults = new List<long>();
 			for (var i = 1; i <= Math.Min(MaxOperations, SportCount); i++)
 			{
@@ -181,9 +182,7 @@ namespace Watsonia.Data.TestPerformance
 			result.LoadedPlayersForTeam = tests.LoadedPlayersForTeam;
 			result.LoadedTeamsForSport = tests.LoadedTeamsForSport;
 
-			results.Add(result);
-
-			return results;
+			return result;
 		}
 
 		private static void CompareResults(TestResult a, TestResult b, string framework)
@@ -241,7 +240,7 @@ namespace Watsonia.Data.TestPerformance
 			a.Sort();
 			b.Sort();
 
-			for (var i = 0; i < a.Count; i++ )
+			for (var i = 0; i < a.Count; i++)
 			{
 				if (a[i] != b[i])
 				{
