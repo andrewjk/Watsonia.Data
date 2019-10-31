@@ -479,7 +479,7 @@ namespace Watsonia.Data
 					while (await reader.ReadAsync())
 					{
 						var proxyConstructor = DynamicProxyFactory.GetDynamicProxyConstructor(itemType, this);
-						var proxy = (IDynamicProxy)proxyConstructor.Invoke(Type.EmptyTypes);
+						var proxy = proxyConstructor.Create();
 						proxy.StateTracker.Database = this;
 						proxy.__SetValuesFromReader(reader);
 						result.Add(proxy);
@@ -870,11 +870,10 @@ namespace Watsonia.Data
 				}
 				case CollectionItemType.DynamicProxy:
 				{
-					var newItem = (T)typeof(T).GetConstructor(Type.EmptyTypes).Invoke(Type.EmptyTypes);
-					var proxy = (IDynamicProxy)newItem;
+					var proxy = DynamicProxyFactory.GetDynamicProxyConstructor(typeof(T), this).Create();
 					proxy.StateTracker.Database = this;
 					proxy.__SetValuesFromReader(reader);
-					return newItem;
+					return (T)proxy;
 				}
 				case CollectionItemType.MappedObject:
 				{

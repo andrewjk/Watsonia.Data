@@ -20,7 +20,7 @@ namespace Watsonia.Data
 		//private static string _exportPath = null;
 
 		private static readonly Dictionary<string, Type> _cachedTypes = new Dictionary<string, Type>();
-		private static readonly Dictionary<string, ConstructorInfo> _cachedConstructors = new Dictionary<string, ConstructorInfo>();
+		private static readonly Dictionary<string, IDynamicProxyCreator> _cachedConstructors = new Dictionary<string, IDynamicProxyCreator>();
 		private static readonly Dictionary<string, ChildParentMapping> _cachedChildParentMappings = new Dictionary<string, ChildParentMapping>();
 
 		private static readonly object _cachedTypesLock = new object();
@@ -89,7 +89,7 @@ namespace Watsonia.Data
 			return _cachedTypes[proxyTypeName];
 		}
 
-		internal static ConstructorInfo GetDynamicProxyConstructor(Type parentType, Database database)
+		internal static IDynamicProxyCreator GetDynamicProxyConstructor(Type parentType, Database database)
 		{
 			var proxyTypeName = GetDynamicTypeName(parentType, database);
 			if (!_cachedConstructors.ContainsKey(proxyTypeName))
@@ -98,9 +98,29 @@ namespace Watsonia.Data
 				{
 					if (!_cachedConstructors.ContainsKey(proxyTypeName))
 					{
+						// NOTE: We could also create a delegate for the constructor:
+						//var proxyType = GetDynamicProxyType(parentType, database);
+						//var constructor = proxyType.GetConstructor(Type.EmptyTypes);
+						//var method = new DynamicMethod(
+						//	string.Empty,
+						//	proxyType,
+						//	Type.EmptyTypes,
+						//	proxyType);
+						//var gen = method.GetILGenerator();
+						//gen.DeclareLocal(proxyType);
+						//gen.Emit(OpCodes.Newobj, constructor);
+						//gen.Emit(OpCodes.Stloc_0);
+						//gen.Emit(OpCodes.Ldloc_0);
+						//gen.Emit(OpCodes.Ret);
+						//var func = (Func<IDynamicProxy>)method.CreateDelegate(typeof(Func<IDynamicProxy>));
+						//_cachedConstructors.Add(proxyTypeName, func);
+
 						var proxyType = GetDynamicProxyType(parentType, database);
-						var constructor = proxyType.GetConstructor(Type.EmptyTypes);
-						_cachedConstructors.Add(proxyTypeName, constructor);
+						var creatorTypeName = GetDynamicTypeName(parentType, database, "Creator");
+						var creatorType = CreateCreatorType(creatorTypeName, proxyType);
+						var creatorConstructor = creatorType.GetConstructor(Type.EmptyTypes);
+						var creator = (IDynamicProxyCreator)creatorConstructor.Invoke(Type.EmptyTypes);
+						_cachedConstructors.Add(proxyTypeName, creator);
 					}
 				}
 			}
@@ -144,7 +164,7 @@ namespace Watsonia.Data
 		internal static IDynamicProxy GetDynamicProxy(Type parentType, Database database)
 		{
 			var proxyConstructor = GetDynamicProxyConstructor(parentType, database);
-			var proxy = (IDynamicProxy)proxyConstructor.Invoke(Type.EmptyTypes);
+			var proxy = proxyConstructor.Create();
 			proxy.StateTracker.Database = database;
 			return proxy;
 		}
@@ -2166,6 +2186,28 @@ namespace Watsonia.Data
 				gen.Emit(OpCodes.Ldloc_0);
 			}
 			gen.Emit(OpCodes.Ret);
+		}
+
+		private static Type CreateCreatorType(string typeName, Type proxyType)
+		{
+			var type = _moduleBuilder.DefineType(
+				typeName,
+				TypeAttributes.Public,
+				typeof(object),
+				new Type[] { typeof(IDynamicProxyCreator) });
+
+			var method = type.DefineMethod(
+				"Create",
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
+				typeof(IDynamicProxy),
+				Type.EmptyTypes);
+
+			var gen = method.GetILGenerator();
+
+			gen.Emit(OpCodes.Newobj, proxyType.GetConstructor(Type.EmptyTypes));
+			gen.Emit(OpCodes.Ret);
+
+			return type.CreateTypeInfo();
 		}
 
 		/// <summary>
