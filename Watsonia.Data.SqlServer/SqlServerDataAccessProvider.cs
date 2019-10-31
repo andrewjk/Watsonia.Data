@@ -73,32 +73,26 @@ namespace Watsonia.Data.SqlServer
 		/// <summary>
 		/// Updates the database with any changes that have been made to tables and columns.
 		/// </summary>
-		/// <param name="tables">The tables that should exist in the database.</param>
-		/// <param name="views">The views that should exist in the database.</param>
-		/// <param name="procedures">The stored procedures that should exist in the database.</param>
-		/// <param name="functions">The user-defined functions that should exist in the database.</param>
+		/// <param name="schema">Mappings from objects to the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		public async Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
+		public async Task UpdateDatabaseAsync(Schema schema, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
-			await updater.UpdateDatabaseAsync(tables, views, procedures, functions);
+			await updater.UpdateDatabaseAsync(schema);
 		}
 
 		/// <summary>
 		/// Gets the update script for any changes that have been made to tables and columns.
 		/// </summary>
-		/// <param name="tables">The tables that should exist in the database.</param>
-		/// <param name="views">The views that should exist in the database.</param>
-		/// <param name="procedures">The stored procedures that should exist in the database.</param>
-		/// <param name="functions">The user-defined functions that should exist in the database.</param>
+		/// <param name="schema">Mappings from objects to the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		public async Task<string> GetUpdateScriptAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
+		public async Task<string> GetUpdateScriptAsync(Schema schema, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
-			return await updater.GetUpdateScriptAsync(tables, views, procedures, functions);
+			return await updater.GetUpdateScriptAsync(schema);
 		}
 
 		/// <summary>
@@ -160,16 +154,16 @@ namespace Watsonia.Data.SqlServer
 		/// <summary>
 		/// Gets columns that exist in the database but are not mapped.
 		/// </summary>
-		/// <param name="tables">The tables that should exist in the database.</param>
+		/// <param name="schema">Mappings from objects to the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the unmapped columns.
 		/// </returns>
 		/// <exception cref="NotImplementedException"></exception>
-		public async Task<string> GetUnmappedColumnsAsync(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration)
+		public async Task<string> GetUnmappedColumnsAsync(Schema schema, DatabaseConfiguration configuration)
 		{
 			var updater = new SqlServerDatabaseUpdater(this, configuration);
-			return await updater.GetUnmappedColumnsAsync(tables);
+			return await updater.GetUnmappedColumnsAsync(schema);
 		}
 	}
 }

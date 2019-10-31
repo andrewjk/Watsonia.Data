@@ -46,35 +46,29 @@ namespace Watsonia.Data
 		/// <summary>
 		/// Updates the database with any changes that have been made to tables and columns.
 		/// </summary>
-		/// <param name="tables">The tables that should exist in the database.</param>
-		/// <param name="views">The views that should exist in the database.</param>
-		/// <param name="procedures">The stored procedures that should exist in the database.</param>
-		/// <param name="functions">The user-defined functions that should exist in the database.</param>
+		/// <param name="schema">Mappings from objects to the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration);
+		Task UpdateDatabaseAsync(Schema schema, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Gets the update script for any changes that have been made to tables and columns.
 		/// </summary>
-		/// <param name="tables">The tables that should exist in the database.</param>
-		/// <param name="views">The views that should exist in the database.</param>
-		/// <param name="procedures">The stored procedures that should exist in the database.</param>
-		/// <param name="functions">The user-defined functions that should exist in the database.</param>
+		/// <param name="schema">Mappings from objects to the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		Task<string> GetUpdateScriptAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration);
+		Task<string> GetUpdateScriptAsync(Schema schema, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Gets columns that exist in the database but are not mapped.
 		/// </summary>
-		/// <param name="tables">The tables that should exist in the database.</param>
+		/// <param name="schema">Mappings from objects to the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the unmapped columns.
 		/// </returns>
-		Task<string> GetUnmappedColumnsAsync(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration);
+		Task<string> GetUnmappedColumnsAsync(Schema schema, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Builds a command to return the ID of the last inserted item.

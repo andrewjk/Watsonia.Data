@@ -44,19 +44,19 @@ namespace Watsonia.Data.SQLite
 			return Task.FromResult(0);
 		}
 
-		public async Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
+		public async Task UpdateDatabaseAsync(Schema schema)
 		{
-			await UpdateDatabaseAsync(tables, views, procedures, functions, true);
+			await UpdateDatabaseAsync(schema, true);
 		}
 
-		public async Task<string> GetUpdateScriptAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
+		public async Task<string> GetUpdateScriptAsync(Schema schema)
 		{
 			var script = new StringBuilder();
-			await UpdateDatabaseAsync(tables, views, procedures, functions, false, script);
+			await UpdateDatabaseAsync(schema, false, script);
 			return script.ToString();
 		}
 
-		private async Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, bool doUpdate, StringBuilder script = null)
+		private async Task UpdateDatabaseAsync(Schema schema, bool doUpdate, StringBuilder script = null)
 		{
 			using (var connection = await _dataAccessProvider.OpenConnectionAsync(_configuration))
 			{
@@ -66,7 +66,7 @@ namespace Watsonia.Data.SQLite
 				var existingViews = await LoadExistingViewsAsync(connection);
 
 				// First pass - create or update tables and columns
-				foreach (var table in tables)
+				foreach (var table in schema.Tables)
 				{
 					if (existingTables.ContainsKey(table.Name.ToUpperInvariant()))
 					{
@@ -94,14 +94,14 @@ namespace Watsonia.Data.SQLite
 				}
 
 				// Second pass - fill table data
-				foreach (var table in tables.Where(t => t.Values.Count > 0))
+				foreach (var table in schema.Tables.Where(t => t.Values.Count > 0))
 				{
 					await UpdateTableDataAsync(table, connection, doUpdate, script);
 				}
 
 				// Third pass - create relationship constraints
 				var existingForeignKeys = LoadExistingForeignKeys(connection);
-				foreach (var table in tables)
+				foreach (var table in schema.Tables)
 				{
 					foreach (var column in table.Columns.Where(c => c.Relationship != null))
 					{
@@ -114,7 +114,7 @@ namespace Watsonia.Data.SQLite
 				}
 
 				// Fourth pass - create views
-				foreach (var view in views)
+				foreach (var view in schema.Views)
 				{
 					var key = view.Name.ToUpperInvariant();
 					if (existingViews.ContainsKey(key))

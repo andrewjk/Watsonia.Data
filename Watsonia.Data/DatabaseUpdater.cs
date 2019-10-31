@@ -20,12 +20,9 @@ namespace Watsonia.Data
 				throw new ArgumentNullException(nameof(configuration));
 			}
 
-			var tables = new List<MappedTable>();
-			var views = new List<MappedView>();
-			var procedures = new List<MappedProcedure>();
-			var functions = new List<MappedFunction>();
-			GetMappedObjects(tables, views, procedures, functions, configuration);
-			await configuration.DataAccessProvider.UpdateDatabaseAsync(tables, views, procedures, functions, configuration);
+			var schema = new Schema();
+			GetMappedObjects(schema, configuration);
+			await configuration.DataAccessProvider.UpdateDatabaseAsync(schema, configuration);
 		}
 
 		public async Task<string> GetUpdateScriptAsync(DatabaseConfiguration configuration)
@@ -35,12 +32,9 @@ namespace Watsonia.Data
 				throw new ArgumentNullException(nameof(configuration));
 			}
 
-			var tables = new List<MappedTable>();
-			var views = new List<MappedView>();
-			var procedures = new List<MappedProcedure>();
-			var functions = new List<MappedFunction>();
-			GetMappedObjects(tables, views, procedures, functions, configuration);
-			return await configuration.DataAccessProvider.GetUpdateScriptAsync(tables, views, procedures, functions, configuration);
+			var schema = new Schema();
+			GetMappedObjects(schema, configuration);
+			return await configuration.DataAccessProvider.GetUpdateScriptAsync(schema, configuration);
 		}
 
 		public async Task<string> GetUnmappedColumnsAsync(DatabaseConfiguration configuration)
@@ -50,43 +44,17 @@ namespace Watsonia.Data
 				throw new ArgumentNullException(nameof(configuration));
 			}
 
-			var tables = new List<MappedTable>();
-			var views = new List<MappedView>();
-			var procedures = new List<MappedProcedure>();
-			var functions = new List<MappedFunction>();
-			GetMappedObjects(tables, views, procedures, functions, configuration);
-			return await configuration.DataAccessProvider.GetUnmappedColumnsAsync(tables, configuration);
+			var schema = new Schema();
+			GetMappedObjects(schema, configuration);
+			return await configuration.DataAccessProvider.GetUnmappedColumnsAsync(schema, configuration);
 		}
 
-		private void GetMappedObjects(List<MappedTable> tables, List<MappedView> views, List<MappedProcedure> procedures, List<MappedFunction> functions, DatabaseConfiguration configuration)
+		private void GetMappedObjects(Schema schema, DatabaseConfiguration configuration)
 		{
-			if (tables == null)
-			{
-				throw new ArgumentNullException(nameof(tables));
-			}
-
-			if (views == null)
-			{
-				throw new ArgumentNullException(nameof(views));
-			}
-
-			if (procedures == null)
-			{
-				throw new ArgumentNullException(nameof(procedures));
-			}
-
-			if (functions == null)
-			{
-				throw new ArgumentNullException(nameof(functions));
-			}
-
 			if (configuration == null)
 			{
 				throw new ArgumentNullException(nameof(configuration));
 			}
-
-			tables.Clear();
-			views.Clear();
 
 			var tableDictionary = new Dictionary<string, MappedTable>();
 			var tableRelationships = new Dictionary<string, MappedRelationship>();
@@ -133,13 +101,25 @@ namespace Watsonia.Data
 				}
 			}
 
-			tables.AddRange(tableDictionary.Values);
-			views.AddRange(viewDictionary.Values);
-			procedures.AddRange(procedureDictionary.Values);
-			functions.AddRange(functionDictionary.Values);
+			foreach (var table in tableDictionary.Values)
+			{
+				schema.Tables.Add(table);
+			}
+			foreach (var view in viewDictionary.Values)
+			{
+				schema.Views.Add(view);
+			}
+			foreach (var procedure in procedureDictionary.Values)
+			{
+				schema.Procedures.Add(procedure);
+			}
+			foreach (var function in functionDictionary.Values)
+			{
+				schema.Functions.Add(function);
+			}
 		}
 
-		private void GetMappedTable(Dictionary<string, MappedTable> tableDictionary, Dictionary<string, MappedRelationship> tableRelationships, Type tableType,  DatabaseConfiguration configuration)
+		private void GetMappedTable(Dictionary<string, MappedTable> tableDictionary, Dictionary<string, MappedRelationship> tableRelationships, Type tableType, DatabaseConfiguration configuration)
 		{
 			var tableName = configuration.GetTableName(tableType);
 			var primaryKeyColumnName = configuration.GetPrimaryKeyColumnName(tableType);
@@ -188,7 +168,7 @@ namespace Watsonia.Data
 						enumTable.Columns.Add(new MappedColumn("Text", typeof(string), "DF_" + enumTableName + "_Text") { MaxLength = 255 });
 						foreach (var value in Enum.GetValues(property.PropertyType))
 						{
-							enumTable.Values.Add(new Dictionary<string, object>() { 
+							enumTable.Values.Add(new Dictionary<string, object>() {
 										{ "ID", (int)value },
 										{ "Text", Enum.GetName(property.PropertyType, value) }
 									});
@@ -350,7 +330,7 @@ namespace Watsonia.Data
 				viewDictionary.Add(view.Name, view);
 			}
 		}
-		
+
 		private void GetMappedProcedure(Dictionary<string, MappedProcedure> procedureDictionary, Type procedureType, DatabaseConfiguration configuration)
 		{
 			var procedureName = configuration.GetProcedureName(procedureType);
