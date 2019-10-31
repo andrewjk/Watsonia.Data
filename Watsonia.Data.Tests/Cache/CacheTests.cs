@@ -16,9 +16,11 @@ namespace Watsonia.Data.Tests.Cache
 		public static void Initialize(TestContext _)
 		{
 			// Create the proxies first so that their bags also get created
-			_ = _db.Create<Author>();
-			_ = _db.Create<Book>();
-			_ = _db.Create<Chapter>();
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+			var author = _db.Create<Author>();
+			var book = _db.Create<Book>();
+			var chapter = _db.Create<Chapter>();
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 		}
 
 		[TestMethod]
