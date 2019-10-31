@@ -14,5 +14,10 @@ namespace Watsonia.Data.TestPerformance
 			this.Text = text;
 			this.Color = color;
 		}
+
+		public override string ToString()
+		{
+			return this.Text;
+		}
 	}
 }
