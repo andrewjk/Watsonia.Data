@@ -20,12 +20,8 @@ namespace Watsonia.Data
 				throw new ArgumentNullException(nameof(configuration));
 			}
 
-			var tables = new List<MappedTable>();
-			var views = new List<MappedView>();
-			var procedures = new List<MappedProcedure>();
-			var functions = new List<MappedFunction>();
-			GetMappedObjects(tables, views, procedures, functions, configuration);
-			configuration.DataAccessProvider.UpdateDatabase(tables, views, procedures, functions, configuration);
+			var schema = GetMappedObjects(configuration);
+			configuration.DataAccessProvider.UpdateDatabase(schema, configuration);
 		}
 
 		public string GetUpdateScript(DatabaseConfiguration configuration)
@@ -35,12 +31,8 @@ namespace Watsonia.Data
 				throw new ArgumentNullException(nameof(configuration));
 			}
 
-			var tables = new List<MappedTable>();
-			var views = new List<MappedView>();
-			var procedures = new List<MappedProcedure>();
-			var functions = new List<MappedFunction>();
-			GetMappedObjects(tables, views, procedures, functions, configuration);
-			return configuration.DataAccessProvider.GetUpdateScript(tables, views, procedures, functions, configuration);
+			var schema = GetMappedObjects(configuration);
+			return configuration.DataAccessProvider.GetUpdateScript(schema, configuration);
 		}
 
 		public string GetUnmappedColumns(DatabaseConfiguration configuration)
@@ -50,20 +42,18 @@ namespace Watsonia.Data
 				throw new ArgumentNullException(nameof(configuration));
 			}
 
-			var tables = new List<MappedTable>();
-			var views = new List<MappedView>();
-			var procedures = new List<MappedProcedure>();
-			var functions = new List<MappedFunction>();
-			GetMappedObjects(tables, views, procedures, functions, configuration);
-			return configuration.DataAccessProvider.GetUnmappedColumns(tables, configuration);
+			var schema = GetMappedObjects(configuration);
+			return configuration.DataAccessProvider.GetUnmappedColumns(schema, configuration);
 		}
 
-		private void GetMappedObjects(Schema schema, DatabaseConfiguration configuration)
+		private Schema GetMappedObjects(DatabaseConfiguration configuration)
 		{
 			if (configuration == null)
 			{
 				throw new ArgumentNullException(nameof(configuration));
 			}
+
+			var schema = new Schema();
 
 			var tableDictionary = new Dictionary<string, MappedTable>();
 			var tableRelationships = new Dictionary<string, MappedRelationship>();
@@ -126,6 +116,8 @@ namespace Watsonia.Data
 			{
 				schema.Functions.Add(function);
 			}
+
+			return schema;
 		}
 
 		private void GetMappedTable(Dictionary<string, MappedTable> tableDictionary, Dictionary<string, MappedRelationship> tableRelationships, Type tableType, DatabaseConfiguration configuration)

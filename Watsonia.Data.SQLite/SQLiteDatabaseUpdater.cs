@@ -44,19 +44,19 @@ namespace Watsonia.Data.SQLite
 			return Task.FromResult(0);
 		}
 
-		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
+		public void UpdateDatabase(Schema schema)
 		{
-			UpdateDatabase(tables, views, procedures, functions, true);
+			UpdateDatabase(schema, true);
 		}
 
-		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
+		public string GetUpdateScript(Schema schema)
 		{
 			var script = new StringBuilder();
-			UpdateDatabase(tables, views, procedures, functions, false, script);
+			UpdateDatabase(schema, false, script);
 			return script.ToString();
 		}
 
-		private void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, bool doUpdate, StringBuilder script = null)
+		private void UpdateDatabase(Schema schema, bool doUpdate, StringBuilder script = null)
 		{
 			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
 			{
@@ -757,7 +757,7 @@ namespace Watsonia.Data.SQLite
 			return command;
 		}
 
-		public string GetUnmappedColumns(IEnumerable<MappedTable> tables)
+		public string GetUnmappedColumns(Schema schema)
 		{
 			var columns = new StringBuilder();
 
@@ -773,7 +773,7 @@ namespace Watsonia.Data.SQLite
 					var tableName = columnKey.Split('.')[0];
 					var columnName = columnKey.Split('.')[1];
 
-					var table = tables.FirstOrDefault(m => m.Name.Equals(tableName, StringComparison.InvariantCultureIgnoreCase));
+					var table = schema.Tables.FirstOrDefault(m => m.Name.Equals(tableName, StringComparison.InvariantCultureIgnoreCase));
 					var isColumnMapped = (table != null && table.Columns.Any(c => c.Name.Equals(columnName, StringComparison.InvariantCultureIgnoreCase)));
 
 					if (!isColumnMapped)

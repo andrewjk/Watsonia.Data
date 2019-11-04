@@ -54,7 +54,7 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="schema">Mappings from objects to the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration);
+		void UpdateDatabase(Schema schema, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Gets the update script for any changes that have been made to tables and columns.
@@ -64,7 +64,7 @@ namespace Watsonia.Data
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration);
+		string GetUpdateScript(Schema schema, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Gets columns that exist in the database but are not mapped.
@@ -74,7 +74,7 @@ namespace Watsonia.Data
 		/// <returns>
 		/// A string containing the unmapped columns.
 		/// </returns>
-		string GetUnmappedColumns(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration);
+		string GetUnmappedColumns(Schema schema, DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Builds a command to return the ID of the last inserted item.

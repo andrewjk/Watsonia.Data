@@ -68,19 +68,19 @@ END
 			}
 		}
 
-		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
+		public void UpdateDatabase(Schema schema)
 		{
-			UpdateDatabase(tables, views, procedures, functions, true);
+			UpdateDatabase(schema, true);
 		}
 
-		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
+		public string GetUpdateScript(Schema schema)
 		{
 			var script = new StringBuilder();
-			UpdateDatabase(tables, views, procedures, functions, false, script);
+			UpdateDatabase(schema, false, script);
 			return script.ToString();
 		}
 
-		private void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, bool doUpdate, StringBuilder script = null)
+		private void UpdateDatabase(Schema schema, bool doUpdate, StringBuilder script = null)
 		{
 			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
 			{
@@ -128,7 +128,7 @@ END
 
 				// Third pass - create relationship constraints
 				var existingForeignKeys = LoadExistingForeignKeys(connection);
-				foreach (var table in tables)
+				foreach (var table in schema.Tables)
 				{
 					foreach (var column in table.Columns.Where(c => c.Relationship != null))
 					{
@@ -1099,7 +1099,7 @@ END
 			return command;
 		}
 
-		public string GetUnmappedColumns(IEnumerable<MappedTable> tables)
+		public string GetUnmappedColumns(Schema schema)
 		{
 			var columns = new StringBuilder();
 

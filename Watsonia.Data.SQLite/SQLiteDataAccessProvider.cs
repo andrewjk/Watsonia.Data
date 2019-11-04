@@ -90,10 +90,10 @@ namespace Watsonia.Data.SQLite
 		/// </summary>
 		/// <param name="schema">Mappings from objects to the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
+		public void UpdateDatabase(Schema schema, DatabaseConfiguration configuration)
 		{
 			var updater = new SQLiteDatabaseUpdater(this, configuration);
-			updater.UpdateDatabase(tables, views, procedures, functions);
+			updater.UpdateDatabase(schema);
 		}
 
 		/// <summary>
@@ -104,25 +104,25 @@ namespace Watsonia.Data.SQLite
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
+		public string GetUpdateScript(Schema schema, DatabaseConfiguration configuration)
 		{
 			var updater = new SQLiteDatabaseUpdater(this, configuration);
-			return updater.GetUpdateScript(tables, views, procedures, functions);
+			return updater.GetUpdateScript(schema);
 		}
 
 		/// <summary>
 		/// Gets columns that exist in the database but are not mapped.
 		/// </summary>
-		/// <param name="tables">The tables that should exist in the database.</param>
+		/// <param name="schema">Mappings from objects to the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
 		/// <returns>
 		/// A string containing the unmapped columns.
 		/// </returns>
 		/// <exception cref="NotImplementedException"></exception>
-		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration)
+		public string GetUnmappedColumns(Schema schema, DatabaseConfiguration configuration)
 		{
 			var updater = new SQLiteDatabaseUpdater(this, configuration);
-			return updater.GetUnmappedColumns(tables);
+			return updater.GetUnmappedColumns(schema);
 		}
 
 		/// <summary>
