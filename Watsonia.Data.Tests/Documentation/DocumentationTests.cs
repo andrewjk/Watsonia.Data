@@ -19,7 +19,7 @@ namespace Watsonia.Data.Tests.Documentation
 		private static readonly DocumentationDatabase _db = new DocumentationDatabase();
 
 		[ClassInitialize]
-		public static async Task Initialize(TestContext _)
+		public static void Initialize(TestContext _)
 		{
 			if (!File.Exists(@"Data\DocumentationTests.sqlite"))
 			{
@@ -27,7 +27,7 @@ namespace Watsonia.Data.Tests.Documentation
 				file.Dispose();
 			}
 
-			await _db.UpdateDatabaseAsync();
+			_db.UpdateDatabase();
 
 			// Let's first delete all of the authors and books
 			_db.Execute(Delete.From("Book").Where(true));

@@ -69,20 +69,20 @@ namespace Watsonia.Data.SQLite
 		/// Ensures that the database is deleted.
 		/// </summary>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		public Task EnsureDatabaseDeletedAsync(DatabaseConfiguration configuration)
+		public void EnsureDatabaseDeleted(DatabaseConfiguration configuration)
 		{
 			var updater = new SQLiteDatabaseUpdater(this, configuration);
-			return updater.EnsureDatabaseDeletedAsync();
+			updater.EnsureDatabaseDeleted();
 		}
 
 		/// <summary>
 		/// Ensures that the database is created.
 		/// </summary>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		public Task EnsureDatabaseCreatedAsync(DatabaseConfiguration configuration)
+		public void EnsureDatabaseCreated(DatabaseConfiguration configuration)
 		{
 			var updater = new SQLiteDatabaseUpdater(this, configuration);
-			return updater.EnsureDatabaseCreatedAsync();
+			updater.EnsureDatabaseCreated();
 		}
 
 		/// <summary>
@@ -91,10 +91,10 @@ namespace Watsonia.Data.SQLite
 		/// <param name="tables">The tables that should exist in the database.</param>
 		/// <param name="views">The views that should exist in the database.</param>
 		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		public async Task UpdateDatabaseAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
+		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
 		{
 			var updater = new SQLiteDatabaseUpdater(this, configuration);
-			await updater.UpdateDatabaseAsync(tables, views, procedures, functions);
+			updater.UpdateDatabase(tables, views, procedures, functions);
 		}
 
 		/// <summary>
@@ -107,10 +107,25 @@ namespace Watsonia.Data.SQLite
 		/// <returns>
 		/// A string containing the update script.
 		/// </returns>
-		public async Task<string> GetUpdateScriptAsync(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
+		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, DatabaseConfiguration configuration)
 		{
 			var updater = new SQLiteDatabaseUpdater(this, configuration);
-			return await updater.GetUpdateScriptAsync(tables, views, procedures, functions);
+			return updater.GetUpdateScript(tables, views, procedures, functions);
+		}
+
+		/// <summary>
+		/// Gets columns that exist in the database but are not mapped.
+		/// </summary>
+		/// <param name="tables">The tables that should exist in the database.</param>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		/// <returns>
+		/// A string containing the unmapped columns.
+		/// </returns>
+		/// <exception cref="NotImplementedException"></exception>
+		public string GetUnmappedColumns(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration)
+		{
+			var updater = new SQLiteDatabaseUpdater(this, configuration);
+			return updater.GetUnmappedColumns(tables);
 		}
 
 		/// <summary>
@@ -167,21 +182,6 @@ namespace Watsonia.Data.SQLite
 		{
 			var builder = new SQLiteCommandBuilder();
 			return builder.BuildProcedureCommand(procedureName, parameters);
-		}
-
-		/// <summary>
-		/// Gets columns that exist in the database but are not mapped.
-		/// </summary>
-		/// <param name="tables">The tables that should exist in the database.</param>
-		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
-		/// <returns>
-		/// A string containing the unmapped columns.
-		/// </returns>
-		/// <exception cref="NotImplementedException"></exception>
-		public async Task<string> GetUnmappedColumnsAsync(IEnumerable<MappedTable> tables, DatabaseConfiguration configuration)
-		{
-			var updater = new SQLiteDatabaseUpdater(this, configuration);
-			return await updater.GetUnmappedColumnsAsync(tables);
 		}
 	}
 }

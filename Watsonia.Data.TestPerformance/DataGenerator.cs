@@ -11,8 +11,8 @@ namespace Watsonia.Data.TestPerformance
 	{
 		public static async Task CheckDatabaseAsync(WatsoniaDatabase db)
 		{
-			await db.EnsureDatabaseCreatedAsync();
-			await db.UpdateDatabaseAsync();
+			db.EnsureDatabaseCreated();
+			db.UpdateDatabase();
 
 			if (db.Query<Player>().Count() == 0)
 			{

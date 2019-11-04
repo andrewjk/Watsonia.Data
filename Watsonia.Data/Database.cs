@@ -90,29 +90,29 @@ namespace Watsonia.Data
 		/// <summary>
 		/// Ensures that the database is deleted.
 		/// </summary>
-		public async Task EnsureDatabaseDeleted()
+		public void EnsureDatabaseDeleted()
 		{
-			await this.Configuration.DataAccessProvider.EnsureDatabaseDeletedAsync(this.Configuration);
+			this.Configuration.DataAccessProvider.EnsureDatabaseDeleted(this.Configuration);
 		}
 
 		/// <summary>
 		/// Ensures that the database is created.
 		/// </summary>
-		public async Task EnsureDatabaseCreatedAsync()
+		public void EnsureDatabaseCreated()
 		{
-			await this.Configuration.DataAccessProvider.EnsureDatabaseCreatedAsync(this.Configuration);
-			await this.UpdateDatabaseAsync();
+			this.Configuration.DataAccessProvider.EnsureDatabaseCreated(this.Configuration);
+			this.UpdateDatabase();
 		}
 
 		/// <summary>
 		/// Updates the database from the mapped entity classes.
 		/// </summary>
-		public async Task UpdateDatabaseAsync()
+		public void UpdateDatabase()
 		{
 			OnBeforeUpdateDatabase();
 
 			var updater = new DatabaseUpdater();
-			await updater.UpdateDatabaseAsync(this.Configuration);
+			updater.UpdateDatabase(this.Configuration);
 
 			OnAfterUpdateDatabase();
 		}
@@ -121,10 +121,10 @@ namespace Watsonia.Data
 		/// Gets the update script for the mapped entity classes.
 		/// </summary>
 		/// <returns>A string containing the update script.</returns>
-		public async Task<string> GetUpdateScriptAsync()
+		public string GetUpdateScript()
 		{
 			var updater = new DatabaseUpdater();
-			return await updater.GetUpdateScriptAsync(this.Configuration);
+			return updater.GetUpdateScript(this.Configuration);
 		}
 
 		/// <summary>
@@ -133,10 +133,10 @@ namespace Watsonia.Data
 		/// <returns>
 		/// A string containing the unmapped columns.
 		/// </returns>
-		public async Task<string> GetUnmappedColumnsAsync()
+		public string GetUnmappedColumns()
 		{
 			var updater = new DatabaseUpdater();
-			return await updater.GetUnmappedColumnsAsync(this.Configuration);
+			return updater.GetUnmappedColumns(this.Configuration);
 		}
 
 		// NOTE: This is not supported as of .Net Standard 2.0:
@@ -669,7 +669,7 @@ namespace Watsonia.Data
 				return true;
 			}
 
-			item = default(T);
+			item = default;
 			return false;
 		}
 

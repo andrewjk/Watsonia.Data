@@ -27,7 +27,7 @@ namespace Watsonia.Data.Tests.Documentation
 				file.Dispose();
 			}
 
-			await _db.UpdateDatabaseAsync();
+			_db.UpdateDatabase();
 
 			// Let's first delete all of the authors and books
 			await _db.ExecuteAsync(Delete.From("Book").Where(true));

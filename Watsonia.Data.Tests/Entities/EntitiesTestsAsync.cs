@@ -19,7 +19,7 @@ namespace Watsonia.Data.Tests.Entities
 		private readonly static EntitiesDatabase _db = new EntitiesDatabase();
 
 		[ClassInitialize]
-		public static async Task InitializeAsync(TestContext _)
+		public static void InitializeAsync(TestContext _)
 		{
 			if (!File.Exists(@"Data\EntitiesTestsAsync.sqlite"))
 			{
@@ -27,7 +27,7 @@ namespace Watsonia.Data.Tests.Entities
 				file.Dispose();
 			}
 
-			await _db.UpdateDatabaseAsync();
+			_db.UpdateDatabase();
 		}
 
 		[ClassCleanup]
