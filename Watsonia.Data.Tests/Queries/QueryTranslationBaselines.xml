@@ -869,22 +869,22 @@
   <baseline key="TestCompareConstructedEqual">
     Select c.CustomerID, c.City, c.CompanyName, c.ContactName, c.Country, c.Phone
     From Customers As c
-    Where c.City Equals { x = London }
+    Where c.City Equals 'London'
   </baseline>
   <baseline key="TestCompareConstructedMultiValueEqual">
     Select c.CustomerID, c.City, c.CompanyName, c.ContactName, c.Country, c.Phone
     From Customers As c
-    Where (c.City, c.Country) Equals { x = London, y = UK }
+    Where (c.City Equals 'London' And c.Country Equals 'UK')
   </baseline>
   <baseline key="TestCompareConstructedMultiValueNotEqual">
     Select c.CustomerID, c.City, c.CompanyName, c.ContactName, c.Country, c.Phone
     From Customers As c
-    Where (c.City, c.Country) NotEquals { x = London, y = UK }
+    Where Not (c.City Equals 'London' And c.Country Equals 'UK')
   </baseline>
   <baseline key="TestCompareConstructed">
     Select c.CustomerID, c.City, c.CompanyName, c.ContactName, c.Country, c.Phone
     From Customers As c
-    Where c.City Equals { x = London }
+    Where c.City Equals 'London'
   </baseline>
   <baseline key="TestSelectScalar">
     Select c.City

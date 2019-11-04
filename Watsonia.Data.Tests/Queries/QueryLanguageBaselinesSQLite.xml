@@ -360,7 +360,7 @@
     WHERE 0 &lt;&gt; 0
   </baseline>
   <baseline key="TestContainsWithSubquery2">
-    SELECT [c].[City], [c].[CompanyName], [c].[ContactName], [c].[Country], [c].[CustomerID], [c].[Phone]
+    SELECT [c].[CustomerID], [c].[City], [c].[CompanyName], [c].[ContactName], [c].[Country], [c].[Phone]
     FROM [Customers] AS [c]
     WHERE [c].[CustomerID] IN (
     SELECT [c2].[CustomerID]
@@ -907,22 +907,22 @@
   <baseline key="TestCompareConstructedEqual">
     SELECT [c].[CustomerID], [c].[City], [c].[CompanyName], [c].[ContactName], [c].[Country], [c].[Phone]
     FROM [Customers] AS [c]
-    WHERE [c].[City] = { x = London }
+    WHERE ([c].[City] = 'London')
   </baseline>
   <baseline key="TestCompareConstructedMultiValueEqual">
     SELECT [c].[CustomerID], [c].[City], [c].[CompanyName], [c].[ContactName], [c].[Country], [c].[Phone]
     FROM [Customers] AS [c]
-    WHERE [c].[City] = 'London') AND ([c].[Country] = 'UK'
+    WHERE ([c].[City] = 'London' AND [c].[Country] = 'UK')
   </baseline>
   <baseline key="TestCompareConstructedMultiValueNotEqual">
     SELECT [c].[CustomerID], [c].[City], [c].[CompanyName], [c].[ContactName], [c].[Country], [c].[Phone]
     FROM [Customers] AS [c]
-    WHERE NOT (([c].[City] = 'London') AND ([c].[Country] = 'UK'))
+    WHERE NOT ([c].[City] = 'London' AND [c].[Country] = 'UK')
   </baseline>
   <baseline key="TestCompareConstructed">
     SELECT [c].[CustomerID], [c].[City], [c].[CompanyName], [c].[ContactName], [c].[Country], [c].[Phone]
     FROM [Customers] AS [c]
-    WHERE [c].[City] = { x = London }
+    WHERE ([c].[City] = 'London')
   </baseline>
   <baseline key="TestSelectScalar">
     SELECT [c].[City]
