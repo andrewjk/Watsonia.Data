@@ -46,7 +46,7 @@ namespace Watsonia.Data.TestPerformance
 				{
 					Console.SetCursorPosition(0, Console.CursorTop);
 				}
-				Console.Write("{0}/{1}", i + 1, RunCount);
+				Console.Write($"Run {i + 1}/{Config.RunCount}, test 1/5");
 
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
@@ -55,6 +55,9 @@ namespace Watsonia.Data.TestPerformance
 				var adoResults = RunTests(i, TestFramework.AdoNet, adoTests);
 				testResults.Add(adoResults);
 
+				Console.SetCursorPosition(0, Console.CursorTop);
+				Console.Write($"Run {i + 1}/{Config.RunCount}, test 2/5");
+
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
 
@@ -62,6 +65,9 @@ namespace Watsonia.Data.TestPerformance
 				var dapperTests = new DapperTests();
 				var dapperResults = RunTests(i, TestFramework.Dapper, dapperTests);
 				testResults.Add(dapperResults);
+
+				Console.SetCursorPosition(0, Console.CursorTop);
+				Console.Write($"Run {i + 1}/{Config.RunCount}, test 3/5");
 
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
@@ -73,6 +79,9 @@ namespace Watsonia.Data.TestPerformance
 
 				// TODO: Should we test an "optimised" EF? No change tracking etc?
 
+				Console.SetCursorPosition(0, Console.CursorTop);
+				Console.Write($"Run {i + 1}/{Config.RunCount}, test 4/5");
+
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
 
@@ -81,6 +90,9 @@ namespace Watsonia.Data.TestPerformance
 				var wlinqTests = new WatsoniaLinqTests();
 				var wlinqResults = RunTests(i, TestFramework.WatsoniaLinq, wlinqTests);
 				testResults.Add(wlinqResults);
+
+				Console.SetCursorPosition(0, Console.CursorTop);
+				Console.Write($"Run {i + 1}/{Config.RunCount}, test 5/5");
 
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
