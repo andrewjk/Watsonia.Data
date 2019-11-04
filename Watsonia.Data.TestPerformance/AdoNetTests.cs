@@ -21,9 +21,8 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = Config.OpenConnection())
 			{
-				conn.Open();
 				using var command = new SqliteCommand("SELECT ID, Text, DateCreated, DateModified FROM Posts", conn);
 				using var reader = command.ExecuteReader();
 				while (reader.Read())
@@ -39,9 +38,8 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = Config.OpenConnection())
 			{
-				conn.Open();
 				using var command = new SqliteCommand("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE ID = @ID", conn);
 				command.Parameters.Add(new SqliteParameter("@ID", id));
 				using var reader = command.ExecuteReader();
@@ -58,9 +56,8 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = Config.OpenConnection())
 			{
-				conn.Open();
 				using var command = new SqliteCommand("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE TeamsID = @ID", conn);
 				command.Parameters.Add(new SqliteParameter("@ID", teamID));
 				using var reader = command.ExecuteReader();
@@ -77,9 +74,8 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = Config.OpenConnection())
 			{
-				conn.Open();
 				var query = "" +
 					"SELECT p.ID, p.FirstName, p.LastName, p.DateOfBirth, p.TeamsID, t.ID as TeamsID, t.Name, t.SportsID " +
 					"FROM Players p " +

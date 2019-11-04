@@ -22,9 +22,8 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = Config.OpenConnection())
 			{
-				conn.Open();
 				var posts = conn.Query<Player>("SELECT ID, Text, DateCreated, DateModified FROM Posts").ToList();
 				foreach (var p in posts)
 				{
@@ -39,9 +38,8 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = Config.OpenConnection())
 			{
-				conn.Open();
 				var p = conn.Query<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE ID = @ID", new { ID = id }).First();
 				this.LoadedPlayers.Add(p.ID);
 			}
@@ -53,9 +51,8 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = Config.OpenConnection())
 			{
-				conn.Open();
 				var players = conn.Query<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE TeamsID = @ID", new { ID = teamID });
 				foreach (var p in players)
 				{
@@ -70,9 +67,8 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = new SqliteConnection(WatsoniaDatabase.ConnectionString))
+			using (var conn = Config.OpenConnection())
 			{
-				conn.Open();
 				var players = conn.Query<Player, Team, Player>("" +
 					"SELECT p.ID, p.FirstName, p.LastName, p.DateOfBirth, p.TeamsID, t.ID as TeamsID, t.Name, t.SportsID " +
 					"FROM Teams t " +
