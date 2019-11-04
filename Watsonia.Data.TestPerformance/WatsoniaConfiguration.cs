@@ -9,11 +9,11 @@ namespace Watsonia.Data.TestPerformance
 	internal sealed class WatsoniaConfiguration : DatabaseConfiguration
 	{
 		public WatsoniaConfiguration(string connectionString, string entityNamespace)
-			: base(DataAccessProvider(), connectionString, entityNamespace)
+			: base(GetDataAccessProvider(), connectionString, entityNamespace)
 		{
 		}
 
-		private static IDataAccessProvider DataAccessProvider()
+		private static IDataAccessProvider GetDataAccessProvider()
 		{
 			if (Config.UseSqlServer)
 			{
