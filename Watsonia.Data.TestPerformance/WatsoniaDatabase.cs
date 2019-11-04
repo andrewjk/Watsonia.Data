@@ -9,11 +9,10 @@ namespace Watsonia.Data.TestPerformance
 {
 	internal sealed class WatsoniaDatabase : Database
 	{
-		public const string ConnectionString = @"Data Source=Data\Performance.sqlite";
 		private const string EntityNamespace = "Watsonia.Data.TestPerformance.Entities";
 
 		public WatsoniaDatabase(string dbname = null)
-			: base(new WatsoniaConfiguration(ConnectionString, EntityNamespace))
+			: base(new WatsoniaConfiguration(Config.ConnectionString, EntityNamespace))
 		{
 			if (!string.IsNullOrEmpty(dbname))
 			{

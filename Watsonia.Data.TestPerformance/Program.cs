@@ -11,14 +11,6 @@ namespace Watsonia.Data.TestPerformance
 	// So this is mostly adapted from https://www.exceptionnotfound.net/dapper-vs-entity-framework-vs-ado-net-performance-benchmarking/
 	public static class Program
 	{
-		private const int RunCount = 10;
-		private const int MaxOperations = 50;
-
-		private const int PostCount = 500;
-		private const int SportCount = 5;
-		private const int TeamsPerSportCount = 10;
-		private const int PlayersPerTeamCount = 10;
-
 		public static async Task Main(/* string[] args */)
 		{
 			var color = Console.ForegroundColor;
@@ -29,7 +21,7 @@ namespace Watsonia.Data.TestPerformance
 			var db = new WatsoniaDatabase();
 
 			Console.WriteLine("Checking database...");
-			await CheckDatabaseAsync(db);
+			await DataGenerator.CheckDatabaseAsync(db);
 
 			Console.WriteLine("Running tests...");
 			var testResults = RunTests();
@@ -43,40 +35,12 @@ namespace Watsonia.Data.TestPerformance
 			Console.ReadKey();
 		}
 
-		private static async Task CheckDatabaseAsync(WatsoniaDatabase db)
-		{
-			if (!Directory.Exists("Data"))
-			{
-				Directory.CreateDirectory("Data");
-			}
-			if (!File.Exists(@"Data\Performance.sqlite"))
-			{
-				var file = File.Create(@"Data\Performance.sqlite");
-				file.Dispose();
-			}
-			await db.UpdateDatabaseAsync();
-
-			if (db.Query<Post>().Count() == 0)
-			{
-				await DataGenerator.GeneratePosts(db, PostCount);
-				var sports = await DataGenerator.GenerateSports(db, SportCount);
-				foreach (var sport in sports)
-				{
-					var teams = await DataGenerator.GenerateTeams(db, sport, TeamsPerSportCount);
-					foreach (var team in teams)
-					{
-						var players = DataGenerator.GeneratePlayers(db, team, PlayersPerTeamCount);
-					}
-				}
-			}
-		}
-
 		private static List<TestResult> RunTests()
 		{
 			var testResults = new List<TestResult>();
 			var frameworkCount = 0;
 
-			for (var i = 0; i < RunCount; i++)
+			for (var i = 0; i < Config.RunCount; i++)
 			{
 				if (i > 0)
 				{
@@ -150,28 +114,28 @@ namespace Watsonia.Data.TestPerformance
 			var result = new TestResult() { Number = number, Framework = framework };
 
 			var allPostsResults = new List<long>();
-			for (var i = 1; i <= Math.Min(MaxOperations, PostCount); i++)
+			for (var i = 1; i <= Math.Min(Config.MaxOperations, Config.PostCount); i++)
 			{
 				allPostsResults.Add(tests.GetAllPosts());
 			}
 			result.AllPostsMilliseconds = Math.Round(allPostsResults.Average(), 2);
 
 			var playerByIDResults = new List<long>();
-			for (var i = 1; i <= Math.Min(MaxOperations, PlayersPerTeamCount * TeamsPerSportCount * SportCount); i++)
+			for (var i = 1; i <= Math.Min(Config.MaxOperations, Config.PlayersPerTeamCount * Config.TeamsPerSportCount * Config.SportCount); i++)
 			{
 				playerByIDResults.Add(tests.GetPlayerByID(i));
 			}
 			result.PlayerByIDMilliseconds = Math.Round(playerByIDResults.Average(), 2);
 
 			var playersForTeamResults = new List<long>();
-			for (var i = 1; i <= Math.Min(MaxOperations, TeamsPerSportCount * SportCount); i++)
+			for (var i = 1; i <= Math.Min(Config.MaxOperations, Config.TeamsPerSportCount * Config.SportCount); i++)
 			{
 				playersForTeamResults.Add(tests.GetPlayersForTeam(i));
 			}
 			result.PlayersForTeamMilliseconds = Math.Round(playersForTeamResults.Average(), 2);
 
 			var teamsForSportResults = new List<long>();
-			for (var i = 1; i <= Math.Min(MaxOperations, SportCount); i++)
+			for (var i = 1; i <= Math.Min(Config.MaxOperations, Config.SportCount); i++)
 			{
 				teamsForSportResults.Add(tests.GetTeamsForSport(i));
 			}

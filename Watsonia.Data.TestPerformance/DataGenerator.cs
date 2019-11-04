@@ -9,6 +9,26 @@ namespace Watsonia.Data.TestPerformance
 {
 	internal static class DataGenerator
 	{
+		public static async Task CheckDatabaseAsync(WatsoniaDatabase db)
+		{
+			await db.EnsureDatabaseCreatedAsync();
+			await db.UpdateDatabaseAsync();
+
+			if (db.Query<Player>().Count() == 0)
+			{
+				await GeneratePosts(db, Config.PostCount);
+				var sports = await GenerateSports(db, Config.SportCount);
+				foreach (var sport in sports)
+				{
+					var teams = await GenerateTeams(db, sport, Config.TeamsPerSportCount);
+					foreach (var team in teams)
+					{
+						var players = GeneratePlayers(db, team, Config.PlayersPerTeamCount);
+					}
+				}
+			}
+		}
+
 		internal static async Task<List<Post>> GeneratePosts(WatsoniaDatabase db, int count)
 		{
 			var posts = new List<Post>();

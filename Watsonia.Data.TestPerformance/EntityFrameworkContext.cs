@@ -11,8 +11,6 @@ namespace Watsonia.Data.TestPerformance
 {
 	public partial class EntityFrameworkContext : DbContext
 	{
-		public const string ConnectionString = @"Data Source=Data\Performance.sqlite";
-
 		public virtual DbSet<Post> Posts { get; set; }
 		public virtual DbSet<Player> Players { get; set; }
 		public virtual DbSet<Sport> Sports { get; set; }
@@ -32,7 +30,14 @@ namespace Watsonia.Data.TestPerformance
 				//   .AddJsonFile("appsettings.json")
 				//   .Build();
 				//var connectionString = configuration.GetConnectionString("DbCoreConnectionString");
-				optionsBuilder.UseSqlite(ConnectionString);
+				if (Config.UseSqlServer)
+				{
+					optionsBuilder.UseSqlServer(Config.ConnectionString);
+				}
+				else
+				{
+					optionsBuilder.UseSqlite(Config.ConnectionString);
+				}
 			}
 		}
 
