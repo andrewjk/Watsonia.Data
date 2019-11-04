@@ -18,6 +18,7 @@ namespace Watsonia.Data.TestPerformance
 		public int Number { get; set; }
 		public TestFramework Framework { get; set; }
 
+		public double AllPostIDsMilliseconds { get; set; }
 		public double AllPostsMilliseconds { get; set; }
 		public double PlayerByIDMilliseconds { get; set; }
 		public double PlayersForTeamMilliseconds { get; set; }

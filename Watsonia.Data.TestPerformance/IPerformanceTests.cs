@@ -15,6 +15,7 @@ namespace Watsonia.Data.TestPerformance
 		List<IEntity> LoadedPlayersForTeam { get; }
 		List<IEntity> LoadedTeamsForSport { get; }
 
+		long GetAllPostIDs();
 		long GetAllPosts();
 		long GetPlayerByID(long id);
 		long GetPlayersForTeam(long teamId);

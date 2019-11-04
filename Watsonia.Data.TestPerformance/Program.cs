@@ -18,7 +18,7 @@ namespace Watsonia.Data.TestPerformance
 
 			Console.BackgroundColor = ConsoleColor.Black;
 
-			var db = new WatsoniaDatabase();
+			var db = new WatsoniaDatabase("Checking");
 
 			Console.WriteLine("Checking database...");
 			await DataGenerator.CheckDatabaseAsync(db);
@@ -125,6 +125,13 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var result = new TestResult() { Number = number, Framework = framework };
 
+			var allPostIDsResults = new List<long>();
+			for (var i = 1; i <= Math.Min(Config.MaxOperations, Config.PostCount); i++)
+			{
+				allPostIDsResults.Add(tests.GetAllPostIDs());
+			}
+			result.AllPostIDsMilliseconds = Math.Round(allPostIDsResults.Average(), 2);
+
 			var allPostsResults = new List<long>();
 			for (var i = 1; i <= Math.Min(Config.MaxOperations, Config.PostCount); i++)
 			{
@@ -153,6 +160,7 @@ namespace Watsonia.Data.TestPerformance
 			}
 			result.TeamsForSportMilliseconds = Math.Round(teamsForSportResults.Average(), 2);
 
+			result.LoadedPostIDs = tests.LoadedPostIDs;
 			result.LoadedPosts = tests.LoadedPosts;
 			result.LoadedPlayers = tests.LoadedPlayers;
 			result.LoadedPlayersForTeam = tests.LoadedPlayersForTeam;
@@ -166,12 +174,10 @@ namespace Watsonia.Data.TestPerformance
 			var result = true;
 			var badthing = "";
 
-			if (a.LoadedPosts.Count != b.LoadedPosts.Count ||
-				a.LoadedPlayers.Count != b.LoadedPlayers.Count ||
-				a.LoadedPlayersForTeam.Count != b.LoadedPlayersForTeam.Count ||
-				a.LoadedTeamsForSport.Count != b.LoadedTeamsForSport.Count)
+			if (result && !CompareLists(a.LoadedPostIDs, b.LoadedPostIDs))
 			{
 				result = false;
+				badthing = "loaded post ids";
 			}
 
 			if (result && !CompareLists(a.LoadedPosts, b.LoadedPosts))
@@ -239,6 +245,7 @@ namespace Watsonia.Data.TestPerformance
 			var lines = new List<ConsoleLine>();
 
 			var haveBaseline = false;
+			double baselineAllPostIDs = 0;
 			double baselineAllPosts = 0;
 			double baselinePlayerByID = 0;
 			double baselinePlayersForTeam = 0;
@@ -251,10 +258,11 @@ namespace Watsonia.Data.TestPerformance
 
 				lines.Add(new ConsoleLine(
 					new ConsoleLinePart("Run"),
-					new ConsoleLinePart("All Posts"),
+					new ConsoleLinePart("Post IDs"),
+					new ConsoleLinePart("Posts"),
 					new ConsoleLinePart("Player by ID"),
-					new ConsoleLinePart("Players per Team"),
-					new ConsoleLinePart("Teams per Sport")
+					new ConsoleLinePart("Players / Team"),
+					new ConsoleLinePart("Teams / Sport")
 				));
 
 				//var orderedResults = group.OrderBy(x => x.Number);
@@ -270,12 +278,14 @@ namespace Watsonia.Data.TestPerformance
 				//}
 
 				// Max
+				var maxAllPostIDs = group.Max(x => x.AllPostIDsMilliseconds);
 				var maxAllPosts = group.Max(x => x.AllPostsMilliseconds);
 				var maxPlayerByID = group.Max(x => x.PlayerByIDMilliseconds);
 				var maxPlayersForTeam = group.Max(x => x.PlayersForTeamMilliseconds);
 				var maxTeamsForSport = group.Max(x => x.TeamsForSportMilliseconds);
 				lines.Add(new ConsoleLine(
 					new ConsoleLinePart("Max"),
+					new ConsoleLinePart(maxAllPostIDs.ToString()),
 					new ConsoleLinePart(maxAllPosts.ToString()),
 					new ConsoleLinePart(maxPlayerByID.ToString()),
 					new ConsoleLinePart(maxPlayersForTeam.ToString()),
@@ -283,12 +293,14 @@ namespace Watsonia.Data.TestPerformance
 				));
 
 				// Average
+				var averageAllPostIDs = group.Average(x => x.AllPostIDsMilliseconds);
 				var averageAllPosts = group.Average(x => x.AllPostsMilliseconds);
 				var averagePlayerByID = group.Average(x => x.PlayerByIDMilliseconds);
 				var averagePlayersForTeam = group.Average(x => x.PlayersForTeamMilliseconds);
 				var averageTeamsForSport = group.Average(x => x.TeamsForSportMilliseconds);
 				lines.Add(new ConsoleLine(
 					new ConsoleLinePart("Avg"),
+					new ConsoleLinePart(averageAllPostIDs.ToString("n4")),
 					new ConsoleLinePart(averageAllPosts.ToString("n4")),
 					new ConsoleLinePart(averagePlayerByID.ToString("n4")),
 					new ConsoleLinePart(averagePlayersForTeam.ToString("n4")),
@@ -298,6 +310,7 @@ namespace Watsonia.Data.TestPerformance
 				// Baseline (if first result)
 				if (!haveBaseline)
 				{
+					baselineAllPostIDs = averageAllPostIDs;
 					baselineAllPosts = averageAllPosts;
 					baselinePlayerByID = averagePlayerByID;
 					baselinePlayersForTeam = averagePlayersForTeam;
@@ -306,6 +319,7 @@ namespace Watsonia.Data.TestPerformance
 				}
 
 				// Percentage of baseline
+				var percentAllPostIDs = averageAllPostIDs / baselineAllPostIDs;
 				var percentAllPosts = averageAllPosts / baselineAllPosts;
 				var percentPlayerByID = averagePlayerByID / baselinePlayerByID;
 				var percentPlayersForTeam = averagePlayersForTeam / baselinePlayersForTeam;
@@ -313,6 +327,7 @@ namespace Watsonia.Data.TestPerformance
 
 				lines.Add(new ConsoleLine(
 					new ConsoleLinePart("%"),
+					new ConsoleLinePart(percentAllPostIDs.ToString("p"), ColorForPercent(percentAllPostIDs)),
 					new ConsoleLinePart(percentAllPosts.ToString("p"), ColorForPercent(percentAllPosts)),
 					new ConsoleLinePart(percentPlayerByID.ToString("p"), ColorForPercent(percentPlayerByID)),
 					new ConsoleLinePart(percentPlayersForTeam.ToString("p"), ColorForPercent(percentPlayersForTeam)),
