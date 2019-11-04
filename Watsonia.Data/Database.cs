@@ -805,6 +805,8 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public async Task<IList<T>> LoadCollectionAsync<T>(string query, params object[] parameters)
 		{
+			OnBeforeLoadCollection(query);
+
 			var result = new List<T>();
 
 			var itemType = GetCollectionItemType(typeof(T));
@@ -825,6 +827,8 @@ namespace Watsonia.Data
 				}
 				OnAfterExecuteCommand(command);
 			}
+
+			OnAfterLoadCollection(result);
 
 			return result;
 		}
@@ -1726,6 +1730,15 @@ namespace Watsonia.Data
 		protected virtual void OnBeforeLoadCollection(SelectStatement select)
 		{
 			BeforeLoadCollection?.Invoke(this, new StatementEventArgs(select));
+		}
+
+		/// <summary>
+		/// Called at the start of LoadCollection.
+		/// </summary>
+		/// <param name="select">The statement that will be used to load the collection.</param>
+		protected virtual void OnBeforeLoadCollection(string query)
+		{
+			BeforeLoadCollection?.Invoke(this, new ValueEventArgs(query));
 		}
 
 		/// <summary>
