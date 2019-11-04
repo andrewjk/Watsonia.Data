@@ -1899,12 +1899,6 @@ namespace Watsonia.Data
 			var stateTrackerIsLoadingMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"set_IsLoading", new Type[] { typeof(bool) });
 
-			var readerGetNameMethod = typeof(DbDataReader).GetMethod(
-				"GetName", new Type[] { typeof(int) });
-
-			var toUpperInvariantMethod = typeof(string).GetMethod(
-				"ToUpperInvariant", Type.EmptyTypes);
-
 			var stringEqualityMethod = typeof(string).GetMethod(
 				"op_Equality", new Type[] { typeof(string), typeof(string) });
 
