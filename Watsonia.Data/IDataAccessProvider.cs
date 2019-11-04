@@ -17,10 +17,16 @@ namespace Watsonia.Data
 		/// <value>
 		/// The name of the provider.
 		/// </value>
-		string ProviderName
-		{
-			get;
-		}
+		string ProviderName { get; }
+
+		/// <summary>
+		/// Opens and returns a database connection.
+		/// </summary>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		/// <returns>
+		/// An open database connection.
+		/// </returns>
+		DbConnection OpenConnection(DatabaseConfiguration configuration);
 
 		/// <summary>
 		/// Opens and returns a database connection.

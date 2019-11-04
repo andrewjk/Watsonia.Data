@@ -43,6 +43,20 @@ namespace Watsonia.Data.SqlServer
 		/// <returns>
 		/// An open database connection.
 		/// </returns>
+		public DbConnection OpenConnection(DatabaseConfiguration configuration)
+		{
+			var connection = new SqlConnection(configuration.ConnectionString);
+			connection.Open();
+			return connection;
+		}
+
+		/// <summary>
+		/// Opens and returns a database connection.
+		/// </summary>
+		/// <param name="configuration">The configuration options used for mapping to and accessing the database.</param>
+		/// <returns>
+		/// An open database connection.
+		/// </returns>
 		public async Task<DbConnection> OpenConnectionAsync(DatabaseConfiguration configuration)
 		{
 			var connection = new SqlConnection(configuration.ConnectionString);

@@ -151,8 +151,8 @@ namespace Watsonia.Data
 				var tableName = this.Database.Configuration.GetTableName(tableType);
 				var foreignKeyColumnName = this.Database.Configuration.GetForeignKeyColumnName(tableType, this.Item.GetType().BaseType);
 				var select = Select.From(tableName).Where(foreignKeyColumnName, SqlOperator.Equals, this.Item.__PrimaryKeyValue);
-				// HACK: Have to run this synchronously until we have time to update the generated proxy code
-				var collection = Task.Run(() => this.Database.LoadCollectionAsync<T>(select)).GetAwaiter().GetResult();
+				// HACK: Have to run this synchronously as this method is always called from a property getter
+				var collection = this.Database.LoadCollection<T>(select);
 				SetCollection(propertyName, (IList)collection);
 				return collection;
 			}
