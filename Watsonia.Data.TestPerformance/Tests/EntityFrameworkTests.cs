@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Dapper;
-using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Watsonia.Data.TestPerformance.Entities;
 
-namespace Watsonia.Data.TestPerformance
+namespace Watsonia.Data.TestPerformance.Tests
 {
-	public class DapperTests : IPerformanceTests
+	public class EntityFrameworkTests : IPerformanceTests
 	{
 		public List<long> LoadedPostIDs { get; } = new List<long>();
 		public List<IEntity> LoadedPosts { get; } = new List<IEntity>();
@@ -23,10 +21,9 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = Config.OpenConnection())
+			using (var context = new EntityFrameworkContext())
 			{
-				var query = "SELECT ID FROM Posts";
-				var allPostIDs = conn.Query<long>(query).ToList();
+				var allPostIDs = context.Posts.Select(p => p.ID);
 				foreach (var id in allPostIDs)
 				{
 					this.LoadedPostIDs.Add(id);
@@ -40,10 +37,9 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = Config.OpenConnection())
+			using (var context = new EntityFrameworkContext())
 			{
-				var query = "SELECT ID, Text, DateCreated, DateModified FROM Posts";
-				var allPosts = conn.Query<Post>(query).ToList();
+				var allPosts = context.Posts;
 				foreach (var post in allPosts)
 				{
 					this.LoadedPosts.Add(post);
@@ -57,10 +53,9 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = Config.OpenConnection())
+			using (var context = new EntityFrameworkContext())
 			{
-				var query = "SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE ID = @ID";
-				var player = conn.QuerySingle<Player>(query, new { ID = id });
+				var player = context.Players.Find(id);
 				this.LoadedPlayers.Add(player);
 			}
 			watch.Stop();
@@ -71,10 +66,9 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = Config.OpenConnection())
+			using (var context = new EntityFrameworkContext())
 			{
-				var query = "SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE TeamsID = @ID";
-				var playersForTeam = conn.Query<Player>(query, new { ID = teamID });
+				var playersForTeam = context.Players.AsNoTracking().Where(x => x.TeamsID == teamID);
 				foreach (var player in playersForTeam)
 				{
 					this.LoadedPlayersForTeam.Add(player);
@@ -88,18 +82,15 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var conn = Config.OpenConnection())
+			using (var context = new EntityFrameworkContext())
 			{
-				var query = "" +
-					"SELECT p.ID, p.FirstName, p.LastName, p.DateOfBirth, p.TeamsID, t.ID as TeamsID, t.Name, t.SportsID " +
-					"FROM Teams t " +
-					"INNER JOIN Players p ON t.ID = p.TeamsID " +
-					"WHERE t.SportsID = @ID";
-				var playersForSport = conn.Query<Player, Team, Player>(query,
-					(player, team) => { return player; }, splitOn: "TeamsID", param: new { ID = sportID });
-				foreach (var player in playersForSport)
+				var teamsForSport = context.Teams.AsNoTracking().Include(x => x.Players).Where(x => x.SportsID == sportID);
+				foreach (var team in teamsForSport)
 				{
-					this.LoadedTeamsForSport.Add(player);
+					foreach (var player in team.Players)
+					{
+						this.LoadedTeamsForSport.Add(player);
+					}
 				}
 			}
 			watch.Stop();

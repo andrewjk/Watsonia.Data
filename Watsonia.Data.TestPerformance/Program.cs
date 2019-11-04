@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Watsonia.Data.TestPerformance.Entities;
+using Watsonia.Data.TestPerformance.Tests;
 
 namespace Watsonia.Data.TestPerformance
 {

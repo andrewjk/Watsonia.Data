@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Watsonia.Data.TestPerformance.Entities;
 
-namespace Watsonia.Data.TestPerformance
+namespace Watsonia.Data.TestPerformance.Tests
 {
-	public class EntityFrameworkTests : IPerformanceTests
+	public class WatsoniaLinqTests : IPerformanceTests
 	{
 		public List<long> LoadedPostIDs { get; } = new List<long>();
 		public List<IEntity> LoadedPosts { get; } = new List<IEntity>();
@@ -21,13 +21,11 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var context = new EntityFrameworkContext())
+			var db = new WatsoniaDatabase("Linq");
+			var allPostIDs = from p in db.Query<Post>() select p.ID;
+			foreach (var id in allPostIDs)
 			{
-				var allPostIDs = context.Posts.Select(p => p.ID);
-				foreach (var id in allPostIDs)
-				{
-					this.LoadedPostIDs.Add(id);
-				}
+				this.LoadedPostIDs.Add(id);
 			}
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
@@ -37,13 +35,11 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var context = new EntityFrameworkContext())
+			var db = new WatsoniaDatabase("Linq");
+			var allPosts = db.Query<Post>();
+			foreach (var post in allPosts)
 			{
-				var allPosts = context.Posts;
-				foreach (var post in allPosts)
-				{
-					this.LoadedPosts.Add(post);
-				}
+				this.LoadedPosts.Add(post);
 			}
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
@@ -53,11 +49,9 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var context = new EntityFrameworkContext())
-			{
-				var player = context.Players.Find(id);
-				this.LoadedPlayers.Add(player);
-			}
+			var db = new WatsoniaDatabase("Linq");
+			var player = db.Load<Player>(id);
+			this.LoadedPlayers.Add(player);
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
 		}
@@ -66,13 +60,11 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var context = new EntityFrameworkContext())
+			var db = new WatsoniaDatabase("Linq");
+			var playersForTeam = db.Query<Player>().Where(x => x.TeamsID == teamID);
+			foreach (var player in playersForTeam)
 			{
-				var playersForTeam = context.Players.AsNoTracking().Where(x => x.TeamsID == teamID);
-				foreach (var player in playersForTeam)
-				{
-					this.LoadedPlayersForTeam.Add(player);
-				}
+				this.LoadedPlayersForTeam.Add(player);
 			}
 			watch.Stop();
 			return watch.ElapsedMilliseconds;
@@ -82,15 +74,15 @@ namespace Watsonia.Data.TestPerformance
 		{
 			var watch = new Stopwatch();
 			watch.Start();
-			using (var context = new EntityFrameworkContext())
+			var db = new WatsoniaDatabase("Linq");
+			// TODO:
+			//var teamsForSport = db.Query<Player>().Where(p => p.Team.SportsID == sportID);
+			var teamsForSport = db.Query<Team>().Include(x => x.Players).Where(x => x.SportsID == sportID);
+			foreach (var team in teamsForSport)
 			{
-				var teamsForSport = context.Teams.AsNoTracking().Include(x => x.Players).Where(x => x.SportsID == sportID);
-				foreach (var team in teamsForSport)
+				foreach (var player in team.Players)
 				{
-					foreach (var player in team.Players)
-					{
-						this.LoadedTeamsForSport.Add(player);
-					}
+					this.LoadedTeamsForSport.Add(player);
 				}
 			}
 			watch.Stop();

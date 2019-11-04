@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Watsonia.Data.TestPerformance.Entities;
 
-namespace Watsonia.Data.TestPerformance
+namespace Watsonia.Data.TestPerformance.Tests
 {
 	public class AdoNetTests : IPerformanceTests
 	{
