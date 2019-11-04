@@ -604,7 +604,7 @@ namespace Watsonia.Data
 			// Build a statement to use as a subquery to get the IDs of the parent items
 			var parentTable = (Table)parentQuery.Source;
 			var parentIDColumn = new Column(
-				!string.IsNullOrEmpty(parentTable.Alias) ? parentTable.Alias : parentTable.Name,
+				new Table(parentTable.Name, parentTable.Alias, parentTable.Schema),
 				this.Configuration.GetPrimaryKeyColumnName(parentType));
 			var selectParentItemIDs = Select.From(parentQuery.Source).Columns(parentIDColumn);
 			if (parentQuery.SourceJoins.Count > 0)
@@ -618,8 +618,9 @@ namespace Watsonia.Data
 
 			// Build a statement to get the child items
 			var foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(itemType, parentType);
+			var childTableSchema = this.Configuration.GetSchemaName(itemType);
 			var childTableName = this.Configuration.GetTableName(itemType);
-			var childQuery = Select.From(childTableName).Where(
+			var childQuery = Select.From(childTableName, null, childTableSchema).Where(
 				new Condition(foreignKeyColumnName, SqlOperator.IsIn, selectParentItemIDs));
 
 			return childQuery;
@@ -633,7 +634,7 @@ namespace Watsonia.Data
 				// Build a statement to use as a subquery to get the IDs of the parent items
 				var foreignTable = (UserDefinedFunction)parentQuery.Source;
 				foreignKeyColumn = new Column(
-					!string.IsNullOrEmpty(foreignTable.Alias) ? foreignTable.Alias : foreignTable.Name,
+					new Table(foreignTable.Name, foreignTable.Alias, foreignTable.Schema),
 					this.Configuration.GetForeignKeyColumnName(parentProperty));
 			}
 			else
@@ -641,7 +642,7 @@ namespace Watsonia.Data
 				// Build a statement to use as a subquery to get the IDs of the parent items
 				var foreignTable = (Table)parentQuery.Source;
 				foreignKeyColumn = new Column(
-					!string.IsNullOrEmpty(foreignTable.Alias) ? foreignTable.Alias : foreignTable.Name,
+					new Table(foreignTable.Name, foreignTable.Alias, foreignTable.Schema),
 					this.Configuration.GetForeignKeyColumnName(parentProperty));
 			}
 
@@ -657,8 +658,9 @@ namespace Watsonia.Data
 
 			// Build a statement to get the child items
 			var primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(itemType);
+			var childTableSchema = this.Configuration.GetSchemaName(itemType);
 			var childTableName = this.Configuration.GetTableName(itemType);
-			var childQuery = Select.From(childTableName).Where(
+			var childQuery = Select.From(childTableName, null, childTableSchema).Where(
 				new Condition(primaryKeyColumnName, SqlOperator.IsIn, selectChildItemIDs));
 
 			return childQuery;

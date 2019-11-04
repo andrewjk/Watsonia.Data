@@ -58,6 +58,16 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Gets the name of the schema for the supplied type.
+		/// </summary>
+		/// <param name="type">The type.</param>
+		/// <returns></returns>
+		public virtual string GetSchemaName(Type type)
+		{
+			return string.Empty;
+		}
+
+		/// <summary>
 		/// Gets the name of the table for the supplied type.
 		/// </summary>
 		/// <remarks>

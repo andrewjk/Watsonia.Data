@@ -15,6 +15,11 @@ namespace Watsonia.Data
 			_configuration = configuration;
 		}
 
+		public override string GetSchemaName(Type type)
+		{
+			return _configuration.GetSchemaName(type);
+		}
+
 		public override string GetTableName(Type type)
 		{
 			return _configuration.GetTableName(type);
