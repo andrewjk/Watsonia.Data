@@ -13,40 +13,49 @@ namespace Watsonia.Data
 {
 	internal sealed class DatabaseUpdater
 	{
-		public async Task UpdateDatabaseAsync(DatabaseConfiguration configuration)
+		public void UpdateDatabase(DatabaseConfiguration configuration)
 		{
 			if (configuration == null)
 			{
 				throw new ArgumentNullException(nameof(configuration));
 			}
 
-			var schema = new Schema();
-			GetMappedObjects(schema, configuration);
-			await configuration.DataAccessProvider.UpdateDatabaseAsync(schema, configuration);
+			var tables = new List<MappedTable>();
+			var views = new List<MappedView>();
+			var procedures = new List<MappedProcedure>();
+			var functions = new List<MappedFunction>();
+			GetMappedObjects(tables, views, procedures, functions, configuration);
+			configuration.DataAccessProvider.UpdateDatabase(tables, views, procedures, functions, configuration);
 		}
 
-		public async Task<string> GetUpdateScriptAsync(DatabaseConfiguration configuration)
+		public string GetUpdateScript(DatabaseConfiguration configuration)
 		{
 			if (configuration == null)
 			{
 				throw new ArgumentNullException(nameof(configuration));
 			}
 
-			var schema = new Schema();
-			GetMappedObjects(schema, configuration);
-			return await configuration.DataAccessProvider.GetUpdateScriptAsync(schema, configuration);
+			var tables = new List<MappedTable>();
+			var views = new List<MappedView>();
+			var procedures = new List<MappedProcedure>();
+			var functions = new List<MappedFunction>();
+			GetMappedObjects(tables, views, procedures, functions, configuration);
+			return configuration.DataAccessProvider.GetUpdateScript(tables, views, procedures, functions, configuration);
 		}
 
-		public async Task<string> GetUnmappedColumnsAsync(DatabaseConfiguration configuration)
+		public string GetUnmappedColumns(DatabaseConfiguration configuration)
 		{
 			if (configuration == null)
 			{
 				throw new ArgumentNullException(nameof(configuration));
 			}
 
-			var schema = new Schema();
-			GetMappedObjects(schema, configuration);
-			return await configuration.DataAccessProvider.GetUnmappedColumnsAsync(schema, configuration);
+			var tables = new List<MappedTable>();
+			var views = new List<MappedView>();
+			var procedures = new List<MappedProcedure>();
+			var functions = new List<MappedFunction>();
+			GetMappedObjects(tables, views, procedures, functions, configuration);
+			return configuration.DataAccessProvider.GetUnmappedColumns(tables, configuration);
 		}
 
 		private void GetMappedObjects(Schema schema, DatabaseConfiguration configuration)

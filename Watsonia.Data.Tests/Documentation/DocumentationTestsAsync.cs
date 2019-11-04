@@ -14,49 +14,49 @@ namespace Watsonia.Data.Tests.Documentation
 	/// This contains tests for all of the things we talk about in the documentation.
 	/// </summary>
 	[TestClass]
-	public class DocumentationTests
+	public class DocumentationTestsAsync
 	{
 		private static readonly DocumentationDatabase _db = new DocumentationDatabase();
 
 		[ClassInitialize]
-		public static void Initialize(TestContext _)
+		public static async Task InitializeAsync(TestContext _)
 		{
-			if (!File.Exists(@"Data\DocumentationTests.sqlite"))
+			if (!File.Exists(@"Data\DocumentationTestsAsync.sqlite"))
 			{
-				var file = File.Create(@"Data\DocumentationTests.sqlite");
+				var file = File.Create(@"Data\DocumentationTestsAsync.sqlite");
 				file.Dispose();
 			}
 
 			_db.UpdateDatabase();
 
 			// Let's first delete all of the authors and books
-			_db.Execute(Delete.From("Book").Where(true));
-			_db.Execute(Delete.From("Author").Where(true));
+			await _db.ExecuteAsync(Delete.From("Book").Where(true));
+			await _db.ExecuteAsync(Delete.From("Author").Where(true));
 
 			// Pop quiz: What do these authors have in common?
-			_db.Insert(new Author { FirstName = "Stephen Jay", LastName = "Gould" });
-			_db.Insert(new Author { FirstName = "Stephen", LastName = "Hawking" });
-			_db.Insert(new Author { FirstName = "Stephen", LastName = "King" });
-			_db.Insert(new Author { FirstName = "Amy", LastName = "Tan" });
-			_db.Insert(new Author { FirstName = "John", LastName = "Updike" });
-			_db.Insert(new Author { FirstName = "Thomas", LastName = "Pynchon" });
-			_db.Insert(new Author { FirstName = "Tom", LastName = "Clancy" });
-			_db.Insert(new Author { FirstName = "George", LastName = "Plimpton" });
-			_db.Insert(new Author { FirstName = "J.K.", LastName = "Rowling" });
-			_db.Insert(new Author { FirstName = "Michael", LastName = "Chabon" });
-			_db.Insert(new Author { FirstName = "Johnathan", LastName = "Franzen" });
-			_db.Insert(new Author { FirstName = "Tom", LastName = "Wolfe" });
-			_db.Insert(new Author { FirstName = "Gore", LastName = "Vidal" });
-			_db.Insert(new Author { FirstName = "Art", LastName = "Spieglman" });
-			_db.Insert(new Author { FirstName = "Alan", LastName = "Moore" });
-			_db.Insert(new Author { FirstName = "Dan", LastName = "Clowes" });
-			_db.Insert(new Author { FirstName = "Mitch", LastName = "Albom" });
-			_db.Insert(new Author { FirstName = "Gary", LastName = "Larson" });
-			_db.Insert(new Author { FirstName = "Neil", LastName = "Gaiman" });
+			await _db.InsertAsync(new Author { FirstName = "Stephen Jay", LastName = "Gould" });
+			await _db.InsertAsync(new Author { FirstName = "Stephen", LastName = "Hawking" });
+			await _db.InsertAsync(new Author { FirstName = "Stephen", LastName = "King" });
+			await _db.InsertAsync(new Author { FirstName = "Amy", LastName = "Tan" });
+			await _db.InsertAsync(new Author { FirstName = "John", LastName = "Updike" });
+			await _db.InsertAsync(new Author { FirstName = "Thomas", LastName = "Pynchon" });
+			await _db.InsertAsync(new Author { FirstName = "Tom", LastName = "Clancy" });
+			await _db.InsertAsync(new Author { FirstName = "George", LastName = "Plimpton" });
+			await _db.InsertAsync(new Author { FirstName = "J.K.", LastName = "Rowling" });
+			await _db.InsertAsync(new Author { FirstName = "Michael", LastName = "Chabon" });
+			await _db.InsertAsync(new Author { FirstName = "Johnathan", LastName = "Franzen" });
+			await _db.InsertAsync(new Author { FirstName = "Tom", LastName = "Wolfe" });
+			await _db.InsertAsync(new Author { FirstName = "Gore", LastName = "Vidal" });
+			await _db.InsertAsync(new Author { FirstName = "Art", LastName = "Spieglman" });
+			await _db.InsertAsync(new Author { FirstName = "Alan", LastName = "Moore" });
+			await _db.InsertAsync(new Author { FirstName = "Dan", LastName = "Clowes" });
+			await _db.InsertAsync(new Author { FirstName = "Mitch", LastName = "Albom" });
+			await _db.InsertAsync(new Author { FirstName = "Gary", LastName = "Larson" });
+			await _db.InsertAsync(new Author { FirstName = "Neil", LastName = "Gaiman" });
 		}
 
 		[TestMethod]
-		public void TestLoadingEntities()
+		public async Task TestLoadingEntitiesAsync()
 		{
 			// It would be embarrassing if any of these didn't work!
 			object existingAuthorID = null;
@@ -76,97 +76,97 @@ namespace Watsonia.Data.Tests.Documentation
 
 			// Test a fluent SQL query
 			var query2 = Select.From("Author").Where("LastName", SqlOperator.StartsWith, "P");
-			Assert.AreEqual(2, _db.LoadCollection<Author>(query2).Count);
+			Assert.AreEqual(2, (await _db.LoadCollectionAsync<Author>(query2)).Count);
 
 			var query22 = Select.From<Author>().Where(a => a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase));
-			Assert.AreEqual(2, _db.LoadCollection(query22).Count);
+			Assert.AreEqual(2, (await _db.LoadCollectionAsync(query22)).Count);
 
 			// Test an SQL string
 			var query3 = "SELECT * FROM Author WHERE LastName LIKE @0";
-			Assert.AreEqual(2, _db.LoadCollection<Author>(query3, "P%").Count);
+			Assert.AreEqual(2, (await _db.LoadCollectionAsync<Author>(query3, "P%")).Count);
 
 			// Test loading a scalar value
 			var query4 = Select.From("Author").Count("*").Where("LastName", SqlOperator.StartsWith, "P");
-			var count = Convert.ToInt32(_db.LoadValue(query4));
+			var count = Convert.ToInt32(await _db.LoadValueAsync(query4));
 			Assert.AreEqual(2, count);
 
 			var query44 = Select.From<Author>().Count().Where(a => a.LastName.StartsWith("P", StringComparison.InvariantCultureIgnoreCase));
-			var count44 = Convert.ToInt32(_db.LoadValue(query44));
+			var count44 = Convert.ToInt32(await _db.LoadValueAsync(query44));
 			Assert.AreEqual(2, count44);
 
 			// Test loading an item
-			var author = _db.Load<Author>(existingAuthorID);
+			var author = await _db.LoadAsync<Author>(existingAuthorID);
 			Assert.IsNotNull(author);
 		}
 
 		[TestMethod]
-		public void TestSavingEntities()
+		public async Task TestSavingEntitiesAsync()
 		{
 			// Get a random author's ID:
 			var selectAuthor = Select.From("Author").Take(1).Where("LastName", SqlOperator.StartsWith, "P");
-			var existingAuthors = _db.LoadCollection<Author>(selectAuthor);
+			var existingAuthors = await _db.LoadCollectionAsync<Author>(selectAuthor);
 			var existingAuthor = existingAuthors[0];
 			var existingAuthorID = ((IDynamicProxy)existingAuthor).__PrimaryKeyValue;
 
 			// Update an existing author
-			var author = _db.Load<Author>(existingAuthorID);
+			var author = await _db.LoadAsync<Author>(existingAuthorID);
 			author.Rating = 85;
-			_db.Save(author);
+			await _db.SaveAsync(author);
 
 			// Create an author
 			var newAuthor = _db.Create<Author>();
 			newAuthor.FirstName = "Eric";
 			newAuthor.LastName = "Blair";
-			_db.Save(newAuthor);
+			await _db.SaveAsync(newAuthor);
 
 			// Create an author more tersely
-			var newAuthor2 = _db.Insert(new Author() { FirstName = "Eric", LastName = "Blair" });
+			var newAuthor2 = await _db.InsertAsync(new Author() { FirstName = "Eric", LastName = "Blair" });
 			Assert.IsNotNull(newAuthor2);
 		}
 
 		[TestMethod]
-		public void TestDeletingEntities()
+		public async Task TestDeletingEntitiesAsync()
 		{
-			_db.Insert(new Author { FirstName = "James", LastName = "Frey" });
-			_db.Insert(new Author { FirstName = "Helen", LastName = "Demidenko" });
+			await _db.InsertAsync(new Author { FirstName = "James", LastName = "Frey" });
+			await _db.InsertAsync(new Author { FirstName = "Helen", LastName = "Demidenko" });
 
 			// Delete item
 			var jf = _db.Query<Author>().FirstOrDefault(a => a.FirstName == "James" && a.LastName == "Frey");
 			Assert.IsNotNull(jf);
-			_db.Delete(jf);
+			await _db.DeleteAsync(jf);
 			var jfGone = _db.Query<Author>().FirstOrDefault(a => a.FirstName == "James" && a.LastName == "Frey");
 			Assert.IsNull(jfGone);
 
 			// Delete by id
 			var hd = _db.Query<Author>().FirstOrDefault(a => a.FirstName == "Helen" && a.LastName == "Demidenko");
 			Assert.IsNotNull(hd);
-			_db.Delete<Author>(hd.ID);
+			await _db.DeleteAsync<Author>(hd.ID);
 			var hdGone = _db.Query<Author>().FirstOrDefault(a => a.FirstName == "Helen" && a.LastName == "Demidenko");
 			Assert.IsNull(hdGone);
 		}
 
 		[TestMethod]
-		public void TestBulkInsertUpdateAndDelete()
+		public async Task TestBulkInsertUpdateAndDeleteAsync()
 		{
 			// Update using fluent SQL
 			var update = Update.Table("Author").Set("Rating", 95).Where("LastName", SqlOperator.StartsWith, "P");
-			_db.Execute(update);
+			await _db.ExecuteAsync(update);
 
 			// Update using an SQL string
 			var update2 = "UPDATE Author SET Rating = 95 WHERE LastName LIKE @0";
-			_db.Execute(update2, "P%");
+			await _db.ExecuteAsync(update2, "P%");
 
 			// Delete using fluent SQL
 			var delete = Delete.From("Author").Where("Rating", SqlOperator.IsLessThan, 80);
-			_db.Execute(delete);
+			await _db.ExecuteAsync(delete);
 
 			// Delete using an SQL string
 			var delete2 = "DELETE FROM Author WHERE Rating < @0";
-			_db.Execute(delete2, 80);
+			await _db.ExecuteAsync(delete2, 80);
 		}
 
 		[TestMethod]
-		public void TestBulkInsertUpdateAndDeleteWithExpressions()
+		public async Task TestBulkInsertUpdateAndDeleteWithExpressionsAsync()
 		{
 			// Not sure how useful these would be:
 			//var insert = Insert.Into<Author>().Values(new Author() { FirstName = "Enter", LastName = "Name" }, 20);
@@ -176,14 +176,14 @@ namespace Watsonia.Data.Tests.Documentation
 			//db.Execute(insert);
 
 			var update = Update.Table<Author>().Set(a => a.Rating, 95).Where(a => a.LastName.StartsWith("P"));
-			_db.Execute(update);
+			await _db.ExecuteAsync(update);
 
 			var delete = Delete.From<Author>().Where(a => a.Rating < 80);
-			_db.Execute(delete);
+			await _db.ExecuteAsync(delete);
 		}
 
 		[TestMethod]
-		public void TestValidation()
+		public async Task TestValidationAsync()
 		{
 			var author = _db.Create<Author>();
 
@@ -215,7 +215,7 @@ namespace Watsonia.Data.Tests.Documentation
 			author.Books.Add(book2);
 			try
 			{
-				_db.Save(author);
+				await _db.SaveAsync(author);
 				Assert.Fail("Book with no title shouldn't save");
 			}
 			catch (ValidationException)
@@ -233,7 +233,7 @@ namespace Watsonia.Data.Tests.Documentation
 			author.Books.Add(book3);
 			try
 			{
-				_db.Save(author);
+				await _db.SaveAsync(author);
 				Assert.Fail("Book with bad title shouldn't save");
 			}
 			catch (ValidationException)
@@ -244,7 +244,7 @@ namespace Watsonia.Data.Tests.Documentation
 		}
 
 		[TestMethod]
-		public void TestHasChanges()
+		public async Task TestHasChangesAsync()
 		{
 			// Create an author and some books
 			var author = _db.Create<Author>();
@@ -266,7 +266,7 @@ namespace Watsonia.Data.Tests.Documentation
 			Assert.IsTrue(((IDynamicProxy)book2).StateTracker.IsNew, "Book 2 should be new");
 
 			// Save the author
-			_db.Save(author);
+			await _db.SaveAsync(author);
 
 			// Everything should be not new and have no changes
 			Assert.IsFalse(((IDynamicProxy)author).StateTracker.IsNew, "Author shouldn't be new");
@@ -287,7 +287,7 @@ namespace Watsonia.Data.Tests.Documentation
 			Assert.IsTrue(((IDynamicProxy)book2).StateTracker.HasChanges, "Book 2 should have changes");
 
 			// Save the author
-			_db.Save(author);
+			await _db.SaveAsync(author);
 
 			// Nothing should have changes
 			Assert.IsFalse(((IDynamicProxy)author).StateTracker.HasChanges, "Author shouldn't have changes");

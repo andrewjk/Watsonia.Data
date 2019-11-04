@@ -23,14 +23,14 @@ namespace Watsonia.Data.SqlServer
 			_configuration = configuration;
 		}
 
-		public async Task EnsureDatabaseDeletedAsync()
+		public void EnsureDatabaseDeleted()
 		{
 			var connectionBuilder = new SqlConnectionStringBuilder(_configuration.ConnectionString);
 			var databaseName = connectionBuilder.InitialCatalog;
 			connectionBuilder.InitialCatalog = "master";
 			using (var connection = new SqlConnection(connectionBuilder.ConnectionString))
 			{
-				await connection.OpenAsync();
+				connection.Open();
 				var commandText = $@"
 IF DB_ID('{databaseName}') IS NOT NULL
 BEGIN
@@ -40,20 +40,20 @@ END
 ";
 				using (var command = new SqlCommand(commandText, connection))
 				{
-					await command.ExecuteNonQueryAsync();
+					command.ExecuteNonQuery();
 					connection.Close();
 				}
 			}
 		}
 
-		public async Task EnsureDatabaseCreatedAsync()
+		public void EnsureDatabaseCreated()
 		{
 			var connectionBuilder = new SqlConnectionStringBuilder(_configuration.ConnectionString);
 			var databaseName = connectionBuilder.InitialCatalog;
 			connectionBuilder.InitialCatalog = "master";
 			using (var connection = new SqlConnection(connectionBuilder.ConnectionString))
 			{
-				await connection.OpenAsync();
+				connection.Open();
 				var commandText = $@"
 IF DB_ID('{databaseName}') IS NULL
 BEGIN
@@ -62,34 +62,34 @@ END
 ";
 				using (var command = new SqlCommand(commandText, connection))
 				{
-					await command.ExecuteNonQueryAsync();
+					command.ExecuteNonQuery();
 					connection.Close();
 				}
 			}
 		}
 
-		public async Task UpdateDatabaseAsync(Schema schema)
+		public void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
 		{
-			await UpdateDatabaseAsync(schema, true);
+			UpdateDatabase(tables, views, procedures, functions, true);
 		}
 
-		public async Task<string> GetUpdateScriptAsync(Schema schema)
+		public string GetUpdateScript(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions)
 		{
 			var script = new StringBuilder();
-			await UpdateDatabaseAsync(schema, false, script);
+			UpdateDatabase(tables, views, procedures, functions, false, script);
 			return script.ToString();
 		}
 
-		private async Task UpdateDatabaseAsync(Schema schema, bool doUpdate, StringBuilder script = null)
+		private void UpdateDatabase(IEnumerable<MappedTable> tables, IEnumerable<MappedView> views, IEnumerable<MappedProcedure> procedures, IEnumerable<MappedFunction> functions, bool doUpdate, StringBuilder script = null)
 		{
-			using (var connection = await _dataAccessProvider.OpenConnectionAsync(_configuration))
+			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
 			{
 				// Load the existing tables and columns
-				var existingTables = await LoadExistingTablesAsync(connection);
-				var existingColumns = await LoadExistingColumnsAsync(connection);
-				var existingViews = await LoadExistingViewsAsync(connection);
-				var existingProcedures = await LoadExistingProceduresAsync(connection);
-				var existingFunctions = await LoadExistingFunctionsAsync(connection);
+				var existingTables = LoadExistingTables(connection);
+				var existingColumns = LoadExistingColumns(connection);
+				var existingViews = LoadExistingViews(connection);
+				var existingProcedures = LoadExistingProcedures(connection);
+				var existingFunctions = LoadExistingFunctions(connection);
 
 				// First pass - create or update tables and columns
 				foreach (var table in schema.Tables)
@@ -103,19 +103,19 @@ END
 							if (existingColumns.ContainsKey(key))
 							{
 								// The column exists so we need to check whether it should be updated
-								await UpdateColumnAsync(table, existingColumns[key], column, connection, doUpdate, script);
+								UpdateColumn(table, existingColumns[key], column, connection, doUpdate, script);
 							}
 							else
 							{
 								// The column doesn't exist so it needs to be created
-								await CreateColumnAsync(table, column, connection, doUpdate, script);
+								CreateColumn(table, column, connection, doUpdate, script);
 							}
 						}
 					}
 					else
 					{
 						// The table doesn't exist so it needs to be created
-						await CreateTableAsync(table, connection, doUpdate, script);
+						CreateTable(table, connection, doUpdate, script);
 					}
 				}
 
@@ -123,18 +123,18 @@ END
 				foreach (var table in schema.Tables.Where(t => t.Values.Count > 0))
 				{
 					var tableExists = existingTables.ContainsKey(table.Name.ToUpperInvariant());
-					await UpdateTableDataAsync(table, connection, doUpdate, script, tableExists);
+					UpdateTableData(table, connection, doUpdate, script, tableExists);
 				}
 
 				// Third pass - create relationship constraints
-				var existingForeignKeys = await LoadExistingForeignKeysAsync(connection);
-				foreach (var table in schema.Tables)
+				var existingForeignKeys = LoadExistingForeignKeys(connection);
+				foreach (var table in tables)
 				{
 					foreach (var column in table.Columns.Where(c => c.Relationship != null))
 					{
 						if (!existingForeignKeys.Contains(column.Relationship.ConstraintName))
 						{
-							await CreateForeignKeyAsync(table, column, connection, doUpdate, script);
+							CreateForeignKey(table, column, connection, doUpdate, script);
 							existingForeignKeys.Add(column.Relationship.ConstraintName);
 						}
 					}
@@ -147,12 +147,12 @@ END
 					if (existingViews.ContainsKey(key))
 					{
 						// The view exists so we need to check whether it should be updated
-						await UpdateViewAsync(view, existingViews[key], connection, doUpdate, script);
+						UpdateView(view, existingViews[key], connection, doUpdate, script);
 					}
 					else
 					{
 						// The view doesn't exist so it needs to be created
-						await CreateViewAsync(view, connection, doUpdate, script);
+						CreateView(view, connection, doUpdate, script);
 					}
 				}
 
@@ -163,12 +163,12 @@ END
 					if (existingProcedures.ContainsKey(key))
 					{
 						// The procedure exists so we need to check whether it should be updated
-						await UpdateProcedureAsync(procedure, existingProcedures[key], connection, doUpdate, script);
+						UpdateProcedure(procedure, existingProcedures[key], connection, doUpdate, script);
 					}
 					else
 					{
 						// The procedure doesn't exist so it needs to be created
-						await CreateProcedureAsync(procedure, connection, doUpdate, script);
+						CreateProcedure(procedure, connection, doUpdate, script);
 					}
 				}
 
@@ -179,25 +179,25 @@ END
 					if (existingFunctions.ContainsKey(key))
 					{
 						// The function exists so we need to check whether it should be updated
-						await UpdateFunctionAsync(function, existingFunctions[key], connection, doUpdate, script);
+						UpdateFunction(function, existingFunctions[key], connection, doUpdate, script);
 					}
 					else
 					{
 						// The function doesn't exist so it needs to be created
-						await CreateFunctionAsync(function, connection, doUpdate, script);
+						CreateFunction(function, connection, doUpdate, script);
 					}
 				}
 			}
 		}
 
-		private async Task<Dictionary<string, MappedTable>> LoadExistingTablesAsync(DbConnection connection)
+		private Dictionary<string, MappedTable> LoadExistingTables(DbConnection connection)
 		{
 			var existingTables = new Dictionary<string, MappedTable>();
 			using (var existingTablesCommand = CreateCommand(connection))
 			{
 				existingTablesCommand.CommandText = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES";
 				existingTablesCommand.Connection = connection;
-				using (var reader = await existingTablesCommand.ExecuteReaderAsync())
+				using (var reader = existingTablesCommand.ExecuteReader())
 				{
 					while (reader.Read())
 					{
@@ -210,14 +210,14 @@ END
 			return existingTables;
 		}
 
-		private async Task<Dictionary<string, MappedColumn>> LoadExistingColumnsAsync(DbConnection connection)
+		private Dictionary<string, MappedColumn> LoadExistingColumns(DbConnection connection)
 		{
 			var existingColumns = new Dictionary<string, MappedColumn>();
 			using (var existingColumnsCommand = CreateCommand(connection))
 			{
 				existingColumnsCommand.CommandText = "SELECT TABLE_NAME, COLUMN_NAME, IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, COLUMN_DEFAULT FROM INFORMATION_SCHEMA.COLUMNS";
 				existingColumnsCommand.Connection = connection;
-				using (var reader = await existingColumnsCommand.ExecuteReaderAsync())
+				using (var reader = existingColumnsCommand.ExecuteReader())
 				{
 					while (reader.Read())
 					{
@@ -249,7 +249,7 @@ END
 			return existingColumns;
 		}
 
-		private async Task<Dictionary<string, MappedView>> LoadExistingViewsAsync(DbConnection connection)
+		private Dictionary<string, MappedView> LoadExistingViews(DbConnection connection)
 		{
 			var existingViews = new Dictionary<string, MappedView>();
 			if (!this.CompactEdition)
@@ -258,7 +258,7 @@ END
 				{
 					existingViewsCommand.CommandText = "SELECT TABLE_NAME, VIEW_DEFINITION FROM INFORMATION_SCHEMA.VIEWS";
 					existingViewsCommand.Connection = connection;
-					using (var reader = await existingViewsCommand.ExecuteReaderAsync())
+					using (var reader = existingViewsCommand.ExecuteReader())
 					{
 						while (reader.Read())
 						{
@@ -275,7 +275,7 @@ END
 			return existingViews;
 		}
 
-		private async Task<Dictionary<string, MappedProcedure>> LoadExistingProceduresAsync(DbConnection connection)
+		private Dictionary<string, MappedProcedure> LoadExistingProcedures(DbConnection connection)
 		{
 			var existingProcedures = new Dictionary<string, MappedProcedure>();
 			if (!this.CompactEdition)
@@ -284,7 +284,7 @@ END
 				{
 					existingProceduresCommand.CommandText = "SELECT ROUTINE_NAME, ROUTINE_DEFINITION FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_TYPE = 'PROCEDURE'";
 					existingProceduresCommand.Connection = connection;
-					using (var reader = await existingProceduresCommand.ExecuteReaderAsync())
+					using (var reader = existingProceduresCommand.ExecuteReader())
 					{
 						while (reader.Read())
 						{
@@ -301,7 +301,7 @@ END
 			return existingProcedures;
 		}
 
-		private async Task<Dictionary<string, MappedFunction>> LoadExistingFunctionsAsync(DbConnection connection)
+		private Dictionary<string, MappedFunction> LoadExistingFunctions(DbConnection connection)
 		{
 			var existingFunctions = new Dictionary<string, MappedFunction>();
 			if (!this.CompactEdition)
@@ -310,7 +310,7 @@ END
 				{
 					existingFunctionsCommand.CommandText = "SELECT ROUTINE_NAME, ROUTINE_DEFINITION FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_TYPE = 'FUNCTION'";
 					existingFunctionsCommand.Connection = connection;
-					using (var reader = await existingFunctionsCommand.ExecuteReaderAsync())
+					using (var reader = existingFunctionsCommand.ExecuteReader())
 					{
 						while (reader.Read())
 						{
@@ -390,14 +390,14 @@ END
 			}
 		}
 
-		private async Task<List<string>> LoadExistingForeignKeysAsync(DbConnection connection)
+		private List<string> LoadExistingForeignKeys(DbConnection connection)
 		{
 			var existingForeignKeys = new List<string>();
 			using (var existingForeignKeysCommand = CreateCommand(connection))
 			{
 				existingForeignKeysCommand.CommandText = "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS";
 				existingForeignKeysCommand.Connection = connection;
-				using (var reader = await existingForeignKeysCommand.ExecuteReaderAsync())
+				using (var reader = existingForeignKeysCommand.ExecuteReader())
 				{
 					while (reader.Read())
 					{
@@ -408,7 +408,7 @@ END
 			return existingForeignKeys;
 		}
 
-		private async Task CreateTableAsync(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
+		private void CreateTable(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var b = new StringBuilder();
 			b.AppendLine($"CREATE TABLE [{table.Name}] (");
@@ -422,17 +422,17 @@ END
 			{
 				command.CommandText = b.ToString();
 				command.Connection = connection;
-				await ExecuteSqlAsync(command, doUpdate, script);
+				ExecuteSql(command, doUpdate, script);
 			}
 		}
 
-		private async Task CreateColumnAsync(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
+		private void CreateColumn(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			using (var command = CreateCommand(connection))
 			{
 				command.CommandText = $"ALTER TABLE [{table.Name}] ADD {ColumnText(table, column, true, true)}";
 				command.Connection = connection;
-				await ExecuteSqlAsync(command, doUpdate, script);
+				ExecuteSql(command, doUpdate, script);
 			}
 		}
 
@@ -607,7 +607,7 @@ END
 			}
 		}
 
-		private async Task CreateForeignKeyAsync(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
+		private void CreateForeignKey(MappedTable table, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			using (var command = CreateCommand(connection))
 			{
@@ -617,11 +617,11 @@ END
 				var foreignTableColumnName = column.Relationship.ForeignTableColumnName;
 				command.CommandText = $"ALTER TABLE [{table.Name}] {maybeCheck} ADD CONSTRAINT [{constraintName}] FOREIGN KEY ([{column.Name}]) REFERENCES [{foreignTableName}] ({foreignTableColumnName})";
 				command.Connection = connection;
-				await ExecuteSqlAsync(command, doUpdate, script);
+				ExecuteSql(command, doUpdate, script);
 			}
 		}
 
-		private async Task UpdateColumnAsync(MappedTable table, MappedColumn oldColumn, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
+		private void UpdateColumn(MappedTable table, MappedColumn oldColumn, MappedColumn column, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			if (oldColumn.AllowNulls && !column.AllowNulls)
 			{
@@ -631,7 +631,7 @@ END
 				{
 					command.CommandText = $"UPDATE [{table.Name}] SET {column.Name} = {ColumnDefaultText(column)} WHERE {column.Name} IS NULL";
 					command.Connection = connection;
-					await ExecuteSqlAsync(command, doUpdate, script);
+					ExecuteSql(command, doUpdate, script);
 				}
 			}
 
@@ -647,47 +647,47 @@ END
 				using (var command = CreateCommand(connection))
 				{
 					// Drop all constraints before updating the column.  They will be re-created later
-					var constraints = await GetColumnConstraintsToDropAsync(table, column, connection);
+					var constraints = GetColumnConstraintsToDrop(table, column, connection);
 					if (constraints.Count > 0)
 					{
 						command.CommandText = string.Join(Environment.NewLine, constraints.ToArray());
 						command.Connection = connection;
-						await ExecuteSqlAsync(command, doUpdate, script);
+						ExecuteSql(command, doUpdate, script);
 					}
 
 					// Update the column
 					command.CommandText = $"ALTER TABLE [{table.Name}] ALTER COLUMN {ColumnText(table, column, false, false)}";
-					await ExecuteSqlAsync(command, doUpdate, script);
+					ExecuteSql(command, doUpdate, script);
 
 					// If the column is the primary key, add that constraint back now
 					if (column.IsPrimaryKey)
 					{
 						command.CommandText = $"ALTER TABLE [{table.Name}] ADD CONSTRAINT [{table.PrimaryKeyConstraintName}] PRIMARY KEY {((this.CompactEdition ? "" : "CLUSTERED"))} ([{table.PrimaryKeyColumnName}]{((this.CompactEdition ? "" : " ASC"))})";
-						await ExecuteSqlAsync(command, doUpdate, script);
+						ExecuteSql(command, doUpdate, script);
 					}
 
 					// If the column has a default value, add that constraint back now
 					if (column.DefaultValue != null)
 					{
 						command.CommandText = $"ALTER TABLE [{table.Name}] ADD CONSTRAINT [{column.DefaultValueConstraintName}] DEFAULT {ColumnDefaultText(column)} FOR [{column.Name}]";
-						await ExecuteSqlAsync(command, doUpdate, script);
+						ExecuteSql(command, doUpdate, script);
 					}
 				}
 			}
 		}
 
-		private async Task<List<string>> GetColumnConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
+		private List<string> GetColumnConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
-			constraints.AddRange(await GetForeignKeyConstraintsToDropAsync(table, column, connection));
-			constraints.AddRange(await GetPrimaryKeyConstraintsToDropAsync(table, column, connection));
-			constraints.AddRange(await GetDefaultValueConstraintsToDropAsync(table, column, connection));
+			constraints.AddRange(GetForeignKeyConstraintsToDrop(table, column, connection));
+			constraints.AddRange(GetPrimaryKeyConstraintsToDrop(table, column, connection));
+			constraints.AddRange(GetDefaultValueConstraintsToDrop(table, column, connection));
 
 			return constraints;
 		}
 
-		private async Task<List<string>> GetForeignKeyConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
+		private List<string> GetForeignKeyConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -710,7 +710,7 @@ END
 					$"WHERE (PK.TABLE_NAME = '{table.Name}' AND PT.COLUMN_NAME = '{column.Name}') " +
 					$"	OR (FK.TABLE_NAME = '{table.Name}' AND CU.COLUMN_NAME = '{column.Name}')";
 				command.Connection = connection;
-				using (var reader = await command.ExecuteReaderAsync())
+				using (var reader = command.ExecuteReader())
 				{
 					while (reader.Read())
 					{
@@ -724,7 +724,7 @@ END
 			return constraints;
 		}
 
-		private async Task<List<string>> GetPrimaryKeyConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
+		private List<string> GetPrimaryKeyConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -738,7 +738,7 @@ END
 					"WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY' " +
 					$"	AND C.TABLE_NAME = '{table.Name}' AND CU.COLUMN_NAME = '{column.Name}' ";
 				command.Connection = connection;
-				using (var reader = await command.ExecuteReaderAsync())
+				using (var reader = command.ExecuteReader())
 				{
 					while (reader.Read())
 					{
@@ -751,7 +751,7 @@ END
 			return constraints;
 		}
 
-		private async Task<List<string>> GetDefaultValueConstraintsToDropAsync(MappedTable table, MappedColumn column, DbConnection connection)
+		private List<string> GetDefaultValueConstraintsToDrop(MappedTable table, MappedColumn column, DbConnection connection)
 		{
 			var constraints = new List<string>();
 
@@ -771,7 +771,7 @@ END
 					"	INNER JOIN sys.default_constraints c on a.default_object_id = c.object_id " +
 					$"WHERE b.name = '{table.Name}' AND a.name = '{column.Name}' ";
 				command.Connection = connection;
-				using (var reader = await command.ExecuteReaderAsync())
+				using (var reader = command.ExecuteReader())
 				{
 					while (reader.Read())
 					{
@@ -784,7 +784,7 @@ END
 			return constraints;
 		}
 
-		private async Task UpdateTableDataAsync(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script, bool tableExists)
+		private void UpdateTableData(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script, bool tableExists)
 		{
 			// TODO: This is a bit messy and could be tidied up a bit
 			var existingTableData = new List<int>();
@@ -796,7 +796,7 @@ END
 				using (var existingTableDataCommand = _dataAccessProvider.BuildCommand(selectExistingTableData, _configuration))
 				{
 					existingTableDataCommand.Connection = connection;
-					using (var reader = await existingTableDataCommand.ExecuteReaderAsync())
+					using (var reader = existingTableDataCommand.ExecuteReader())
 					{
 						while (reader.Read())
 						{
@@ -816,7 +816,7 @@ END
 					{
 						identityInsertCommand.Connection = connection;
 						identityInsertCommand.CommandText = "SET IDENTITY_INSERT " + table.Name + " ON";
-						await ExecuteSqlAsync(identityInsertCommand, doUpdate, script);
+						ExecuteSql(identityInsertCommand, doUpdate, script);
 
 						var insertData = Insert.Into(table.Name);
 						foreach (var key in data.Keys)
@@ -826,17 +826,17 @@ END
 						using (var command = _dataAccessProvider.BuildCommand(insertData, _configuration))
 						{
 							command.Connection = connection;
-							await ExecuteSqlAsync(command, doUpdate, script);
+							ExecuteSql(command, doUpdate, script);
 						}
 
 						identityInsertCommand.CommandText = "SET IDENTITY_INSERT " + table.Name + " OFF";
-						await ExecuteSqlAsync(identityInsertCommand, doUpdate, script);
+						ExecuteSql(identityInsertCommand, doUpdate, script);
 					}
 				}
 			}
 		}
 
-		private async Task CreateViewAsync(MappedView view, DbConnection connection, bool doUpdate, StringBuilder script)
+		private void CreateView(MappedView view, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			if (this.CompactEdition)
 			{
@@ -849,11 +849,11 @@ END
 			{
 				command.CommandText = commandText;
 				command.Connection = connection;
-				await ExecuteSqlAsync(command, doUpdate, script);
+				ExecuteSql(command, doUpdate, script);
 			}
 		}
 
-		private async Task UpdateViewAsync(MappedView view, MappedView oldView, DbConnection connection, bool doUpdate, StringBuilder script)
+		private void UpdateView(MappedView view, MappedView oldView, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var commandText = BuildViewSql(view);
 			if (oldView.SelectStatementText != commandText)
@@ -862,7 +862,7 @@ END
 				{
 					command.CommandText = commandText.Replace("CREATE VIEW", "ALTER VIEW");
 					command.Connection = connection;
-					await ExecuteSqlAsync(command, doUpdate, script);
+					ExecuteSql(command, doUpdate, script);
 				}
 			}
 		}
@@ -894,7 +894,7 @@ END
 			return b.ToString();
 		}
 
-		private async Task CreateProcedureAsync(MappedProcedure procedure, DbConnection connection, bool doUpdate, StringBuilder script)
+		private void CreateProcedure(MappedProcedure procedure, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			if (this.CompactEdition)
 			{
@@ -907,11 +907,11 @@ END
 			{
 				command.CommandText = commandText;
 				command.Connection = connection;
-				await ExecuteSqlAsync(command, doUpdate, script);
+				ExecuteSql(command, doUpdate, script);
 			}
 		}
 
-		private async Task UpdateProcedureAsync(MappedProcedure procedure, MappedProcedure oldProcedure, DbConnection connection, bool doUpdate, StringBuilder script)
+		private void UpdateProcedure(MappedProcedure procedure, MappedProcedure oldProcedure, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var commandText = BuildProcedureSql(procedure);
 			if (oldProcedure.StatementText != commandText)
@@ -920,7 +920,7 @@ END
 				{
 					command.CommandText = commandText.Replace("CREATE PROCEDURE", "ALTER PROCEDURE");
 					command.Connection = connection;
-					await ExecuteSqlAsync(command, doUpdate, script);
+					ExecuteSql(command, doUpdate, script);
 				}
 			}
 		}
@@ -973,7 +973,7 @@ END
 			return b.ToString();
 		}
 
-		private async Task CreateFunctionAsync(MappedFunction function, DbConnection connection, bool doUpdate, StringBuilder script)
+		private void CreateFunction(MappedFunction function, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			if (this.CompactEdition)
 			{
@@ -986,11 +986,11 @@ END
 			{
 				command.CommandText = commandText;
 				command.Connection = connection;
-				await ExecuteSqlAsync(command, doUpdate, script);
+				ExecuteSql(command, doUpdate, script);
 			}
 		}
 
-		private async Task UpdateFunctionAsync(MappedFunction function, MappedFunction oldFunction, DbConnection connection, bool doUpdate, StringBuilder script)
+		private void UpdateFunction(MappedFunction function, MappedFunction oldFunction, DbConnection connection, bool doUpdate, StringBuilder script)
 		{
 			var commandText = BuildFunctionSql(function);
 			if (oldFunction.StatementText != commandText)
@@ -999,7 +999,7 @@ END
 				{
 					command.CommandText = commandText.Replace("CREATE FUNCTION", "ALTER FUNCTION");
 					command.Connection = connection;
-					await ExecuteSqlAsync(command, doUpdate, script);
+					ExecuteSql(command, doUpdate, script);
 				}
 			}
 		}
@@ -1057,7 +1057,7 @@ END
 			return b.ToString();
 		}
 
-		private async Task ExecuteSqlAsync(DbCommand command, bool doUpdate, StringBuilder script)
+		private void ExecuteSql(DbCommand command, bool doUpdate, StringBuilder script)
 		{
 			if (script != null)
 			{
@@ -1088,7 +1088,7 @@ END
 
 			if (doUpdate)
 			{
-				await command.ExecuteNonQueryAsync();
+				command.ExecuteNonQuery();
 			}
 		}
 
@@ -1099,14 +1099,14 @@ END
 			return command;
 		}
 
-		public async Task<string> GetUnmappedColumnsAsync(Schema schema)
+		public string GetUnmappedColumns(IEnumerable<MappedTable> tables)
 		{
 			var columns = new StringBuilder();
 
-			using (var connection = await _dataAccessProvider.OpenConnectionAsync(_configuration))
+			using (var connection = _dataAccessProvider.OpenConnection(_configuration))
 			{
 				// Load the existing columns
-				var existingColumns = await LoadExistingColumnsAsync(connection);
+				var existingColumns = LoadExistingColumns(connection);
 
 				// Check whether each existing column is mapped
 				foreach (var columnKey in existingColumns.Keys)

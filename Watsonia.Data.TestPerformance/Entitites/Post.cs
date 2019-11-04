@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Watsonia.Data.TestPerformance.Entities
 {
-	public class Post
+	public class Post : IEntity
 	{
 		public virtual long ID { get; set; }
 		[StringLength(2000)]

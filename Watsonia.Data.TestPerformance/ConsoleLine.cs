@@ -17,5 +17,10 @@ namespace Watsonia.Data.TestPerformance
 		{
 			Parts.AddRange(parts);
 		}
+
+		public override string ToString()
+		{
+			return string.Join(" ", this.Parts);
+		}
 	}
 }

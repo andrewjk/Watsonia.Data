@@ -405,6 +405,37 @@ namespace Watsonia.Data.Reference
 			__PrimaryKeyValueChanged?.Invoke(this, new PrimaryKeyValueChangedEventArgs(value));
 		}
 
+		public void __SetValue(string name, object value)
+		{
+			switch (name.ToUpperInvariant())
+			{
+				case "ID":
+				{
+					this.ID = (long)value;
+					break;
+				}
+				// etc
+				default:
+				{
+					throw new ArgumentException(name);
+				}
+			}
+		}
+
+		public object __GetValue(string name)
+		{
+			switch (name.ToUpperInvariant())
+			{
+				case "ID":
+				{
+					return this.ID;
+				}
+				// etc
+			}
+
+			throw new ArgumentException(name);
+		}
+
 		public void __SetOriginalValues()
 		{
 			this.StateTracker.OriginalValues["Title"] = this.Title;
@@ -416,13 +447,13 @@ namespace Watsonia.Data.Reference
 			this.StateTracker.OriginalValues["IntNullable"] = this.IntNullable;
 		}
 
-		public void __SetValuesFromReader(DbDataReader source)
+		public void __SetValuesFromReader(DbDataReader source, string[] fieldNames)
 		{
 			this.StateTracker.IsLoading = true;
 
-			for (var i = 0; i < source.FieldCount; i++)
+			for (var i = 0; i < fieldNames.Length; i++)
 			{
-				switch (source.GetName(i).ToUpperInvariant())
+				switch (fieldNames[i])
 				{
 					case "ID":
 					{

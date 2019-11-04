@@ -12,11 +12,7 @@ Duplicate less code between SQLite and SQL Server
 Fix up the documentation
 	Make a list of conventions
 Performance improvements!
-	Should we use the type-specific methods (GetInt32 etc) in SetValuesFromReader?
-	Should we have SetValue(propertyName) methods instead of using reflection?
 	Should we store table name and related table names in the proxy? Or cache mappings in the database?  
-	Basically, remove the using System.Reflection directive in Database and DynamicProxyStateTracker
-	Also, use something better than Dictionary<string, object> (or anything that uses objects)
 	Should we use a ValueBag to store StateTracker.OriginalValues?
 	Can we get rid of ChangeType as much as possible?
 LoadedCollections and LoadedItems should probably be a collection of collections and items, rather than names?

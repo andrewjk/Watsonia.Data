@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,13 @@ namespace Watsonia.Data
 	/// </summary>
 	public class DatabaseConfiguration
 	{
+		private IEnumerable<Assembly> _assembliesToMap;
+		private IEnumerable<Type> _typesToMap;
+		private readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>> _propertiesToMap = new ConcurrentDictionary<Type, IEnumerable<PropertyInfo>>();
+		private readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>> _propertiesToLoadAndSave = new ConcurrentDictionary<Type, IEnumerable<PropertyInfo>>();
+		private readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>> _propertiesToCascade = new ConcurrentDictionary<Type, IEnumerable<PropertyInfo>>();
+		private readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>> _propertiesToCascadeDelete = new ConcurrentDictionary<Type, IEnumerable<PropertyInfo>>();
+
 		/// <summary>
 		/// Gets or sets the provider used to access the type of database.
 		/// </summary>
@@ -47,6 +55,16 @@ namespace Watsonia.Data
 			this.DataAccessProvider = provider;
 			this.ConnectionString = connectionString;
 			this.EntityNamespace = entityNamespace;
+		}
+
+		/// <summary>
+		/// Gets the name of the schema for the supplied type.
+		/// </summary>
+		/// <param name="type">The type.</param>
+		/// <returns></returns>
+		public virtual string GetSchemaName(Type type)
+		{
+			return string.Empty;
 		}
 
 		/// <summary>
@@ -411,6 +429,15 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IEnumerable<Assembly> AssembliesToMap()
 		{
+			if (_assembliesToMap == null)
+			{
+				_assembliesToMap = GetAssembliesToMap();
+			}
+			return _assembliesToMap;
+		}
+
+		private IEnumerable<Assembly> GetAssembliesToMap()
+		{
 			foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
 			{
 				if (ShouldMapAssemblyInternal(assembly))
@@ -425,6 +452,15 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <returns></returns>
 		public IEnumerable<Type> TypesToMap()
+		{
+			if (_typesToMap == null)
+			{
+				_typesToMap = GetTypesToMap();
+			}
+			return _typesToMap;
+		}
+
+		private IEnumerable<Type> GetTypesToMap()
 		{
 			foreach (var assembly in AssembliesToMap())
 			{
@@ -512,10 +548,15 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IEnumerable<PropertyInfo> PropertiesToMap(Type type)
 		{
+			return _propertiesToMap.GetOrAdd(type, GetPropertiesToMap(type));
+		}
+
+		private IEnumerable<PropertyInfo> GetPropertiesToMap(Type type)
+		{
 			var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 			foreach (var property in type.GetProperties(flags))
 			{
-				if (this.ShouldMapPropertyInternal(property))
+				if (ShouldMapPropertyInternal(property))
 				{
 					yield return property;
 				}
@@ -565,10 +606,15 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IEnumerable<PropertyInfo> PropertiesToLoadAndSave(Type type)
 		{
+			return _propertiesToLoadAndSave.GetOrAdd(type, GetPropertiesToLoadAndSave(type));
+		}
+
+		private IEnumerable<PropertyInfo> GetPropertiesToLoadAndSave(Type type)
+		{
 			var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 			foreach (var property in type.GetProperties(flags))
 			{
-				if (this.ShouldLoadAndSaveProperty(property))
+				if (ShouldLoadAndSaveProperty(property))
 				{
 					yield return property;
 				}
@@ -629,10 +675,15 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IEnumerable<PropertyInfo> PropertiesToCascade(Type type)
 		{
+			return _propertiesToCascade.GetOrAdd(type, GetPropertiesToCascade(type));
+		}
+
+		private IEnumerable<PropertyInfo> GetPropertiesToCascade(Type type)
+		{
 			var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 			foreach (var property in type.GetProperties(flags))
 			{
-				if (this.ShouldCascadeInternal(property))
+				if (ShouldCascadeInternal(property))
 				{
 					yield return property;
 				}
@@ -681,10 +732,15 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IEnumerable<PropertyInfo> PropertiesToCascadeDelete(Type type)
 		{
+			return _propertiesToCascadeDelete.GetOrAdd(type, GetPropertiesToCascadeDelete(type));
+		}
+
+		private IEnumerable<PropertyInfo> GetPropertiesToCascadeDelete(Type type)
+		{
 			var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 			foreach (var property in type.GetProperties(flags))
 			{
-				if (this.ShouldCascadeDeleteInternal(property))
+				if (ShouldCascadeDeleteInternal(property))
 				{
 					yield return property;
 				}

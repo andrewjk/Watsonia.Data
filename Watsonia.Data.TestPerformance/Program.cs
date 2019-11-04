@@ -5,20 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Watsonia.Data.TestPerformance.Entities;
+using Watsonia.Data.TestPerformance.Tests;
 
 namespace Watsonia.Data.TestPerformance
 {
 	// So this is mostly adapted from https://www.exceptionnotfound.net/dapper-vs-entity-framework-vs-ado-net-performance-benchmarking/
 	public static class Program
 	{
-		private const int RunCount = 10;
-		private const int MaxOperations = 50;
-
-		private const int PostCount = 500;
-		private const int SportCount = 5;
-		private const int TeamsPerSportCount = 10;
-		private const int PlayersPerTeamCount = 10;
-
 		public static async Task Main(/* string[] args */)
 		{
 			var color = Console.ForegroundColor;
@@ -26,10 +19,10 @@ namespace Watsonia.Data.TestPerformance
 
 			Console.BackgroundColor = ConsoleColor.Black;
 
-			var db = new WatsoniaDatabase();
+			var db = new WatsoniaDatabase("Checking");
 
 			Console.WriteLine("Checking database...");
-			await CheckDatabaseAsync(db);
+			await DataGenerator.CheckDatabaseAsync(db);
 
 			Console.WriteLine("Running tests...");
 			var testResults = RunTests();
@@ -43,53 +36,28 @@ namespace Watsonia.Data.TestPerformance
 			Console.ReadKey();
 		}
 
-		private static async Task CheckDatabaseAsync(WatsoniaDatabase db)
-		{
-			if (!Directory.Exists("Data"))
-			{
-				Directory.CreateDirectory("Data");
-			}
-			if (!File.Exists(@"Data\Performance.sqlite"))
-			{
-				var file = File.Create(@"Data\Performance.sqlite");
-				file.Dispose();
-			}
-			await db.UpdateDatabaseAsync();
-
-			if (db.Query<Post>().Count() == 0)
-			{
-				await DataGenerator.GeneratePosts(db, PostCount);
-				var sports = await DataGenerator.GenerateSports(db, SportCount);
-				foreach (var sport in sports)
-				{
-					var teams = await DataGenerator.GenerateTeams(db, sport, TeamsPerSportCount);
-					foreach (var team in teams)
-					{
-						var players = DataGenerator.GeneratePlayers(db, team, PlayersPerTeamCount);
-					}
-				}
-			}
-		}
-
 		private static List<TestResult> RunTests()
 		{
 			var testResults = new List<TestResult>();
 			var frameworkCount = 0;
 
-			for (var i = 0; i < RunCount; i++)
+			for (var i = 0; i < Config.RunCount; i++)
 			{
 				if (i > 0)
 				{
 					Console.SetCursorPosition(0, Console.CursorTop);
 				}
-				Console.Write("{0}/{1}", i + 1, RunCount);
+				Console.Write($"Run {i + 1}/{Config.RunCount}, test 1/5");
 
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
 
 				var adoTests = new AdoNetTests();
 				var adoResults = RunTests(i, TestFramework.AdoNet, adoTests);
-				testResults.AddRange(adoResults);
+				testResults.Add(adoResults);
+
+				Console.SetCursorPosition(0, Console.CursorTop);
+				Console.Write($"Run {i + 1}/{Config.RunCount}, test 2/5");
 
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
@@ -97,7 +65,10 @@ namespace Watsonia.Data.TestPerformance
 				// Dapper is fast
 				var dapperTests = new DapperTests();
 				var dapperResults = RunTests(i, TestFramework.Dapper, dapperTests);
-				testResults.AddRange(dapperResults);
+				testResults.Add(dapperResults);
+
+				Console.SetCursorPosition(0, Console.CursorTop);
+				Console.Write($"Run {i + 1}/{Config.RunCount}, test 3/5");
 
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
@@ -105,17 +76,24 @@ namespace Watsonia.Data.TestPerformance
 				// EntityFramework is full-featured
 				var efTests = new EntityFrameworkTests();
 				var efResults = RunTests(i, TestFramework.EntityFramework, efTests);
-				testResults.AddRange(efResults);
+				testResults.Add(efResults);
 
 				// TODO: Should we test an "optimised" EF? No change tracking etc?
+
+				Console.SetCursorPosition(0, Console.CursorTop);
+				Console.Write($"Run {i + 1}/{Config.RunCount}, test 4/5");
 
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
 
 				// Use Linq for a better dev experience
+
 				var wlinqTests = new WatsoniaLinqTests();
 				var wlinqResults = RunTests(i, TestFramework.WatsoniaLinq, wlinqTests);
-				testResults.AddRange(wlinqResults);
+				testResults.Add(wlinqResults);
+
+				Console.SetCursorPosition(0, Console.CursorTop);
+				Console.Write($"Run {i + 1}/{Config.RunCount}, test 5/5");
 
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
@@ -123,7 +101,7 @@ namespace Watsonia.Data.TestPerformance
 				// Use SQL for speed
 				var wsqlTests = new WatsoniaSqlTests();
 				var wsqlResults = RunTests(i, TestFramework.WatsoniaSql, wsqlTests);
-				testResults.AddRange(wsqlResults);
+				testResults.Add(wsqlResults);
 
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
@@ -144,46 +122,52 @@ namespace Watsonia.Data.TestPerformance
 			return testResults;
 		}
 
-		private static List<TestResult> RunTests(int number, TestFramework framework, IPerformanceTests tests)
+		private static TestResult RunTests(int number, TestFramework framework, IPerformanceTests tests)
 		{
-			var results = new List<TestResult>();
-
 			var result = new TestResult() { Number = number, Framework = framework };
+
+			var allPostIDsResults = new List<long>();
+			for (var i = 1; i <= Math.Min(Config.MaxOperations, Config.PostCount); i++)
+			{
+				allPostIDsResults.Add(tests.GetAllPostIDs());
+			}
+			result.AllPostIDsMilliseconds = Math.Round(allPostIDsResults.Average(), 2);
+
 			var allPostsResults = new List<long>();
-			for (var i = 1; i <= Math.Min(MaxOperations, PostCount); i++)
+			for (var i = 1; i <= Math.Min(Config.MaxOperations, Config.PostCount); i++)
 			{
 				allPostsResults.Add(tests.GetAllPosts());
 			}
 			result.AllPostsMilliseconds = Math.Round(allPostsResults.Average(), 2);
 
 			var playerByIDResults = new List<long>();
-			for (var i = 1; i <= Math.Min(MaxOperations, PlayersPerTeamCount * TeamsPerSportCount * SportCount); i++)
+			for (var i = 1; i <= Math.Min(Config.MaxOperations, Config.PlayersPerTeamCount * Config.TeamsPerSportCount * Config.SportCount); i++)
 			{
 				playerByIDResults.Add(tests.GetPlayerByID(i));
 			}
 			result.PlayerByIDMilliseconds = Math.Round(playerByIDResults.Average(), 2);
 
 			var playersForTeamResults = new List<long>();
-			for (var i = 1; i <= Math.Min(MaxOperations, TeamsPerSportCount * SportCount); i++)
+			for (var i = 1; i <= Math.Min(Config.MaxOperations, Config.TeamsPerSportCount * Config.SportCount); i++)
 			{
 				playersForTeamResults.Add(tests.GetPlayersForTeam(i));
 			}
 			result.PlayersForTeamMilliseconds = Math.Round(playersForTeamResults.Average(), 2);
+
 			var teamsForSportResults = new List<long>();
-			for (var i = 1; i <= Math.Min(MaxOperations, SportCount); i++)
+			for (var i = 1; i <= Math.Min(Config.MaxOperations, Config.SportCount); i++)
 			{
 				teamsForSportResults.Add(tests.GetTeamsForSport(i));
 			}
 			result.TeamsForSportMilliseconds = Math.Round(teamsForSportResults.Average(), 2);
 
+			result.LoadedPostIDs = tests.LoadedPostIDs;
 			result.LoadedPosts = tests.LoadedPosts;
 			result.LoadedPlayers = tests.LoadedPlayers;
 			result.LoadedPlayersForTeam = tests.LoadedPlayersForTeam;
 			result.LoadedTeamsForSport = tests.LoadedTeamsForSport;
 
-			results.Add(result);
-
-			return results;
+			return result;
 		}
 
 		private static void CompareResults(TestResult a, TestResult b, string framework)
@@ -191,12 +175,10 @@ namespace Watsonia.Data.TestPerformance
 			var result = true;
 			var badthing = "";
 
-			if (a.LoadedPosts.Count != b.LoadedPosts.Count ||
-				a.LoadedPlayers.Count != b.LoadedPlayers.Count ||
-				a.LoadedPlayersForTeam.Count != b.LoadedPlayersForTeam.Count ||
-				a.LoadedTeamsForSport.Count != b.LoadedTeamsForSport.Count)
+			if (result && !CompareLists(a.LoadedPostIDs, b.LoadedPostIDs))
 			{
 				result = false;
+				badthing = "loaded post ids";
 			}
 
 			if (result && !CompareLists(a.LoadedPosts, b.LoadedPosts))
@@ -231,6 +213,13 @@ namespace Watsonia.Data.TestPerformance
 			}
 		}
 
+		private static bool CompareLists(List<IEntity> a, List<IEntity> b)
+		{
+			return CompareLists(
+				a.Select(a => a.ID).ToList(),
+				b.Select(b => b.ID).ToList());
+		}
+
 		private static bool CompareLists(List<long> a, List<long> b)
 		{
 			if (a.Count != b.Count)
@@ -241,7 +230,7 @@ namespace Watsonia.Data.TestPerformance
 			a.Sort();
 			b.Sort();
 
-			for (var i = 0; i < a.Count; i++ )
+			for (var i = 0; i < a.Count; i++)
 			{
 				if (a[i] != b[i])
 				{
@@ -257,6 +246,7 @@ namespace Watsonia.Data.TestPerformance
 			var lines = new List<ConsoleLine>();
 
 			var haveBaseline = false;
+			double baselineAllPostIDs = 0;
 			double baselineAllPosts = 0;
 			double baselinePlayerByID = 0;
 			double baselinePlayersForTeam = 0;
@@ -269,10 +259,11 @@ namespace Watsonia.Data.TestPerformance
 
 				lines.Add(new ConsoleLine(
 					new ConsoleLinePart("Run"),
-					new ConsoleLinePart("All Posts"),
+					new ConsoleLinePart("Post IDs"),
+					new ConsoleLinePart("Posts"),
 					new ConsoleLinePart("Player by ID"),
-					new ConsoleLinePart("Players per Team"),
-					new ConsoleLinePart("Teams per Sport")
+					new ConsoleLinePart("Players / Team"),
+					new ConsoleLinePart("Teams / Sport")
 				));
 
 				//var orderedResults = group.OrderBy(x => x.Number);
@@ -288,12 +279,14 @@ namespace Watsonia.Data.TestPerformance
 				//}
 
 				// Max
+				var maxAllPostIDs = group.Max(x => x.AllPostIDsMilliseconds);
 				var maxAllPosts = group.Max(x => x.AllPostsMilliseconds);
 				var maxPlayerByID = group.Max(x => x.PlayerByIDMilliseconds);
 				var maxPlayersForTeam = group.Max(x => x.PlayersForTeamMilliseconds);
 				var maxTeamsForSport = group.Max(x => x.TeamsForSportMilliseconds);
 				lines.Add(new ConsoleLine(
 					new ConsoleLinePart("Max"),
+					new ConsoleLinePart(maxAllPostIDs.ToString()),
 					new ConsoleLinePart(maxAllPosts.ToString()),
 					new ConsoleLinePart(maxPlayerByID.ToString()),
 					new ConsoleLinePart(maxPlayersForTeam.ToString()),
@@ -301,12 +294,14 @@ namespace Watsonia.Data.TestPerformance
 				));
 
 				// Average
+				var averageAllPostIDs = group.Average(x => x.AllPostIDsMilliseconds);
 				var averageAllPosts = group.Average(x => x.AllPostsMilliseconds);
 				var averagePlayerByID = group.Average(x => x.PlayerByIDMilliseconds);
 				var averagePlayersForTeam = group.Average(x => x.PlayersForTeamMilliseconds);
 				var averageTeamsForSport = group.Average(x => x.TeamsForSportMilliseconds);
 				lines.Add(new ConsoleLine(
 					new ConsoleLinePart("Avg"),
+					new ConsoleLinePart(averageAllPostIDs.ToString("n4")),
 					new ConsoleLinePart(averageAllPosts.ToString("n4")),
 					new ConsoleLinePart(averagePlayerByID.ToString("n4")),
 					new ConsoleLinePart(averagePlayersForTeam.ToString("n4")),
@@ -316,6 +311,7 @@ namespace Watsonia.Data.TestPerformance
 				// Baseline (if first result)
 				if (!haveBaseline)
 				{
+					baselineAllPostIDs = averageAllPostIDs;
 					baselineAllPosts = averageAllPosts;
 					baselinePlayerByID = averagePlayerByID;
 					baselinePlayersForTeam = averagePlayersForTeam;
@@ -324,6 +320,7 @@ namespace Watsonia.Data.TestPerformance
 				}
 
 				// Percentage of baseline
+				var percentAllPostIDs = averageAllPostIDs / baselineAllPostIDs;
 				var percentAllPosts = averageAllPosts / baselineAllPosts;
 				var percentPlayerByID = averagePlayerByID / baselinePlayerByID;
 				var percentPlayersForTeam = averagePlayersForTeam / baselinePlayersForTeam;
@@ -331,6 +328,7 @@ namespace Watsonia.Data.TestPerformance
 
 				lines.Add(new ConsoleLine(
 					new ConsoleLinePart("%"),
+					new ConsoleLinePart(percentAllPostIDs.ToString("p"), ColorForPercent(percentAllPostIDs)),
 					new ConsoleLinePart(percentAllPosts.ToString("p"), ColorForPercent(percentAllPosts)),
 					new ConsoleLinePart(percentPlayerByID.ToString("p"), ColorForPercent(percentPlayerByID)),
 					new ConsoleLinePart(percentPlayersForTeam.ToString("p"), ColorForPercent(percentPlayersForTeam)),

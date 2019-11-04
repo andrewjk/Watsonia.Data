@@ -25,7 +25,11 @@ namespace Watsonia.Data
 
 		public Dictionary<string, MethodBuilder> GetPropertyMethods { get; } = new Dictionary<string, MethodBuilder>();
 
+		public Dictionary<string, MethodBuilder> GetRelatedItemPropertyMethods { get; } = new Dictionary<string, MethodBuilder>();
+
 		public Dictionary<string, MethodBuilder> SetPropertyMethods { get; } = new Dictionary<string, MethodBuilder>();
+
+		public Dictionary<string, MethodBuilder> SetRelatedItemPropertyMethods { get; } = new Dictionary<string, MethodBuilder>();
 
 		public List<string> ValueBagPropertyNames { get; } = new List<string>();
 

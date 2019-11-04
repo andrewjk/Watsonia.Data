@@ -2,14 +2,27 @@
 using System.Linq;
 using System.Reflection;
 using Watsonia.Data.SQLite;
+using Watsonia.Data.SqlServer;
 
 namespace Watsonia.Data.TestPerformance
 {
 	internal sealed class WatsoniaConfiguration : DatabaseConfiguration
 	{
 		public WatsoniaConfiguration(string connectionString, string entityNamespace)
-			: base(new SQLiteDataAccessProvider(), connectionString, entityNamespace)
+			: base(GetDataAccessProvider(), connectionString, entityNamespace)
 		{
+		}
+
+		private static IDataAccessProvider GetDataAccessProvider()
+		{
+			if (Config.UseSqlServer)
+			{
+				return new SqlServerDataAccessProvider();
+			}
+			else
+			{
+				return new SQLiteDataAccessProvider();
+			}
 		}
 
 		public override bool ShouldCacheType(Type type)
@@ -46,4 +59,4 @@ namespace Watsonia.Data.TestPerformance
 			return foreignType.Name + "sID";
 		}
 	}
-	}
+}

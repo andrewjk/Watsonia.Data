@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Watsonia.Data.TestPerformance.Entities
 {
-	public class Player
+	public class Player : IEntity
 	{
 		public virtual long ID { get; set; }
 		public virtual string FirstName { get; set; }

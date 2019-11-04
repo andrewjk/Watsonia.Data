@@ -20,7 +20,7 @@ namespace Watsonia.Data
 		//private static string _exportPath = null;
 
 		private static readonly Dictionary<string, Type> _cachedTypes = new Dictionary<string, Type>();
-		private static readonly Dictionary<string, ConstructorInfo> _cachedConstructors = new Dictionary<string, ConstructorInfo>();
+		private static readonly Dictionary<string, IDynamicProxyCreator> _cachedConstructors = new Dictionary<string, IDynamicProxyCreator>();
 		private static readonly Dictionary<string, ChildParentMapping> _cachedChildParentMappings = new Dictionary<string, ChildParentMapping>();
 
 		private static readonly object _cachedTypesLock = new object();
@@ -89,7 +89,7 @@ namespace Watsonia.Data
 			return _cachedTypes[proxyTypeName];
 		}
 
-		internal static ConstructorInfo GetDynamicProxyConstructor(Type parentType, Database database)
+		internal static IDynamicProxyCreator GetDynamicProxyConstructor(Type parentType, Database database)
 		{
 			var proxyTypeName = GetDynamicTypeName(parentType, database);
 			if (!_cachedConstructors.ContainsKey(proxyTypeName))
@@ -98,9 +98,29 @@ namespace Watsonia.Data
 				{
 					if (!_cachedConstructors.ContainsKey(proxyTypeName))
 					{
+						// NOTE: We could also create a delegate for the constructor:
+						//var proxyType = GetDynamicProxyType(parentType, database);
+						//var constructor = proxyType.GetConstructor(Type.EmptyTypes);
+						//var method = new DynamicMethod(
+						//	string.Empty,
+						//	proxyType,
+						//	Type.EmptyTypes,
+						//	proxyType);
+						//var gen = method.GetILGenerator();
+						//gen.DeclareLocal(proxyType);
+						//gen.Emit(OpCodes.Newobj, constructor);
+						//gen.Emit(OpCodes.Stloc_0);
+						//gen.Emit(OpCodes.Ldloc_0);
+						//gen.Emit(OpCodes.Ret);
+						//var func = (Func<IDynamicProxy>)method.CreateDelegate(typeof(Func<IDynamicProxy>));
+						//_cachedConstructors.Add(proxyTypeName, func);
+
 						var proxyType = GetDynamicProxyType(parentType, database);
-						var constructor = proxyType.GetConstructor(Type.EmptyTypes);
-						_cachedConstructors.Add(proxyTypeName, constructor);
+						var creatorTypeName = GetDynamicTypeName(parentType, database, "Creator");
+						var creatorType = CreateCreatorType(creatorTypeName, proxyType);
+						var creatorConstructor = creatorType.GetConstructor(Type.EmptyTypes);
+						var creator = (IDynamicProxyCreator)creatorConstructor.Invoke(Type.EmptyTypes);
+						_cachedConstructors.Add(proxyTypeName, creator);
 					}
 				}
 			}
@@ -144,7 +164,7 @@ namespace Watsonia.Data
 		internal static IDynamicProxy GetDynamicProxy(Type parentType, Database database)
 		{
 			var proxyConstructor = GetDynamicProxyConstructor(parentType, database);
-			var proxy = (IDynamicProxy)proxyConstructor.Invoke(Type.EmptyTypes);
+			var proxy = proxyConstructor.Create();
 			proxy.StateTracker.Database = database;
 			return proxy;
 		}
@@ -189,6 +209,8 @@ namespace Watsonia.Data
 			members.ValueBagType = GetValueBagType(parentType, database, members);
 
 			// Add some methods
+			CreateGetValueMethod(type, members);
+			CreateSetValueMethod(type, members);
 			members.SetOriginalValuesMethod = CreateSetOriginalValuesMethod(type, parentType, members, database, childParentMapping);
 			CreateSetValuesFromReaderMethod(type, members);
 			CreateSetValuesFromBagMethod(type, members);
@@ -991,6 +1013,10 @@ namespace Watsonia.Data
 			// Map the get and set methods created above to their corresponding property methods
 			propertyBuilder.SetGetMethod(getMethod);
 			propertyBuilder.SetSetMethod(setMethod);
+
+			// Add the get and set methods to the members class so that we can access them while building the proxy
+			members.GetRelatedItemPropertyMethods.Add(property.Name, getMethod);
+			members.SetRelatedItemPropertyMethods.Add(property.Name, setMethod);
 		}
 
 		private static MethodBuilder CreateOverriddenItemPropertyGetMethod(TypeBuilder type, PropertyInfo property, DynamicProxyTypeMembers members, Database database)
@@ -1617,6 +1643,156 @@ namespace Watsonia.Data
 			return method;
 		}
 
+		private static MethodBuilder CreateGetValueMethod(TypeBuilder type, DynamicProxyTypeMembers members)
+		{
+			var method = type.DefineMethod(
+				"__GetValue",
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+				typeof(object),
+				new Type[] { typeof(string) });
+
+			var toUpperMethod = typeof(string).GetMethod("ToUpperInvariant", Type.EmptyTypes);
+
+			var stringEqualityMethod = typeof(string).GetMethod("op_Equality", new Type[] { typeof(string), typeof(string) });
+
+			var gen = method.GetILGenerator();
+
+			gen.DeclareLocal(typeof(string));
+
+			var endSwitch = gen.DefineLabel();
+
+			var allGetPropertyMethods = members.GetPropertyMethods.Union(members.GetRelatedItemPropertyMethods).ToDictionary(s => s.Key, s => s.Value);
+
+			// Define the labels for each property in the switch statement
+			var propertyLabels = new Dictionary<string, Label>();
+			foreach (var key in allGetPropertyMethods.Keys)
+			{
+				var pl = gen.DefineLabel();
+				propertyLabels.Add(key, pl);
+			}
+
+			// switch (name.ToUpperInvariant())
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Callvirt, toUpperMethod);
+			gen.Emit(OpCodes.Stloc_0);
+			gen.Emit(OpCodes.Ldloc_0);
+			gen.Emit(OpCodes.Brfalse, endSwitch);
+
+			foreach (var key in allGetPropertyMethods.Keys)
+			{
+				// case "PROPERTY":
+				gen.Emit(OpCodes.Ldloc_0);
+				gen.Emit(OpCodes.Ldstr, key.ToUpperInvariant());
+				gen.Emit(OpCodes.Call, stringEqualityMethod);
+				gen.Emit(OpCodes.Brtrue, propertyLabels[key]);
+			}
+
+			gen.Emit(OpCodes.Br, endSwitch);
+
+			foreach (var key in allGetPropertyMethods.Keys)
+			{
+				gen.MarkLabel(propertyLabels[key]);
+
+				var propertyType = allGetPropertyMethods[key].ReturnType;
+
+				// return this.Property;
+				gen.Emit(OpCodes.Ldarg_0);
+				gen.Emit(OpCodes.Callvirt, allGetPropertyMethods[key]);
+				if (propertyType.IsValueType)
+				{
+					gen.Emit(OpCodes.Box, propertyType);
+				}
+				gen.Emit(OpCodes.Ret);
+			}
+
+			gen.MarkLabel(endSwitch);
+
+			// throw new ArgumentException(name)
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Newobj, typeof(ArgumentException).GetConstructor(new Type[] { typeof(string) }));
+			gen.Emit(OpCodes.Throw);
+
+			return method;
+		}
+
+		private static MethodBuilder CreateSetValueMethod(TypeBuilder type, DynamicProxyTypeMembers members)
+		{
+			var method = type.DefineMethod(
+				"__SetValue",
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+				null,
+				new Type[] { typeof(string), typeof(object) });
+
+			var toUpperMethod = typeof(string).GetMethod("ToUpperInvariant", Type.EmptyTypes);
+
+			var stringEqualityMethod = typeof(string).GetMethod("op_Equality", new Type[] { typeof(string), typeof(string) });
+
+			var gen = method.GetILGenerator();
+
+			gen.DeclareLocal(typeof(string));
+
+			var endSwitch = gen.DefineLabel();
+
+			var allGetPropertyMethods = members.GetPropertyMethods.Union(members.GetRelatedItemPropertyMethods).ToDictionary(s => s.Key, s => s.Value);
+			var allSetPropertyMethods = members.SetPropertyMethods.Union(members.SetRelatedItemPropertyMethods).ToDictionary(s => s.Key, s => s.Value);
+
+			// Define the labels for each property in the switch statement
+			var propertyLabels = new Dictionary<string, Label>();
+			foreach (var key in allSetPropertyMethods.Keys)
+			{
+				var pl = gen.DefineLabel();
+				propertyLabels.Add(key, pl);
+			}
+
+			// switch (name.ToUpperInvariant())
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Callvirt, toUpperMethod);
+			gen.Emit(OpCodes.Stloc_0);
+			gen.Emit(OpCodes.Ldloc_0);
+			gen.Emit(OpCodes.Brfalse, endSwitch);
+
+			foreach (var key in allSetPropertyMethods.Keys)
+			{
+				// case "PROPERTY":
+				gen.Emit(OpCodes.Ldloc_0);
+				gen.Emit(OpCodes.Ldstr, key.ToUpperInvariant());
+				gen.Emit(OpCodes.Call, stringEqualityMethod);
+				gen.Emit(OpCodes.Brtrue, propertyLabels[key]);
+			}
+
+			gen.Emit(OpCodes.Br, endSwitch);
+
+			foreach (var key in allSetPropertyMethods.Keys)
+			{
+				gen.MarkLabel(propertyLabels[key]);
+
+				var propertyType = allGetPropertyMethods[key].ReturnType;
+
+				// this.Property = (type)value;
+				gen.Emit(OpCodes.Ldarg_0);
+				gen.Emit(OpCodes.Ldarg_2);
+				if (propertyType.IsValueType)
+				{
+					gen.Emit(OpCodes.Unbox_Any, propertyType);
+				}
+				else
+				{
+					gen.Emit(OpCodes.Castclass, propertyType);
+				}
+				gen.Emit(OpCodes.Callvirt, allSetPropertyMethods[key]);
+				gen.Emit(OpCodes.Ret);
+			}
+
+			gen.MarkLabel(endSwitch);
+
+			// throw new ArgumentException(name)
+			gen.Emit(OpCodes.Ldarg_1);
+			gen.Emit(OpCodes.Newobj, typeof(ArgumentException).GetConstructor(new Type[] { typeof(string) }));
+			gen.Emit(OpCodes.Throw);
+
+			return method;
+		}
+
 		private static MethodBuilder CreateSetOriginalValuesMethod(TypeBuilder type, Type parentType, DynamicProxyTypeMembers members, Database database, ChildParentMapping childParentMapping)
 		{
 			// TODO: Should also clear ChangedFields here rather than in __SetValuesFromReader
@@ -1718,16 +1894,10 @@ namespace Watsonia.Data
 				"__SetValuesFromReader",
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
 				null,
-				new Type[] { typeof(DbDataReader) });
+				new Type[] { typeof(DbDataReader), typeof(string[]) });
 
 			var stateTrackerIsLoadingMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"set_IsLoading", new Type[] { typeof(bool) });
-
-			var readerGetNameMethod = typeof(DbDataReader).GetMethod(
-				"GetName", new Type[] { typeof(int) });
-
-			var toUpperInvariantMethod = typeof(string).GetMethod(
-				"ToUpperInvariant", Type.EmptyTypes);
 
 			var stringEqualityMethod = typeof(string).GetMethod(
 				"op_Equality", new Type[] { typeof(string), typeof(string) });
@@ -1813,13 +1983,12 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Br, endFieldLoop);
 			gen.MarkLabel(startFieldLoop);
 
-			// switch (source.GetName(i).ToUpperInvariant())
-			gen.Emit(OpCodes.Ldarg_1);
+			// switch (fieldNames[i])
+			gen.Emit(OpCodes.Ldarg_2);
 			gen.Emit(OpCodes.Ldloc_0);
-			gen.Emit(OpCodes.Callvirt, readerGetNameMethod);
-			gen.Emit(OpCodes.Callvirt, toUpperInvariantMethod);
-			gen.Emit(OpCodes.Dup);
+			gen.Emit(OpCodes.Ldelem_Ref);
 			gen.Emit(OpCodes.Stloc_1);
+			gen.Emit(OpCodes.Ldloc_1);
 			gen.Emit(OpCodes.Brfalse, endSwitch);
 
 			foreach (var key in members.SetPropertyMethods.Keys)
@@ -2166,6 +2335,28 @@ namespace Watsonia.Data
 				gen.Emit(OpCodes.Ldloc_0);
 			}
 			gen.Emit(OpCodes.Ret);
+		}
+
+		private static Type CreateCreatorType(string typeName, Type proxyType)
+		{
+			var type = _moduleBuilder.DefineType(
+				typeName,
+				TypeAttributes.Public,
+				typeof(object),
+				new Type[] { typeof(IDynamicProxyCreator) });
+
+			var method = type.DefineMethod(
+				"Create",
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
+				typeof(IDynamicProxy),
+				Type.EmptyTypes);
+
+			var gen = method.GetILGenerator();
+
+			gen.Emit(OpCodes.Newobj, proxyType.GetConstructor(Type.EmptyTypes));
+			gen.Emit(OpCodes.Ret);
+
+			return type.CreateTypeInfo();
 		}
 
 		/// <summary>

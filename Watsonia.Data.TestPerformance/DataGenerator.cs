@@ -9,6 +9,26 @@ namespace Watsonia.Data.TestPerformance
 {
 	internal static class DataGenerator
 	{
+		public static async Task CheckDatabaseAsync(WatsoniaDatabase db)
+		{
+			db.EnsureDatabaseCreated();
+			db.UpdateDatabase();
+
+			if (db.Query<Player>().Count() == 0)
+			{
+				await GeneratePosts(db, Config.PostCount);
+				var sports = await GenerateSports(db, Config.SportCount);
+				foreach (var sport in sports)
+				{
+					var teams = await GenerateTeams(db, sport, Config.TeamsPerSportCount);
+					foreach (var team in teams)
+					{
+						var players = GeneratePlayers(db, team, Config.PlayersPerTeamCount);
+					}
+				}
+			}
+		}
+
 		internal static async Task<List<Post>> GeneratePosts(WatsoniaDatabase db, int count)
 		{
 			var posts = new List<Post>();
@@ -43,7 +63,8 @@ namespace Watsonia.Data.TestPerformance
 				var newLast = rand.Next(0, allLastNames.Count - 1);
 				player.LastName = allLastNames[newLast];
 				player.DateOfBirth = RandomDay(rand, start, end);
-				player.Team = team;
+				// TODO: Should be able to set player.Team
+				player.TeamsID = team.ID;
 				//player.ID = (((teamId - 1) * count) + (i + 1));
 				players.Add(player);
 
@@ -70,7 +91,8 @@ namespace Watsonia.Data.TestPerformance
 				var newTeam = rand.Next(0, allTeamNames.Count - 1);
 				team.Name = allCityNames[newCity] + " " + allTeamNames[newTeam];
 				team.FoundingDate = RandomDay(rand, start, end);
-				team.Sport = sport;
+				// TODO: Should be able to set team.Sport
+				team.SportsID = sport.ID;
 				//team.ID = (((sportId - 1) * count) + (i + 1));
 				teams.Add(team);
 
