@@ -13,6 +13,8 @@ namespace Watsonia.Data
 	/// </summary>
 	public class DatabaseConfiguration
 	{
+		private IEnumerable<Assembly> _assembliesToMap;
+		private IEnumerable<Type> _typesToMap;
 		private readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>> _propertiesToMap = new ConcurrentDictionary<Type, IEnumerable<PropertyInfo>>();
 		private readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>> _propertiesToLoadAndSave = new ConcurrentDictionary<Type, IEnumerable<PropertyInfo>>();
 		private readonly ConcurrentDictionary<Type, IEnumerable<PropertyInfo>> _propertiesToCascade = new ConcurrentDictionary<Type, IEnumerable<PropertyInfo>>();
@@ -417,6 +419,15 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public IEnumerable<Assembly> AssembliesToMap()
 		{
+			if (_assembliesToMap == null)
+			{
+				_assembliesToMap = GetAssembliesToMap();
+			}
+			return _assembliesToMap;
+		}
+
+		private IEnumerable<Assembly> GetAssembliesToMap()
+		{
 			foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
 			{
 				if (ShouldMapAssemblyInternal(assembly))
@@ -431,6 +442,15 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <returns></returns>
 		public IEnumerable<Type> TypesToMap()
+		{
+			if (_typesToMap == null)
+			{
+				_typesToMap = GetTypesToMap();
+			}
+			return _typesToMap;
+		}
+
+		private IEnumerable<Type> GetTypesToMap()
 		{
 			foreach (var assembly in AssembliesToMap())
 			{
