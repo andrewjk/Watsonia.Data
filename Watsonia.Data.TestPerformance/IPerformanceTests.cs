@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Watsonia.Data.TestPerformance.Entities;
 
 namespace Watsonia.Data.TestPerformance
 {
 	public interface IPerformanceTests
 	{
-		List<long> LoadedPosts { get; }
-		List<long> LoadedPlayers { get; }
-		List<long> LoadedPlayersForTeam { get; }
-		List<long> LoadedTeamsForSport { get; }
+		List<long> LoadedPostIDs { get; }
+		List<IEntity> LoadedPosts { get; }
+		List<IEntity> LoadedPlayers { get; }
+		List<IEntity> LoadedPlayersForTeam { get; }
+		List<IEntity> LoadedTeamsForSport { get; }
 
 		long GetAllPosts();
 		long GetPlayerByID(long id);

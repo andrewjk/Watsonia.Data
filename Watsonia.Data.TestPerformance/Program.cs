@@ -194,6 +194,13 @@ namespace Watsonia.Data.TestPerformance
 			}
 		}
 
+		private static bool CompareLists(List<IEntity> a, List<IEntity> b)
+		{
+			return CompareLists(
+				a.Select(a => a.ID).ToList(),
+				b.Select(b => b.ID).ToList());
+		}
+
 		private static bool CompareLists(List<long> a, List<long> b)
 		{
 			if (a.Count != b.Count)
