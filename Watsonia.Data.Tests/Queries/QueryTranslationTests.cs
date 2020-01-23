@@ -2060,7 +2060,7 @@ namespace Watsonia.Data.Tests.Queries
 		[TestMethod]
 		public void TestContainsWithEmptyLocalList()
 		{
-			var ids = new string[0];
+			var ids = Array.Empty<string>();
 			TestQuery(
 				"TestContainsWithEmptyLocalList",
 				from c in _db.Customers

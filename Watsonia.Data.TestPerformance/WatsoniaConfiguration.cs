@@ -35,18 +35,6 @@ namespace Watsonia.Data.TestPerformance
 			return base.GetTableName(type) + "s";
 		}
 
-		//// HACK: If we remove this override, we get two columns e.g. SportID and SportsID
-		//// We should be connecting up related types and properties more intelligently
-		//public override string GetForeignKeyColumnName(PropertyInfo property)
-		//{
-		//	return property.Name.TrimEnd('s') + "ID";
-		//}
-
-		//public override string GetForeignKeyColumnName(Type tableType, Type foreignType)
-		//{
-		//	return foreignType.Name.TrimEnd('s') + "ID";
-		//}
-
 		// HACK: If we remove this override, we get two columns e.g. SportID and SportsID
 		// We should be connecting up related types and properties more intelligently
 		public override string GetForeignKeyColumnName(PropertyInfo property)
