@@ -349,6 +349,14 @@ namespace Watsonia.Data
 			{
 				GatherMappedParametersFromSelect(procedure.Parameters, select);
 			}
+			else if (procedure.Statement is UpdateStatement update)
+			{
+				GatherMappedParametersFromUpdate(procedure.Parameters, update);
+			}
+			else if (procedure.Statement is InsertStatement insert)
+			{
+				GatherMappedParametersFromInsert(procedure.Parameters, insert);
+			}
 
 			// Add the procedure to the dictionary
 			procedureDictionary.Add(procedure.Name, procedure);
@@ -371,6 +379,14 @@ namespace Watsonia.Data
 			{
 				GatherMappedParametersFromSelect(function.Parameters, select);
 			}
+			else if (function.Statement is UpdateStatement update)
+			{
+				GatherMappedParametersFromUpdate(function.Parameters, update);
+			}
+			else if (function.Statement is InsertStatement insert)
+			{
+				GatherMappedParametersFromInsert(function.Parameters, insert);
+			}
 
 			// Add the function to the dictionary
 			functionDictionary.Add(function.Name, function);
@@ -389,6 +405,29 @@ namespace Watsonia.Data
 			foreach (var unionSelect in select.UnionStatements)
 			{
 				GatherMappedParametersFromSelect(parameters, unionSelect);
+			}
+		}
+
+		private void GatherMappedParametersFromUpdate(ICollection<MappedParameter> parameters, UpdateStatement update)
+		{
+			GatherMappedParametersFromConditionCollection(parameters, update.Conditions);
+			foreach (var source in update.SetValues)
+			{
+				if (source.Value is SelectExpression setSelect)
+				{
+					GatherMappedParametersFromConditionCollection(parameters, setSelect.Select.Conditions);
+				}
+			}
+		}
+
+		private void GatherMappedParametersFromInsert(ICollection<MappedParameter> parameters, InsertStatement insert)
+		{
+			foreach (var source in insert.SetValues)
+			{
+				if (source.Value is SelectExpression setSelect)
+				{
+					GatherMappedParametersFromConditionCollection(parameters, setSelect.Select.Conditions);
+				}
 			}
 		}
 
