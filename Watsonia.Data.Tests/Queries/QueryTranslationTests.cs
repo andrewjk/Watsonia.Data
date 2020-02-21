@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Watsonia.Data.Tests.Northwind;
+using Watsonia.Data.Tests.Queries.Northwind;
 
 // TODO: Implement all double commented (////) tests
 
@@ -31,7 +31,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestWhere()
+		public void Where()
 		{
 			TestQuery(
 				"TestWhere",
@@ -39,7 +39,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestCompareEntityEqual()
+		public void CompareEntityEqual()
 		{
 			var alfki = new Customer { CustomerID = "ALFKI" };
 			TestQuery(
@@ -48,7 +48,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestCompareEntityNotEqual()
+		public void CompareEntityNotEqual()
 		{
 			var alfki = new Customer { CustomerID = "ALFKI" };
 			TestQuery(
@@ -57,7 +57,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestCompareConstructedEqual()
+		public void CompareConstructedEqual()
 		{
 			TestQuery(
 				"TestCompareConstructedEqual",
@@ -65,7 +65,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestCompareConstructedMultiValueEqual()
+		public void CompareConstructedMultiValueEqual()
 		{
 			TestQuery(
 				"TestCompareConstructedMultiValueEqual",
@@ -73,7 +73,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestCompareConstructedMultiValueNotEqual()
+		public void CompareConstructedMultiValueNotEqual()
 		{
 			TestQuery(
 				"TestCompareConstructedMultiValueNotEqual",
@@ -81,7 +81,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestCompareConstructed()
+		public void CompareConstructed()
 		{
 			TestQuery(
 				"TestCompareConstructed",
@@ -89,7 +89,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestSelectScalar()
+		public void SelectScalar()
 		{
 			TestQuery(
 				"TestSelectScalar",
@@ -97,7 +97,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestSelectAnonymousOne()
+		public void SelectAnonymousOne()
 		{
 			TestQuery(
 				"TestSelectAnonymousOne",
@@ -105,7 +105,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestSelectAnonymousTwo()
+		////public void SelectAnonymousTwo()
 		////{
 		////	TestQuery(
 		////		"TestSelectAnonymousTwo",
@@ -113,7 +113,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectAnonymousThree()
+		////public void SelectAnonymousThree()
 		////{
 		////	TestQuery(
 		////		"TestSelectAnonymousThree",
@@ -121,7 +121,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestSelectCustomerTable()
+		public void SelectCustomerTable()
 		{
 			TestQuery(
 				"TestSelectCustomerTable",
@@ -129,7 +129,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestSelectCustomerIdentity()
+		public void SelectCustomerIdentity()
 		{
 			TestQuery(
 				"TestSelectCustomerIdentity",
@@ -137,7 +137,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestSelectAnonymousWithObject()
+		////public void SelectAnonymousWithObject()
 		////{
 		////	TestQuery(
 		////		"TestSelectAnonymousWithObject",
@@ -145,7 +145,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectAnonymousNested()
+		////public void SelectAnonymousNested()
 		////{
 		////	TestQuery(
 		////		"TestSelectAnonymousNested",
@@ -153,7 +153,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectAnonymousEmpty()
+		////public void SelectAnonymousEmpty()
 		////{
 		////	TestQuery(
 		////		"TestSelectAnonymousEmpty",
@@ -161,7 +161,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectAnonymousLiteral()
+		////public void SelectAnonymousLiteral()
 		////{
 		////	TestQuery(
 		////		"TestSelectAnonymousLiteral",
@@ -169,7 +169,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestSelectConstantInt()
+		public void SelectConstantInt()
 		{
 			TestQuery(
 				"TestSelectConstantInt",
@@ -177,7 +177,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestSelectConstantNullString()
+		public void SelectConstantNullString()
 		{
 			TestQuery(
 				"TestSelectConstantNullString",
@@ -185,7 +185,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestSelectLocal()
+		public void SelectLocal()
 		{
 			var x = 10;
 			TestQuery(
@@ -194,7 +194,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestSelectNestedCollection()
+		////public void SelectNestedCollection()
 		////{
 		////	TestQuery(
 		////		"TestSelectNestedCollection",
@@ -204,7 +204,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectNestedCollectionInAnonymousType()
+		////public void SelectNestedCollectionInAnonymousType()
 		////{
 		////	TestQuery(
 		////		"TestSelectNestedCollectionInAnonymousType",
@@ -214,7 +214,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestJoinCustomerOrders()
+		////public void JoinCustomerOrders()
 		////{
 		////	TestQuery(
 		////		"TestJoinCustomerOrders",
@@ -224,7 +224,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestJoinMultiKey()
+		////public void JoinMultiKey()
 		////{
 		////	TestQuery(
 		////		"TestJoinMultiKey",
@@ -234,7 +234,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestJoinIntoCustomersOrders()
+		////public void JoinIntoCustomersOrders()
 		////{
 		////	TestQuery(
 		////		"TestJoinIntoCustomersOrders",
@@ -244,7 +244,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestJoinIntoCustomersOrdersCount()
+		////public void JoinIntoCustomersOrdersCount()
 		////{
 		////	TestQuery(
 		////		"TestJoinIntoCustomersOrdersCount",
@@ -254,7 +254,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestJoinIntoDefaultIfEmpty()
+		////public void JoinIntoDefaultIfEmpty()
 		////{
 		////	TestQuery(
 		////		"TestJoinIntoDefaultIfEmpty",
@@ -265,7 +265,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectManyCustomerOrders()
+		////public void SelectManyCustomerOrders()
 		////{
 		////	TestQuery(
 		////		"TestSelectManyCustomerOrders",
@@ -277,7 +277,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestMultipleJoinsWithJoinConditionsInWhere()
+		////public void MultipleJoinsWithJoinConditionsInWhere()
 		////{
 		////	TestQuery(
 		////		"TestMultipleJoinsWithJoinConditionsInWhere",
@@ -291,7 +291,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestMultipleJoinsWithMissingJoinCondition()
+		////public void MultipleJoinsWithMissingJoinCondition()
 		////{
 		////	TestQuery(
 		////		"TestMultipleJoinsWithMissingJoinCondition",
@@ -305,7 +305,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestOrderBy()
+		public void OrderBy()
 		{
 			TestQuery(
 				"TestOrderBy",
@@ -314,7 +314,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestOrderBySelect()
+		public void OrderBySelect()
 		{
 			TestQuery(
 				"TestOrderBySelect",
@@ -323,7 +323,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestOrderByOrderBy()
+		public void OrderByOrderBy()
 		{
 			TestQuery(
 				"TestOrderByOrderBy",
@@ -332,7 +332,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestOrderByThenBy()
+		public void OrderByThenBy()
 		{
 			TestQuery(
 				"TestOrderByThenBy",
@@ -341,7 +341,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestOrderByDescending()
+		public void OrderByDescending()
 		{
 			TestQuery(
 				"TestOrderByDescending",
@@ -350,7 +350,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestOrderByDescendingThenBy()
+		public void OrderByDescendingThenBy()
 		{
 			TestQuery(
 				"TestOrderByDescendingThenBy",
@@ -359,7 +359,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestOrderByDescendingThenByDescending()
+		public void OrderByDescendingThenByDescending()
 		{
 			TestQuery(
 				"TestOrderByDescendingThenByDescending",
@@ -368,7 +368,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestOrderByJoin()
+		////public void OrderByJoin()
 		////{
 		////	TestQuery(
 		////		"TestOrderByJoin",
@@ -379,7 +379,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestOrderBySelectMany()
+		////public void OrderBySelectMany()
 		////{
 		////	TestQuery(
 		////		"TestOrderBySelectMany",
@@ -391,7 +391,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestGroupBy()
+		////public void GroupBy()
 		////{
 		////	TestQuery(
 		////		"TestGroupBy",
@@ -400,7 +400,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestGroupBySelectMany()
+		////public void GroupBySelectMany()
 		////{
 		////	TestQuery(
 		////		"TestGroupBySelectMany",
@@ -409,7 +409,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestGroupBySum()
+		////public void GroupBySum()
 		////{
 		////	TestQuery(
 		////		"TestGroupBySum",
@@ -418,7 +418,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestGroupByCount()
+		////public void GroupByCount()
 		////{
 		////	TestQuery(
 		////		"TestGroupByCount",
@@ -427,7 +427,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestGroupByLongCount()
+		////public void GroupByLongCount()
 		////{
 		////	TestQuery(
 		////		"TestGroupByLongCount",
@@ -435,7 +435,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestGroupBySumMinMaxAvg()
+		////public void GroupBySumMinMaxAvg()
 		////{
 		////	TestQuery(
 		////		"TestGroupBySumMinMaxAvg",
@@ -451,7 +451,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestGroupByWithResultSelector()
+		////public void GroupByWithResultSelector()
 		////{
 		////	TestQuery(
 		////		"TestGroupByWithResultSelector",
@@ -467,7 +467,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestGroupByWithElementSelectorSum()
+		////public void GroupByWithElementSelectorSum()
 		////{
 		////	TestQuery(
 		////		"TestGroupByWithElementSelectorSum",
@@ -476,7 +476,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestGroupByWithElementSelector()
+		////public void GroupByWithElementSelector()
 		////{
 		////	TestQuery(
 		////		"TestGroupByWithElementSelector",
@@ -485,7 +485,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestGroupByWithElementSelectorSumMax()
+		////public void GroupByWithElementSelectorSumMax()
 		////{
 		////	TestQuery(
 		////		"TestGroupByWithElementSelectorSumMax",
@@ -494,7 +494,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestGroupByWithAnonymousElement()
+		////public void GroupByWithAnonymousElement()
 		////{
 		////	TestQuery(
 		////		"TestGroupByWithAnonymousElement",
@@ -503,7 +503,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestGroupByWithTwoPartKey()
+		////public void GroupByWithTwoPartKey()
 		////{
 		////	TestQuery(
 		////		"TestGroupByWithTwoPartKey",
@@ -512,7 +512,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestOrderByGroupBy()
+		////public void OrderByGroupBy()
 		////{
 		////	TestQuery(
 		////		"TestOrderByGroupBy",
@@ -521,7 +521,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestOrderByGroupBySelectMany()
+		////public void OrderByGroupBySelectMany()
 		////{
 		////	TestQuery(
 		////		"TestOrderByGroupBySelectMany",
@@ -530,7 +530,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestSumWithNoArg()
+		public void SumWithNoArg()
 		{
 			TestQuery(
 				"TestSumWithNoArg",
@@ -539,7 +539,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestSumWithArg()
+		public void SumWithArg()
 		{
 			TestQuery(
 				"TestSumWithArg",
@@ -548,7 +548,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestCountWithNoPredicate()
+		public void CountWithNoPredicate()
 		{
 			TestQuery(
 				"TestCountWithNoPredicate",
@@ -557,7 +557,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestCountWithPredicate()
+		public void CountWithPredicate()
 		{
 			TestQuery(
 				"TestCountWithPredicate",
@@ -566,7 +566,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDistinct()
+		public void Distinct()
 		{
 			TestQuery(
 				"TestDistinct",
@@ -575,7 +575,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDistinctScalar()
+		public void DistinctScalar()
 		{
 			TestQuery(
 				"TestDistinctScalar",
@@ -584,7 +584,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestOrderByDistinct()
+		public void OrderByDistinct()
 		{
 			TestQuery(
 				"TestOrderByDistinct",
@@ -593,7 +593,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestDistinctOrderBy()
+		////public void DistinctOrderBy()
 		////{
 		////	TestQuery(
 		////		"TestDistinctOrderBy",
@@ -602,7 +602,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestDistinctGroupBy()
+		////public void DistinctGroupBy()
 		////{
 		////	TestQuery(
 		////		"TestDistinctGroupBy",
@@ -611,7 +611,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestGroupByDistinct()
+		////public void GroupByDistinct()
 		////{
 		////	TestQuery(
 		////		"TestGroupByDistinct",
@@ -621,7 +621,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestDistinctCount()
+		public void DistinctCount()
 		{
 			TestQuery(
 				"TestDistinctCount",
@@ -630,7 +630,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestSelectDistinctCount()
+		////public void SelectDistinctCount()
 		////{
 		////	TestQuery(
 		////		"TestSelectDistinctCount",
@@ -639,7 +639,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectSelectDistinctCount()
+		////public void SelectSelectDistinctCount()
 		////{
 		////	TestQuery(
 		////		"TestSelectSelectDistinctCount",
@@ -648,7 +648,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestDistinctCountPredicate()
+		////public void DistinctCountPredicate()
 		////{
 		////	TestQuery(
 		////		"TestDistinctCountPredicate",
@@ -657,7 +657,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestDistinctSumWithArg()
+		////public void DistinctSumWithArg()
 		////{
 		////	TestQuery(
 		////		"TestDistinctSumWithArg",
@@ -666,7 +666,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectDistinctSum()
+		////public void SelectDistinctSum()
 		////{
 		////	TestQuery(
 		////		"TestSelectDistinctSum",
@@ -675,7 +675,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestTake()
+		////public void Take()
 		////{
 		////	TestQuery(
 		////		"TestTake",
@@ -684,7 +684,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestTakeDistinct()
+		////public void TakeDistinct()
 		////{
 		////	TestQuery(
 		////		"TestTakeDistinct",
@@ -693,7 +693,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestDistinctTake()
+		public void DistinctTake()
 		{
 			TestQuery(
 				"TestDistinctTake",
@@ -702,7 +702,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestDistinctTakeCount()
+		////public void DistinctTakeCount()
 		////{
 		////	TestQuery(
 		////		"TestDistinctTakeCount",
@@ -711,7 +711,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestTakeDistinctCount()
+		////public void TakeDistinctCount()
 		////{
 		////	TestQuery(
 		////		"TestTakeDistinctCount",
@@ -720,7 +720,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestSkip()
+		public void Skip()
 		{
 			TestQuery(
 				"TestSkip",
@@ -729,7 +729,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestTakeSkip()
+		public void TakeSkip()
 		{
 			TestQuery(
 				"TestTakeSkip",
@@ -738,7 +738,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestDistinctSkip()
+		////public void DistinctSkip()
 		////{
 		////	TestQuery(
 		////		"TestDistinctSkip",
@@ -747,7 +747,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestSkipTake()
+		public void SkipTake()
 		{
 			TestQuery(
 				"TestSkipTake",
@@ -756,7 +756,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestDistinctSkipTake()
+		////public void DistinctSkipTake()
 		////{
 		////	TestQuery(
 		////		"TestDistinctSkipTake",
@@ -765,7 +765,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestSkipDistinct()
+		public void SkipDistinct()
 		{
 			TestQuery(
 				"TestSkipDistinct",
@@ -774,7 +774,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestSkipTakeDistinct()
+		public void SkipTakeDistinct()
 		{
 			TestQuery(
 				"TestSkipTakeDistinct",
@@ -783,7 +783,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestTakeSkipDistinct()
+		////public void TakeSkipDistinct()
 		////{
 		////	TestQuery(
 		////		"TestTakeSkipDistinct",
@@ -792,7 +792,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestFirst()
+		public void First()
 		{
 			TestQuery(
 				"TestFirst",
@@ -801,7 +801,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestFirstPredicate()
+		public void FirstPredicate()
 		{
 			TestQuery(
 				"TestFirstPredicate",
@@ -810,7 +810,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestWhereFirst()
+		public void WhereFirst()
 		{
 			TestQuery(
 				"TestWhereFirst",
@@ -819,7 +819,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestFirstOrDefault()
+		public void FirstOrDefault()
 		{
 			TestQuery(
 				"TestFirstOrDefault",
@@ -828,7 +828,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestFirstOrDefaultPredicate()
+		public void FirstOrDefaultPredicate()
 		{
 			TestQuery(
 				"TestFirstOrDefaultPredicate",
@@ -837,7 +837,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestWhereFirstOrDefault()
+		public void WhereFirstOrDefault()
 		{
 			TestQuery(
 				"TestWhereFirstOrDefault",
@@ -846,7 +846,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestReverse()
+		public void Reverse()
 		{
 			TestQuery(
 				"TestReverse",
@@ -855,7 +855,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestReverseReverse()
+		public void ReverseReverse()
 		{
 			TestQuery(
 				"TestReverseReverse",
@@ -864,7 +864,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestReverseWhereReverse()
+		////public void ReverseWhereReverse()
 		////{
 		////	TestQuery(
 		////		"TestReverseWhereReverse",
@@ -873,7 +873,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestReverseTakeReverse()
+		////public void ReverseTakeReverse()
 		////{
 		////	TestQuery(
 		////		"TestReverseTakeReverse",
@@ -882,7 +882,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestReverseWhereTakeReverse()
+		////public void ReverseWhereTakeReverse()
 		////{
 		////	TestQuery(
 		////		"TestReverseWhereTakeReverse",
@@ -891,7 +891,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestLast()
+		public void Last()
 		{
 			TestQuery(
 				"TestLast",
@@ -900,7 +900,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestLastPredicate()
+		public void LastPredicate()
 		{
 			TestQuery(
 				"TestLastPredicate",
@@ -909,7 +909,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestWhereLast()
+		public void WhereLast()
 		{
 			TestQuery(
 				"TestWhereLast",
@@ -918,7 +918,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestLastOrDefault()
+		public void LastOrDefault()
 		{
 			TestQuery(
 				"TestLastOrDefault",
@@ -927,7 +927,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestLastOrDefaultPredicate()
+		public void LastOrDefaultPredicate()
 		{
 			TestQuery(
 				"TestLastOrDefaultPredicate",
@@ -936,7 +936,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestWhereLastOrDefault()
+		public void WhereLastOrDefault()
 		{
 			TestQuery(
 				"TestWhereLastOrDefault",
@@ -945,7 +945,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestSingle()
+		public void Single()
 		{
 			TestQuery(
 				"TestSingle",
@@ -953,7 +953,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestSinglePredicate()
+		public void SinglePredicate()
 		{
 			TestQuery(
 				"TestSinglePredicate",
@@ -962,7 +962,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestWhereSingle()
+		public void WhereSingle()
 		{
 			TestQuery(
 				"TestWhereSingle",
@@ -971,7 +971,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestSingleOrDefault()
+		////public void SingleOrDefault()
 		////{
 		////	TestQuery(
 		////		"TestSingleOrDefault",
@@ -979,7 +979,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestSingleOrDefaultPredicate()
+		public void SingleOrDefaultPredicate()
 		{
 			TestQuery(
 				"TestSingleOrDefaultPredicate",
@@ -988,7 +988,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestWhereSingleOrDefault()
+		public void WhereSingleOrDefault()
 		{
 			TestQuery(
 				"TestWhereSingleOrDefault",
@@ -997,7 +997,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestAnyWithSubquery()
+		////public void AnyWithSubquery()
 		////{
 		////	TestQuery(
 		////		"TestAnyWithSubquery",
@@ -1006,7 +1006,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestAnyWithSubqueryNoPredicate()
+		////public void AnyWithSubqueryNoPredicate()
 		////{
 		////	TestQuery(
 		////		"TestAnyWithSubqueryNoPredicate",
@@ -1015,7 +1015,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestAnyWithLocalCollection()
+		////public void AnyWithLocalCollection()
 		////{
 		////	string[] ids = new[] { "ABCDE", "ALFKI" };
 		////	TestQuery(
@@ -1025,7 +1025,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestAnyTopLevel()
+		public void AnyTopLevel()
 		{
 			TestQuery(
 				"TestAnyTopLevel",
@@ -1034,7 +1034,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestAllWithSubquery()
+		////public void AllWithSubquery()
 		////{
 		////	TestQuery(
 		////		"TestAllWithSubquery",
@@ -1043,7 +1043,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestAllWithLocalCollection()
+		////public void AllWithLocalCollection()
 		////{
 		////	string[] patterns = new[] { "a", "e" };
 
@@ -1054,7 +1054,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestAllTopLevel()
+		public void AllTopLevel()
 		{
 			TestQuery(
 				"TestAllTopLevel",
@@ -1063,7 +1063,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestContainsWithSubquery()
+		public void ContainsWithSubquery()
 		{
 			TestQuery(
 				"TestContainsWithSubquery",
@@ -1072,7 +1072,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestContainsWithLocalCollection()
+		public void ContainsWithLocalCollection()
 		{
 			var ids = new[] { "ABCDE", "ALFKI" };
 			TestQuery(
@@ -1082,7 +1082,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestContainsTopLevel()
+		public void ContainsTopLevel()
 		{
 			TestQuery(
 				"TestContainsTopLevel",
@@ -1091,7 +1091,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestCoalesce()
+		////public void Coalesce()
 		////{
 		////	TestQuery(
 		////		"TestCoalesce",
@@ -1099,7 +1099,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestCoalesce2()
+		////public void Coalesce2()
 		////{
 		////	TestQuery(
 		////		"TestCoalesce2",
@@ -1107,7 +1107,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestStringLength()
+		public void StringLength()
 		{
 			TestQuery(
 				"TestStringLength",
@@ -1115,7 +1115,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringStartsWithLiteral()
+		public void StringStartsWithLiteral()
 		{
 			TestQuery(
 				"TestStringStartsWithLiteral",
@@ -1123,7 +1123,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringStartsWithColumn()
+		public void StringStartsWithColumn()
 		{
 			TestQuery(
 				"TestStringStartsWithColumn",
@@ -1131,7 +1131,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringEndsWithLiteral()
+		public void StringEndsWithLiteral()
 		{
 			TestQuery(
 				"TestStringEndsWithLiteral",
@@ -1139,7 +1139,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringEndsWithColumn()
+		public void StringEndsWithColumn()
 		{
 			TestQuery(
 				"TestStringEndsWithColumn",
@@ -1147,7 +1147,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringContainsLiteral()
+		public void StringContainsLiteral()
 		{
 			TestQuery(
 				"TestStringContainsLiteral",
@@ -1155,7 +1155,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringContainsColumn()
+		public void StringContainsColumn()
 		{
 			TestQuery(
 				"TestStringContainsColumn",
@@ -1163,7 +1163,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringConcatImplicit2Args()
+		public void StringConcatImplicit2Args()
 		{
 			TestQuery(
 				"TestStringConcatImplicit2Args",
@@ -1171,7 +1171,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringConcatExplicit2Args()
+		public void StringConcatExplicit2Args()
 		{
 			TestQuery(
 				"TestStringConcatExplicit2Args",
@@ -1179,7 +1179,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringConcatExplicit3Args()
+		public void StringConcatExplicit3Args()
 		{
 			TestQuery(
 				"TestStringConcatExplicit3Args",
@@ -1187,7 +1187,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringConcatExplicitNArgs()
+		public void StringConcatExplicitNArgs()
 		{
 			TestQuery(
 				"TestStringConcatExplicitNArgs",
@@ -1195,7 +1195,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringIsNullOrEmpty()
+		public void StringIsNullOrEmpty()
 		{
 			TestQuery(
 				"TestStringIsNullOrEmpty",
@@ -1203,7 +1203,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringToUpper()
+		public void StringToUpper()
 		{
 			TestQuery(
 				"TestStringToUpper",
@@ -1211,7 +1211,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringToLower()
+		public void StringToLower()
 		{
 			TestQuery(
 				"TestStringToLower",
@@ -1219,7 +1219,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringSubstring()
+		public void StringSubstring()
 		{
 			TestQuery(
 				"TestStringSubstring",
@@ -1227,7 +1227,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringSubstringNoLength()
+		public void StringSubstringNoLength()
 		{
 			TestQuery(
 				"TestStringSubstringNoLength",
@@ -1235,7 +1235,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringIndexOf()
+		public void StringIndexOf()
 		{
 			TestQuery(
 				"TestStringIndexOf",
@@ -1243,7 +1243,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringIndexOfChar()
+		public void StringIndexOfChar()
 		{
 			TestQuery(
 				"TestStringIndexOfChar",
@@ -1251,7 +1251,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringReplace()
+		public void StringReplace()
 		{
 			TestQuery(
 				"TestStringReplace",
@@ -1259,7 +1259,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringReplaceChars()
+		public void StringReplaceChars()
 		{
 			TestQuery(
 				"TestStringReplaceChars",
@@ -1267,7 +1267,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringTrim()
+		public void StringTrim()
 		{
 			TestQuery(
 				"TestStringTrim",
@@ -1275,7 +1275,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringToString()
+		public void StringToString()
 		{
 			TestQuery(
 				"TestStringToString",
@@ -1283,7 +1283,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringRemove()
+		public void StringRemove()
 		{
 			TestQuery(
 				"TestStringRemove",
@@ -1291,7 +1291,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringRemoveNoCount()
+		public void StringRemoveNoCount()
 		{
 			TestQuery(
 				"TestStringRemoveNoCount",
@@ -1299,7 +1299,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 		
 		[TestMethod]
-		public void TestDateTimeConstructYmd()
+		public void DateTimeConstructYmd()
 		{
 			TestQuery(
 				"TestDateTimeConstructYmd",
@@ -1307,7 +1307,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDateTimeConstructYmdhms()
+		public void DateTimeConstructYmdhms()
 		{
 			TestQuery(
 				"TestDateTimeConstructYmdhms",
@@ -1315,7 +1315,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDateTimeDay()
+		public void DateTimeDay()
 		{
 			TestQuery(
 				"TestDateTimeDay",
@@ -1323,7 +1323,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDateTimeMonth()
+		public void DateTimeMonth()
 		{
 			TestQuery(
 				"TestDateTimeMonth",
@@ -1331,7 +1331,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDateTimeYear()
+		public void DateTimeYear()
 		{
 			TestQuery(
 				"TestDateTimeYear",
@@ -1339,7 +1339,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDateTimeHour()
+		public void DateTimeHour()
 		{
 			TestQuery(
 				"TestDateTimeHour",
@@ -1347,7 +1347,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDateTimeMinute()
+		public void DateTimeMinute()
 		{
 			TestQuery(
 				"TestDateTimeMinute",
@@ -1355,7 +1355,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDateTimeSecond()
+		public void DateTimeSecond()
 		{
 			TestQuery(
 				"TestDateTimeSecond",
@@ -1363,7 +1363,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDateTimeMillisecond()
+		public void DateTimeMillisecond()
 		{
 			TestQuery(
 				"TestDateTimeMillisecond",
@@ -1371,7 +1371,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDateTimeDayOfWeek()
+		public void DateTimeDayOfWeek()
 		{
 			TestQuery(
 				"TestDateTimeDayOfWeek",
@@ -1379,7 +1379,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDateTimeDayOfYear()
+		public void DateTimeDayOfYear()
 		{
 			TestQuery(
 				"TestDateTimeDayOfYear",
@@ -1387,7 +1387,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathAbs()
+		public void MathAbs()
 		{
 			TestQuery(
 				"TestMathAbs",
@@ -1395,7 +1395,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathAcos()
+		public void MathAcos()
 		{
 			TestQuery(
 				"TestMathAcos",
@@ -1403,7 +1403,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathAsin()
+		public void MathAsin()
 		{
 			TestQuery(
 				"TestMathAsin",
@@ -1411,7 +1411,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathAtan()
+		public void MathAtan()
 		{
 			TestQuery(
 				"TestMathAtan",
@@ -1419,7 +1419,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathAtan2()
+		public void MathAtan2()
 		{
 			TestQuery(
 				"TestMathAtan2",
@@ -1427,7 +1427,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathCos()
+		public void MathCos()
 		{
 			TestQuery(
 				"TestMathCos",
@@ -1435,7 +1435,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathSin()
+		public void MathSin()
 		{
 			TestQuery(
 				"TestMathSin",
@@ -1443,7 +1443,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathTan()
+		public void MathTan()
 		{
 			TestQuery(
 				"TestMathTan",
@@ -1451,7 +1451,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathExp()
+		public void MathExp()
 		{
 			TestQuery(
 				"TestMathExp",
@@ -1459,7 +1459,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathLog()
+		public void MathLog()
 		{
 			TestQuery(
 				"TestMathLog",
@@ -1467,7 +1467,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathLog10()
+		public void MathLog10()
 		{
 			TestQuery(
 				"TestMathLog10",
@@ -1475,7 +1475,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathSqrt()
+		public void MathSqrt()
 		{
 			TestQuery(
 				"TestMathSqrt",
@@ -1483,7 +1483,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathCeiling()
+		public void MathCeiling()
 		{
 			TestQuery(
 				"TestMathCeiling",
@@ -1491,7 +1491,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathFloor()
+		public void MathFloor()
 		{
 			TestQuery(
 				"TestMathFloor",
@@ -1499,7 +1499,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathPow()
+		public void MathPow()
 		{
 			TestQuery(
 				"TestMathPow",
@@ -1507,7 +1507,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathRoundDefault()
+		public void MathRoundDefault()
 		{
 			TestQuery(
 				"TestMathRoundDefault",
@@ -1515,7 +1515,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathRoundToPlace()
+		public void MathRoundToPlace()
 		{
 			TestQuery(
 				"TestMathRoundToPlace",
@@ -1523,7 +1523,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestMathTruncate()
+		public void MathTruncate()
 		{
 			TestQuery(
 				"TestMathTruncate",
@@ -1531,7 +1531,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringCompareToLessThan()
+		public void StringCompareToLessThan()
 		{
 			TestQuery(
 				"TestStringCompareToLessThan",
@@ -1539,7 +1539,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringCompareToLessThanOrEqualTo()
+		public void StringCompareToLessThanOrEqualTo()
 		{
 			TestQuery(
 				"TestStringCompareToLessThanOrEqualTo",
@@ -1547,7 +1547,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringCompareToGreaterThan()
+		public void StringCompareToGreaterThan()
 		{
 			TestQuery(
 				"TestStringCompareToGreaterThan",
@@ -1555,7 +1555,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringCompareToGreaterThanOrEqualTo()
+		public void StringCompareToGreaterThanOrEqualTo()
 		{
 			TestQuery(
 				"TestStringCompareToGreaterThanOrEqualTo",
@@ -1563,7 +1563,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringCompareToEquals()
+		public void StringCompareToEquals()
 		{
 			TestQuery(
 				"TestStringCompareToEquals",
@@ -1571,7 +1571,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringCompareToNotEquals()
+		public void StringCompareToNotEquals()
 		{
 			TestQuery(
 				"TestStringCompareToNotEquals",
@@ -1579,7 +1579,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringCompareLessThan()
+		public void StringCompareLessThan()
 		{
 			TestQuery(
 				"TestStringCompareLessThan",
@@ -1587,7 +1587,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringCompareLessThanOrEqualTo()
+		public void StringCompareLessThanOrEqualTo()
 		{
 			TestQuery(
 				"TestStringCompareLessThanOrEqualTo",
@@ -1595,7 +1595,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringCompareGreaterThan()
+		public void StringCompareGreaterThan()
 		{
 			TestQuery(
 				"TestStringCompareGreaterThan",
@@ -1603,7 +1603,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringCompareGreaterThanOrEqualTo()
+		public void StringCompareGreaterThanOrEqualTo()
 		{
 			TestQuery(
 				"TestStringCompareGreaterThanOrEqualTo",
@@ -1611,7 +1611,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringCompareEquals()
+		public void StringCompareEquals()
 		{
 			TestQuery(
 				"TestStringCompareEquals",
@@ -1619,7 +1619,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestStringCompareNotEquals()
+		public void StringCompareNotEquals()
 		{
 			TestQuery(
 				"TestStringCompareNotEquals",
@@ -1627,7 +1627,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntCompareTo()
+		public void IntCompareTo()
 		{
 			TestQuery(
 				"TestIntCompareTo",
@@ -1635,7 +1635,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDecimalCompare()
+		public void DecimalCompare()
 		{
 			TestQuery(
 				"TestDecimalCompare",
@@ -1643,7 +1643,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDecimalAdd()
+		public void DecimalAdd()
 		{
 			TestQuery(
 				"TestDecimalAdd",
@@ -1651,7 +1651,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDecimalSubtract()
+		public void DecimalSubtract()
 		{
 			TestQuery(
 				"TestDecimalSubtract",
@@ -1659,7 +1659,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDecimalMultiply()
+		public void DecimalMultiply()
 		{
 			TestQuery(
 				"TestDecimalMultiply",
@@ -1667,7 +1667,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDecimalDivide()
+		public void DecimalDivide()
 		{
 			TestQuery(
 				"TestDecimalDivide",
@@ -1675,7 +1675,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDecimalRemainder()
+		public void DecimalRemainder()
 		{
 			TestQuery(
 				"TestDecimalRemainder",
@@ -1683,7 +1683,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDecimalNegate()
+		public void DecimalNegate()
 		{
 			TestQuery(
 				"TestDecimalNegate",
@@ -1691,7 +1691,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDecimalCeiling()
+		public void DecimalCeiling()
 		{
 			TestQuery(
 				"TestDecimalCeiling",
@@ -1699,7 +1699,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDecimalFloor()
+		public void DecimalFloor()
 		{
 			TestQuery(
 				"TestDecimalFloor",
@@ -1707,7 +1707,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDecimalRoundDefault()
+		public void DecimalRoundDefault()
 		{
 			TestQuery(
 				"TestDecimalRoundDefault",
@@ -1715,7 +1715,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDecimalRoundPlaces()
+		public void DecimalRoundPlaces()
 		{
 			TestQuery(
 				"TestDecimalRoundPlaces",
@@ -1723,7 +1723,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDecimalTruncate()
+		public void DecimalTruncate()
 		{
 			TestQuery(
 				"TestDecimalTruncate",
@@ -1731,7 +1731,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestDecimalLessThan()
+		public void DecimalLessThan()
 		{
 			TestQuery(
 				"TestDecimalLessThan",
@@ -1739,7 +1739,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntLessThan()
+		public void IntLessThan()
 		{
 			TestQuery(
 				"TestIntLessThan",
@@ -1747,7 +1747,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntLessThanOrEqual()
+		public void IntLessThanOrEqual()
 		{
 			TestQuery(
 				"TestIntLessThanOrEqual",
@@ -1755,7 +1755,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntGreaterThan()
+		public void IntGreaterThan()
 		{
 			TestQuery(
 				"TestIntGreaterThan",
@@ -1763,7 +1763,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntGreaterThanOrEqual()
+		public void IntGreaterThanOrEqual()
 		{
 			TestQuery(
 				"TestIntGreaterThanOrEqual",
@@ -1771,7 +1771,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntEqual()
+		public void IntEqual()
 		{
 			TestQuery(
 				"TestIntEqual",
@@ -1779,7 +1779,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntNotEqual()
+		public void IntNotEqual()
 		{
 			TestQuery(
 				"TestIntNotEqual",
@@ -1787,7 +1787,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntAdd()
+		public void IntAdd()
 		{
 			TestQuery(
 				"TestIntAdd",
@@ -1795,7 +1795,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntSubtract()
+		public void IntSubtract()
 		{
 			TestQuery(
 				"TestIntSubtract",
@@ -1803,7 +1803,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntMultiply()
+		public void IntMultiply()
 		{
 			TestQuery(
 				"TestIntMultiply",
@@ -1811,7 +1811,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntDivide()
+		public void IntDivide()
 		{
 			TestQuery(
 				"TestIntDivide",
@@ -1819,7 +1819,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntModulo()
+		public void IntModulo()
 		{
 			TestQuery(
 				"TestIntModulo",
@@ -1827,7 +1827,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntLeftShift()
+		public void IntLeftShift()
 		{
 			TestQuery(
 				"TestIntLeftShift",
@@ -1835,7 +1835,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntRightShift()
+		public void IntRightShift()
 		{
 			TestQuery(
 				"TestIntRightShift",
@@ -1843,7 +1843,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntBitwiseAnd()
+		public void IntBitwiseAnd()
 		{
 			TestQuery(
 				"TestIntBitwiseAnd",
@@ -1851,7 +1851,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntBitwiseOr()
+		public void IntBitwiseOr()
 		{
 			TestQuery(
 				"TestIntBitwiseOr",
@@ -1859,7 +1859,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestIntBitwiseExclusiveOr()
+		public void IntBitwiseExclusiveOr()
 		{
 			TestQuery(
 				"TestIntBitwiseExclusiveOr",
@@ -1867,7 +1867,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestIntBitwiseNot()
+		////public void IntBitwiseNot()
 		////{
 		////	TestQuery(
 		////		"TestIntBitwiseNot",
@@ -1875,7 +1875,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestIntNegate()
+		public void IntNegate()
 		{
 			TestQuery(
 				"TestIntNegate",
@@ -1883,7 +1883,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestAnd()
+		public void And()
 		{
 			TestQuery(
 				"TestAnd",
@@ -1891,7 +1891,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestOr()
+		public void Or()
 		{
 			TestQuery(
 				"TestOr",
@@ -1899,7 +1899,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestNot()
+		public void Not()
 		{
 			TestQuery(
 				"TestNot",
@@ -1907,7 +1907,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestEqualNull()
+		public void EqualNull()
 		{
 			TestQuery(
 				"TestEqualNull",
@@ -1915,7 +1915,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestEqualNullReverse()
+		public void EqualNullReverse()
 		{
 			TestQuery(
 				"TestEqualNullReverse",
@@ -1923,7 +1923,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestConditional()
+		public void Conditional()
 		{
 			TestQuery(
 				"TestConditional",
@@ -1931,7 +1931,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestConditional2()
+		public void Conditional2()
 		{
 			TestQuery(
 				"TestConditional2",
@@ -1939,7 +1939,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestConditionalTestIsValue()
+		public void ConditionalTestIsValue()
 		{
 			TestQuery(
 				"TestConditionalTestIsValue",
@@ -1947,7 +1947,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestConditionalResultsArePredicates()
+		////public void ConditionalResultsArePredicates()
 		////{
 		////	TestQuery(
 		////		"TestConditionalResultsArePredicates",
@@ -1955,7 +1955,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectManyJoined()
+		////public void SelectManyJoined()
 		////{
 		////	TestQuery(
 		////		"TestSelectManyJoined",
@@ -1965,7 +1965,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectManyJoinedDefaultIfEmpty()
+		////public void SelectManyJoinedDefaultIfEmpty()
 		////{
 		////	TestQuery(
 		////		"TestSelectManyJoinedDefaultIfEmpty",
@@ -1975,7 +1975,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectWhereAssociation()
+		////public void SelectWhereAssociation()
 		////{
 		////	TestQuery(
 		////		"TestSelectWhereAssociation",
@@ -1985,7 +1985,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectWhereAssociations()
+		////public void SelectWhereAssociations()
 		////{
 		////	TestQuery(
 		////		"TestSelectWhereAssociations",
@@ -1995,7 +1995,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectWhereAssociationTwice()
+		////public void SelectWhereAssociationTwice()
 		////{
 		////	TestQuery(
 		////		"TestSelectWhereAssociationTwice",
@@ -2005,7 +2005,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectAssociation()
+		////public void SelectAssociation()
 		////{
 		////	TestQuery(
 		////		"TestSelectAssociation",
@@ -2014,7 +2014,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectAssociations()
+		////public void SelectAssociations()
 		////{
 		////	TestQuery(
 		////		"TestSelectAssociations",
@@ -2023,7 +2023,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSelectAssociationsWhereAssociations()
+		////public void SelectAssociationsWhereAssociations()
 		////{
 		////	TestQuery(
 		////		"TestSelectAssociationsWhereAssociations",
@@ -2034,7 +2034,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestSingletonAssociationWithMemberAccess()
+		////public void SingletonAssociationWithMemberAccess()
 		////{
 		////	TestQuery(
 		////		"TestSingletonAssociationWithMemberAccess",
@@ -2046,7 +2046,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		[TestMethod]
-		public void TestCompareDateTimesWithDifferentNullability()
+		public void CompareDateTimesWithDifferentNullability()
 		{
 			var today = new DateTime(2013, 1, 1);
 			TestQuery(
@@ -2058,7 +2058,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestContainsWithEmptyLocalList()
+		public void ContainsWithEmptyLocalList()
 		{
 			var ids = Array.Empty<string>();
 			TestQuery(
@@ -2070,7 +2070,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		public void TestContainsWithSubquery2()
+		public void ContainsWithSubquery2()
 		{
 			var custsInLondon = _db.Customers.Where(c => c.City == "London").Select(c => c.CustomerID);
 
@@ -2083,7 +2083,7 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		////[TestMethod]
-		////public void TestCombineQueriesDeepNesting()
+		////public void CombineQueriesDeepNesting()
 		////{
 		////	var custs = db.Customers.Where(c => c.ContactName.StartsWith("xxx"));
 		////	var ords = db.Orders.Where(o => custs.Any(c => c.CustomerID == o.CustomerID));
@@ -2094,7 +2094,7 @@ namespace Watsonia.Data.Tests.Queries
 		////}
 
 		////[TestMethod]
-		////public void TestLetWithSubquery()
+		////public void LetWithSubquery()
 		////{
 		////	TestQuery(
 		////		"TestLetWithSubquery",

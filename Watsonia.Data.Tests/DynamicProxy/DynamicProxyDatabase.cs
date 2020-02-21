@@ -8,12 +8,12 @@ using Watsonia.Data.SQLite;
 
 namespace Watsonia.Data.Tests.DynamicProxy
 {
-	public class DynamicProxyDatabase : Database
+	public class DynamicProxyDatabase : Watsonia.Data.Database
 	{
 		private const string ConnectionString = @"Data Source=Data\DynamicProxyTests.sqlite";
 
 		public DynamicProxyDatabase()
-			: base(new SQLiteDataAccessProvider(), DynamicProxyDatabase.ConnectionString, "Watsonia.Data.Tests.DynamicProxy")
+			: base(new SQLiteDataAccessProvider(), DynamicProxyDatabase.ConnectionString, "Watsonia.Data.Tests.DynamicProxy.Entities")
 		{
 		}
 	}
