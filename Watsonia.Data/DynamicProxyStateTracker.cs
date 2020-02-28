@@ -206,7 +206,7 @@ namespace Watsonia.Data
 		/// <param name="id">The id of the item.</param>
 		/// <param name="propertyName">The name of the property containing the item.</param>
 		/// <returns>The loaded item.</returns>
-		public T LoadItem<T>(long id, string propertyName)
+		public T LoadItem<T>(long id, string propertyName) where T : class
 		{
 			AddLoadedItem(propertyName);
 			if (id == Convert.ToInt64(this.Database.Configuration.GetPrimaryKeyNewItemValue(typeof(T))))
@@ -227,7 +227,7 @@ namespace Watsonia.Data
 		/// <param name="id">The id of the item.</param>
 		/// <param name="propertyName">The name of the property containing the item.</param>
 		/// <returns>The loaded item.</returns>
-		public T LoadItem<T>(string id, string propertyName)
+		public T LoadItem<T>(string id, string propertyName) where T : class
 		{
 			AddLoadedItem(propertyName);
 			if (id != null && id.Equals(this.Database.Configuration.GetPrimaryKeyNewItemValue(typeof(T))))

@@ -160,7 +160,7 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <typeparam name="T">The type of item to create a proxy for.</typeparam>
 		/// <returns></returns>
-		public T Create<T>()
+		public T Create<T>() where T : class
 		{
 			var newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
 			var proxy = (IDynamicProxy)newItem;
@@ -178,7 +178,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T">The type of item to create a proxy for.</typeparam>
 		/// <param name="item">The item.</param>
 		/// <returns></returns>
-		public T Create<T>(T item)
+		public T Create<T>(T item) where T : class
 		{
 			var newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
 			var proxy = (IDynamicProxy)newItem;
@@ -649,7 +649,7 @@ namespace Watsonia.Data
 			destination.StateTracker.IsLoading = false;
 		}
 
-		private bool TryGetCacheAndProxy<T>(object id, out ItemCache cache, out T item)
+		private bool TryGetCacheAndProxy<T>(object id, out ItemCache cache, out T item) where T : class
 		{
 			var cacheKey = DynamicProxyFactory.GetDynamicTypeName(typeof(T), this);
 			cache = this.Configuration.ShouldCacheType(typeof(T))
@@ -686,7 +686,6 @@ namespace Watsonia.Data
 
 		private void RefreshCollectionItems(IList collection, List<IDynamicProxy> newCollection)
 		{
-
 			// Remove items from the collection that are no longer in the database
 			for (var i = collection.Count - 1; i >= 0; i--)
 			{

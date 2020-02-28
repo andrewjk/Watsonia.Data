@@ -30,7 +30,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="id">The ID.</param>
 		/// <returns></returns>
-		public T Load<T>(object id)
+		public T Load<T>(object id) where T : class
 		{
 			return LoadOrDefault<T>(id, true);
 		}
@@ -41,7 +41,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="id">The ID.</param>
 		/// <returns></returns>
-		public T LoadOrDefault<T>(object id)
+		public T LoadOrDefault<T>(object id) where T : class
 		{
 			return LoadOrDefault<T>(id, false);
 		}
@@ -52,7 +52,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="id">The ID.</param>
 		/// <returns></returns>
-		private T LoadOrDefault<T>(object id, bool throwIfNotFound)
+		private T LoadOrDefault<T>(object id, bool throwIfNotFound) where T : class
 		{
 			IDynamicProxy proxy = null;
 
@@ -107,7 +107,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="item">The item.</param>
 		/// <exception cref="ArgumentException">item</exception>
-		public void Refresh<T>(T item)
+		public void Refresh<T>(T item) where T : class
 		{
 			if ((item as IDynamicProxy) == null)
 			{
@@ -544,7 +544,7 @@ namespace Watsonia.Data
 
 		private void InsertItem(IDynamicProxy proxy, string tableName, Type tableType, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction)
 		{
-			var insert = Watsonia.QueryBuilder.Insert.Into(tableName);
+			var insert = QueryBuilder.Insert.Into(tableName);
 			foreach (var property in this.Configuration.PropertiesToLoadAndSave(proxy.GetType()))
 			{
 				if (property.Name != primaryKeyColumnName)
@@ -612,7 +612,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T">The type of item to insert and create a proxy for.</typeparam>
 		/// <param name="item">The item.</param>
 		/// <returns></returns>
-		public T Insert<T>(T item)
+		public T Insert<T>(T item) where T : class
 		{
 			OnBeforeInsert(item);
 
@@ -631,7 +631,7 @@ namespace Watsonia.Data
 		/// <param name="id">The ID.</param>
 		/// <param name="connection">The connection.</param>
 		/// <param name="transaction">The transaction.</param>
-		public void Delete<T>(object id, DbConnection connection = null, DbTransaction transaction = null)
+		public void Delete<T>(object id, DbConnection connection = null, DbTransaction transaction = null) where T : class
 		{
 			var item = Load<T>(id);
 			Delete(item, connection, transaction);
@@ -710,7 +710,7 @@ namespace Watsonia.Data
 					}
 				}
 
-				var deleteQuery = Watsonia.QueryBuilder.Delete.From(tableName).Where(primaryKeyName, SqlOperator.Equals, proxy.__PrimaryKeyValue);
+				var deleteQuery = QueryBuilder.Delete.From(tableName).Where(primaryKeyName, SqlOperator.Equals, proxy.__PrimaryKeyValue);
 				Execute(deleteQuery, connectionToUse, transactionToUse);
 
 				// If a transaction was not passed in and we created our own, commit it

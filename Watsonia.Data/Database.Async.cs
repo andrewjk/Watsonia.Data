@@ -30,7 +30,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="id">The ID.</param>
 		/// <returns></returns>
-		public async Task<T> LoadAsync<T>(object id)
+		public async Task<T> LoadAsync<T>(object id) where T : class
 		{
 			return await LoadOrDefaultAsync<T>(id, true);
 		}
@@ -41,7 +41,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="id">The ID.</param>
 		/// <returns></returns>
-		public async Task<T> LoadOrDefaultAsync<T>(object id)
+		public async Task<T> LoadOrDefaultAsync<T>(object id) where T : class
 		{
 			return await LoadOrDefaultAsync<T>(id, false);
 		}
@@ -52,7 +52,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="id">The ID.</param>
 		/// <returns></returns>
-		private async Task<T> LoadOrDefaultAsync<T>(object id, bool throwIfNotFound)
+		private async Task<T> LoadOrDefaultAsync<T>(object id, bool throwIfNotFound) where T : class
 		{
 			IDynamicProxy proxy = null;
 
@@ -107,7 +107,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="item">The item.</param>
 		/// <exception cref="ArgumentException">item</exception>
-		public async Task RefreshAsync<T>(T item)
+		public async Task RefreshAsync<T>(T item) where T : class
 		{
 			if ((item as IDynamicProxy) == null)
 			{
@@ -544,7 +544,7 @@ namespace Watsonia.Data
 
 		private async Task InsertItemAsync(IDynamicProxy proxy, string tableName, Type tableType, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction)
 		{
-			var insert = Watsonia.QueryBuilder.Insert.Into(tableName);
+			var insert = QueryBuilder.Insert.Into(tableName);
 			foreach (var property in this.Configuration.PropertiesToLoadAndSave(proxy.GetType()))
 			{
 				if (property.Name != primaryKeyColumnName)
@@ -612,7 +612,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T">The type of item to insert and create a proxy for.</typeparam>
 		/// <param name="item">The item.</param>
 		/// <returns></returns>
-		public async Task<T> InsertAsync<T>(T item)
+		public async Task<T> InsertAsync<T>(T item) where T : class
 		{
 			OnBeforeInsert(item);
 
@@ -631,7 +631,7 @@ namespace Watsonia.Data
 		/// <param name="id">The ID.</param>
 		/// <param name="connection">The connection.</param>
 		/// <param name="transaction">The transaction.</param>
-		public async Task DeleteAsync<T>(object id, DbConnection connection = null, DbTransaction transaction = null)
+		public async Task DeleteAsync<T>(object id, DbConnection connection = null, DbTransaction transaction = null) where T : class
 		{
 			var item = await LoadAsync<T>(id);
 			await DeleteAsync(item, connection, transaction);
@@ -710,7 +710,7 @@ namespace Watsonia.Data
 					}
 				}
 
-				var deleteQuery = Watsonia.QueryBuilder.Delete.From(tableName).Where(primaryKeyName, SqlOperator.Equals, proxy.__PrimaryKeyValue);
+				var deleteQuery = QueryBuilder.Delete.From(tableName).Where(primaryKeyName, SqlOperator.Equals, proxy.__PrimaryKeyValue);
 				await ExecuteAsync(deleteQuery, connectionToUse, transactionToUse);
 
 				// If a transaction was not passed in and we created our own, commit it
