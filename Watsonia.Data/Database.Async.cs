@@ -119,8 +119,8 @@ namespace Watsonia.Data
 
 			OnBeforeRefresh(proxy);
 
-			var newItem = await LoadAsync<T>(proxy.__PrimaryKeyValue);
-			LoadValues(newItem, proxy);
+			var dbItem = await LoadAsync<T>(proxy.__PrimaryKeyValue);
+			LoadValues(dbItem, proxy);
 
 			// Refresh any loaded children
 			foreach (var collectionPropertyName in proxy.StateTracker.LoadedCollections)
@@ -386,7 +386,8 @@ namespace Watsonia.Data
 			var transactionToUse = transaction ?? connectionToUse.BeginTransaction();
 			try
 			{
-				await SaveItemAsync(proxy, connectionToUse, transactionToUse);
+				var parents = new List<string>();
+				await SaveItemAsync(proxy, parents, connectionToUse, transactionToUse);
 
 				UpdateSavedCollectionIDs(item);
 
@@ -421,11 +422,19 @@ namespace Watsonia.Data
 			OnAfterSave(proxy);
 		}
 
-		private async Task SaveItemAsync(IDynamicProxy proxy, DbConnection connection, DbTransaction transaction)
+		private async Task SaveItemAsync(IDynamicProxy proxy, List<string> parents, DbConnection connection, DbTransaction transaction)
 		{
 			var tableType = proxy.GetType().BaseType;
 			var tableName = this.Configuration.GetTableName(tableType);
 			var primaryKeyColumnName = this.Configuration.GetPrimaryKeyColumnName(tableType);
+
+			// Don't save this item if it's already slated to be saved as part of a parent
+			var parentKey = tableName + "$" + proxy.__PrimaryKeyValue;
+			if (parents.Contains(parentKey))
+			{
+				return;
+			}
+			parents.Add(parentKey);
 
 			// Insert or update all of the related items that should be saved with this item
 			var newRelatedItems = new List<IDynamicProxy>();
@@ -437,7 +446,7 @@ namespace Watsonia.Data
 				{
 					if (this.Configuration.ShouldCascadeInternal(property))
 					{
-						await SaveItemAsync(relatedItem, connection, transaction);
+						await SaveItemAsync(relatedItem, parents, connection, transaction);
 
 						// Update the related item ID property
 						var relatedItemIDPropertyName = this.Configuration.GetForeignKeyColumnName(property);
@@ -505,7 +514,7 @@ namespace Watsonia.Data
 							var parentIDPropertyName = this.Configuration.GetForeignKeyColumnName(childItem.GetType().BaseType, tableType);
 							childItem.__SetValue(parentIDPropertyName, proxy.__PrimaryKeyValue);
 						}
-						await SaveItemAsync(childItem, connection, transaction);
+						await SaveItemAsync(childItem, parents, connection, transaction);
 					}
 					collectionIDs.Add(((IDynamicProxy)childItem).__PrimaryKeyValue);
 				}

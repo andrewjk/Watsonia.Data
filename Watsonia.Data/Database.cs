@@ -43,6 +43,9 @@ namespace Watsonia.Data
 		public event EventHandler BeforeExecuteCommand;
 		public event EventHandler AfterExecuteCommand;
 
+		// TODO: Handle key types other than ints and longs!
+		private int _newItemId = int.MinValue;
+
 		/// <summary>
 		/// The cache.
 		/// </summary>
@@ -162,14 +165,7 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public T Create<T>() where T : class
 		{
-			var newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
-			var proxy = (IDynamicProxy)newItem;
-			//proxy.ID = -1;
-			proxy.StateTracker.IsNew = true;
-
-			OnAfterCreate(proxy);
-
-			return newItem;
+			return InternalCreate<T>(null);
 		}
 
 		/// <summary>
@@ -180,11 +176,21 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public T Create<T>(T item) where T : class
 		{
+			return InternalCreate(item);
+		}
+
+		private T InternalCreate<T>(T item = null) where T : class
+		{
 			var newItem = DynamicProxyFactory.GetDynamicProxy<T>(this);
 			var proxy = (IDynamicProxy)newItem;
-			//proxy.ID = -1;
 			proxy.StateTracker.IsNew = true;
-			LoadValues(item, proxy);
+			proxy.StateTracker.IsLoading = true;
+			proxy.__PrimaryKeyValue = Convert.ChangeType(_newItemId++, this.Configuration.GetPrimaryKeyColumnType(typeof(T)));
+			if (item != null)
+			{
+				LoadValues(item, proxy);
+			}
+			proxy.StateTracker.IsLoading = false;
 
 			OnAfterCreate(proxy);
 
@@ -613,10 +619,10 @@ namespace Watsonia.Data
 
 		private void LoadValues(object source, IDynamicProxy destination)
 		{
-			if (!destination.StateTracker.IsNew)
-			{
-				destination.StateTracker.IsLoading = true;
-			}
+			////////if (!destination.StateTracker.IsNew)
+			////////{
+			////////	destination.StateTracker.IsLoading = true;
+			////////}
 
 			// TODO: Move this into the dynamic proxy
 			// TODO: Pipe everything through the same area; this, linq, etc
@@ -646,7 +652,7 @@ namespace Watsonia.Data
 				}
 			}
 
-			destination.StateTracker.IsLoading = false;
+			////////destination.StateTracker.IsLoading = false;
 		}
 
 		private bool TryGetCacheAndProxy<T>(object id, out ItemCache cache, out T item) where T : class

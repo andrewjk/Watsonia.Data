@@ -652,20 +652,8 @@ namespace Watsonia.Data
 				return attribute.ShouldCascade;
 			}
 
-			if (IsRelatedItem(property))
-			{
-				// It's an object linked with a foreign key so it shouldn't be cascaded
-				return false;
-			}
-
-			if (IsRelatedCollection(property))
-			{
-				// It's a related collection so changes to the item should be cascaded
-				return true;
-			}
-
-			// Nothing else should be cascaded by default
-			return false;
+			// Everything else should be cascaded by default
+			return true;
 		}
 
 		/// <summary>
