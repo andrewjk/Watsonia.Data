@@ -13,16 +13,16 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		[TestMethod]
 		public void OverriddenPropertyWithSideEffect()
 		{
-			var customer = _db.Create<Customer>();
-			customer.Name = "Harold";
-			customer.DateOfBirth = DateTime.Today.AddYears(-21).AddDays(-7);
-			Assert.AreEqual("It's not your birthday...", customer.BirthdayMessage);
+			var friend = _db.Create<Friend>();
+			friend.Name = "Harold";
+			friend.DateOfBirth = DateTime.Today.AddYears(-21).AddDays(-7);
+			Assert.AreEqual("It's not your birthday...", friend.BirthdayMessage);
 
-			customer.DateOfBirth = new DateTime(1980, DateTime.Today.Month, DateTime.Today.Day);
-			Assert.AreEqual("Happy birthday, Harold!", customer.BirthdayMessage);
+			friend.DateOfBirth = new DateTime(1980, DateTime.Today.Month, DateTime.Today.Day);
+			Assert.AreEqual("Happy birthday, Harold!", friend.BirthdayMessage);
 
-			customer.DateOfBirth = DateTime.Today.AddYears(-21).AddMonths(-1);
-			Assert.AreEqual("It's not your birthday...", customer.BirthdayMessage);
+			friend.DateOfBirth = DateTime.Today.AddYears(-21).AddMonths(-1);
+			Assert.AreEqual("It's not your birthday...", friend.BirthdayMessage);
 		}
 	}
 }

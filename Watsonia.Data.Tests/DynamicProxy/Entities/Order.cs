@@ -5,12 +5,6 @@ namespace Watsonia.Data.Tests.DynamicProxy.Entities
 {
 	public class Order
 	{
-		//public virtual Customer Customer
-		//{
-		//    get;
-		//    set;
-		//}
-
 		[Display(Name = "Number of items")]
 		public virtual int NumberOfItems { get; set; }
 

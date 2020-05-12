@@ -15,11 +15,11 @@ namespace Watsonia.Data.Tests.DynamicProxy
 		{
 			var customer = _db.Create<Customer>();
 
-			customer.Age = 55;
-			Assert.AreEqual(55, ((IDynamicProxy)customer).__GetValue("age"));
+			customer.Name = "darryl";
+			Assert.AreEqual("darryl", ((IDynamicProxy)customer).__GetValue("name"));
 
-			((IDynamicProxy)customer).__SetValue("age", 66);
-			Assert.AreEqual(66, customer.Age);
+			((IDynamicProxy)customer).__SetValue("name", "darren");
+			Assert.AreEqual("darren", customer.Name);
 		}
 	}
 }
