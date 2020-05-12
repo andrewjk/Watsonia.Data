@@ -20,10 +20,7 @@ namespace Watsonia.Data
 		/// <value>
 		/// The state tracker.
 		/// </value>
-		DynamicProxyStateTracker StateTracker
-		{
-			get;
-		}
+		DynamicProxyStateTracker StateTracker { get; }
 
 		/// <summary>
 		/// Gets or sets the primary key value of this instance in the database.

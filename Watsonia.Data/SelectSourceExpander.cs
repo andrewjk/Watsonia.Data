@@ -21,23 +21,11 @@ namespace Watsonia.Data
     {
         private int _newJoinNumber = 1;
 
-        private QueryModel QueryModel
-        {
-            get;
-            set;
-        }
+        private QueryModel QueryModel { get; set; }
         
-        private Database Database
-        {
-            get;
-            set;
-        }
+        private Database Database { get; set; }
 
-        private DatabaseConfiguration Configuration
-        {
-            get;
-            set;
-        }
+        private DatabaseConfiguration Configuration { get; set; }
 
         private SelectSourceExpander(QueryModel queryModel, Database database, DatabaseConfiguration configuration)
         {

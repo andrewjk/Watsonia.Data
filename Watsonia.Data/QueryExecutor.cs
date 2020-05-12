@@ -12,11 +12,7 @@ namespace Watsonia.Data
 	{
 		public Database Database { get; private set; }
 
-		public DatabaseQuery<T> Query
-		{
-			get;
-			internal set;
-		}
+		public DatabaseQuery<T> Query { get; internal set; }
 
 		public QueryExecutor(Database database)
 		{

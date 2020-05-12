@@ -14,17 +14,9 @@ namespace Watsonia.Data
 {
     internal class SelectFieldExpander : QueryModelVisitorBase
     {
-        private SelectStatement Select
-        {
-            get;
-            set;
-        }
+        private SelectStatement Select { get; set; }
 
-        private DatabaseConfiguration Configuration
-        {
-            get;
-            set;
-        }
+        private DatabaseConfiguration Configuration { get; set; }
 
         private SelectFieldExpander(SelectStatement select, DatabaseConfiguration configuration)
         {

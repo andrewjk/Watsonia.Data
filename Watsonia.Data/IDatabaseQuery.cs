@@ -11,9 +11,6 @@ namespace Watsonia.Data
 	/// </summary>
 	internal interface IDatabaseQuery
 	{
-		List<string> IncludePaths
-		{
-			get;
-		}
+		List<string> IncludePaths { get; }
 	}
 }
