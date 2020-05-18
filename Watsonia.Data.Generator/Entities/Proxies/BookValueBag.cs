@@ -14,7 +14,7 @@ namespace Watsonia.Data.Generator.Proxies
 	{
 		public long ID { get; set; }
 		public string Title { get; set; }
-		public Author Author { get; set; }
 		public decimal Price { get; set; }
+		public long? AuthorID { get; set; }
 	}
 }

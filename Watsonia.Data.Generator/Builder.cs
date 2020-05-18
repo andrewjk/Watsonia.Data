@@ -7,7 +7,7 @@ namespace Watsonia.Data.Generator
 {
 	class Builder
 	{
-		static Dictionary<string, string> BuiltInTypeNames = new Dictionary<string, string>
+		static readonly Dictionary<string, string> _builtInTypeNames = new Dictionary<string, string>
 		{
 			{ "bool", "Boolean" },
 			{ "bool?", "Boolean" },
@@ -58,53 +58,34 @@ namespace Watsonia.Data.Generator
 			CreatePrimaryKeyValueChangedEventHandler(b);
 			b.AppendLine();
 
+			// Create the __PrimaryKeyValue property which just wraps the primary key property
+			CreatePrimaryKeyValueProperty(b);
+			b.AppendLine();
+
 			CreateStateTrackerProperty(b);
 			b.AppendLine();
 
-			// Create each overridden property
+			// Create each property
 			foreach (var prop in entity.Properties)
 			{
-				CreateOverriddenProperty(b, prop);
-			}
-			b.AppendLine();
-
-			// Create the primary key property (e.g. ID or TableID) if it didn't already get created
-			if (!entity.Properties.Any(p => p.Name == "ID"))
-			{
-				CreateFieldProperty(b, new MappedProperty()
+				if (prop.IsRelatedItem)
 				{
-					Name = "ID",
-					TypeName = "long"
-				});
+					CreateRelatedItemProperty(b, prop);
+				}
+				else if (prop.IsRelatedCollection)
+				{
+					CreateRelatedCollectionProperty(b, prop);
+				}
+				else if (prop.IsOverridden)
+				{
+					CreateOverriddenProperty(b, prop);
+				}
+				else
+				{
+					CreateFieldProperty(b, prop);
+				}
+				b.AppendLine();
 			}
-
-			// Create the __PrimaryKeyValue property which just wraps the primary key property
-			CreatePrimaryKeyValueProperty(b);
-
-			// Create the related item properties
-			foreach (var prop in entity.Properties.Where(p => p.IsRelatedItem))
-			{
-				CreateOverriddenItemProperty(b, prop);
-			}
-
-			// TODO: Create the related item properties for parent-child relationships that don't exist as properties
-			//if (childParentMapping.ContainsKey(parentType))
-			//{
-			//	foreach (var parent in childParentMapping[parentType])
-			//	{
-			//		// If the ID property doesn't exist, create it
-			//		var propertyName = database.Configuration.GetForeignKeyColumnName(parentType, parent);
-			//		if (!members.GetPropertyMethods.ContainsKey(propertyName))
-			//		{
-			//			var propertyType = database.Configuration.GetPrimaryKeyColumnType(parent);
-			//			if (propertyType.IsValueType)
-			//			{
-			//				propertyType = typeof(Nullable<>).MakeGenericType(propertyType);
-			//			}
-			//			CreateFieldProperty(type, propertyName, propertyType, members);
-			//		}
-			//	}
-			//}
 
 			CreateConstructor(b, entity);
 			b.AppendLine();
@@ -138,9 +119,25 @@ namespace Watsonia.Data.Generator
 		private static void CreatePrimaryKeyValueChangedEventHandler(StringBuilder b)
 		{
 			b.AppendLine("		public event PrimaryKeyValueChangedEventHandler __PrimaryKeyValueChanged;");
+			b.AppendLine();
 			b.AppendLine("		private void OnPrimaryKeyValueChanged(object value)");
 			b.AppendLine("		{");
 			b.AppendLine("			__PrimaryKeyValueChanged?.Invoke(this, new PrimaryKeyValueChangedEventArgs(value));");
+			b.AppendLine("		}");
+		}
+
+		private static void CreatePrimaryKeyValueProperty(StringBuilder b)
+		{
+			b.AppendLine("		public object __PrimaryKeyValue");
+			b.AppendLine("		{");
+			b.AppendLine("			get");
+			b.AppendLine("			{");
+			b.AppendLine("				return this.ID;");
+			b.AppendLine("			}");
+			b.AppendLine("			set");
+			b.AppendLine("			{");
+			b.AppendLine("				this.ID = (long)Convert.ChangeType(value, typeof(long));");
+			b.AppendLine("			}");
 			b.AppendLine("		}");
 		}
 
@@ -157,6 +154,69 @@ namespace Watsonia.Data.Generator
 			b.AppendLine("					_stateTracker.Item = this;");
 			b.AppendLine("				}");
 			b.AppendLine("				return _stateTracker;");
+			b.AppendLine("			}");
+			b.AppendLine("		}");
+		}
+
+		private static void CreateRelatedItemProperty(StringBuilder b, MappedProperty prop)
+		{
+			var proxyName = prop.Name.ToLowerInvariant() + "Proxy";
+
+			b.AppendLine($"		public override {prop.TypeName} {prop.Name}");
+			b.AppendLine("		{");
+			b.AppendLine("			get");
+			b.AppendLine("			{");
+			b.AppendLine($"				if (base.{prop.Name} == null && this.{prop.Name}ID != null)");
+			b.AppendLine("				{");
+			b.AppendLine($"					base.{prop.Name} = this.StateTracker.LoadItem<{prop.Name}>(this.{prop.Name}ID.Value, nameof({prop.Name}));");
+			b.AppendLine("				}");
+			b.AppendLine($"				return base.{prop.Name};");
+			b.AppendLine("			}");
+			b.AppendLine("			set");
+			b.AppendLine("			{");
+			b.AppendLine($"				if (base.{prop.Name} != null)");
+			b.AppendLine("				{");
+			b.AppendLine($"					var {proxyName} = (IDynamicProxy)base.{prop.Name};");
+			b.AppendLine($"					{prop.Name.ToLower()}Proxy.__PrimaryKeyValueChanged -= {prop.Name}Proxy_PrimaryKeyValueChanged;");
+			b.AppendLine("				}");
+			b.AppendLine($"				base.{prop.Name} = value;");
+			b.AppendLine("				if (value != null)");
+			b.AppendLine("				{");
+			b.AppendLine($"					this.StateTracker.AddLoadedItem(nameof({prop.Name}));");
+			b.AppendLine($"					var {proxyName} = (IDynamicProxy)value;");
+			b.AppendLine($"					this.{prop.Name}ID = (long?){proxyName}.__PrimaryKeyValue;");
+			b.AppendLine($"					{proxyName}.__PrimaryKeyValueChanged += {prop.Name}Proxy_PrimaryKeyValueChanged;");
+			b.AppendLine("				}");
+			b.AppendLine("				else");
+			b.AppendLine("				{");
+			b.AppendLine($"					this.{prop.Name}ID = null;");
+			b.AppendLine("				}");
+			b.AppendLine("			}");
+			b.AppendLine("		}");
+			b.AppendLine();
+			b.AppendLine($"		private void {prop.Name}Proxy_PrimaryKeyValueChanged(object sender, PrimaryKeyValueChangedEventArgs e)");
+			b.AppendLine("		{");
+			b.AppendLine($"			var {proxyName} = (IDynamicProxy)sender;");
+			b.AppendLine($"			this.{prop.Name}ID = (long?){proxyName}.__PrimaryKeyValue;");
+			b.AppendLine("		}");
+		}
+
+		private static void CreateRelatedCollectionProperty(StringBuilder b, MappedProperty prop)
+		{
+			b.AppendLine($"		public override {prop.TypeName} {prop.Name}");
+			b.AppendLine("		{");
+			b.AppendLine("			get");
+			b.AppendLine("			{");
+			b.AppendLine($"				if (base.{prop.Name} == null)");
+			b.AppendLine("				{");
+			b.AppendLine($"					base.{prop.Name} = this.StateTracker.LoadCollection<{prop.InnerTypeName}>(nameof({prop.Name}));");
+			b.AppendLine("				}");
+			b.AppendLine($"				return base.{prop.Name};");
+			b.AppendLine("			}");
+			b.AppendLine("			set");
+			b.AppendLine("			{");
+			b.AppendLine($"				base.{prop.Name} = value;");
+			b.AppendLine($"				this.StateTracker.AddLoadedCollection(nameof({prop.Name}));");
 			b.AppendLine("			}");
 			b.AppendLine("		}");
 		}
@@ -179,21 +239,20 @@ namespace Watsonia.Data.Generator
 			}
 			b.AppendLine("			}");
 			b.AppendLine("		}");
-			b.AppendLine();
 		}
 
 		private static void CreateFieldProperty(StringBuilder b, MappedProperty prop)
 		{
-			b.AppendLine($"		private {prop.TypeName} _{prop.Name};");
+			b.AppendLine($"		private {prop.TypeName} _{prop.Name.ToLowerInvariant()};");
 			b.AppendLine($"		public {prop.TypeName} {prop.Name}");
 			b.AppendLine("		{");
 			b.AppendLine("			get");
 			b.AppendLine("			{");
-			b.AppendLine($"				return _{prop.Name};");
+			b.AppendLine($"				return _{prop.Name.ToLowerInvariant()};");
 			b.AppendLine("			}");
 			b.AppendLine("			set");
 			b.AppendLine("			{");
-			b.AppendLine($"				_{prop.Name} = value;");
+			b.AppendLine($"				_{prop.Name.ToLowerInvariant()} = value;");
 			b.AppendLine($"				this.StateTracker.SetFieldValue(nameof({prop.Name}), value);");
 			if (prop.Name == "ID")
 			{
@@ -201,28 +260,6 @@ namespace Watsonia.Data.Generator
 			}
 			b.AppendLine("			}");
 			b.AppendLine("		}");
-			b.AppendLine();
-		}
-
-		private static void CreatePrimaryKeyValueProperty(StringBuilder b)
-		{
-			b.AppendLine("		public object __PrimaryKeyValue");
-			b.AppendLine("		{");
-			b.AppendLine("			get");
-			b.AppendLine("			{");
-			b.AppendLine("				return this.ID;");
-			b.AppendLine("			}");
-			b.AppendLine("			set");
-			b.AppendLine("			{");
-			b.AppendLine("				this.ID = (long)Convert.ChangeType(value, typeof(long));");
-			b.AppendLine("			}");
-			b.AppendLine("		}");
-			b.AppendLine();
-		}
-
-		private static void CreateOverriddenItemProperty(StringBuilder b, MappedProperty prop)
-		{
-			throw new NotImplementedException();
 		}
 
 		private static void CreateConstructor(StringBuilder b, MappedEntity entity)
@@ -274,7 +311,7 @@ namespace Watsonia.Data.Generator
 			b.AppendLine("		{");
 			b.AppendLine("			switch (name.ToUpperInvariant())");
 			b.AppendLine("			{");
-			foreach (var prop in entity.Properties)
+			foreach (var prop in entity.Properties.Where(p => !p.IsRelatedItem && !p.IsRelatedCollection))
 			{
 				b.AppendLine($"				case \"{prop.Name.ToUpperInvariant()}\":");
 				b.AppendLine("				{");
@@ -293,7 +330,7 @@ namespace Watsonia.Data.Generator
 			b.AppendLine("		{");
 			b.AppendLine("			switch (name.ToUpperInvariant())");
 			b.AppendLine("			{");
-			foreach (var prop in entity.Properties)
+			foreach (var prop in entity.Properties.Where(p => !p.IsRelatedItem && !p.IsRelatedCollection))
 			{
 				b.AppendLine($"				case \"{prop.Name.ToUpperInvariant()}\":");
 				b.AppendLine("				{");
@@ -331,14 +368,14 @@ namespace Watsonia.Data.Generator
 			foreach (var prop in entity.Properties)
 			{
 				// TODO: set the IsRelated properties
-				if (!BuiltInTypeNames.ContainsKey(prop.TypeName))
+				if (!_builtInTypeNames.ContainsKey(prop.TypeName))
 				{
 					continue;
 				}
 
 				b.AppendLine($"					case \"{prop.Name.ToUpperInvariant()}\":");
 				b.AppendLine("					{");
-				b.AppendLine($"						this.{prop.Name} = source.Get{BuiltInTypeNames[prop.TypeName]}(i);");
+				b.AppendLine($"						this.{prop.Name} = source.Get{_builtInTypeNames[prop.TypeName]}(i);");
 				b.AppendLine("						break;");
 				b.AppendLine("					}");
 			}
@@ -353,11 +390,10 @@ namespace Watsonia.Data.Generator
 
 		private static void CreateGetBagFromValuesMethod(StringBuilder b, MappedEntity entity)
 		{
-
 			b.AppendLine("		public IValueBag __GetBagFromValues()");
 			b.AppendLine("		{");
 			b.AppendLine($"			var {entity.Name.ToLowerInvariant()}Bag = new {entity.Name}ValueBag();");
-			foreach (var prop in entity.Properties)
+			foreach (var prop in entity.Properties.Where(p => !p.IsRelatedItem && !p.IsRelatedCollection))
 			{
 				b.AppendLine($"			{entity.Name.ToLowerInvariant()}Bag.{prop.Name} = this.{prop.Name};");
 			}
@@ -372,7 +408,7 @@ namespace Watsonia.Data.Generator
 			b.AppendLine("			this.StateTracker.IsLoading = true;");
 			b.AppendLine();
 			b.AppendLine($"			var {entity.Name.ToLowerInvariant()}Bag = ({entity.Name}ValueBag)bag;");
-			foreach (var prop in entity.Properties)
+			foreach (var prop in entity.Properties.Where(p => !p.IsRelatedItem && !p.IsRelatedCollection))
 			{
 				b.AppendLine($"			this.{prop.Name} = {entity.Name.ToLowerInvariant()}Bag.{prop.Name};");
 			}
@@ -430,7 +466,7 @@ namespace Watsonia.Data.Generator
 			b.AppendLine($"	public class {entity.Name}ValueBag : IValueBag");
 			b.AppendLine("	{");
 
-			foreach (var prop in entity.Properties)
+			foreach (var prop in entity.Properties.Where(p => !p.IsRelatedItem && !p.IsRelatedCollection))
 			{
 				b.AppendLine($"		public {prop.TypeName} {prop.Name} {{ get; set; }}");
 			}

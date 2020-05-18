@@ -13,5 +13,10 @@ namespace Watsonia.Data.Generator
 		public List<string> Usings { get; set; } = new List<string>();
 
 		public List<MappedProperty> Properties { get; set; } = new List<MappedProperty>();
+
+		public override string ToString()
+		{
+			return this.Name;
+		}
 	}
 }

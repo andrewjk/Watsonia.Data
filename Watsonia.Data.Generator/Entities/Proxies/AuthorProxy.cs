@@ -14,9 +14,22 @@ namespace Watsonia.Data.Generator.Proxies
 	public class AuthorProxy : Author, IDynamicProxy
 	{
 		public event PrimaryKeyValueChangedEventHandler __PrimaryKeyValueChanged;
+
 		private void OnPrimaryKeyValueChanged(object value)
 		{
 			__PrimaryKeyValueChanged?.Invoke(this, new PrimaryKeyValueChangedEventArgs(value));
+		}
+
+		public object __PrimaryKeyValue
+		{
+			get
+			{
+				return this.ID;
+			}
+			set
+			{
+				this.ID = (long)Convert.ChangeType(value, typeof(long));
+			}
 		}
 
 		private DynamicProxyStateTracker _stateTracker;
@@ -30,6 +43,21 @@ namespace Watsonia.Data.Generator.Proxies
 					_stateTracker.Item = this;
 				}
 				return _stateTracker;
+			}
+		}
+
+		private long _id;
+		public long ID
+		{
+			get
+			{
+				return _id;
+			}
+			set
+			{
+				_id = value;
+				this.StateTracker.SetFieldValue(nameof(ID), value);
+				OnPrimaryKeyValueChanged(value);
 			}
 		}
 
@@ -115,40 +143,16 @@ namespace Watsonia.Data.Generator.Proxies
 		{
 			get
 			{
+				if (base.Books == null)
+				{
+					base.Books = this.StateTracker.LoadCollection<Book>(nameof(Books));
+				}
 				return base.Books;
 			}
 			set
 			{
 				base.Books = value;
-				this.StateTracker.SetFieldValue(nameof(Books), value);
-			}
-		}
-
-
-		private long _ID;
-		public long ID
-		{
-			get
-			{
-				return _ID;
-			}
-			set
-			{
-				_ID = value;
-				this.StateTracker.SetFieldValue(nameof(ID), value);
-				OnPrimaryKeyValueChanged(value);
-			}
-		}
-
-		public object __PrimaryKeyValue
-		{
-			get
-			{
-				return this.ID;
-			}
-			set
-			{
-				this.ID = (long)Convert.ChangeType(value, typeof(long));
+				this.StateTracker.AddLoadedCollection(nameof(Books));
 			}
 		}
 
@@ -181,6 +185,10 @@ namespace Watsonia.Data.Generator.Proxies
 		{
 			switch (name.ToUpperInvariant())
 			{
+				case "ID":
+				{
+					return this.ID;
+				}
 				case "FIRSTNAME":
 				{
 					return this.FirstName;
@@ -205,10 +213,6 @@ namespace Watsonia.Data.Generator.Proxies
 				{
 					return this.Rating;
 				}
-				case "BOOKS":
-				{
-					return this.Books;
-				}
 			}
 
 			throw new ArgumentException(name);
@@ -218,6 +222,11 @@ namespace Watsonia.Data.Generator.Proxies
 		{
 			switch (name.ToUpperInvariant())
 			{
+				case "ID":
+				{
+					this.ID = (long)value;
+					break;
+				}
 				case "FIRSTNAME":
 				{
 					this.FirstName = (string)value;
@@ -248,11 +257,6 @@ namespace Watsonia.Data.Generator.Proxies
 					this.Rating = (double)value;
 					break;
 				}
-				case "BOOKS":
-				{
-					this.Books = (IList<Book>)value;
-					break;
-				}
 			}
 
 			throw new ArgumentException(name);
@@ -260,6 +264,7 @@ namespace Watsonia.Data.Generator.Proxies
 
 		public void __SetOriginalValues()
 		{
+			this.StateTracker.OriginalValues["ID"] = this.ID;
 			this.StateTracker.OriginalValues["FirstName"] = this.FirstName;
 			this.StateTracker.OriginalValues["LastName"] = this.LastName;
 			this.StateTracker.OriginalValues["Email"] = this.Email;
@@ -277,6 +282,11 @@ namespace Watsonia.Data.Generator.Proxies
 			{
 				switch (fieldNames[i])
 				{
+					case "ID":
+					{
+						this.ID = source.GetInt64(i);
+						break;
+					}
 					case "FIRSTNAME":
 					{
 						this.FirstName = source.GetString(i);
@@ -318,13 +328,13 @@ namespace Watsonia.Data.Generator.Proxies
 		public IValueBag __GetBagFromValues()
 		{
 			var authorBag = new AuthorValueBag();
+			authorBag.ID = this.ID;
 			authorBag.FirstName = this.FirstName;
 			authorBag.LastName = this.LastName;
 			authorBag.Email = this.Email;
 			authorBag.DateOfBirth = this.DateOfBirth;
 			authorBag.Age = this.Age;
 			authorBag.Rating = this.Rating;
-			authorBag.Books = this.Books;
 			return authorBag;
 		}
 
@@ -333,13 +343,13 @@ namespace Watsonia.Data.Generator.Proxies
 			this.StateTracker.IsLoading = true;
 
 			var authorBag = (AuthorValueBag)bag;
+			this.ID = authorBag.ID;
 			this.FirstName = authorBag.FirstName;
 			this.LastName = authorBag.LastName;
 			this.Email = authorBag.Email;
 			this.DateOfBirth = authorBag.DateOfBirth;
 			this.Age = authorBag.Age;
 			this.Rating = authorBag.Rating;
-			this.Books = authorBag.Books;
 
 			this.__SetOriginalValues();
 
@@ -375,7 +385,5 @@ namespace Watsonia.Data.Generator.Proxies
 		{
 			return !(a == b);
 		}
-
-
 	}
 }

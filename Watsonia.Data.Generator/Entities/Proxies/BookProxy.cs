@@ -13,9 +13,22 @@ namespace Watsonia.Data.Generator.Proxies
 	public class BookProxy : Book, IDynamicProxy
 	{
 		public event PrimaryKeyValueChangedEventHandler __PrimaryKeyValueChanged;
+
 		private void OnPrimaryKeyValueChanged(object value)
 		{
 			__PrimaryKeyValueChanged?.Invoke(this, new PrimaryKeyValueChangedEventArgs(value));
+		}
+
+		public object __PrimaryKeyValue
+		{
+			get
+			{
+				return this.ID;
+			}
+			set
+			{
+				this.ID = (long)Convert.ChangeType(value, typeof(long));
+			}
 		}
 
 		private DynamicProxyStateTracker _stateTracker;
@@ -63,13 +76,38 @@ namespace Watsonia.Data.Generator.Proxies
 		{
 			get
 			{
+				if (base.Author == null && this.AuthorID != null)
+				{
+					base.Author = this.StateTracker.LoadItem<Author>(this.AuthorID.Value, nameof(Author));
+				}
 				return base.Author;
 			}
 			set
 			{
+				if (base.Author != null)
+				{
+					var authorProxy = (IDynamicProxy)base.Author;
+					authorProxy.__PrimaryKeyValueChanged -= AuthorProxy_PrimaryKeyValueChanged;
+				}
 				base.Author = value;
-				this.StateTracker.SetFieldValue(nameof(Author), value);
+				if (value != null)
+				{
+					this.StateTracker.AddLoadedItem(nameof(Author));
+					var authorProxy = (IDynamicProxy)value;
+					this.AuthorID = (long?)authorProxy.__PrimaryKeyValue;
+					authorProxy.__PrimaryKeyValueChanged += AuthorProxy_PrimaryKeyValueChanged;
+				}
+				else
+				{
+					this.AuthorID = null;
+				}
 			}
+		}
+
+		private void AuthorProxy_PrimaryKeyValueChanged(object sender, PrimaryKeyValueChangedEventArgs e)
+		{
+			var authorProxy = (IDynamicProxy)sender;
+			this.AuthorID = (long?)authorProxy.__PrimaryKeyValue;
 		}
 
 		public override decimal Price
@@ -85,16 +123,17 @@ namespace Watsonia.Data.Generator.Proxies
 			}
 		}
 
-
-		public object __PrimaryKeyValue
+		private long? _authorid;
+		public long? AuthorID
 		{
 			get
 			{
-				return this.ID;
+				return _authorid;
 			}
 			set
 			{
-				this.ID = (long)Convert.ChangeType(value, typeof(long));
+				_authorid = value;
+				this.StateTracker.SetFieldValue(nameof(AuthorID), value);
 			}
 		}
 
@@ -125,13 +164,13 @@ namespace Watsonia.Data.Generator.Proxies
 				{
 					return this.Title;
 				}
-				case "AUTHOR":
-				{
-					return this.Author;
-				}
 				case "PRICE":
 				{
 					return this.Price;
+				}
+				case "AUTHORID":
+				{
+					return this.AuthorID;
 				}
 			}
 
@@ -152,14 +191,14 @@ namespace Watsonia.Data.Generator.Proxies
 					this.Title = (string)value;
 					break;
 				}
-				case "AUTHOR":
-				{
-					this.Author = (Author)value;
-					break;
-				}
 				case "PRICE":
 				{
 					this.Price = (decimal)value;
+					break;
+				}
+				case "AUTHORID":
+				{
+					this.AuthorID = (long?)value;
 					break;
 				}
 			}
@@ -173,6 +212,7 @@ namespace Watsonia.Data.Generator.Proxies
 			this.StateTracker.OriginalValues["Title"] = this.Title;
 			this.StateTracker.OriginalValues["Author"] = this.Author;
 			this.StateTracker.OriginalValues["Price"] = this.Price;
+			this.StateTracker.OriginalValues["AuthorID"] = this.AuthorID;
 		}
 
 		public void __SetValuesFromReader(DbDataReader source, string[] fieldNames)
@@ -198,6 +238,11 @@ namespace Watsonia.Data.Generator.Proxies
 						this.Price = source.GetDecimal(i);
 						break;
 					}
+					case "AUTHORID":
+					{
+						this.AuthorID = source.GetInt64(i);
+						break;
+					}
 				}
 			}
 
@@ -211,8 +256,8 @@ namespace Watsonia.Data.Generator.Proxies
 			var bookBag = new BookValueBag();
 			bookBag.ID = this.ID;
 			bookBag.Title = this.Title;
-			bookBag.Author = this.Author;
 			bookBag.Price = this.Price;
+			bookBag.AuthorID = this.AuthorID;
 			return bookBag;
 		}
 
@@ -223,8 +268,8 @@ namespace Watsonia.Data.Generator.Proxies
 			var bookBag = (BookValueBag)bag;
 			this.ID = bookBag.ID;
 			this.Title = bookBag.Title;
-			this.Author = bookBag.Author;
 			this.Price = bookBag.Price;
+			this.AuthorID = bookBag.AuthorID;
 
 			this.__SetOriginalValues();
 
@@ -260,7 +305,5 @@ namespace Watsonia.Data.Generator.Proxies
 		{
 			return !(a == b);
 		}
-
-
 	}
 }

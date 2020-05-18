@@ -13,12 +13,12 @@ namespace Watsonia.Data.Generator.Proxies
 {
 	public class AuthorValueBag : IValueBag
 	{
+		public long ID { get; set; }
 		public string FirstName { get; set; }
 		public string LastName { get; set; }
 		public string Email { get; set; }
 		public DateTime? DateOfBirth { get; set; }
 		public int? Age { get; set; }
 		public double Rating { get; set; }
-		public IList<Book> Books { get; set; }
 	}
 }

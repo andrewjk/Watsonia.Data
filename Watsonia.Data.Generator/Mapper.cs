@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -18,7 +19,7 @@ namespace Watsonia.Data.Generator
 			var content = File.ReadAllText(file);
 			var tree = CSharpSyntaxTree.ParseText(content);
 
-			// TODO: Can we get better type info out of here??
+			//// TODO: Can we get better type info out of here??
 			//var root = (CompilationUnitSyntax)tree.GetRoot();
 			//var compilation = CSharpCompilation.Create("HelloWorld")
 			//				  .AddReferences(
@@ -54,10 +55,13 @@ namespace Watsonia.Data.Generator
 							//	var type = pt.Keyword.ValueText;
 							//}
 
+							//var type = model.GetDeclaredSymbol(prop);
+
 							var property = new MappedProperty()
 							{
 								Name = prop.Identifier.ValueText,
-								TypeName = prop.Type.GetText().ToString().Trim()
+								TypeName = prop.Type.GetText().ToString().Trim(),
+								IsOverridden = true
 							};
 
 							if (prop.AttributeLists.Any())
