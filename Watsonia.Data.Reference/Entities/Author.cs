@@ -11,7 +11,7 @@ namespace Watsonia.Data.Reference
 	public class Author
 	{
 		public virtual string FirstName { get; set; }
-		
+
 		public virtual string LastName { get; set; }
 
 		public string FullName
