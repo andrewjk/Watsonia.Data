@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Watsonia.Data.Generator
@@ -15,31 +16,55 @@ namespace Watsonia.Data.Generator
 			// https://devblogs.microsoft.com/dotnet/introducing-c-source-generators/
 
 			// TODO: Build a parent-child mapping (or schema info)
-			// TODO: When a file changes, reload that tree and the parent-child mapping
+			// TODO: When a file changes, reload its tree and the parent-child mapping
 			// TODO: Add a comment that tells you where the e.g. property name came from in the config
 			// TODO: Do all config from attributes?? Or some sort of JSON?
+			// TODO: Should the config only work on strings rather than properties?
 
-			// TODO: Add IsRelatedItem, IsRelatedCollection, ShouldCascade, etc methods to each proxy
-
-			// Load all entities into MappedEntities
-			var folder = @"..\..\..\Entities";
-			var entities = LoadEntities(folder);
-
-			// Now that we know what entities are mapped, set related items and collections
-			SetRelationships(entities);
-
-			SetRelationships(entities);
-
-			// Build a proxy for each entity
-			foreach (var entity in entities)
+			var configText = File.ReadAllText("./dataconfig.json");
+			var options = new JsonSerializerOptions()
 			{
-				Console.WriteLine("Writing " + entity.Name);
+				PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+			};
+			var config = JsonSerializer.Deserialize<DataConfig>(configText, options);
 
-				var proxy = Builder.CreateProxy(entity);
-				File.WriteAllText(@$"..\..\..\Entities\Proxies\{entity.Name}Proxy.cs", proxy);
+			foreach (var rule in config.Rules)
+			{
+				// Load all files, and remove output files (so that we don't recursively create files)
+				var files = LoadFiles(rule.Path, rule);
+				var outputFolders = files.Select(f => f.OutputFolder).Distinct().ToList();
+				files = files.Where(f => !outputFolders.Contains(f.InputFolder)).ToList();
 
-				var valueBag = Builder.CreateValueBag(entity);
-				File.WriteAllText(@$"..\..\..\Entities\Proxies\{entity.Name}ValueBag.cs", valueBag);
+				// Load all entities from the files
+				var entities = LoadEntities(files);
+
+				// Now that we know what entities are mapped, set related items and collections
+				SetRelationships(entities);
+
+				// Build a proxy for each entity
+				foreach (var entity in entities)
+				{
+					// HACK: Need a better way to filter out enums etc
+					if (string.IsNullOrEmpty(entity.Name))
+					{
+						continue;
+					}
+
+					Console.WriteLine("Writing " + entity.Name);
+
+					if (!Directory.Exists(entity.OutputFolder))
+					{
+						Directory.CreateDirectory(entity.OutputFolder);
+					}
+
+					var proxy = Builder.CreateProxy(entity);
+					var proxyFile = Path.Combine(entity.OutputFolder, entity.Name + "Proxy.cs");
+					File.WriteAllText(proxyFile, proxy);
+
+					var valueBag = Builder.CreateValueBag(entity);
+					var valueBagFile = Path.Combine(entity.OutputFolder, entity.Name + "ValueBag.cs");
+					File.WriteAllText(valueBagFile, valueBag);
+				}
 			}
 
 			Console.WriteLine();
@@ -47,13 +72,35 @@ namespace Watsonia.Data.Generator
 			Console.ReadLine();
 		}
 
-		static IList<MappedEntity> LoadEntities(string folder)
+		static IList<MappedFile> LoadFiles(string path, DataConfigRule rule)
+		{
+			var regex = new Regex(rule.ShouldMapType[0].FileMatch.Replace("\\", "\\\\"));
+
+			var files = new List<MappedFile>();
+			foreach (var file in Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories))
+			{
+				if (regex.IsMatch(file))
+				{
+					files.Add(new MappedFile()
+					{
+						InputFile = file,
+						InputFolder = Path.GetDirectoryName(file).TrimEnd(Path.DirectorySeparatorChar),
+						OutputFolder = regex.Replace(file, rule.ShouldMapType[0].Result).TrimEnd(Path.DirectorySeparatorChar)
+					});
+				}
+			}
+			Console.WriteLine();
+			return files;
+		}
+
+		static IList<MappedEntity> LoadEntities(IList<MappedFile> files)
 		{
 			var entities = new List<MappedEntity>();
-			foreach (var file in Directory.EnumerateFiles(folder))
+			foreach (var file in files)
 			{
 				Console.WriteLine("Loading " + file);
-				var entity = Mapper.MapEntity(file);
+				var entity = Mapper.MapEntity(file.InputFile);
+				entity.OutputFolder = file.OutputFolder;
 				entities.Add(entity);
 			}
 			Console.WriteLine();
@@ -62,7 +109,7 @@ namespace Watsonia.Data.Generator
 
 		static void SetRelationships(IList<MappedEntity> entities)
 		{
-			Console.WriteLine("Setting Relationships");
+			Console.WriteLine("Setting relationships");
 
 			// Remove all generated relationship properties
 			foreach (var entity in entities)
@@ -80,6 +127,7 @@ namespace Watsonia.Data.Generator
 			var collectionRegex = new Regex("(?:List|Collection)<(.+?)>");
 			foreach (var entity in entities)
 			{
+				var newProperties = new List<MappedProperty>();
 				foreach (var prop in entity.Properties)
 				{
 					if (entities.Any(e => e.Name == prop.TypeName))
@@ -89,7 +137,7 @@ namespace Watsonia.Data.Generator
 						var itemIdName = prop.Name + "ID";
 						if (!entity.Properties.Any(p => p.Name == itemIdName))
 						{
-							entity.Properties.Add(new MappedProperty()
+							newProperties.Add(new MappedProperty()
 							{
 								Name = itemIdName,
 								TypeName = "long?",
@@ -103,7 +151,7 @@ namespace Watsonia.Data.Generator
 						if (entities.Any(e => e.Name == innerTypeName))
 						{
 							prop.IsRelatedCollection = true;
-							prop.InnerTypeName = innerTypeName;
+							prop.CollectionTypeName = innerTypeName;
 
 							var parentIdName = entity.Name + "ID";
 							var child = entities.First(e => e.Name == innerTypeName);
@@ -119,6 +167,8 @@ namespace Watsonia.Data.Generator
 						}
 					}
 				}
+
+				entity.Properties.AddRange(newProperties);
 
 				if (!entity.Properties.Any(p => p.Name == "ID"))
 				{

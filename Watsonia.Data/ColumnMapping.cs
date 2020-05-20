@@ -2,25 +2,19 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Watsonia.Data.Generator
+namespace Watsonia.Data
 {
-	class MappedProperty
+	public class ColumnMapping
 	{
 		public string Name { get; set; }
 
 		public string TypeName { get; set; }
-
-		public bool IsOverridden { get; set; }
 
 		public bool IsRelatedCollection { get; set; }
 
 		public string CollectionTypeName { get; set; }
 
 		public bool IsRelatedItem { get; set; }
-
-		public bool IsGenerated { get; set; }
-
-		public List<MappedAttribute> Attributes { get; set; } = new List<MappedAttribute>();
 
 		public override string ToString()
 		{

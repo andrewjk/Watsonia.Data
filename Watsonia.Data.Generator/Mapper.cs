@@ -38,6 +38,12 @@ namespace Watsonia.Data.Generator
 						entity.Usings.Add(GetName(use.Name));
 						break;
 					}
+					case SyntaxKind.NamespaceDeclaration:
+					{
+						var ns = (NamespaceDeclarationSyntax)node;
+						entity.Namespace = GetName(ns.Name);
+						break;
+					}
 					case SyntaxKind.ClassDeclaration:
 					{
 						var cls = (ClassDeclarationSyntax)node;
@@ -71,7 +77,7 @@ namespace Watsonia.Data.Generator
 								property.Attributes.Add(new MappedAttribute()
 								{
 									Name = attName,
-									Arguments = att.ArgumentList.Arguments.Select(a => a.ToString()).ToList()
+									Arguments = att.ArgumentList?.Arguments.Select(a => a.ToString()).ToList()
 								});
 							}
 

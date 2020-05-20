@@ -8,6 +8,10 @@ namespace Watsonia.Data.Generator
 	{
 		public string FileName { get; set; }
 
+		public string OutputFolder { get; set; }
+
+		public string Namespace { get; set; }
+
 		public string Name { get; set; }
 
 		public List<string> Usings { get; set; } = new List<string>();

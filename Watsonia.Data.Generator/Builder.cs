@@ -50,7 +50,7 @@ namespace Watsonia.Data.Generator
 				b.AppendLine($"using {u};");
 			}
 			b.AppendLine();
-			b.AppendLine("namespace Watsonia.Data.Generator.Proxies");
+			b.AppendLine($"namespace {entity.Namespace.Trim()}");
 			b.AppendLine("{");
 			b.AppendLine($"	public class {entity.Name}Proxy : {entity.Name}, IDynamicProxy");
 			b.AppendLine("	{");
@@ -58,7 +58,6 @@ namespace Watsonia.Data.Generator
 			CreatePrimaryKeyValueChangedEventHandler(b);
 			b.AppendLine();
 
-			// Create the __PrimaryKeyValue property which just wraps the primary key property
 			CreatePrimaryKeyValueProperty(b);
 			b.AppendLine();
 
@@ -86,6 +85,9 @@ namespace Watsonia.Data.Generator
 				}
 				b.AppendLine();
 			}
+
+			CreateSchemaProperties(b, entity);
+			b.AppendLine();
 
 			CreateConstructor(b, entity);
 			b.AppendLine();
@@ -209,7 +211,7 @@ namespace Watsonia.Data.Generator
 			b.AppendLine("			{");
 			b.AppendLine($"				if (base.{prop.Name} == null)");
 			b.AppendLine("				{");
-			b.AppendLine($"					base.{prop.Name} = this.StateTracker.LoadCollection<{prop.InnerTypeName}>(nameof({prop.Name}));");
+			b.AppendLine($"					base.{prop.Name} = this.StateTracker.LoadCollection<{prop.CollectionTypeName}>(nameof({prop.Name}));");
 			b.AppendLine("				}");
 			b.AppendLine($"				return base.{prop.Name};");
 			b.AppendLine("			}");
@@ -260,6 +262,32 @@ namespace Watsonia.Data.Generator
 			}
 			b.AppendLine("			}");
 			b.AppendLine("		}");
+		}
+
+		private static void CreateSchemaProperties(StringBuilder b, MappedEntity entity)
+		{
+			b.AppendLine($"		public string __TableName {{ get; }} = \"{entity.Name}\";");
+			b.AppendLine();
+			b.AppendLine("		public string __PrimaryKeyColumnName { get; } = \"ID\";");
+			b.AppendLine();
+			b.AppendLine("		public Dictionary<string, ColumnMapping> __ColumnMappings { get; } = new Dictionary<string, ColumnMapping>() {");
+			foreach (var prop in entity.Properties)
+			{
+				var columnMapping = new List<string>();
+				columnMapping.Add($"Name = \"{prop.Name}\"");
+				columnMapping.Add($"TypeName = \"{prop.TypeName}\"");
+				if (prop.IsRelatedItem)
+				{
+					columnMapping.Add($"IsRelatedItem = true");
+				}
+				if (prop.IsRelatedCollection)
+				{
+					columnMapping.Add($"IsRelatedCollection = true");
+					columnMapping.Add($"CollectionTypeName = \"{prop.CollectionTypeName}\"");
+				}
+				b.AppendLine($"			{{ \"{prop.Name.ToUpperInvariant()}\", new ColumnMapping() {{ {string.Join(", ", columnMapping)} }} }},");
+			}
+			b.AppendLine("		};");
 		}
 
 		private static void CreateConstructor(StringBuilder b, MappedEntity entity)
@@ -461,7 +489,7 @@ namespace Watsonia.Data.Generator
 				b.AppendLine($"using {u};");
 			}
 			b.AppendLine();
-			b.AppendLine("namespace Watsonia.Data.Generator.Proxies");
+			b.AppendLine($"namespace {entity.Namespace.Trim()}");
 			b.AppendLine("{");
 			b.AppendLine($"	public class {entity.Name}ValueBag : IValueBag");
 			b.AppendLine("	{");

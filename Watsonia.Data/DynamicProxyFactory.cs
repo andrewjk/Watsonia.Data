@@ -208,13 +208,16 @@ namespace Watsonia.Data
 			// Create the ValueBag type, now that we know what properties there will be
 			members.ValueBagType = GetValueBagType(parentType, database, members);
 
+			// Add the schema properties
+			AddSchemaProperties(type, parentType, database);
+
 			// Add some methods
 			CreateGetValueMethod(type, members);
 			CreateSetValueMethod(type, members);
 			members.SetOriginalValuesMethod = CreateSetOriginalValuesMethod(type, parentType, members, database, childParentMapping);
 			CreateSetValuesFromReaderMethod(type, members);
-			CreateSetValuesFromBagMethod(type, members);
 			CreateGetBagFromValuesMethod(type, members);
+			CreateSetValuesFromBagMethod(type, members);
 
 			CreateMethodToCallStateTrackerMethod(type, "GetHashCode", "GetItemHashCode", typeof(int), Type.EmptyTypes, members);
 			CreateMethodToCallStateTrackerMethod(type, "Equals", "ItemEquals", typeof(bool), new Type[] { typeof(object) }, members);
@@ -1641,6 +1644,116 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Ret);
 
 			return method;
+		}
+
+		private static void AddSchemaProperties(TypeBuilder type, Type parentType, Database database)
+		{
+			CreateReadOnlyStringProperty(
+				type,
+				"__TableName",
+				database.Configuration.GetTableName(parentType));
+
+			CreateReadOnlyStringProperty(
+				type,
+				"__PrimaryKeyColumnName",
+				database.Configuration.GetPrimaryKeyColumnName(parentType));
+
+			CreateColumnMappingsProperty(type, parentType, database);
+		}
+
+		private static void CreateReadOnlyStringProperty(TypeBuilder type, string propertyName, string value)
+		{
+			var property = type.DefineProperty(
+				propertyName,
+				PropertyAttributes.None,
+				typeof(string),
+				null);
+
+			var method = type.DefineMethod(
+				"get_" + propertyName,
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+				typeof(string),
+				Type.EmptyTypes);
+
+			var gen = method.GetILGenerator();
+
+			gen.DeclareLocal(typeof(string));
+
+			var exitLabel = gen.DefineLabel();
+
+			// return "Value";
+			gen.Emit(OpCodes.Ldstr, value);
+			gen.Emit(OpCodes.Stloc_0);
+			gen.Emit(OpCodes.Br_S, exitLabel);
+			gen.MarkLabel(exitLabel);
+			gen.Emit(OpCodes.Ldloc_0);
+			gen.Emit(OpCodes.Ret);
+
+			property.SetGetMethod(method);
+		}
+
+		private static void CreateColumnMappingsProperty(TypeBuilder type, Type parentType, Database database)
+		{
+			var property = type.DefineProperty(
+				"__ColumnMappings",
+				PropertyAttributes.None,
+				typeof(Dictionary<string, ColumnMapping>),
+				null);
+
+			var method = type.DefineMethod(
+				"get___ColumnMappings",
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+				typeof(Dictionary<string, ColumnMapping>),
+				Type.EmptyTypes);
+
+			var setNameMethod = typeof(ColumnMapping).GetProperty("Name").GetSetMethod(true);
+			var setTypeNameMethod = typeof(ColumnMapping).GetProperty("TypeName").GetSetMethod(true);
+			var setIsRelatedCollectionMethod = typeof(ColumnMapping).GetProperty("IsRelatedCollection").GetSetMethod(true);
+			var setCollectionTypeNameMethod = typeof(ColumnMapping).GetProperty("CollectionTypeName").GetSetMethod(true);
+			var dictionaryAddMethod = typeof(Dictionary<string, ColumnMapping>).GetMethod("Add", new Type[] { typeof(string), typeof(ColumnMapping) });
+
+			var gen = method.GetILGenerator();
+
+			gen.DeclareLocal(typeof(Dictionary<string, ColumnMapping>));
+			gen.DeclareLocal(typeof(ColumnMapping));
+			gen.DeclareLocal(typeof(Dictionary<string, ColumnMapping>));
+
+			var exitLabel = gen.DefineLabel();
+
+			gen.Emit(OpCodes.Newobj, typeof(Dictionary<string, ColumnMapping>).GetConstructor(Type.EmptyTypes));
+			gen.Emit(OpCodes.Stloc_0);
+			gen.Emit(OpCodes.Newobj, typeof(ColumnMapping).GetConstructor(Type.EmptyTypes));
+			gen.Emit(OpCodes.Stloc_1);
+
+			gen.Emit(OpCodes.Ldloc_1);
+			gen.Emit(OpCodes.Ldstr, "Books");
+			gen.Emit(OpCodes.Callvirt, setNameMethod);
+
+			gen.Emit(OpCodes.Ldloc_1);
+			gen.Emit(OpCodes.Ldstr, "IList<Book>");
+			gen.Emit(OpCodes.Callvirt, setTypeNameMethod);
+
+			gen.Emit(OpCodes.Ldloc_1);
+			gen.Emit(OpCodes.Ldc_I4_1);
+			gen.Emit(OpCodes.Callvirt, setIsRelatedCollectionMethod);
+
+			gen.Emit(OpCodes.Ldloc_1);
+			gen.Emit(OpCodes.Ldstr, "Book");
+			gen.Emit(OpCodes.Callvirt, setCollectionTypeNameMethod);
+
+			gen.Emit(OpCodes.Ldloc_0);
+			gen.Emit(OpCodes.Ldstr, "BOOKS");
+			gen.Emit(OpCodes.Ldloc_1);
+			gen.Emit(OpCodes.Callvirt, dictionaryAddMethod);
+
+			gen.Emit(OpCodes.Ldloc_0);
+			gen.Emit(OpCodes.Stloc_2);
+			gen.Emit(OpCodes.Br_S, exitLabel);
+			gen.MarkLabel(exitLabel);
+			gen.Emit(OpCodes.Ldloc_2);
+			gen.Emit(OpCodes.Ret);
+
+			property.SetGetMethod(method);
 		}
 
 		private static MethodBuilder CreateGetValueMethod(TypeBuilder type, DynamicProxyTypeMembers members)
