@@ -22,7 +22,7 @@ namespace Watsonia.Data.TestPerformance.Tests
 			var watch = new Stopwatch();
 			watch.Start();
 			var db = new WatsoniaDatabase("Generated");
-			var allPostIDs = from p in db.Query<PostProxy>() select p.ID;
+			var allPostIDs = db.Query<PostProxy>().Select(p => p.ID);
 			foreach (var id in allPostIDs)
 			{
 				this.LoadedPostIDs.Add(id);
