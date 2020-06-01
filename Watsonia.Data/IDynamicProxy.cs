@@ -9,6 +9,7 @@ namespace Watsonia.Data
 	/// </summary>
 	public interface IDynamicProxy
 	{
+#pragma warning disable IDE1006 // Naming Styles
 		/// <summary>
 		/// Occurs when the value of the primary key value has changed.
 		/// </summary>
@@ -66,5 +67,6 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <returns></returns>
 		IValueBag __GetBagFromValues();
+#pragma warning restore IDE1006 // Naming Styles
 	}
 }

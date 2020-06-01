@@ -375,7 +375,7 @@ namespace Watsonia.Data
 			if (!proxy.StateTracker.IsValid)
 			{
 				var ex = new ValidationException(
-					$"Validation failed for {item.GetType().BaseType.Name}: {item.ToString()}");
+					$"Validation failed for {item.GetType().BaseType.Name}: {item}");
 				ex.ValidationErrors.AddRange(proxy.StateTracker.ValidationErrors);
 				throw ex;
 			}

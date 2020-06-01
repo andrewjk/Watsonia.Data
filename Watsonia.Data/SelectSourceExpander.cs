@@ -72,18 +72,16 @@ namespace Watsonia.Data
 		protected override Expression VisitMember(MemberExpression expression)
         {
             if (expression.Expression != null &&
-                expression.Expression is MemberExpression &&
+                expression.Expression is MemberExpression subExpression &&
                 this.Configuration.ShouldMapType(expression.Expression.Type) &&
                 !expression.Expression.Type.IsEnum)
             {
-                var subexpression = (MemberExpression)expression.Expression;
-
                 JoinClause existingJoin = null;
                 foreach (var clause in this.QueryModel.BodyClauses)
                 {
 					if (clause is JoinClause joinClause)
 					{
-						if (joinClause.OuterKeySelector.Type == subexpression.Type)
+						if (joinClause.OuterKeySelector.Type == subExpression.Type)
 						{
 							existingJoin = joinClause;
 							break;
@@ -100,7 +98,7 @@ namespace Watsonia.Data
                 {
                     // Get a new DatabaseQuery<T> by calling the Database.Query<T> method
                     var databaseQueryMethod = typeof(Database).GetMethod("Query");
-                    var databaseQueryGeneric = databaseQueryMethod.MakeGenericMethod(subexpression.Type);
+                    var databaseQueryGeneric = databaseQueryMethod.MakeGenericMethod(subExpression.Type);
                     var databaseQueryItem = databaseQueryGeneric.Invoke(this.Database, null);
 
                     // Build the item name based on what's come before
@@ -108,8 +106,8 @@ namespace Watsonia.Data
 
                     // Build the join sequences and keys
                     Expression innerSequence = Expression.Constant(databaseQueryItem);
-                    Expression outerKeySelector = subexpression;
-                    Expression innerKeySelector = new QuerySourceReferenceExpression(new MainFromClause(itemName, subexpression.Type, innerSequence));
+                    Expression outerKeySelector = subExpression;
+                    Expression innerKeySelector = new QuerySourceReferenceExpression(new MainFromClause(itemName, subExpression.Type, innerSequence));
 
                     // Create the join and add it to the new body clauses
 					// Insert at the start in case we're creating multiple new joins for deep-nested expressions

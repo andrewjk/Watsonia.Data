@@ -34,12 +34,34 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
+		/// Initializes a new instance of the <see cref="ItemNotFoundException" /> class.
+		/// </summary>
+		/// <param name="message">The message that describes the error.</param>
+		/// <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+		public ItemNotFoundException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="ItemNotFoundException" /> class
 		/// </summary>
 		/// <param name="message">The message that describes the error.</param>
 		/// <param name="id">The ID of the item that was not found.</param>
 		public ItemNotFoundException(string message, object id)
 			: this(message)
+		{
+			this.ID = id;
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ItemNotFoundException" /> class
+		/// </summary>
+		/// <param name="message">The message that describes the error.</param>
+		/// <param name="innerException">The inner exception.</param>
+		/// <param name="id">The ID of the item that was not found.</param>
+		public ItemNotFoundException(string message, Exception innerException, object id)
+			: this(message, innerException)
 		{
 			this.ID = id;
 		}

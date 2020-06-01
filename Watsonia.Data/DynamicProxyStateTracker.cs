@@ -430,13 +430,13 @@ namespace Watsonia.Data
 			object[] attributes = Attribute.GetCustomAttributes(property, true);
 			foreach (var att in attributes)
 			{
-				if (att is DisplayAttribute)
+				if (att is DisplayAttribute display)
 				{
-					return ((DisplayAttribute)att).Name;
+					return display.Name;
 				}
-				else if (att is DisplayNameAttribute)
+				else if (att is DisplayNameAttribute displayName)
 				{
-					return ((DisplayNameAttribute)att).DisplayName;
+					return displayName.DisplayName;
 				}
 			}
 			return property.Name;

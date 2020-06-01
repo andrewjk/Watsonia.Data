@@ -435,23 +435,21 @@ namespace Watsonia.Data
 		{
 			foreach (var condition in conditions)
 			{
-				if (condition is ConditionCollection)
+				if (condition is ConditionCollection multipleConditions)
 				{
-					GatherMappedParametersFromConditionCollection(parameters, (ConditionCollection)condition);
+					GatherMappedParametersFromConditionCollection(parameters, multipleConditions);
 				}
-				else if (condition is Condition)
+				else if (condition is Condition singleCondition)
 				{
-					GatherMappedParametersFromCondition(parameters, (Condition)condition);
+					GatherMappedParametersFromCondition(parameters, singleCondition);
 				}
 			}
 		}
 
 		private void GatherMappedParametersFromCondition(ICollection<MappedParameter> parameters, Condition condition)
 		{
-			if (condition.Value is ConstantPart &&
-				((ConstantPart)condition.Value).Value is Parameter)
+			if (condition.Value is ConstantPart constant && constant.Value is Parameter parameterValue)
 			{
-				var parameterValue = (Parameter)((ConstantPart)condition.Value).Value;
 				parameters.Add(new MappedParameter(parameterValue.Name, parameterValue.ParameterType));
 			}
 		}
