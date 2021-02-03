@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>Watsonia.Data.SqlServer</PackageId>
+		<TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+		<PackageId>Watsonia.Data.SqlServer</PackageId>
     <Authors>Watsonia Publishing</Authors>
     <Company>Watsonia Publishing</Company>
     <Product>Watsonia.Data.SqlServer</Product>
