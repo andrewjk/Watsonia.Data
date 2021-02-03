@@ -864,5 +864,45 @@ namespace Watsonia.Data
 
 			return value;
 		}
+
+		// NOTE: EnumerateCollectionAsync doesn't have a sync equivalent as it depends on the
+		// IAsyncEnumerable interface
+#if NET5_0
+		/// <summary>
+		/// Loads a collection of items from the database using the supplied query.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="query">The query as a string with parameter value placeholders signified by @0, @1 etc.</param>
+		/// <param name="parameters">The parameters.</param>
+		/// <returns></returns>
+		public async IAsyncEnumerable<T> EnumerateCollectionAsync<T>(SelectStatement select)
+		{
+			OnBeforeLoadCollection(select);
+
+			var result = new List<T>();
+
+			var itemType = GetCollectionItemType(typeof(T));
+
+			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration))
+			using (var command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
+			{
+				command.Connection = connection;
+				OnBeforeExecuteCommand(command);
+				using (var reader = await command.ExecuteReaderAsync())
+				{
+					var fieldNames = GetReaderFieldNames(reader);
+					while (await reader.ReadAsync())
+					{
+						var newItem = LoadItemInCollection<T>(reader, itemType, fieldNames);
+						result.Add(newItem);
+						yield return newItem;
+					}
+				}
+				OnAfterExecuteCommand(command);
+			}
+
+			OnAfterLoadCollection(result);
+		}
+#endif
 	}
 }

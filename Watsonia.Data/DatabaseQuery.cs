@@ -7,18 +7,23 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data
 {
 	public sealed class DatabaseQuery<T> : QueryableBase<T>, IDatabaseQuery
+#if NET5_0
+		, IAsyncEnumerable<T>
+#endif
 	{
 		public List<string> IncludePaths { get; } = new List<string>();
 
 		public List<Parameter> Parameters { get; } = new List<Parameter>();
 
-		public DatabaseQuery(IQueryParser queryParser, IQueryExecutor executor)
-			: base(new DefaultQueryProvider(typeof(DatabaseQuery<>), queryParser, executor))
+		public DatabaseQuery(IQueryParser queryParser, IAsyncQueryExecutor executor)
+			: base(new /*Default*/QueryProvider(typeof(DatabaseQuery<>), queryParser, executor))
 		{
 		}
 
@@ -50,6 +55,18 @@ namespace Watsonia.Data
 			// TODO: Probably shouldn't be throwing away the property and type information...
 			return Include(FuncToString(property.Body) + "." + FuncToString(property2.Body) + "." + FuncToString(property3.Body));
 		}
+
+#if NET5_0
+		public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+		{
+			// TODO: ExecuteAsync needs to be able to return an IAsyncEnumerable somehow
+			// Maybe we can create something called ResultSequence and return that from LoadCollection??
+			var asyncProvider = (IAsyncQueryProvider)this.Provider;
+			return asyncProvider
+				.EnumerateAsync<IAsyncEnumerable<T>>(this.Expression, cancellationToken)
+				.GetAsyncEnumerator(cancellationToken);
+		}
+#endif
 
 		private static string FuncToString(Expression selector)
 		{

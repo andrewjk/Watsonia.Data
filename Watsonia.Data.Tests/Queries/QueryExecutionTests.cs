@@ -22,14 +22,14 @@ namespace Watsonia.Data.Tests.Queries
 		{
 		}
 		
-		[TestMethod]
-		public void Thing()
-		{
-			// TODO:
-			//Customer c = db.Customers.FirstOrDefault();
-			//TestQuery(
-			//	db.Orders.Where(o => o.Customer == c));
-		}
+		////[TestMethod]
+		////public void Thing()
+		////{
+		////	// TODO:
+		////	//Customer c = db.Customers.FirstOrDefault();
+		////	//TestQuery(
+		////	//	db.Orders.Where(o => o.Customer == c));
+		////}
 
 		[TestMethod]
 		public void Where()
@@ -547,7 +547,7 @@ namespace Watsonia.Data.Tests.Queries
 			var list = _db.Customers.Where(c => c.City.StartsWith("P")).OrderBy(c => c.City).Select(c => c.City).Distinct().ToList();
 			var sorted = list.OrderBy(x => x).ToList();
 			Assert.AreEqual(list[0], sorted[0]);
-			Assert.AreEqual(list[list.Count - 1], sorted[list.Count - 1]);
+			Assert.AreEqual(list[^1], sorted[list.Count - 1]);
 		}
 
 		////[TestMethod]
@@ -1812,45 +1812,41 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(78, custs.Count);
 		}
 
-		[TestMethod]
-		public void EqualLiteralNull()
-		{
-			// TODO:
-			//var q = db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => x == null);
-			//Assert.IsTrue(this.provider.GetQueryText(q.Expression).Contains("IS NULL"));
-			//var n = q.Count();
-			//Assert.AreEqual(1, n);
-		}
+		////[TestMethod]
+		////public void EqualLiteralNull()
+		////{
+		////	var q = db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => x == null);
+		////	Assert.IsTrue(this.provider.GetQueryText(q.Expression).Contains("IS NULL"));
+		////	var n = q.Count();
+		////	Assert.AreEqual(1, n);
+		////}
 
-		[TestMethod]
-		public void EqualLiteralNullReversed()
-		{
-			// TODO:
-			//var q = db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => null == x);
-			//Assert.IsTrue(this.provider.GetQueryText(q.Expression).Contains("IS NULL"));
-			//var n = q.Count();
-			//Assert.AreEqual(1, n);
-		}
+		////[TestMethod]
+		////public void EqualLiteralNullReversed()
+		////{
+		////	var q = db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => null == x);
+		////	Assert.IsTrue(this.provider.GetQueryText(q.Expression).Contains("IS NULL"));
+		////	var n = q.Count();
+		////	Assert.AreEqual(1, n);
+		////}
 
-		[TestMethod]
-		public void NotEqualLiteralNull()
-		{
-			// TODO:
-			//var q = db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => x != null);
-			//Assert.IsTrue(this.provider.GetQueryText(q.Expression).Contains("IS NOT NULL"));
-			//var n = q.Count();
-			//Assert.AreEqual(90, n);
-		}
+		////[TestMethod]
+		////public void NotEqualLiteralNull()
+		////{
+		////	var q = db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => x != null);
+		////	Assert.IsTrue(this.provider.GetQueryText(q.Expression).Contains("IS NOT NULL"));
+		////	var n = q.Count();
+		////	Assert.AreEqual(90, n);
+		////}
 
-		[TestMethod]
-		public void NotEqualLiteralNullReversed()
-		{
-			// TODO:
-			//var q = db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => null != x);
-			//Assert.IsTrue(this.provider.GetQueryText(q.Expression).Contains("IS NOT NULL"));
-			//var n = q.Count();
-			//Assert.AreEqual(90, n);
-		}
+		////[TestMethod]
+		////public void NotEqualLiteralNullReversed()
+		////{
+		////	var q = db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => null != x);
+		////	Assert.IsTrue(this.provider.GetQueryText(q.Expression).Contains("IS NOT NULL"));
+		////	var n = q.Count();
+		////	Assert.AreEqual(90, n);
+		////}
 
 		////[TestMethod]
 		////public void ConditionalResultsArePredicates()

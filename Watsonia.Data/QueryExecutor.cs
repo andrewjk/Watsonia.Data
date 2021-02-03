@@ -8,7 +8,7 @@ using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data
 {
-	internal class QueryExecutor<T> : IQueryExecutor
+	internal class QueryExecutor<T> : IAsyncQueryExecutor
 	{
 		public Database Database { get; private set; }
 
@@ -22,12 +22,12 @@ namespace Watsonia.Data
 		// TODO: This needs to be moved to Watsonia.QueryBuilder
 		internal SelectStatement BuildSelectStatement(QueryModel queryModel)
 		{
-            // Add joins for fields in tables that haven't been joined explicitly
-            // e.g. when using something like DB.Query<T>().Where(x => x.Item.Property == y)
-            SelectSourceExpander.Visit(queryModel, this.Database, this.Database.Configuration);
+			// Add joins for fields in tables that haven't been joined explicitly
+			// e.g. when using something like DB.Query<T>().Where(x => x.Item.Property == y)
+			SelectSourceExpander.Visit(queryModel, this.Database, this.Database.Configuration);
 
-            // Create the select statement
-            var select = StatementCreator.Visit(queryModel, new QueryMapper(this.Database.Configuration), true);
+			// Create the select statement
+			var select = StatementCreator.Visit(queryModel, new QueryMapper(this.Database.Configuration), true);
 
 			// Add include paths if necessary
 			if (!select.IsAggregate)
@@ -56,19 +56,48 @@ namespace Watsonia.Data
 		public IEnumerable<T2> ExecuteCollection<T2>(QueryModel queryModel)
 		{
 			var select = BuildSelectStatement(queryModel);
-			return Task.Run(() => this.Database.LoadCollectionAsync<T2>(select)).GetAwaiter().GetResult();
+			return this.Database.LoadCollection<T2>(select);
 		}
 
 		public T2 ExecuteScalar<T2>(QueryModel queryModel)
 		{
-			var sequence = Task.Run(() => ExecuteCollection<T2>(queryModel)).GetAwaiter().GetResult();
+			var sequence = ExecuteCollection<T2>(queryModel);
 			return sequence.Single();
 		}
 
 		public T2 ExecuteSingle<T2>(QueryModel queryModel, bool returnDefaultWhenEmpty)
 		{
-			var sequence = Task.Run(() => ExecuteCollection<T2>(queryModel)).GetAwaiter().GetResult();
+			var sequence = ExecuteCollection<T2>(queryModel);
 			return returnDefaultWhenEmpty ? sequence.SingleOrDefault() : sequence.Single();
 		}
+
+		public async Task<IList<T2>> ExecuteCollectionAsync<T2>(QueryModel queryModel)
+		{
+			var select = BuildSelectStatement(queryModel);
+			return await this.Database.LoadCollectionAsync<T2>(select);
+		}
+
+		public async Task<T2> ExecuteScalarAsync<T2>(QueryModel queryModel)
+		{
+			var sequence = await ExecuteCollectionAsync<T2>(queryModel);
+			return sequence.Single();
+		}
+
+		public async Task<T2> ExecuteSingleAsync<T2>(QueryModel queryModel, bool returnDefaultWhenEmpty)
+		{
+			var sequence = await ExecuteCollectionAsync<T2>(queryModel);
+			return returnDefaultWhenEmpty ? sequence.SingleOrDefault() : sequence.Single();
+		}
+
+#if NET5_0
+		public async IAsyncEnumerable<T2> EnumerateCollectionAsync<T2>(QueryModel queryModel)
+		{
+			var select = BuildSelectStatement(queryModel);
+			await foreach (var item in this.Database.EnumerateCollectionAsync<T2>(select))
+			{
+				yield return item;
+			}
+		}
+#endif
 	}
 }

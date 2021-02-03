@@ -20,21 +20,34 @@ Put it up on NuGet
 Have a poke through the generated assembly to see where things can be improved
 More XML commenting throughout
 
-Should primary key columns be nullable?  New items could have their ID set to null and we could get
-rid of GetPrimaryKeyNewItemValue
+Should primary key columns be nullable?  New items could have their ID set to null and we could get rid of GetPrimaryKeyNewItemValue
 Add attributes for basically everything that can be set in the configuration
 
 Use Merge to insert/update large amounts of data?  It's what EF Core seems to do...
-
-Can we do e.g. (from a in db.Query<Thing>() where !a.IsActive).Delete() ?!
-Can we do e.g. (from a in db.Query<Thing>() where !a.IsActive).Update(a => a.IsActive, true) ?!
-	(see the OpenIddict stores...)
-Or db.DeleteWhere(a => !a.IsActive), db.UpdateWhere(a => !a.IsActive, a => a.Blah, true)?
-
 SqlBulkInsert?!
 
-extend the benchmark to inserting/updating/deleting
-and print it out nicer
+Add a Database.Add method for constructing plain objects and putting them in the database?
+
+Can we do e.g. (from a in db.Query<Thing>() where !a.IsActive select a).Delete() ?!
+Can we do e.g. (from a in db.Query<Thing>() where !a.IsActive select a).Update(a => a.IsActive, true) ?!
+	(see the OpenIddict stores...)
+Or db.DeleteWhere(a => !a.IsActive), db.UpdateWhere(a => !a.IsActive, a => a.Blah, true)?
+Or db.Query<Thing>().Where(a => !a.IsActive).Delete(), db.Query<Thing>().Where(a => !a.IsActive).Update(a => a.Blah, true)?
+
+Need Async extension methods somehow
+	CountAsync
+	FirstAsync
+	FirstOrDefaultAsync
+	etc
+
+Include statements should send a single SQL statement to the database and allocate the result sets to properties
+	Only if supported by the db engine
+Can we only store changed fields with values and not originalvalues/changedfields?
+Figure out a better way than using SavedCollectionIDs
+Generally go through the DynamicProxyStateTracker and try to make it use as little memory as possible
+
+Extend the benchmark to inserting/updating/deleting
+And print it out nicer
 
 
 THINGS THAT WOULD BE AWESOME BUT TIME CONSUMING:
@@ -44,4 +57,3 @@ Add a second level cache
 Add a PostgreSQL implementation
 Add a MongoDB implementation
 Add syncing functionality for multiple databases
-A Glimpse plugin
