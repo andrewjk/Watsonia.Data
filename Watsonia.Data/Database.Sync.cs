@@ -468,6 +468,11 @@ namespace Watsonia.Data
 			{
 				// Insert the item
 				InsertItem(proxy, tableName, tableType, primaryKeyColumnName, connection, transaction);
+
+				// Update the parent key with the new primary key value
+				parents.Remove(parentKey);
+				parentKey = tableName + "$" + proxy.__PrimaryKeyValue;
+				parents.Add(parentKey);
 			}
 			else
 			{
