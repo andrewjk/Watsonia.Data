@@ -21,15 +21,6 @@ namespace Watsonia.Data.Tests.Queries
 		}
 		
 		[TestMethod]
-		public void Thing()
-		{
-			// TODO:
-			//Customer c = _db.Customers.FirstOrDefault();
-			//TestQuery(
-			//	_db.Orders.Where(o => o.Customer == c));
-		}
-
-		[TestMethod]
 		public void Where()
 		{
 			var list = _db.Customers.Where(c => c.City == "London").ToList();
