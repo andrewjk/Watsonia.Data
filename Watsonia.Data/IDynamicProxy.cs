@@ -16,14 +16,6 @@ namespace Watsonia.Data
 		event PrimaryKeyValueChangedEventHandler __PrimaryKeyValueChanged;
 
 		/// <summary>
-		/// Gets or sets the primary key value of this instance in the database.
-		/// </summary>
-		/// <value>
-		/// The primary key value.
-		/// </value>
-		object __PrimaryKeyValue { get; set; }
-
-		/// <summary>
 		/// Gets the state tracker.
 		/// </summary>
 		/// <value>
@@ -32,35 +24,12 @@ namespace Watsonia.Data
 		DynamicProxyStateTracker StateTracker { get; }
 
 		/// <summary>
-		/// Gets the name of the table that this entity corresponds to in the database.
+		/// Gets or sets the primary key value of this instance in the database.
 		/// </summary>
 		/// <value>
-		/// The name of the table.
+		/// The primary key value.
 		/// </value>
-		string __TableName { get; }
-
-		/// <summary>
-		/// Gets the name column in the database containing this entity's primary key.
-		/// </summary>
-		/// <value>
-		/// The name of the primary key column.
-		/// </value>
-		string __PrimaryKeyColumnName { get; }
-
-		/// <summary>
-		/// Gets a dictionary of mappings from entity properties to database columns.
-		/// </summary>
-		/// <value>
-		/// The column mappings.
-		/// </value>
-		Dictionary<string, ColumnMapping> __ColumnMappings { get; }
-
-		/// <summary>
-		/// Gets the value of the property with the supplied name.
-		/// </summary>
-		/// <param name="name">The property name.</param>
-		/// <returns></returns>
-		object __GetValue(string name);
+		object __PrimaryKeyValue { get; set; }
 
 		/// <summary>
 		/// Sets the value of the property with the supplied name.
@@ -68,6 +37,13 @@ namespace Watsonia.Data
 		/// <param name="name">The property name.</param>
 		/// <param name="value">The value.</param>
 		void __SetValue(string name, object value);
+
+		/// <summary>
+		/// Gets the value of the property with the supplied name.
+		/// </summary>
+		/// <param name="name">The property name.</param>
+		/// <returns></returns>
+		object __GetValue(string name);
 
 		/// <summary>
 		/// Sets the original values after loading or saving.
@@ -81,16 +57,16 @@ namespace Watsonia.Data
 		void __SetValuesFromReader(DbDataReader source, string[] fieldNames);
 
 		/// <summary>
+		/// Sets the item's property values from a value bag.
+		/// </summary>
+		/// <param name="bag">The value bag.</param>
+		void __SetValuesFromBag(IValueBag bag);
+
+		/// <summary>
 		/// Gets a value bag from the item's property values.
 		/// </summary>
 		/// <returns></returns>
 		IValueBag __GetBagFromValues();
 #pragma warning restore IDE1006 // Naming Styles
-
-		/// <summary>
-		/// Sets the item's property values from a value bag.
-		/// </summary>
-		/// <param name="bag">The value bag.</param>
-		void __SetValuesFromBag(IValueBag bag);
 	}
 }

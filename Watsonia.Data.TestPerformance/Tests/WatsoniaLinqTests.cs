@@ -22,7 +22,7 @@ namespace Watsonia.Data.TestPerformance.Tests
 			var watch = new Stopwatch();
 			watch.Start();
 			var db = new WatsoniaDatabase("Linq");
-			var allPostIDs = db.Query<Post>().Select(p => p.ID);
+			var allPostIDs = from p in db.Query<Post>() select p.ID;
 			foreach (var id in allPostIDs)
 			{
 				this.LoadedPostIDs.Add(id);
@@ -75,6 +75,8 @@ namespace Watsonia.Data.TestPerformance.Tests
 			var watch = new Stopwatch();
 			watch.Start();
 			var db = new WatsoniaDatabase("Linq");
+			// TODO:
+			//var teamsForSport = db.Query<Player>().Where(p => p.Team.SportsID == sportID);
 			var teamsForSport = db.Query<Team>().Include(x => x.Players).Where(x => x.SportsID == sportID);
 			foreach (var team in teamsForSport)
 			{

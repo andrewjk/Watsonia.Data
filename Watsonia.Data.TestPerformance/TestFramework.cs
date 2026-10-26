@@ -13,7 +13,6 @@ namespace Watsonia.Data.TestPerformance
 		EntityFrameworkLinq,
 		Dapper,
 		WatsoniaSql,
-		WatsoniaLinq,
-		WatsoniaGen,
+		WatsoniaLinq
 	}
 }
