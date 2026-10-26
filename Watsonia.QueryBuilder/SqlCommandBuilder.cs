@@ -718,6 +718,11 @@ namespace Watsonia.QueryBuilder
 					this.VisitExists((Exists)field);
 					break;
 				}
+				case StatementPartType.ScalarField:
+				{
+					this.VisitScalarField((ScalarField)field);
+					break;
+				}
 				case StatementPartType.CoalesceFunction:
 				{
 					this.VisitCoalesceFunction((CoalesceFunction)field);
@@ -913,8 +918,7 @@ namespace Watsonia.QueryBuilder
 				}
 				default:
 				{
-					// TODO: Words for all exceptions
-					throw new InvalidOperationException();
+					throw new InvalidOperationException("Statement part type is not supported: " + field.PartType);
 				}
 			}
 		}
@@ -1574,26 +1578,58 @@ namespace Watsonia.QueryBuilder
 		}
 
 		/// <summary>
+		/// Visits a scalar field.
+		/// </summary>
+		/// <param name="field">The scalar field.</param>
+		protected virtual void VisitScalarField(ScalarField field)
+		{
+			this.CommandText.Append("(");
+			this.VisitSelect(field.Select);
+			this.CommandText.Append(")");
+			if (!string.IsNullOrEmpty(field.Alias))
+			{
+				this.CommandText.Append(" AS [");
+				this.CommandText.Append(field.Alias);
+				this.CommandText.Append("]");
+			}
+		}
+
+		/// <summary>
 		/// Visits a coalesce function.
 		/// </summary>
 		/// <param name="coalesce">The coalesce.</param>
 		protected virtual void VisitCoalesceFunction(CoalesceFunction coalesce)
 		{
-			StatementPart first = coalesce.Arguments[0];
-			StatementPart second = coalesce.Arguments[1];
-
 			this.CommandText.Append("COALESCE(");
-			this.VisitField(first);
-			this.CommandText.Append(", ");
-			while (second.PartType == StatementPartType.CoalesceFunction)
+			var first = true;
+			foreach (var argument in FlattenCoalesce(coalesce))
 			{
-				var secondCoalesce = (CoalesceFunction)second;
-				this.VisitField(secondCoalesce.Arguments[0]);
-				this.CommandText.Append(", ");
-				second = secondCoalesce.Arguments[1];
+				if (!first)
+				{
+					this.CommandText.Append(", ");
+				}
+				first = false;
+				this.VisitField(argument);
 			}
-			this.VisitField(second);
 			this.CommandText.Append(")");
+		}
+
+		private static IEnumerable<StatementPart> FlattenCoalesce(CoalesceFunction coalesce)
+		{
+			foreach (var argument in coalesce.Arguments)
+			{
+				if (argument is CoalesceFunction nested)
+				{
+					foreach (var inner in FlattenCoalesce(nested))
+					{
+						yield return inner;
+					}
+				}
+				else
+				{
+					yield return argument;
+				}
+			}
 		}
 
 		/// <summary>
