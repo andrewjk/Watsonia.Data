@@ -2,6 +2,8 @@
 
 Yes — several, and they're structural rather than cosmetic. Framed against what's actually in this repo:
 
+*Status: items 2–4 are complete, item 1 is designed but not implemented, items 5–6 are outstanding. Each item below has a "Done so far" paragraph recording what changed.*
+
 ## The fork in the road
 
 First, the macro question the library needs answered: **what is its niche in 2026?** In 2021 the pitch was "simpler than EF, tracked entities, minimal fuss." Today EF Core 10 and Dapper.AOT have absorbed huge ground. The credible modern positioning for something Watsonia-shaped is: *convention-based micro-ORM with tracked entities that works under NativeAOT* — because ironically, the features built for "environments with no dynamic support" (the `ExportProxies` feature!) are exactly what's first-class now, while the implementation makes the library *unable to run there*. Everything below follows from that.
@@ -18,19 +20,27 @@ The single biggest change. `DynamicProxyFactory.cs` (2,400 lines of IL emission)
 
 This is where the ecosystem went: Dapper.AOT, Mapperly, EF Core compiled models.
 
+**Done so far:** Not implemented. The abandoned `origin/generator` branch (a design-time console tool that baked resolved schema values — `__TableName`, column mappings — into generated proxies from a JSON config) was merged experimentally, confirmed unable to express the code-based `DatabaseConfiguration` customizations, and reverted. The analysis is in `04 GENERATED PROXIES DESIGN.md`, including the key design decision: **split shape from naming** — generate structural shape at compile time (the non-virtual `IsRelatedItem`/`IsRelatedCollection` rules are replicable from a semantic model) while all naming/policy keeps resolving through the runtime configuration. The planned increment is a shape-only Roslyn generator with `[WatsoniaEntity]` opt-in and a `[ModuleInitializer]`-registered proxy registry, with the Reflection.Emit path as fallback for uncovered types.
+
 ### 2. Get off Remotion.Linq (a dead dependency)
 Last release 2.2.0 in **2018**; EF Core abandoned it in 3.0 and wrote its own pipeline; effectively nothing maintains it. This is the riskiest dependency in the library. Options, in increasing effort:
 - **De-emphasize LINQ**: your benchmark shows the fluent SQL API is already the fastest path (roughly ADO.NET speed) — make it the headline API and keep LINQ as a legacy/compat surface
 - **Own the pipeline**: hand-rolled expression visitor (what EF Core did) — a serious multi-month investment
 - Interim: keep it on `netstandard2.0` where it still works, but don't build new features on it
 
+**Done so far:** Complete — the dependency is gone entirely. The original IQToolkit-derived engine (deleted in `da3361b`, 113 files/~17k lines) was restored and adapted to the modern codebase: current statement model (immutable parts, `InternalsVisibleTo`), join chains into `SourceJoins`, proxy-aware mapping/primary-key detection, net10 expression shapes (`MemoryExtensions.Contains` span conversions, entity-vs-null predicates, partial-evaluation wrappers), reader materialization (`DbFieldReader`, alias-tolerant field matching) and DISTINCT ordering. `Database.Query<T>()` and `QueryFunction<T>()` (plus the translation baselines) run on it; async is bridged through `IAsyncQueryProvider`. Then Remotion was removed: the dead Remotion pipeline in Watsonia.Data was deleted, and QueryBuilder's fluent-API surface was ported to a plain expression visitor (ported `ExpressionVisitor`/`PartialEvaluator`; `StatementCreator` renamed `ConditionCreator`). Shared helpers were de-duplicated along the way — span conversion, visitor/evaluator, and the three `TypeHelper` copies collapsed into one public implementation in QueryBuilder. Baselines are regenerated with `WATSONIA_UPDATE_BASELINES=1 dotnet test`.
+
 ### 3. Driver hygiene (cheap, do first)
 - `System.Data.SqlClient` → **`Microsoft.Data.SqlClient`** — the current package is already flagged vulnerable by NuGet audit (the `NU1903` warning in our build output)
 - **`DbBatch`** (.NET 7+) — first-class ADO.NET batching, supported by both SqlClient and Microsoft.Data.Sqlite; replaces hand-rolled bulk DML
 - Drop the `net5.0` target (EOL); target `netstandard2.0` + current LTS (net8/net10)
 
+**Done so far:** Complete. `System.Data.SqlClient` was replaced with **Microsoft.Data.SqlClient 7.1.1** (the vulnerable package is gone), and `Microsoft.Data.Sqlite` was upgraded **5.0.2 → 10.0.14** (dropping the manual SQLitePCLRaw pins; arm64 natives now come transitively). Targets are **`netstandard2.0;net10.0`** with tests/benchmark on net10; `net5.0` is gone. SQL Server schema updates now queue DDL per pass and flush it as a **`DbBatch`** on net10 builds — with the finding that **Microsoft.Data.Sqlite does not implement `DbBatch`** (it relies on multi-statement `CommandText`), so SQLite keeps per-statement execution, which costs nothing on a local file database. Also: pinned a patched `System.Security.Cryptography.Pkcs` (vulnerable transitive via SqlClient's identity chain), bumped `Microsoft.NET.Test.Sdk` (removed vulnerable Newtonsoft.Json 9.0.1), and added `TrustServerCertificate=True` to the benchmark's SQL Server template (Microsoft.Data.SqlClient encrypts by default).
+
 ### 4. Async as designed-in, not bolted-on
 The 2021 async (`Database.Async.cs`) mirrors sync signatures. Modern shape: `IAsyncEnumerable<T>` with `await foreach` **streaming** from `DbDataReader` (never materialize whole result sets), `CancellationToken` on every operation, `ValueTask`, `IAsyncDisposable`.
+
+**Done so far:** Complete. Statement-level async I/O (`OpenConnectionAsync`/`ExecuteReaderAsync`/`ReadAsync`/`ExecuteScalarAsync`/`ExecuteNonQueryAsync`) was already real; the remaining gaps were closed: **`CancellationToken` plumbed end-to-end** — through `IDataAccessProvider.OpenConnectionAsync`, every core `Database.*Async` method, all ADO.NET calls and the LINQ provider, with immediate checks at entry points (raw-SQL `params` overloads stay tokenless with `CancellationToken.None` for source compatibility). **Async LINQ now truly streams** entity sequences row-by-row via `Database.EnumerateCollectionAsync` instead of materializing a list (non-entity projections keep the projector-based fallback, because client-side projections such as `Select(c => 10)` must not stream). `ConfigureAwait(false)` applied across the async surface. Lazy loading was made **explicit-friendly**: `LazyLoadingEnabled` switch (disabled ⇒ clear "use Include()/LoadItemAsync" exception), the hidden `Task.Run(...).GetResult()` hack replaced with honest synchronous I/O, explicit async loaders (`LoadItemAsync`/`LoadCollectionAsync(entity, property)`) and a real async Include loader; this also exposed and fixed two latent Emit bugs in string-key lazy loading. `ValueTask` and `IAsyncDisposable` were deliberately **not** added: there are no hot synchronously-completing paths, and `Database` holds no unmanaged state (connections are per-operation).
 
 ### 5. Ecosystem integration (the "modern library" expectations)
 A data-access library in 2026 is expected to plug into the Microsoft.Extensions stack:
@@ -40,10 +50,14 @@ A data-access library in 2026 is expected to plug into the Microsoft.Extensions 
 - **`HybridCache`** (.NET 9) or `IMemoryCache` to replace the hand-rolled `ItemCache`
 - `ObjectPool`/`ArrayPool` for connection and SQL-text reuse
 
+**Done so far:** Not started. There is no logging abstraction, `ActivitySource`/OpenTelemetry tracing, DI registration, options binding, or cache integration yet — the event-handler hooks and the hand-rolled `ItemCache` remain as-is. This is the largest untouched item and pairs naturally with the diagnostics and AOT/trimming work.
+
 ### 6. Smaller-but-real items
 - **BenchmarkDotNet** to replace the hand-rolled stopwatch harness (no warmup/statistics discipline) — keep the cross-framework comparison, get credible numbers
 - **Migration story**: `UpdateDatabase()` never drops/renames and has no snapshots; even a script-file migration model would clear the biggest functional gap vs EF
 - Test fixtures: committed binary `.sqlite` files → generated fixtures; CI matrix covering Linux/macOS (this week proved the suite was Windows-only in practice)
+
+**Done so far:** Partially. The benchmark harness is still hand-rolled (BenchmarkDotNet not adopted), though it was kept working on net10 and used to validate every change — Watsonia LINQ retains its EF-beating numbers and the fluent SQL path stays near ADO.NET. The test suite became cross-platform and modern: Windows-style `Data\` fixture paths were fixed, an assembly-init working-directory shim added, TFMs updated, arm64/net10 incompatibilities resolved (SQLitePCLRaw, span-based `Contains`, test SDK), and new tests cover lazy-loading policy, explicit async loading, cancellation and streaming. Migration tooling and CI are untouched; test fixtures are still committed `.sqlite` files.
 
 ## What *not* to chase
 Don't try to match EF Core feature-for-feature (multi-table mapping, full change-tracking graphs). That's a Microsoft-sized investment. The defensible version of this library is smaller, faster, AOT-clean, and conventional.
