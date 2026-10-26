@@ -1051,12 +1051,28 @@ namespace Watsonia.Data
 
 			var relatedItemIDPropertyName = database.Configuration.GetForeignKeyColumnName(property);
 
+			// The foreign key property may be declared as nullable or non-nullable on the entity,
+			// so convert its value to a nullable value type when storing it in the nullable local below
+			var foreignKeyProperty = property.DeclaringType.GetProperty(relatedItemIDPropertyName);
+			var foreignKeyPropertyType = foreignKeyProperty != null
+				? foreignKeyProperty.PropertyType
+				: primaryKeyColumnType;
+			var nullableForeignKeyConstructor = default(ConstructorInfo);
+			if (primaryKeyColumnIsValueType && Nullable.GetUnderlyingType(foreignKeyPropertyType) == null)
+			{
+				nullableForeignKeyConstructor = primaryKeyColumnType.GetConstructor(new Type[] { foreignKeyPropertyType });
+			}
+
 			// if (base.Item == null && this.ItemID.HasValue)
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, property.GetGetMethod());
 			gen.Emit(OpCodes.Brtrue_S, label28);
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetPropertyMethods[relatedItemIDPropertyName]);
+			if (nullableForeignKeyConstructor != null)
+			{
+				gen.Emit(OpCodes.Newobj, nullableForeignKeyConstructor);
+			}
 
 			if (primaryKeyColumnIsValueType)
 			{
@@ -1087,6 +1103,10 @@ namespace Watsonia.Data
 			gen.Emit(OpCodes.Call, members.GetStateTrackerMethod);
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Call, members.GetPropertyMethods[relatedItemIDPropertyName]);
+			if (nullableForeignKeyConstructor != null)
+			{
+				gen.Emit(OpCodes.Newobj, nullableForeignKeyConstructor);
+			}
 			gen.Emit(OpCodes.Stloc_1);
 			if (primaryKeyColumnIsValueType)
 			{
@@ -1145,19 +1165,28 @@ namespace Watsonia.Data
 
 			var gen = method.GetILGenerator();
 
-			var primaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(property.PropertyType);
-			if (primaryKeyColumnType.IsValueType)
-			{
-				primaryKeyColumnType = typeof(Nullable<>).MakeGenericType(primaryKeyColumnType);
-			}
-
 			var relatedItemIDPropertyName = database.Configuration.GetForeignKeyColumnName(property);
 
+			// The foreign key property may be declared as nullable or non-nullable on the entity,
+			// so emit against its actual type rather than assuming a nullable value type
+			var foreignKeyProperty = property.DeclaringType.GetProperty(relatedItemIDPropertyName);
+			var foreignKeyPropertyType = foreignKeyProperty != null
+				? foreignKeyProperty.PropertyType
+				: null;
+			if (foreignKeyPropertyType == null)
+			{
+				// Foreign key properties that aren't declared on the entity are auto-created as nullable
+				var primaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(property.PropertyType);
+				foreignKeyPropertyType = primaryKeyColumnType.IsValueType
+					? typeof(Nullable<>).MakeGenericType(primaryKeyColumnType)
+					: primaryKeyColumnType;
+			}
+
 			gen.DeclareLocal(typeof(bool));
 			gen.DeclareLocal(typeof(IDynamicProxy));
 			gen.DeclareLocal(typeof(bool));
 			gen.DeclareLocal(typeof(IDynamicProxy));
-			gen.DeclareLocal(primaryKeyColumnType);
+			gen.DeclareLocal(foreignKeyPropertyType);
 
 			var label47 = gen.DefineLabel();
 			var label128 = gen.DefineLabel();
@@ -1228,7 +1257,7 @@ namespace Watsonia.Data
 			// this.PropertyID = null;
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Ldloca_S, 4);
-			gen.Emit(OpCodes.Initobj, primaryKeyColumnType);
+			gen.Emit(OpCodes.Initobj, foreignKeyPropertyType);
 			gen.Emit(OpCodes.Ldloc, 4);
 			gen.Emit(OpCodes.Call, members.SetPropertyMethods[relatedItemIDPropertyName]);
 
@@ -1312,8 +1341,6 @@ namespace Watsonia.Data
 				null,
 				new Type[] { typeof(IDynamicProxy) });
 
-			var primaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(property.PropertyType);
-
 			var getPrimaryKeyValueMethod = typeof(IDynamicProxy).GetMethod(
 				"get___PrimaryKeyValue", Type.EmptyTypes);
 
@@ -1323,20 +1350,38 @@ namespace Watsonia.Data
 
 			var relatedItemIDPropertyName = database.Configuration.GetForeignKeyColumnName(property);
 
+			// The foreign key property may be declared as nullable or non-nullable on the entity,
+			// so emit against its actual type rather than assuming a nullable value type
+			var foreignKeyProperty = property.DeclaringType.GetProperty(relatedItemIDPropertyName);
+			var foreignKeyPropertyType = foreignKeyProperty != null
+				? foreignKeyProperty.PropertyType
+				: null;
+			if (foreignKeyPropertyType == null)
+			{
+				// Foreign key properties that aren't declared on the entity are auto-created as nullable
+				var autoPrimaryKeyColumnType = database.Configuration.GetPrimaryKeyColumnType(property.PropertyType);
+				foreignKeyPropertyType = autoPrimaryKeyColumnType.IsValueType
+					? typeof(Nullable<>).MakeGenericType(autoPrimaryKeyColumnType)
+					: autoPrimaryKeyColumnType;
+			}
+
 			// this.ThingID = (long)value.__PrimaryKeyValue;
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Ldarg_1);
 			gen.Emit(OpCodes.Callvirt, getPrimaryKeyValueMethod);
-			if (primaryKeyColumnType.IsValueType)
+			if (foreignKeyPropertyType.IsValueType)
 			{
-				gen.Emit(OpCodes.Unbox_Any, primaryKeyColumnType);
-				var newNullableID = typeof(Nullable<>).MakeGenericType(primaryKeyColumnType).GetConstructor(
-					new Type[] { primaryKeyColumnType });
-				gen.Emit(OpCodes.Newobj, newNullableID);
+				var underlyingType = Nullable.GetUnderlyingType(foreignKeyPropertyType) ?? foreignKeyPropertyType;
+				gen.Emit(OpCodes.Unbox_Any, underlyingType);
+				if (underlyingType != foreignKeyPropertyType)
+				{
+					var newNullableID = foreignKeyPropertyType.GetConstructor(new Type[] { underlyingType });
+					gen.Emit(OpCodes.Newobj, newNullableID);
+				}
 			}
 			else
 			{
-				gen.Emit(OpCodes.Castclass, primaryKeyColumnType);
+				gen.Emit(OpCodes.Castclass, foreignKeyPropertyType);
 			}
 			gen.Emit(OpCodes.Call, members.SetPropertyMethods[relatedItemIDPropertyName]);
 
