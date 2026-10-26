@@ -1432,7 +1432,7 @@ namespace Watsonia.QueryBuilder
 		/// <param name="conditional">The conditional.</param>
 		protected virtual void VisitConditionalCase(ConditionalCase conditional)
 		{
-			if (conditional.Test is Condition)
+			if (conditional.Test is ConditionExpression)
 			{
 				this.CommandText.Append("(CASE WHEN ");
 				this.VisitField(conditional.Test);

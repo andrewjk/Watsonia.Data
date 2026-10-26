@@ -23,7 +23,7 @@ namespace Watsonia.QueryBuilder
 		public override string ToString()
 		{
 			var b = new StringBuilder();
-			if (this.Test is Condition)
+			if (this.Test is ConditionExpression)
 			{
 				b.Append("(Case When ");
 				b.Append(this.Test.ToString());

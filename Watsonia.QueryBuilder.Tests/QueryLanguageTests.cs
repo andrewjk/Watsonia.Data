@@ -14,8 +14,6 @@ using Watsonia.QueryBuilder.SQLite;
 using Watsonia.QueryBuilder.SqlServer;
 using Watsonia.QueryBuilder.Tests.Northwind;
 
-// NOTE: the remaining //////// blocks are execution-only operators (First/Last/Single/Reverse, top-level Any/All); they are not SQL shape tests.
-
 namespace Watsonia.Data.Tests.Queries
 {
 	[TestClass]
@@ -811,210 +809,257 @@ namespace Watsonia.Data.Tests.Queries
 				Select.From<Customer>("c").OrderBy(c => c.ContactName).Take(10).Skip(5).Distinct());
 		}
 
-		////////[TestMethod]
-		////////public void TestFirst()
-		////////{
-		////////	TestQuery2(
-		////////		"TestFirst",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).First()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestFirst()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestFirst",
+				Select.From(c).OrderBy(Col("c", "ContactName")).First());
+		}
 
-		////////[TestMethod]
-		////////public void TestFirstPredicate()
-		////////{
-		////////	TestQuery2(
-		////////		"TestFirstPredicate",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).First(c => c.City == "London")
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestFirstPredicate()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestFirstPredicate",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.First());
+		}
 
-		////////[TestMethod]
-		////////public void TestWhereFirst()
-		////////{
-		////////	TestQuery2(
-		////////		"TestWhereFirst",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).Where(c => c.City == "London").First()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestWhereFirst()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestWhereFirst",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.First());
+		}
 
-		////////[TestMethod]
-		////////public void TestFirstOrDefault()
-		////////{
-		////////	TestQuery2(
-		////////		"TestFirstOrDefault",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).FirstOrDefault()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestFirstOrDefault()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestFirstOrDefault",
+				Select.From(c).OrderBy(Col("c", "ContactName")).FirstOrDefault());
+		}
 
-		////////[TestMethod]
-		////////public void TestFirstOrDefaultPredicate()
-		////////{
-		////////	TestQuery2(
-		////////		"TestFirstOrDefaultPredicate",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).FirstOrDefault(c => c.City == "London")
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestFirstOrDefaultPredicate()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestFirstOrDefaultPredicate",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.FirstOrDefault());
+		}
 
-		////////[TestMethod]
-		////////public void TestWhereFirstOrDefault()
-		////////{
-		////////	TestQuery2(
-		////////		"TestWhereFirstOrDefault",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).Where(c => c.City == "London").FirstOrDefault()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestWhereFirstOrDefault()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestWhereFirstOrDefault",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.FirstOrDefault());
+		}
 
-		////////[TestMethod]
-		////////public void TestReverse()
-		////////{
-		////////	TestQuery2(
-		////////		"TestReverse",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).Reverse()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestReverse()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestReverse",
+				Select.From(c).OrderBy(Col("c", "ContactName")).Reverse());
+		}
 
-		////////[TestMethod]
-		////////public void TestReverseReverse()
-		////////{
-		////////	TestQuery2(
-		////////		"TestReverseReverse",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).Reverse().Reverse()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestReverseReverse()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestReverseReverse",
+				Select.From(c).OrderBy(Col("c", "ContactName")).Reverse().Reverse());
+		}
 
-		////////[TestMethod]
-		////////public void TestReverseWhereReverse()
-		////////{
-		////////	TestQuery2(
-		////////		"TestReverseWhereReverse",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).Reverse().Where(c => c.City == "London").Reverse()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestReverseWhereReverse()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestReverseWhereReverse",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Reverse()
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.Reverse());
+		}
 
-		////////[TestMethod]
-		////////public void TestReverseTakeReverse()
-		////////{
-		////////	TestQuery2(
-		////////		"TestReverseTakeReverse",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).Reverse().Take(5).Reverse()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestReverseTakeReverse()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestReverseTakeReverse",
+				Select.From(c).OrderBy(Col("c", "ContactName")).Reverse().Take(5).Reverse());
+		}
 
-		////////[TestMethod]
-		////////public void TestReverseWhereTakeReverse()
-		////////{
-		////////	TestQuery2(
-		////////		"TestReverseWhereTakeReverse",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).Reverse().Where(c => c.City == "London").Take(5).Reverse()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestReverseWhereTakeReverse()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestReverseWhereTakeReverse",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Reverse()
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.Take(5)
+					.Reverse());
+		}
 
-		////////[TestMethod]
-		////////public void TestLast()
-		////////{
-		////////	TestQuery2(
-		////////		"TestLast",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).Last()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestLast()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestLast",
+				Select.From(c).OrderBy(Col("c", "ContactName")).Last());
+		}
 
-		////////[TestMethod]
-		////////public void TestLastPredicate()
-		////////{
-		////////	TestQuery2(
-		////////		"TestLastPredicate",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).Last(c => c.City == "London")
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestLastPredicate()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestLastPredicate",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.Last());
+		}
 
-		////////[TestMethod]
-		////////public void TestWhereLast()
-		////////{
-		////////	TestQuery2(
-		////////		"TestWhereLast",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).Where(c => c.City == "London").Last()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestWhereLast()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestWhereLast",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.Last());
+		}
 
-		////////[TestMethod]
-		////////public void TestLastOrDefault()
-		////////{
-		////////	TestQuery2(
-		////////		"TestLastOrDefault",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).LastOrDefault()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestLastOrDefault()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestLastOrDefault",
+				Select.From(c).OrderBy(Col("c", "ContactName")).LastOrDefault());
+		}
 
-		////////[TestMethod]
-		////////public void TestLastOrDefaultPredicate()
-		////////{
-		////////	TestQuery2(
-		////////		"TestLastOrDefaultPredicate",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).LastOrDefault(c => c.City == "London")
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestLastOrDefaultPredicate()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestLastOrDefaultPredicate",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.LastOrDefault());
+		}
 
-		////////[TestMethod]
-		////////public void TestWhereLastOrDefault()
-		////////{
-		////////	TestQuery2(
-		////////		"TestWhereLastOrDefault",
-		////////		Select.From<Customer>("c").OrderBy(c => c.ContactName).Where(c => c.City == "London").LastOrDefault()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestWhereLastOrDefault()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestWhereLastOrDefault",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.LastOrDefault());
+		}
 
-		////////[TestMethod]
-		////////public void TestSingle()
-		////////{
-		////////	TestQuery2(
-		////////		"TestSingle",
-		////////		Select.From<Customer>("c").Single());
-		////////}
+		[TestMethod]
+		public void TestSingle()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestSingle",
+				Select.From(c).OrderBy(Col("c", "ContactName")).Single());
+		}
 
-		////////[TestMethod]
-		////////public void TestSinglePredicate()
-		////////{
-		////////	TestQuery2(
-		////////		"TestSinglePredicate",
-		////////		Select.From<Customer>("c").Single(c => c.CustomerID == "ALFKI")
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestSinglePredicate()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestSinglePredicate",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.Single());
+		}
 
-		////////[TestMethod]
-		////////public void TestWhereSingle()
-		////////{
-		////////	TestQuery2(
-		////////		"TestWhereSingle",
-		////////		Select.From<Customer>("c").Where(c => c.CustomerID == "ALFKI").Single()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestWhereSingle()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestWhereSingle",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.Single());
+		}
 
-		////////[TestMethod]
-		////////public void TestSingleOrDefault()
-		////////{
-		////////	TestQuery2(
-		////////		"TestSingleOrDefault",
-		////////		Select.From<Customer>("c").SingleOrDefault());
-		////////}
+		[TestMethod]
+		public void TestSingleOrDefault()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestSingleOrDefault",
+				Select.From(c).OrderBy(Col("c", "ContactName")).SingleOrDefault());
+		}
 
-		////////[TestMethod]
-		////////public void TestSingleOrDefaultPredicate()
-		////////{
-		////////	TestQuery2(
-		////////		"TestSingleOrDefaultPredicate",
-		////////		Select.From<Customer>("c").SingleOrDefault(c => c.CustomerID == "ALFKI")
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestSingleOrDefaultPredicate()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestSingleOrDefaultPredicate",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.SingleOrDefault());
+		}
 
-		////////[TestMethod]
-		////////public void TestWhereSingleOrDefault()
-		////////{
-		////////	TestQuery2(
-		////////		"TestWhereSingleOrDefault",
-		////////		Select.From<Customer>("c").Where(c => c.CustomerID == "ALFKI").SingleOrDefault()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestWhereSingleOrDefault()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestWhereSingleOrDefault",
+				Select.From(c)
+					.OrderBy(Col("c", "ContactName"))
+					.Where(new Condition(Col("c", "City"), SqlOperator.Equals, "London"))
+					.SingleOrDefault());
+		}
 
 		[TestMethod]
 		public void TestAnyWithSubquery()
@@ -1048,43 +1093,52 @@ namespace Watsonia.Data.Tests.Queries
 				Select.From<Customer>("c").Where(c => ids.Contains(c.CustomerID)));
 		}
 
-		////////[TestMethod]
-		////////public void TestAnyTopLevel()
-		////////{
-		////////	TestQuery2(
-		////////		"TestAnyTopLevel",
-		////////		Select.From<Customer>("c").Any()
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestAnyTopLevel()
+		{
+			var c = new Table("Customers", "c");
+			TestQuery2(
+				"TestAnyTopLevel",
+				Select.From(c).Any());
+		}
 
-		////////[TestMethod]
-		////////public void TestAllWithSubquery()
-		////////{
-		////////	TestQuery2(
-		////////		"TestAllWithSubquery",
-		////////		Select.From<Customer>("c").Where(c => Select.From<Order>("o").Where(o => o.CustomerID == c.CustomerID).All(o => o.OrderDate.Year == 1997))
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestAllWithSubquery()
+		{
+			var c = new Table("Customers", "c");
+			var o = Select.From(new Table("Orders", "o"))
+				.Where(new Condition(Col("o", "CustomerID"), SqlOperator.Equals, Col("c", "CustomerID")))
+				.Where(new Condition(Year(Col("o", "OrderDate")), SqlOperator.Equals, 1997) { Not = true });
+			TestQuery2(
+				"TestAllWithSubquery",
+				Select.From(c).WhereNotExists(o));
+		}
 
-		////////[TestMethod]
-		////////public void TestAllWithLocalCollection()
-		////////{
-		////////	string[] patterns = new[] { "a", "e" };
+		[TestMethod]
+		public void TestAllWithLocalCollection()
+		{
+			var c = new Table("Customers", "c");
+			string[] patterns = new[] { "a", "e" };
+			var select = Select.From(c);
+			foreach (var pattern in patterns)
+			{
+				select.Where(new Condition(Col("c", "ContactName"), SqlOperator.Contains, pattern));
+		}
+		TestQuery2(
+			"TestAllWithLocalCollection",
+			select);
+		}
 
-		////////	TestQuery2(
-		////////		"TestAllWithLocalCollection",
-		////////		Select.From<Customer>("c").Where(c => patterns.All(p => c.ContactName.Contains(p)))
-		////////		);
-		////////}
-
-		////////[TestMethod]
-		////////public void TestAllTopLevel()
-		////////{
-		////////	TestQuery2(
-		////////		"TestAllTopLevel",
-		////////		Select.From<Customer>("c").All(c => c.ContactName.StartsWith("a"))
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestAllTopLevel()
+		{
+			var c = new Table("Customers", "c");
+			var inner = Select.From(c)
+				.Where(new Condition(Col("c", "ContactName"), SqlOperator.StartsWith, "a") { Not = true });
+			TestQuery2(
+				"TestAllTopLevel",
+				Select.None(inner));
+		}
 
 		[TestMethod]
 		public void TestContainsWithSubquery()
@@ -1105,14 +1159,15 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////////[TestMethod]
-		////////public void TestContainsTopLevel()
-		////////{
-		////////	TestQuery2(
-		////////		"TestContainsTopLevel",
-		////////		Select.From<Customer>("c").Columns(c => c.CustomerID).Contains("ALFKI")
-		////////		);
-		////////}
+		[TestMethod]
+		public void TestContainsTopLevel()
+		{
+			var c = new Table("Customers", "c");
+			var inner = Select.From(c).Columns(Col("c", "CustomerID"));
+			TestQuery2(
+				"TestContainsTopLevel",
+				Select.Contains("ALFKI", inner));
+		}
 
 		[TestMethod]
 		public void TestCoalesce()

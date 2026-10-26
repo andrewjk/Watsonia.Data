@@ -1,36 +1,30 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <baselines>
-  <baseline key="TestAllTopLevel">
-    SELECT CASE WHEN NOT EXISTS (
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE NOT [c].[ContactName] LIKE 'a' || '%'
-    ) THEN 1 ELSE 0 END
-  </baseline>
-  <baseline key="TestAllWithLocalCollection">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE ([c].[ContactName] LIKE '%' || @0 || '%') AND ([c].[ContactName] LIKE '%' || @1 || '%')
-  </baseline>
-  <baseline key="TestAllWithSubquery">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE NOT EXISTS(
-    SELECT NULL
-    FROM [Orders] AS [o]
-    WHERE ([o].[CustomerID] = [c].[CustomerID]) AND NOT (CAST(STRFTIME('%Y', [o].[OrderDate]) = 1997) AS INT)
-    )
-  </baseline>
+  <baseline key="TestAllTopLevel">SELECT (CASE WHEN NOT EXISTS (
+  SELECT *
+  FROM [Customers] AS [c]
+  WHERE NOT [c].[ContactName] LIKE 'a' || '%'
+  ) THEN 1 ELSE 0 END)</baseline>
+  <baseline key="TestAllWithLocalCollection">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[ContactName] LIKE '%' || 'a' || '%'
+ AND [c].[ContactName] LIKE '%' || 'e' || '%'</baseline>
+  <baseline key="TestAllWithSubquery">SELECT *
+FROM [Customers] AS [c]
+WHERE NOT EXISTS (
+  SELECT *
+  FROM [Orders] AS [o]
+  WHERE [o].[CustomerID] = [c].[CustomerID]
+   AND NOT CAST(STRFTIME('%Y', [o].[OrderDate]) AS INT) = 1997
+  )</baseline>
   <baseline key="TestAnd">SELECT *
 FROM [Orders] AS [o]
 WHERE ([o].[OrderID] &gt; 0
  AND [o].[OrderID] &lt; 2000)</baseline>
-  <baseline key="TestAnyTopLevel">
-    SELECT CASE WHEN EXISTS (
-    SELECT [g_1].[CustomerID], [g_1].[City], [g_1].[CompanyName], [g_1].[ContactName], [g_1].[Country], [g_1].[Phone]
-    FROM [Customers] AS [g_1]
-    ) THEN 1 ELSE 0 END
-  </baseline>
+  <baseline key="TestAnyTopLevel">SELECT (CASE WHEN EXISTS (
+  SELECT *
+  FROM [Customers] AS [c]
+  ) THEN 1 ELSE 0 END)</baseline>
   <baseline key="TestAnyWithLocalCollection">SELECT *
 FROM [Customers] AS [c]
 WHERE [c].[CustomerID] IN (
@@ -104,12 +98,11 @@ WHERE (CASE WHEN [o].[CustomerID] = 'ALFKI' THEN [o].[OrderID] &lt; 10 ELSE [o].
   <baseline key="TestConditionalTestIsValue">SELECT *
 FROM [Orders] AS [o]
 WHERE (CASE [o].[OrderID] WHEN 0 THEN 200 ELSE 100 END) = 100</baseline>
-  <baseline key="TestContainsTopLevel">
-    SELECT CASE WHEN 'ALFKI' IN (
-    SELECT [c].[CustomerID]
-    FROM [Customers] AS [c]
-    ) THEN 1 ELSE 0 END
-  </baseline>
+  <baseline key="TestContainsTopLevel">SELECT (CASE WHEN 'ALFKI' IN (
+  SELECT [c].[CustomerID]
+  FROM [Customers] AS [c]
+  )
+ THEN 1 ELSE 0 END)</baseline>
   <baseline key="TestContainsWithEmptyLocalList">SELECT *
 FROM [Customers] AS [c]
 WHERE  0 &lt;&gt; 0</baseline>
@@ -256,32 +249,20 @@ WHERE [c].[City] IS NULL</baseline>
   <baseline key="TestEqualNullReverse">SELECT *
 FROM [Customers] AS [c]
 WHERE [c].[City] IS NULL</baseline>
-  <baseline key="TestFirst">
-    SELECT *
-    FROM [Customers] AS [c]
-    ORDER BY [c].[ContactName]
-    LIMIT 1
-  </baseline>
-  <baseline key="TestFirstOrDefault">
-    SELECT *
-    FROM [Customers] AS [c]
-    ORDER BY [c].[ContactName]
-    LIMIT 1
-  </baseline>
-  <baseline key="TestFirstOrDefaultPredicate">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[City] = 'London'
-    ORDER BY [c].[ContactName]
-    LIMIT 1
-  </baseline>
-  <baseline key="TestFirstPredicate">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[City] = 'London'
-    ORDER BY [c].[ContactName]
-    LIMIT 1
-  </baseline>
+  <baseline key="TestFirst">SELECT *
+FROM [Customers] AS [c]
+ORDER BY [c].[ContactName] LIMIT 1</baseline>
+  <baseline key="TestFirstOrDefault">SELECT *
+FROM [Customers] AS [c]
+ORDER BY [c].[ContactName] LIMIT 1</baseline>
+  <baseline key="TestFirstOrDefaultPredicate">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[City] = 'London'
+ORDER BY [c].[ContactName] LIMIT 1</baseline>
+  <baseline key="TestFirstPredicate">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[City] = 'London'
+ORDER BY [c].[ContactName] LIMIT 1</baseline>
   <baseline key="TestGroupBy">SELECT *
 FROM [Customers] AS [c]
 GROUP BY [c].[City]</baseline>
@@ -394,32 +375,20 @@ LEFT OUTER JOIN [Orders] AS [o] ON ([c].[CustomerID] = [o].[CustomerID])</baseli
 FROM [Customers] AS [c]
 INNER JOIN [Orders] AS [o] ON ([c].[CustomerID] = [o].[CustomerID]
  AND [c].[CustomerID] = [o].[CustomerID])</baseline>
-  <baseline key="TestLast">
-    SELECT *
-    FROM [Customers] AS [c]
-    ORDER BY [c].[ContactName] DESC
-    LIMIT 1
-  </baseline>
-  <baseline key="TestLastOrDefault">
-    SELECT *
-    FROM [Customers] AS [c]
-    ORDER BY [c].[ContactName] DESC
-    LIMIT 1
-  </baseline>
-  <baseline key="TestLastOrDefaultPredicate">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[City] = 'London'
-    ORDER BY [c].[ContactName] DESC
-    LIMIT 1
-  </baseline>
-  <baseline key="TestLastPredicate">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[City] = 'London'
-    ORDER BY [c].[ContactName] DESC
-    LIMIT 1
-  </baseline>
+  <baseline key="TestLast">SELECT *
+FROM [Customers] AS [c]
+ORDER BY [c].[ContactName] DESC LIMIT 1</baseline>
+  <baseline key="TestLastOrDefault">SELECT *
+FROM [Customers] AS [c]
+ORDER BY [c].[ContactName] DESC LIMIT 1</baseline>
+  <baseline key="TestLastOrDefaultPredicate">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[City] = 'London'
+ORDER BY [c].[ContactName] DESC LIMIT 1</baseline>
+  <baseline key="TestLastPredicate">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[City] = 'London'
+ORDER BY [c].[ContactName] DESC LIMIT 1</baseline>
   <baseline key="TestLetWithSubquery">SELECT [c].*, (SELECT COUNT(*)
 FROM [Orders] AS [o]
 WHERE [o].[CustomerID] = [c].[CustomerID]) AS [OrdersCount]
@@ -502,43 +471,31 @@ ORDER BY [c].[CustomerID], [o].[OrderID]</baseline>
   <baseline key="TestOrderByThenBy">SELECT [c].[City]
 FROM [Customers] AS [c]
 ORDER BY [c].[CustomerID], [c].[Country]</baseline>
-  <baseline key="TestReverse">
-    SELECT *
-    FROM [Customers] AS [c]
-    ORDER BY [c].[ContactName] DESC
-  </baseline>
-  <baseline key="TestReverseReverse">
-    SELECT *
-    FROM [Customers] AS [c]
-    ORDER BY [c].[ContactName]
-  </baseline>
-  <baseline key="TestReverseTakeReverse">
-    SELECT t0.[City], t0.[CompanyName], t0.[ContactName], t0.[Country], t0.[CustomerID], t0.[Phone]
-    FROM (
-    SELECT *
-    FROM [Customers] AS [c]
-    ORDER BY [c].[ContactName] DESC
-    LIMIT 5
-    ) AS t0
-    ORDER BY t0.[ContactName]
-  </baseline>
-  <baseline key="TestReverseWhereReverse">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[City] = 'London'
-    ORDER BY [c].[ContactName]
-  </baseline>
-  <baseline key="TestReverseWhereTakeReverse">
-    SELECT t0.[City], t0.[CompanyName], t0.[ContactName], t0.[Country], t0.[CustomerID], t0.[Phone]
-    FROM (
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[City] = 'London'
-    ORDER BY [c].[ContactName] DESC
-    LIMIT 5
-    ) AS t0
-    ORDER BY t0.[ContactName]
-  </baseline>
+  <baseline key="TestReverse">SELECT *
+FROM [Customers] AS [c]
+ORDER BY [c].[ContactName] DESC</baseline>
+  <baseline key="TestReverseReverse">SELECT *
+FROM [Customers] AS [c]
+ORDER BY [c].[ContactName]</baseline>
+  <baseline key="TestReverseTakeReverse">SELECT [t0].*
+FROM (
+  SELECT [c].*
+  FROM [Customers] AS [c]
+  ORDER BY [c].[ContactName] DESC LIMIT 5
+  ) AS [t0]
+ORDER BY [t0].[ContactName]</baseline>
+  <baseline key="TestReverseWhereReverse">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[City] = 'London'
+ORDER BY [c].[ContactName]</baseline>
+  <baseline key="TestReverseWhereTakeReverse">SELECT [t0].*
+FROM (
+  SELECT [c].*
+  FROM [Customers] AS [c]
+  WHERE [c].[City] = 'London'
+  ORDER BY [c].[ContactName] DESC LIMIT 5
+  ) AS [t0]
+ORDER BY [t0].[ContactName]</baseline>
   <baseline key="TestSelectAnonymousEmpty">SELECT *
 FROM [Customers] AS [c]</baseline>
   <baseline key="TestSelectAnonymousLiteral">SELECT 10
@@ -617,24 +574,20 @@ FROM [Orders] AS [o]
 INNER JOIN [Customers] AS [c] ON ([o].[CustomerID] = [c].[CustomerID])
 WHERE [c].[City] = 'Seattle'
  AND [c].[Phone] &lt;&gt; '555 555 5555'</baseline>
-  <baseline key="TestSingle">
-    SELECT [g_1].[CustomerID], [g_1].[City], [g_1].[CompanyName], [g_1].[ContactName], [g_1].[Country], [g_1].[Phone]
-    FROM [Customers] AS [g_1]
-  </baseline>
-  <baseline key="TestSingleOrDefault">
-    SELECT *
-    FROM [Customers] AS [c]
-  </baseline>
-  <baseline key="TestSingleOrDefaultPredicate">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[CustomerID] = 'ALFKI'
-  </baseline>
-  <baseline key="TestSinglePredicate">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[CustomerID] = 'ALFKI'
-  </baseline>
+  <baseline key="TestSingle">SELECT *
+FROM [Customers] AS [c]
+ORDER BY [c].[ContactName]</baseline>
+  <baseline key="TestSingleOrDefault">SELECT *
+FROM [Customers] AS [c]
+ORDER BY [c].[ContactName]</baseline>
+  <baseline key="TestSingleOrDefaultPredicate">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[City] = 'London'
+ORDER BY [c].[ContactName]</baseline>
+  <baseline key="TestSinglePredicate">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[City] = 'London'
+ORDER BY [c].[ContactName]</baseline>
   <baseline key="TestSingletonAssociationWithMemberAccess">SELECT [c].*
 FROM [Orders] AS [o]
 INNER JOIN [Customers] AS [c] ON ([o].[CustomerID] = [c].[CustomerID])
@@ -816,42 +769,28 @@ WHERE [c].[City] = 'London'</baseline>
   <baseline key="TestWhereEquals">SELECT *
 FROM [Customers] AS [c]
 WHERE [c].[City] = 'London'</baseline>
-  <baseline key="TestWhereFirst">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[City] = 'London'
-    ORDER BY [c].[ContactName]
-    LIMIT 1
-  </baseline>
-  <baseline key="TestWhereFirstOrDefault">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[City] = 'London'
-    ORDER BY [c].[ContactName]
-    LIMIT 1
-  </baseline>
-  <baseline key="TestWhereLast">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[City] = 'London'
-    ORDER BY [c].[ContactName] DESC
-    LIMIT 1
-  </baseline>
-  <baseline key="TestWhereLastOrDefault">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[City] = 'London'
-    ORDER BY [c].[ContactName] DESC
-    LIMIT 1
-  </baseline>
-  <baseline key="TestWhereSingle">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[CustomerID] = 'ALFKI'
-  </baseline>
-  <baseline key="TestWhereSingleOrDefault">
-    SELECT *
-    FROM [Customers] AS [c]
-    WHERE [c].[CustomerID] = 'ALFKI'
-  </baseline>
+  <baseline key="TestWhereFirst">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[City] = 'London'
+ORDER BY [c].[ContactName] LIMIT 1</baseline>
+  <baseline key="TestWhereFirstOrDefault">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[City] = 'London'
+ORDER BY [c].[ContactName] LIMIT 1</baseline>
+  <baseline key="TestWhereLast">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[City] = 'London'
+ORDER BY [c].[ContactName] DESC LIMIT 1</baseline>
+  <baseline key="TestWhereLastOrDefault">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[City] = 'London'
+ORDER BY [c].[ContactName] DESC LIMIT 1</baseline>
+  <baseline key="TestWhereSingle">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[City] = 'London'
+ORDER BY [c].[ContactName]</baseline>
+  <baseline key="TestWhereSingleOrDefault">SELECT *
+FROM [Customers] AS [c]
+WHERE [c].[City] = 'London'
+ORDER BY [c].[ContactName]</baseline>
 </baselines>

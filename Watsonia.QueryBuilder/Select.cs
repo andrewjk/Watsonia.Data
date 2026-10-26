@@ -742,6 +742,160 @@ namespace Watsonia.QueryBuilder
 		}
 
 		/// <summary>
+		/// Limits the select statement to the first record.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement First(this SelectStatement select)
+		{
+			select.Limit = 1;
+			return select;
+		}
+
+		/// <summary>
+		/// Limits the select statement to the first record.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement FirstOrDefault(this SelectStatement select)
+		{
+			return select.First();
+		}
+
+		/// <summary>
+		/// Limits the select statement to the first record in reverse order.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement Last(this SelectStatement select)
+		{
+			select.Reverse();
+			select.Limit = 1;
+			return select;
+		}
+
+		/// <summary>
+		/// Limits the select statement to the first record in reverse order.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement LastOrDefault(this SelectStatement select)
+		{
+			return select.Last();
+		}
+
+		/// <summary>
+		/// Marks the select statement as a single-record query.
+		/// </summary>
+		/// <remarks>
+		/// SQL cannot enforce a single result, so cardinality is checked when the statement is executed.
+		/// </remarks>
+		/// <param name="select">The select statement.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement Single(this SelectStatement select)
+		{
+			return select;
+		}
+
+		/// <summary>
+		/// Marks the select statement as a single-record query.
+		/// </summary>
+		/// <remarks>
+		/// SQL cannot enforce a single result, so cardinality is checked when the statement is executed.
+		/// </remarks>
+		/// <param name="select">The select statement.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement SingleOrDefault(this SelectStatement select)
+		{
+			return select;
+		}
+
+		/// <summary>
+		/// Reverses the order of the select statement.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement Reverse(this SelectStatement select)
+		{
+			if (select.StartIndex != 0 || select.Limit != 0)
+			{
+				// Paging has already limited the rows, so reverse them in an outer query
+				if (select.SourceFields.Count == 0 && select.SourceFieldsFrom.Count == 0 && select.Source is Table sourceTable)
+				{
+					// Make sure the inner query selects its columns rather than a placeholder
+					var sourceName = string.IsNullOrEmpty(sourceTable.Alias) ? sourceTable.Name : sourceTable.Alias;
+					select.SourceFieldsFrom.Add(new Table(sourceName));
+				}
+				var alias = "t0";
+				select.Alias = alias;
+				var outer = Select.From(select);
+				outer.SourceFieldsFrom.Add(new Table(alias));
+				foreach (var order in select.OrderByFields)
+				{
+					var expression = order.Expression is Column column
+						? new Column(alias, column.Name)
+						: order.Expression;
+					outer.OrderByFields.Add(new OrderByExpression(expression, Flip(order.Direction)));
+				}
+				return outer;
+			}
+
+			foreach (var order in select.OrderByFields)
+			{
+				order.Direction = Flip(order.Direction);
+			}
+			return select;
+		}
+
+		private static OrderDirection Flip(OrderDirection direction)
+		{
+			return direction == OrderDirection.Ascending ? OrderDirection.Descending : OrderDirection.Ascending;
+		}
+
+		/// <summary>
+		/// Creates a scalar statement that reports whether the supplied query has any rows.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <returns>The scalar select statement.</returns>
+		public static SelectStatement Any(this SelectStatement select)
+		{
+			return BooleanResult(new Exists() { Select = select });
+		}
+
+		/// <summary>
+		/// Creates a scalar statement that reports whether the supplied query has no rows.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <returns>The scalar select statement.</returns>
+		public static SelectStatement None(this SelectStatement select)
+		{
+			return BooleanResult(new Exists() { Select = select, Not = true });
+		}
+
+		/// <summary>
+		/// Creates a scalar statement that reports whether a value is in the supplied query.
+		/// </summary>
+		/// <param name="item">The value to look for.</param>
+		/// <param name="subquery">The query that returns the values.</param>
+		/// <returns>The scalar select statement.</returns>
+		public static SelectStatement Contains(object item, SelectStatement subquery)
+		{
+			return BooleanResult(new Condition(new ConstantPart(item), SqlOperator.IsIn, subquery));
+		}
+
+		private static SelectStatement BooleanResult(ConditionExpression test)
+		{
+			var result = Select.From((StatementPart)null);
+			result.SourceFields.Add(new ConditionalCase()
+			{
+				Test = test,
+				IfTrue = new ConstantPart(1),
+				IfFalse = new ConstantPart(0)
+			});
+			return result;
+		}
+
+		/// <summary>
 		/// Adds a subquery that returns a single value as a column.
 		/// </summary>
 		/// <param name="select">The select statement.</param>
