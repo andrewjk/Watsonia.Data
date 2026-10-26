@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Watsonia.Data.EventArgs;
+using Watsonia.Data.Query;
 using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data
@@ -204,15 +205,12 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public DatabaseQuery<T> Query<T>()
 		{
-			var queryParser = QueryParser.CreateDefault();
-			var queryExecutor = new QueryExecutor<T>(this);
-			var query = new DatabaseQuery<T>(queryParser, queryExecutor);
+			// We need to tell the query that we want types to be dynamic proxies so that it will get
+			// their generated properties correctly
+			Type proxyTableType = DynamicProxyFactory.GetDynamicProxyType(typeof(T), this);
 
-			// HACK: This is a bit horrible and circular, but necessary to get Include paths into the select
-			// statement in the QueryExecutor.Execute methods
-			queryExecutor.Query = query;
-
-			return query;
+			var provider = new DatabaseQueryProvider(this);
+			return new DatabaseQuery<T>(provider, proxyTableType);
 		}
 
 		/// <summary>
@@ -222,13 +220,8 @@ namespace Watsonia.Data
 		/// <returns></returns>
 		public DatabaseQuery<T> QueryFunction<T>(params Parameter[] parameters)
 		{
-			var queryParser = QueryParser.CreateDefault();
-			var queryExecutor = new QueryExecutor<T>(this);
-			var query = new DatabaseQuery<T>(queryParser, queryExecutor);
-
-			// HACK: This is a bit horrible and circular, but necessary to get Include paths into the select
-			// statement in the QueryExecutor.Execute methods
-			queryExecutor.Query = query;
+			var provider = new DatabaseQueryProvider(this);
+			var query = new DatabaseQuery<T>(provider);
 
 			// HACK: This is also a bit horrible as parameters are only necessary for functions
 			query.Parameters.AddRange(parameters);
@@ -239,16 +232,10 @@ namespace Watsonia.Data
 		internal SelectStatement BuildSelectStatement(Expression expression)
 		{
 			// For testing
-			var queryParser = QueryParser.CreateDefault();
-			var queryModel = queryParser.GetParsedQuery(expression);
-
-			// The type doesn't matter
-			var queryExecutor = new QueryExecutor<int>(this);
-			var query = new DatabaseQuery<int>(queryParser, queryExecutor);
-
-			queryExecutor.Query = query;
-
-			return queryExecutor.BuildSelectStatement(queryModel);
+			var provider = new Query.QueryProvider(this);
+			Expression plan = provider.GetExecutionPlan(expression);
+			Expression[] blocks = QueryCommandGatherer.Gather(plan).Select(c => c.Expression).ToArray();
+			return (SelectStatement)global::Watsonia.Data.Query.StatementCreator.Compile(blocks[0]);
 		}
 
 		private void LoadIncludePaths<T>(SelectStatement select, IList<T> result)

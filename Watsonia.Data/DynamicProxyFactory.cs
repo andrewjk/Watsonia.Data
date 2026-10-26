@@ -74,6 +74,12 @@ namespace Watsonia.Data
 
 		internal static Type GetDynamicProxyType(Type parentType, Database database)
 		{
+			// If the type is already a proxy (e.g. the element type of a LINQ query), use it as-is
+			if (typeof(IDynamicProxy).IsAssignableFrom(parentType))
+			{
+				return parentType;
+			}
+
 			var proxyTypeName = GetDynamicTypeName(parentType, database);
 			if (!_cachedTypes.ContainsKey(proxyTypeName))
 			{
@@ -1944,8 +1950,8 @@ namespace Watsonia.Data
 			var stateTrackerIsLoadingMethod = typeof(DynamicProxyStateTracker).GetMethod(
 				"set_IsLoading", new Type[] { typeof(bool) });
 
-			var stringEqualityMethod = typeof(string).GetMethod(
-				"op_Equality", new Type[] { typeof(string), typeof(string) });
+			var fieldNameMatchesMethod = typeof(TypeHelper).GetMethod(
+				"FieldNameMatches", new Type[] { typeof(string), typeof(string) });
 
 			var isDBNullMethod = typeof(DbDataReader).GetMethod(
 				"IsDBNull", new Type[] { typeof(int) });
@@ -2041,7 +2047,7 @@ namespace Watsonia.Data
 				// case "PROPERTY":
 				gen.Emit(OpCodes.Ldloc_1);
 				gen.Emit(OpCodes.Ldstr, key.ToUpperInvariant());
-				gen.Emit(OpCodes.Call, stringEqualityMethod);
+				gen.Emit(OpCodes.Call, fieldNameMatchesMethod);
 				gen.Emit(OpCodes.Brtrue, propertyLabels[key]);
 			}
 

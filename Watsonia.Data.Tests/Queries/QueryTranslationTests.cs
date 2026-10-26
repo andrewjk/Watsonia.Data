@@ -18,11 +18,13 @@ namespace Watsonia.Data.Tests.Queries
 	{
 		private static readonly NorthwindDatabase _db = new NorthwindDatabase();
 		private static Dictionary<string, string> _baselines = new Dictionary<string, string>();
+		private static string _baselineFileName;
 
 		[ClassInitialize]
 		public static void Initialize(TestContext _)
 		{
-			var fileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"/Queries/QueryTranslationBaselines.xml";
+			_baselineFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"/Queries/QueryTranslationBaselines.xml";
+			var fileName = _baselineFileName;
 			if (!string.IsNullOrEmpty(fileName) && File.Exists(fileName))
 			{
 				var doc = XDocument.Load(fileName);
@@ -2129,8 +2131,21 @@ namespace Watsonia.Data.Tests.Queries
 				query = ((UnaryExpression)query).Operand;
 			}
 
-			var expected = "(" + TrimExtraWhiteSpace(_baselines[baseline].Replace("\n\n", ") (")) + ")";
 			var select = _db.BuildSelectStatement(query);
+
+			// Setting WATSONIA_UPDATE_BASELINES=1 regenerates the baseline file
+			// (used when the query translator changes)
+			if (Environment.GetEnvironmentVariable("WATSONIA_UPDATE_BASELINES") == "1")
+			{
+				_baselines[baseline] = select.ToString();
+				var doc = new XDocument(new XElement("baselines",
+					_baselines.OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv =>
+						new XElement("baseline", new XAttribute("key", kv.Key), kv.Value))));
+				doc.Save(_baselineFileName);
+				return;
+			}
+
+			var expected = TrimExtraWhiteSpace(_baselines[baseline]);
 			var actual = TrimExtraWhiteSpace(select.ToString());
 
 			Assert.AreEqual(expected, actual);

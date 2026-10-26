@@ -234,6 +234,42 @@ namespace Watsonia.Data
 		/// null reference (Nothing in Visual Basic), if value is null and conversionType
 		/// is not a value type.
 		/// </returns>
+		/// <summary>
+		/// Determines whether a database field name matches an entity property name.
+		/// </summary>
+		/// <remarks>
+		/// Column projectors disambiguate duplicate column names by appending a number
+		/// (e.g. CustomerID1); the suffix is ignored when matching.
+		/// </remarks>
+		public static bool FieldNameMatches(string fieldName, string propertyName)
+		{
+			if (fieldName == null || propertyName == null)
+			{
+				return false;
+			}
+
+			if (string.Equals(fieldName, propertyName, StringComparison.Ordinal))
+			{
+				return true;
+			}
+
+			if (!fieldName.StartsWith(propertyName, StringComparison.Ordinal))
+			{
+				return false;
+			}
+
+			// Only treat it as a match if the remainder is a purely numeric suffix
+			var remainder = fieldName.Substring(propertyName.Length);
+			foreach (var c in remainder)
+			{
+				if (!char.IsDigit(c))
+				{
+					return false;
+				}
+			}
+			return remainder.Length > 0;
+		}
+
 		public static object ChangeType(object value, Type conversionType)
 		{
 			if (value == null || value == DBNull.Value)

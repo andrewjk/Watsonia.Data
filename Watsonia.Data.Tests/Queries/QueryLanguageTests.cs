@@ -20,18 +20,22 @@ namespace Watsonia.Data.Tests.Queries
 		private static readonly NorthwindDatabase _db = new NorthwindDatabase();
 		private static Dictionary<string, string> _sqlServerBaselines = new Dictionary<string, string>();
 		private static Dictionary<string, string> _sqliteBaselines = new Dictionary<string, string>();
+		private static string _sqlServerBaselineFileName;
+		private static string _sqliteBaselineFileName;
 
 		[ClassInitialize]
 		public static void Initialize(TestContext _)
 		{
-			var sqlServerFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"/Queries/QueryLanguageBaselinesSqlServer.xml";
+			_sqlServerBaselineFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"/Queries/QueryLanguageBaselinesSqlServer.xml";
+			var sqlServerFileName = _sqlServerBaselineFileName;
 			if (!string.IsNullOrEmpty(sqlServerFileName) && File.Exists(sqlServerFileName))
 			{
 				var doc = XDocument.Load(sqlServerFileName);
 				_sqlServerBaselines = doc.Root.Elements("baseline").ToDictionary(e => (string)e.Attribute("key"), e => e.Value);
 			}
 
-			var sqliteFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"/Queries/QueryLanguageBaselinesSQLite.xml";
+			_sqliteBaselineFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"/Queries/QueryLanguageBaselinesSQLite.xml";
+			var sqliteFileName = _sqliteBaselineFileName;
 			if (!string.IsNullOrEmpty(sqliteFileName) && File.Exists(sqliteFileName))
 			{
 				var doc = XDocument.Load(sqliteFileName);
@@ -2212,15 +2216,68 @@ namespace Watsonia.Data.Tests.Queries
 
 			var select = _db.BuildSelectStatement(query);
 
+			// Setting WATSONIA_UPDATE_BASELINES=1 regenerates the baseline files
+			// (used when the query translator changes)
+			var updateBaselines = Environment.GetEnvironmentVariable("WATSONIA_UPDATE_BASELINES") == "1";
+
 			// Test the SQLite command builder
 			var sqliteProvider = new SQLite.SQLiteDataAccessProvider();
 			var sqliteCommand = sqliteProvider.BuildCommand(select, _db.Configuration);
-			TestQuery(_sqliteBaselines[baseline], sqliteCommand, "*** SQLITE ***");
+			if (updateBaselines)
+			{
+				_sqliteBaselines[baseline] = GetSubstitutedCommandText(sqliteCommand);
+			}
+			else
+			{
+				TestQuery(_sqliteBaselines[baseline], sqliteCommand, "*** SQLITE ***");
+			}
 
 			// Test the SQL Server command builder
 			var sqlServerProvider = new SqlServer.SqlServerDataAccessProvider();
 			var sqlServerCommand = sqlServerProvider.BuildCommand(select, _db.Configuration);
-			TestQuery(_sqlServerBaselines[baseline], sqlServerCommand, "*** SQL SERVER ***");
+			if (updateBaselines)
+			{
+				_sqlServerBaselines[baseline] = GetSubstitutedCommandText(sqlServerCommand);
+			}
+			else
+			{
+				TestQuery(_sqlServerBaselines[baseline], sqlServerCommand, "*** SQL SERVER ***");
+			}
+
+			if (updateBaselines)
+			{
+				SaveBaselines(_sqlServerBaselineFileName, _sqlServerBaselines);
+				SaveBaselines(_sqliteBaselineFileName, _sqliteBaselines);
+			}
+		}
+
+		private void SaveBaselines(string fileName, Dictionary<string, string> baselines)
+		{
+			var doc = new XDocument(new XElement("baselines",
+				baselines.OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv =>
+					new XElement("baseline", new XAttribute("key", kv.Key), kv.Value))));
+			doc.Save(fileName);
+		}
+
+		private static string GetSubstitutedCommandText(DbCommand command)
+		{
+			var text = command.CommandText.ToString();
+
+			// Replace parameter references with their values so that the baselines contain literals
+			for (var i = 0; i < command.Parameters.Count; i++)
+			{
+				if (command.Parameters[i].Value is string ||
+					command.Parameters[i].Value is char)
+				{
+					text = text.Replace("@" + i, "'" + command.Parameters[i].Value.ToString() + "'");
+				}
+				else
+				{
+					text = text.Replace("@" + i, command.Parameters[i].Value.ToString());
+				}
+			}
+
+			return text;
 		}
 
 		private void TestQuery(string baseline, DbCommand command, string provider)

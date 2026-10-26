@@ -1,32 +1,45 @@
-﻿using Remotion.Linq;
-using Remotion.Linq.Parsing.Structure;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Watsonia.Data.Query;
 using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data
 {
-	public sealed class DatabaseQuery<T> : QueryableBase<T>, IDatabaseQuery
+	/// <summary>
+	/// A query against the database, powered by the IQToolkit-derived query engine.
+	/// </summary>
+	public sealed class DatabaseQuery<T> : Query<T>, IDatabaseQuery
 	{
 		public List<string> IncludePaths { get; } = new List<string>();
 
 		public List<Parameter> Parameters { get; } = new List<Parameter>();
 
-		public DatabaseQuery(IQueryParser queryParser, IAsyncQueryExecutor executor)
-			: base(new /*Default*/QueryProvider(typeof(DatabaseQuery<>), queryParser, executor))
+		public DatabaseQuery(Query.QueryProvider provider)
+			: base(provider)
 		{
 		}
 
-		public DatabaseQuery(IQueryProvider provider, Expression expression)
+		public DatabaseQuery(Query.QueryProvider provider, Type elementType)
+			: base(provider)
+		{
+			this.ElementType = elementType;
+		}
+
+		public DatabaseQuery(Query.QueryProvider provider, Expression expression)
 			: base(provider, expression)
 		{
+		}
+
+		public DatabaseQuery(Query.QueryProvider provider, Expression expression, Type elementType)
+			: base(provider, expression)
+		{
+			this.ElementType = elementType;
 		}
 
 		public DatabaseQuery<T> Include(string path)
@@ -53,39 +66,17 @@ namespace Watsonia.Data
 			return Include(FuncToString(property.Body) + "." + FuncToString(property2.Body) + "." + FuncToString(property3.Body));
 		}
 
-#if NET5_0_OR_GREATER
-		// NOTE: Deliberately does NOT implement IAsyncEnumerable<T> on the queryable itself -
-		// that makes query expressions ambiguous with the async query pattern on .NET 10+
-		// (this is the same reason EF Core doesn't implement it on DbSet)
-		public IAsyncEnumerable<T> AsAsyncEnumerable(CancellationToken cancellationToken = default)
-		{
-			var asyncProvider = (IAsyncQueryProvider)this.Provider;
-			return asyncProvider
-				.EnumerateAsync<IAsyncEnumerable<T>>(this.Expression, cancellationToken);
-		}
-#endif
-
 		private static string FuncToString(Expression selector)
 		{
-			// This came from http://msmvps.com/blogs/matthieu/archive/2008/06/06/entity-framework-include-with-func-next.aspx
 			switch (selector.NodeType)
 			{
-				case ExpressionType.MemberAccess:
-				{
-					return ((selector as MemberExpression).Member as PropertyInfo).Name;
-				}
-				case ExpressionType.Call:
-				{
-					var method = selector as MethodCallExpression;
-					return FuncToString(method.Arguments[0]) + "." + FuncToString(method.Arguments[1]);
-				}
-				case ExpressionType.Quote:
-				{
-					return FuncToString(((selector as UnaryExpression).Operand as LambdaExpression).Body);
-				}
+				case (ExpressionType.MemberAccess):
+					return ((MemberExpression)selector).Member.Name;
+				case (ExpressionType.Call):
+					return ((MethodCallExpression)selector).Method.Name;
+				default:
+					throw new NotSupportedException();
 			}
-
-			throw new InvalidOperationException();
 		}
 	}
 }
