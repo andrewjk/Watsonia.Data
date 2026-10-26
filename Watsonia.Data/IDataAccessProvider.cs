@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Data.Common;
+using System.Threading;
 using System.Threading.Tasks;
 using Watsonia.Data.Mapping;
 using Watsonia.QueryBuilder;
@@ -35,7 +36,7 @@ namespace Watsonia.Data
 		/// <returns>
 		/// An open database connection.
 		/// </returns>
-		Task<DbConnection> OpenConnectionAsync(DatabaseConfiguration configuration);
+		Task<DbConnection> OpenConnectionAsync(DatabaseConfiguration configuration, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		/// Ensures that the database is deleted.

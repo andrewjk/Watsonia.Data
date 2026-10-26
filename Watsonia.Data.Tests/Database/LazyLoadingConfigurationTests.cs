@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Watsonia.Data.SQLite;
@@ -127,6 +128,36 @@ namespace Watsonia.Data.Tests.Database
 			Assert.IsTrue(((IDynamicProxy)parents[0]).StateTracker.LoadedCollections.Contains("Children"));
 			Assert.AreEqual(2, parents[0].Children.Count);
 			Assert.IsTrue(((IDynamicProxy)parents[0].Children[0]).StateTracker.LoadedCollections.Contains("SubChildren"));
+		}
+
+		[TestMethod]
+		public async Task CancellationIsHonored()
+		{
+			var db = CreateDatabase(true);
+			using var cancellation = new CancellationTokenSource();
+			cancellation.Cancel();
+
+			await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+				() => db.LoadCollectionAsync<LoadingParent>(
+					Select.From("LoadingParent").Where("Name", SqlOperator.Equals, "LA1"),
+					cancellation.Token));
+		}
+
+		[TestMethod]
+		public async Task StreamingYieldsRowsIncrementally()
+		{
+			var db = CreateDatabase(true);
+			var rows = new System.Collections.Generic.List<LoadingParent>();
+
+			await foreach (var parent in db.EnumerateCollectionAsync<LoadingParent>(
+				Select.From("LoadingParent").Where("Name", SqlOperator.Equals, "LA1")))
+			{
+				rows.Add(parent);
+				break; // early exit should close the reader
+			}
+
+			Assert.AreEqual(1, rows.Count);
+			Assert.AreEqual("LA1", rows[0].Name);
 		}
 	}
 }

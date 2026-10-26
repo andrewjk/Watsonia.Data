@@ -4,6 +4,7 @@ using System.Data.Common;
 using Microsoft.Data.SqlClient;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Watsonia.Data.Mapping;
 using Watsonia.QueryBuilder;
@@ -57,10 +58,10 @@ namespace Watsonia.Data.SqlServer
 		/// <returns>
 		/// An open database connection.
 		/// </returns>
-		public async Task<DbConnection> OpenConnectionAsync(DatabaseConfiguration configuration)
+		public async Task<DbConnection> OpenConnectionAsync(DatabaseConfiguration configuration, CancellationToken cancellationToken = default)
 		{
 			var connection = new SqlConnection(configuration.ConnectionString);
-			await connection.OpenAsync();
+			await connection.OpenAsync(cancellationToken);
 			return connection;
 		}
 

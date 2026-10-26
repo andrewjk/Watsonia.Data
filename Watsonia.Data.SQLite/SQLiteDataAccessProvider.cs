@@ -7,6 +7,7 @@ using System.Text;
 using Watsonia.Data.Mapping;
 using Watsonia.QueryBuilder;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Watsonia.Data.SQLite
@@ -58,10 +59,10 @@ namespace Watsonia.Data.SQLite
 		/// <returns>
 		/// An open database connection.
 		/// </returns>
-		public async Task<DbConnection> OpenConnectionAsync(DatabaseConfiguration configuration)
+		public async Task<DbConnection> OpenConnectionAsync(DatabaseConfiguration configuration, CancellationToken cancellationToken = default)
 		{
 			var connection = new SqliteConnection(configuration.ConnectionString);
-			await connection.OpenAsync();
+			await connection.OpenAsync(cancellationToken);
 			return connection;
 		}
 

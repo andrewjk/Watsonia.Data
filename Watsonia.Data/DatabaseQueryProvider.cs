@@ -17,9 +17,12 @@ namespace Watsonia.Data
 	/// </summary>
 	public sealed class DatabaseQueryProvider : Query.QueryProvider, IAsyncQueryProvider
 	{
+		private readonly Database _database;
+
 		public DatabaseQueryProvider(Database database)
 			: base(database)
 		{
+			_database = database;
 		}
 
 		IQueryable<S> IQueryProvider.CreateQuery<S>(Expression expression)
@@ -44,11 +47,12 @@ namespace Watsonia.Data
 		}
 
 		/// <summary>
-		/// Executes the query asynchronously. The heavy lifting is still synchronous - this wraps the
-		/// result in a completed task so that the async API surface works without Remotion.Linq.
+		/// Executes the query asynchronously. The query engine itself is synchronous, so the result is
+		/// wrapped in a completed task; the caller's cancellation token is honored before execution.
 		/// </summary>
 		public TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			var result = this.Execute(expression);
 			return (TResult)WrapInCompletedTask(result, typeof(TResult));
 		}
@@ -59,12 +63,39 @@ namespace Watsonia.Data
 #if NET5_0_OR_GREATER
 		public TResult EnumerateAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
 		{
-			var result = this.Execute(expression);
+			cancellationToken.ThrowIfCancellationRequested();
 			var itemType = typeof(TResult).GetGenericArguments()[0];
+
+			// Entity and scalar sequences stream straight from the data reader, one row at a time
+			if (CanStream(itemType))
+			{
+				try
+				{
+					var select = _database.BuildSelectStatement(expression);
+					var enumerateCollectionMethod = typeof(Database)
+						.GetMethod(nameof(Database.EnumerateCollectionAsync))
+						.MakeGenericMethod(itemType);
+					return (TResult)enumerateCollectionMethod.Invoke(_database, new object[] { select, cancellationToken });
+				}
+				catch (TargetInvocationException)
+				{
+					// Fall through to the materialized path
+				}
+			}
+
+			var result = this.Execute(expression);
 			var enumerateCoreMethod = typeof(DatabaseQueryProvider)
 				.GetMethod(nameof(EnumerateAsyncCore), BindingFlags.NonPublic | BindingFlags.Static)
 				.MakeGenericMethod(itemType);
 			return (TResult)enumerateCoreMethod.Invoke(null, new object[] { result, cancellationToken });
+		}
+
+		private bool CanStream(Type itemType)
+		{
+			// Only entity sequences stream directly - other projections may be evaluated
+			// client-side by the query plan's projector, so they use the materialized path
+			return typeof(IDynamicProxy).IsAssignableFrom(itemType)
+				|| _database.Configuration.IsRelatedItem(itemType);
 		}
 
 		private static async IAsyncEnumerable<T> EnumerateAsyncCore<T>(IEnumerable<T> items, [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -75,7 +106,7 @@ namespace Watsonia.Data
 				yield return item;
 			}
 
-			await Task.CompletedTask;
+			await Task.CompletedTask.ConfigureAwait(false);
 		}
 #endif
 

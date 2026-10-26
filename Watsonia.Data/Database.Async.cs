@@ -5,7 +5,9 @@ using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Watsonia.QueryBuilder;
 using TypeHelper = Watsonia.QueryBuilder.TypeHelper;
@@ -21,9 +23,9 @@ namespace Watsonia.Data
 		/// Opens a connection to the database.
 		/// </summary>
 		/// <returns></returns>
-		public async Task<DbConnection> OpenConnectionAsync()
+		public async Task<DbConnection> OpenConnectionAsync(CancellationToken cancellationToken = default)
 		{
-			return await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration);
+			return await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -32,9 +34,10 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="id">The ID.</param>
 		/// <returns></returns>
-		public async Task<T> LoadAsync<T>(object id) where T : class
+		public async Task<T> LoadAsync<T>(object id, CancellationToken cancellationToken = default) where T : class
 		{
-			return await LoadOrDefaultAsync<T>(id, true);
+			cancellationToken.ThrowIfCancellationRequested();
+			return await LoadOrDefaultAsync<T>(id, true, cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -43,9 +46,9 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="id">The ID.</param>
 		/// <returns></returns>
-		public async Task<T> LoadOrDefaultAsync<T>(object id) where T : class
+		public async Task<T> LoadOrDefaultAsync<T>(object id, CancellationToken cancellationToken = default) where T : class
 		{
-			return await LoadOrDefaultAsync<T>(id, false);
+			return await LoadOrDefaultAsync<T>(id, false, cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -54,7 +57,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="id">The ID.</param>
 		/// <returns></returns>
-		private async Task<T> LoadOrDefaultAsync<T>(object id, bool throwIfNotFound) where T : class
+		private async Task<T> LoadOrDefaultAsync<T>(object id, bool throwIfNotFound, CancellationToken cancellationToken) where T : class
 		{
 			IDynamicProxy proxy = null;
 
@@ -67,15 +70,15 @@ namespace Watsonia.Data
 				// It's not in the cache, going to have to load it from the database
 				var select = Select.From(tableName).Where(primaryKeyColumnName, SqlOperator.Equals, id);
 
-				using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration))
+				using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, cancellationToken))
 				using (var command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 				{
 					command.Connection = connection;
 					OnBeforeExecuteCommand(command);
-					using (var reader = await command.ExecuteReaderAsync())
+					using (var reader = await command.ExecuteReaderAsync(cancellationToken))
 					{
 						var fieldNames = GetReaderFieldNames(reader);
-						if (await reader.ReadAsync())
+						if (await reader.ReadAsync(cancellationToken))
 						{
 							item = Create<T>();
 							proxy = (IDynamicProxy)item;
@@ -109,7 +112,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="item">The item.</param>
 		/// <exception cref="ArgumentException">item</exception>
-		public async Task RefreshAsync<T>(T item) where T : class
+		public async Task RefreshAsync<T>(T item, CancellationToken cancellationToken = default) where T : class
 		{
 			if ((item as IDynamicProxy) == null)
 			{
@@ -121,7 +124,7 @@ namespace Watsonia.Data
 
 			OnBeforeRefresh(proxy);
 
-			var dbItem = await LoadAsync<T>(proxy.__PrimaryKeyValue);
+			var dbItem = await LoadAsync<T>(proxy.__PrimaryKeyValue).ConfigureAwait(false);
 			LoadValues(dbItem, proxy);
 
 			// Refresh any loaded children
@@ -136,7 +139,7 @@ namespace Watsonia.Data
 				var select = Select.From(tableName).Where(foreignKeyColumnName, SqlOperator.Equals, proxy.__PrimaryKeyValue);
 
 				// We know that this is an IList because we created it as an List in the DynamicProxyFactory
-				await RefreshCollectionAsync(select, elementType, (IList)proxy.__GetValue(property.Name));
+				await RefreshCollectionAsync(select, elementType, (IList)proxy.__GetValue(property.Name), cancellationToken).ConfigureAwait(false);
 			}
 
 			OnAfterRefresh(proxy);
@@ -148,23 +151,24 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="select">The select statement.</param>
 		/// <returns></returns>
-		public async Task<IList<T>> LoadCollectionAsync<T>(SelectStatement select)
+		public async Task<IList<T>> LoadCollectionAsync<T>(SelectStatement select, CancellationToken cancellationToken = default)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			OnBeforeLoadCollection(select);
 
 			var result = new List<T>();
 
 			var itemType = GetCollectionItemType(typeof(T));
 
-			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration))
+			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, cancellationToken))
 			using (var command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
-				using (var reader = await command.ExecuteReaderAsync())
+				using (var reader = await command.ExecuteReaderAsync(cancellationToken))
 				{
 					var fieldNames = GetReaderFieldNames(reader);
-					while (await reader.ReadAsync())
+					while (await reader.ReadAsync(cancellationToken))
 					{
 						var newItem = LoadItemInCollection<T>(reader, itemType, fieldNames);
 						result.Add(newItem);
@@ -175,7 +179,7 @@ namespace Watsonia.Data
 				if (result.Count > 0 && select.IncludePaths.Count > 0)
 				{
 					// HACK: Include paths are loaded synchronously for now, because I don't want to duplicate all of that code
-					await LoadIncludePathsAsync(select, result).ConfigureAwait(false);
+					await LoadIncludePathsAsync(select, result, cancellationToken).ConfigureAwait(false);
 				}
 			}
 
@@ -190,10 +194,10 @@ namespace Watsonia.Data
 		/// <typeparam name="T"></typeparam>
 		/// <param name="select">The select statement.</param>
 		/// <returns></returns>
-		public async Task<IList<T>> LoadCollectionAsync<T>(SelectStatement<T> select)
+		public async Task<IList<T>> LoadCollectionAsync<T>(SelectStatement<T> select, CancellationToken cancellationToken = default)
 		{
 			var select2 = (SelectStatement)select.CreateStatement(new QueryMapper(this.Configuration));
-			return await LoadCollectionAsync<T>(select2);
+			return await LoadCollectionAsync<T>(select2).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -211,15 +215,15 @@ namespace Watsonia.Data
 
 			var itemType = GetCollectionItemType(typeof(T));
 
-			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration))
+			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, CancellationToken.None))
 			using (var command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration, parameters))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
-				using (var reader = await command.ExecuteReaderAsync())
+				using (var reader = await command.ExecuteReaderAsync(CancellationToken.None))
 				{
 					var fieldNames = GetReaderFieldNames(reader);
-					while (await reader.ReadAsync())
+					while (await reader.ReadAsync(CancellationToken.None))
 					{
 						var newItem = LoadItemInCollection<T>(reader, itemType, fieldNames);
 						result.Add(newItem);
@@ -233,21 +237,21 @@ namespace Watsonia.Data
 			return result;
 		}
 
-		private async Task<IList<IDynamicProxy>> LoadCollectionAsync(SelectStatement select, Type itemType)
+		private async Task<IList<IDynamicProxy>> LoadCollectionAsync(SelectStatement select, Type itemType, CancellationToken cancellationToken)
 		{
 			OnBeforeLoadCollection(select);
 
 			var result = new List<IDynamicProxy>();
 
-			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration))
+			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, cancellationToken))
 			using (var command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
-				using (var reader = await command.ExecuteReaderAsync())
+				using (var reader = await command.ExecuteReaderAsync(cancellationToken))
 				{
 					var fieldNames = GetReaderFieldNames(reader);
-					while (await reader.ReadAsync())
+					while (await reader.ReadAsync(cancellationToken))
 					{
 						var proxyConstructor = DynamicProxyFactory.GetDynamicProxyConstructor(itemType, this);
 						var proxy = proxyConstructor.Create();
@@ -261,7 +265,7 @@ namespace Watsonia.Data
 				if (result.Count > 0 && select.IncludePaths.Count > 0)
 				{
 					// HACK: Include paths are loaded synchronously for now, because I don't want to duplicate all of that code
-					await LoadIncludePathsAsync(select, result).ConfigureAwait(false);
+					await LoadIncludePathsAsync(select, result, cancellationToken).ConfigureAwait(false);
 				}
 			}
 
@@ -270,20 +274,20 @@ namespace Watsonia.Data
 			return result;
 		}
 
-		private async Task RefreshCollectionAsync(SelectStatement select, Type elementType, IList collection)
+		private async Task RefreshCollectionAsync(SelectStatement select, Type elementType, IList collection, CancellationToken cancellationToken)
 		{
 			var newCollection = new List<IDynamicProxy>();
 
 			// Load items from the database
-			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration))
+			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, cancellationToken))
 			using (var command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
-				using (var reader = await command.ExecuteReaderAsync())
+				using (var reader = await command.ExecuteReaderAsync(cancellationToken))
 				{
 					var fieldNames = GetReaderFieldNames(reader);
-					while (await reader.ReadAsync())
+					while (await reader.ReadAsync(cancellationToken))
 					{
 						var proxy = DynamicProxyFactory.GetDynamicProxy(elementType, this);
 						proxy.__SetValuesFromReader(reader, fieldNames);
@@ -302,18 +306,19 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="select">The select statement.</param>
 		/// <returns></returns>
-		public async Task<object> LoadValueAsync(SelectStatement select)
+		public async Task<object> LoadValueAsync(SelectStatement select, CancellationToken cancellationToken = default)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			OnBeforeLoadValue(select);
 
 			object value;
 
-			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration))
+			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, cancellationToken))
 			using (var command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
-				value = await command.ExecuteScalarAsync();
+				value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 				OnAfterExecuteCommand(command);
 			}
 
@@ -327,10 +332,10 @@ namespace Watsonia.Data
 		/// </summary>
 		/// <param name="select">The select statement.</param>
 		/// <returns></returns>
-		public async Task<object> LoadValueAsync<T>(SelectStatement<T> select)
+		public async Task<object> LoadValueAsync<T>(SelectStatement<T> select, CancellationToken cancellationToken = default)
 		{
 			var select2 = (SelectStatement)select.CreateStatement(new QueryMapper(this.Configuration));
-			return await LoadValueAsync(select2);
+			return await LoadValueAsync(select2).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -343,12 +348,12 @@ namespace Watsonia.Data
 		{
 			object value;
 
-			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration))
+			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, CancellationToken.None))
 			using (var command = this.Configuration.DataAccessProvider.BuildCommand(query, this.Configuration, parameters))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
-				value = await command.ExecuteScalarAsync();
+				value = await command.ExecuteScalarAsync(CancellationToken.None).ConfigureAwait(false);
 				OnAfterExecuteCommand(command);
 			}
 
@@ -362,8 +367,9 @@ namespace Watsonia.Data
 		/// <param name="item">The item.</param>
 		/// <param name="connection">The connection.</param>
 		/// <param name="transaction">The transaction.</param>
-		public async Task SaveAsync<T>(T item, DbConnection connection = null, DbTransaction transaction = null)
+		public async Task SaveAsync<T>(T item, DbConnection connection = null, DbTransaction transaction = null, CancellationToken cancellationToken = default)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			if ((item as IDynamicProxy) == null)
 			{
 				var message = $"item must be an IDynamicProxy (not {item.GetType().Name})";
@@ -384,12 +390,12 @@ namespace Watsonia.Data
 
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
-			var connectionToUse = connection ?? await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration);
+			var connectionToUse = connection ?? await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, cancellationToken).ConfigureAwait(false);
 			var transactionToUse = transaction ?? connectionToUse.BeginTransaction();
 			try
 			{
 				var parents = new List<string>();
-				await SaveItemAsync(proxy, parents, connectionToUse, transactionToUse);
+				await SaveItemAsync(proxy, parents, connectionToUse, transactionToUse, cancellationToken).ConfigureAwait(false);
 
 				UpdateSavedCollectionIDs(item);
 
@@ -424,7 +430,7 @@ namespace Watsonia.Data
 			OnAfterSave(proxy);
 		}
 
-		private async Task SaveItemAsync(IDynamicProxy proxy, List<string> parents, DbConnection connection, DbTransaction transaction)
+		private async Task SaveItemAsync(IDynamicProxy proxy, List<string> parents, DbConnection connection, DbTransaction transaction, CancellationToken cancellationToken)
 		{
 			var tableType = proxy.GetType().BaseType;
 			var tableName = this.Configuration.GetTableName(tableType);
@@ -448,7 +454,7 @@ namespace Watsonia.Data
 				{
 					if (this.Configuration.ShouldCascadeInternal(property))
 					{
-						await SaveItemAsync(relatedItem, parents, connection, transaction);
+						await SaveItemAsync(relatedItem, parents, connection, transaction, cancellationToken).ConfigureAwait(false);
 
 						// Update the related item ID property
 						var relatedItemIDPropertyName = this.Configuration.GetForeignKeyColumnName(property);
@@ -469,7 +475,7 @@ namespace Watsonia.Data
 			if (proxy.StateTracker.IsNew)
 			{
 				// Insert the item
-				await InsertItemAsync(proxy, tableName, tableType, primaryKeyColumnName, connection, transaction);
+				await InsertItemAsync(proxy, tableName, tableType, primaryKeyColumnName, connection, transaction, cancellationToken).ConfigureAwait(false);
 
 				// Update the parent key with the new primary key value
 				parents.Remove(parentKey);
@@ -481,7 +487,7 @@ namespace Watsonia.Data
 				// Only update the item if its fields have been changed
 				if (proxy.StateTracker.HasChanges)
 				{
-					await UpdateItemAsync(proxy, tableName, primaryKeyColumnName, connection, transaction);
+					await UpdateItemAsync(proxy, tableName, primaryKeyColumnName, connection, transaction, cancellationToken).ConfigureAwait(false);
 				}
 			}
 
@@ -521,7 +527,7 @@ namespace Watsonia.Data
 							var parentIDPropertyName = this.Configuration.GetForeignKeyColumnName(childItem.GetType().BaseType, tableType);
 							childItem.__SetValue(parentIDPropertyName, proxy.__PrimaryKeyValue);
 						}
-						await SaveItemAsync(childItem, parents, connection, transaction);
+						await SaveItemAsync(childItem, parents, connection, transaction, cancellationToken).ConfigureAwait(false);
 					}
 					collectionIDs.Add(((IDynamicProxy)childItem).__PrimaryKeyValue);
 				}
@@ -545,9 +551,9 @@ namespace Watsonia.Data
 
 							// Load the items and delete them. Not the most efficient but it ensures that things
 							// are cascaded correctly and the right events are raised
-							foreach (var deleteItem in await LoadCollectionAsync(select, deleteType))
+							foreach (var deleteItem in await LoadCollectionAsync(select, deleteType, cancellationToken))
 							{
-								await DeleteAsync(deleteItem, deleteType, connection, transaction);
+								await DeleteAsync(deleteItem, deleteType, connection, transaction, cancellationToken).ConfigureAwait(false);
 							}
 						}
 					}
@@ -558,7 +564,7 @@ namespace Watsonia.Data
 			proxy.StateTracker.HasChanges = false;
 		}
 
-		private async Task InsertItemAsync(IDynamicProxy proxy, string tableName, Type tableType, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction)
+		private async Task InsertItemAsync(IDynamicProxy proxy, string tableName, Type tableType, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction, CancellationToken cancellationToken)
 		{
 			var insert = QueryBuilder.Insert.Into(tableName);
 			foreach (var property in this.Configuration.PropertiesToLoadAndSave(proxy.GetType()))
@@ -576,7 +582,7 @@ namespace Watsonia.Data
 				}
 			}
 
-			await ExecuteAsync(insert, connection, transaction);
+			await ExecuteAsync(insert, connection, transaction).ConfigureAwait(false);
 
 			// TODO: This probably isn't going to deal too well with concurrency, should there be a transaction?
 			//	Or wack it on the end of the build(insert)?
@@ -584,13 +590,13 @@ namespace Watsonia.Data
 			{
 				getPrimaryKeyValueCommand.Connection = connection;
 				getPrimaryKeyValueCommand.Transaction = transaction;
-				var primaryKeyValue = await getPrimaryKeyValueCommand.ExecuteScalarAsync();
+				var primaryKeyValue = await getPrimaryKeyValueCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 				proxy.__PrimaryKeyValue = Convert.ChangeType(primaryKeyValue, this.Configuration.GetPrimaryKeyColumnType(tableType));
 				proxy.StateTracker.IsNew = false;
 			}
 		}
 
-		private async Task UpdateItemAsync(IDynamicProxy proxy, string tableName, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction)
+		private async Task UpdateItemAsync(IDynamicProxy proxy, string tableName, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction, CancellationToken cancellationToken)
 		{
 			// TODO: Get rid of this, it's just to stop properties like Database and HasChanges
 			var doUpdate = false;
@@ -619,7 +625,7 @@ namespace Watsonia.Data
 
 			update = update.Where(primaryKeyColumnName, SqlOperator.Equals, proxy.__PrimaryKeyValue);
 
-			await ExecuteAsync(update, connection, transaction);
+			await ExecuteAsync(update, connection, transaction).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -628,12 +634,13 @@ namespace Watsonia.Data
 		/// <typeparam name="T">The type of item to insert and create a proxy for.</typeparam>
 		/// <param name="item">The item.</param>
 		/// <returns></returns>
-		public async Task<T> InsertAsync<T>(T item) where T : class
+		public async Task<T> InsertAsync<T>(T item, CancellationToken cancellationToken = default) where T : class
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			OnBeforeInsert(item);
 
 			var newItem = Create(item);
-			await SaveAsync(newItem);
+			await SaveAsync(newItem).ConfigureAwait(false);
 
 			OnAfterInsert((IDynamicProxy)newItem);
 
@@ -647,10 +654,11 @@ namespace Watsonia.Data
 		/// <param name="id">The ID.</param>
 		/// <param name="connection">The connection.</param>
 		/// <param name="transaction">The transaction.</param>
-		public async Task DeleteAsync<T>(object id, DbConnection connection = null, DbTransaction transaction = null) where T : class
+		public async Task DeleteAsync<T>(object id, DbConnection connection = null, DbTransaction transaction = null, CancellationToken cancellationToken = default) where T : class
 		{
-			var item = await LoadAsync<T>(id);
-			await DeleteAsync(item, connection, transaction);
+			cancellationToken.ThrowIfCancellationRequested();
+			var item = await LoadAsync<T>(id).ConfigureAwait(false);
+			await DeleteAsync(item, connection, transaction).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -661,12 +669,12 @@ namespace Watsonia.Data
 		/// <param name="connection">The connection.</param>
 		/// <param name="transaction">The transaction.</param>
 		/// <exception cref="ArgumentException">item</exception>
-		public async Task DeleteAsync<T>(T item, DbConnection connection = null, DbTransaction transaction = null)
+		public async Task DeleteAsync<T>(T item, DbConnection connection = null, DbTransaction transaction = null, CancellationToken cancellationToken = default)
 		{
-			await DeleteAsync(item, typeof(T), connection, transaction);
+			await DeleteAsync(item, typeof(T), connection, transaction, cancellationToken).ConfigureAwait(false);
 		}
 
-		private async Task DeleteAsync(object item, Type itemType, DbConnection connection = null, DbTransaction transaction = null)
+		private async Task DeleteAsync(object item, Type itemType, DbConnection connection, DbTransaction transaction, CancellationToken cancellationToken)
 		{
 			if ((item as IDynamicProxy) == null)
 			{
@@ -684,7 +692,7 @@ namespace Watsonia.Data
 
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
-			var connectionToUse = connection ?? await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration);
+			var connectionToUse = connection ?? await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, cancellationToken).ConfigureAwait(false);
 			var transactionToUse = transaction ?? connectionToUse.BeginTransaction();
 			try
 			{
@@ -705,29 +713,29 @@ namespace Watsonia.Data
 						{
 							var deletePrimaryKeyName = this.Configuration.GetPrimaryKeyColumnName(deleteType);
 							var select = Select.From(deleteTableName).Where(deletePrimaryKeyName, SqlOperator.Equals, deletePrimaryKeyValue);
-							itemsToDelete = await LoadCollectionAsync(select, deleteType);
+							itemsToDelete = await LoadCollectionAsync(select, deleteType, cancellationToken).ConfigureAwait(false);
 
 							// Update the field to null to avoid a reference exception when deleting the item
 							var columnName = this.Configuration.GetColumnName(property);
 							var updateQuery = Update.Table(tableName).Set(columnName, null).Where(primaryKeyName, SqlOperator.Equals, proxy.__PrimaryKeyValue);
-							await ExecuteAsync(updateQuery, connection, transaction);
+							await ExecuteAsync(updateQuery, connection, transaction).ConfigureAwait(false);
 						}
 					}
 					else if (this.Configuration.IsRelatedCollection(property))
 					{
 						var deleteForeignKeyName = this.Configuration.GetForeignKeyColumnName(deleteType, tableType);
 						var select = Select.From(deleteTableName).Where(deleteForeignKeyName, SqlOperator.Equals, proxy.__PrimaryKeyValue);
-						itemsToDelete = await LoadCollectionAsync(select, deleteType);
+						itemsToDelete = await LoadCollectionAsync(select, deleteType, cancellationToken).ConfigureAwait(false);
 					}
 
 					foreach (var deleteItem in itemsToDelete)
 					{
-						await DeleteAsync(deleteItem, deleteType, connection, transaction);
+						await DeleteAsync(deleteItem, deleteType, connection, transaction, cancellationToken).ConfigureAwait(false);
 					}
 				}
 
 				var deleteQuery = QueryBuilder.Delete.From(tableName).Where(primaryKeyName, SqlOperator.Equals, proxy.__PrimaryKeyValue);
-				await ExecuteAsync(deleteQuery, connectionToUse, transactionToUse);
+				await ExecuteAsync(deleteQuery, connectionToUse, transactionToUse).ConfigureAwait(false);
 
 				// If a transaction was not passed in and we created our own, commit it
 				if (transaction == null)
@@ -766,13 +774,14 @@ namespace Watsonia.Data
 		/// <param name="statement">The statement.</param>
 		/// <param name="connection">The connection.</param>
 		/// <param name="transaction">The transaction.</param>
-		public async Task ExecuteAsync(Statement statement, DbConnection connection = null, DbTransaction transaction = null)
+		public async Task ExecuteAsync(Statement statement, DbConnection connection = null, DbTransaction transaction = null, CancellationToken cancellationToken = default)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			OnBeforeExecute(statement);
 
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
-			var connectionToUse = connection ?? await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration);
+			var connectionToUse = connection ?? await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, cancellationToken).ConfigureAwait(false);
 			try
 			{
 				using (var command = this.Configuration.DataAccessProvider.BuildCommand(statement, this.Configuration))
@@ -780,7 +789,7 @@ namespace Watsonia.Data
 					command.Connection = connectionToUse;
 					command.Transaction = transaction;
 					OnBeforeExecuteCommand(command);
-					await command.ExecuteNonQueryAsync();
+					await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
 					OnAfterExecuteCommand(command);
 				}
 			}
@@ -803,7 +812,7 @@ namespace Watsonia.Data
 		/// <param name="parameters">The parameters.</param>
 		public async Task ExecuteAsync(string statement, params object[] parameters)
 		{
-			await ExecuteAsync(statement, connection: null, transaction: null, parameters: parameters);
+			await ExecuteAsync(statement, connection: null, transaction: null, parameters: parameters).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -814,7 +823,7 @@ namespace Watsonia.Data
 		/// <param name="parameters">The parameters.</param>
 		public async Task ExecuteAsync(string statement, DbConnection connection, params object[] parameters)
 		{
-			await ExecuteAsync(statement, connection: connection, transaction: null, parameters: parameters);
+			await ExecuteAsync(statement, connection: connection, transaction: null, parameters: parameters).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -828,7 +837,7 @@ namespace Watsonia.Data
 		{
 			// Create a connection if one wasn't passed in
 			// Store it in a variable so that we know whether to dispose or leave it for the calling function
-			var connectionToUse = connection ?? await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration);
+			var connectionToUse = connection ?? await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, CancellationToken.None).ConfigureAwait(false);
 			try
 			{
 				using (var command = this.Configuration.DataAccessProvider.BuildCommand(statement, this.Configuration, parameters))
@@ -836,7 +845,7 @@ namespace Watsonia.Data
 					command.Connection = connectionToUse;
 					command.Transaction = transaction;
 					OnBeforeExecuteCommand(command);
-					await command.ExecuteNonQueryAsync();
+					await command.ExecuteNonQueryAsync(CancellationToken.None).ConfigureAwait(false);
 					OnAfterExecuteCommand(command);
 				}
 			}
@@ -860,12 +869,12 @@ namespace Watsonia.Data
 		{
 			object value;
 
-			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration))
+			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, CancellationToken.None))
 			using (var command = this.Configuration.DataAccessProvider.BuildProcedureCommand(procedureName, parameters))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
-				value = await command.ExecuteScalarAsync();
+				value = await command.ExecuteScalarAsync(CancellationToken.None).ConfigureAwait(false);
 				OnAfterExecuteCommand(command);
 			}
 
@@ -882,23 +891,24 @@ namespace Watsonia.Data
 		/// <param name="query">The query as a string with parameter value placeholders signified by @0, @1 etc.</param>
 		/// <param name="parameters">The parameters.</param>
 		/// <returns></returns>
-		public async IAsyncEnumerable<T> EnumerateCollectionAsync<T>(SelectStatement select)
+		public async IAsyncEnumerable<T> EnumerateCollectionAsync<T>(SelectStatement select, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			OnBeforeLoadCollection(select);
 
 			var result = new List<T>();
 
 			var itemType = GetCollectionItemType(typeof(T));
 
-			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration))
+			using (var connection = await this.Configuration.DataAccessProvider.OpenConnectionAsync(this.Configuration, cancellationToken))
 			using (var command = this.Configuration.DataAccessProvider.BuildCommand(select, this.Configuration))
 			{
 				command.Connection = connection;
 				OnBeforeExecuteCommand(command);
-				using (var reader = await command.ExecuteReaderAsync())
+				using (var reader = await command.ExecuteReaderAsync(cancellationToken))
 				{
 					var fieldNames = GetReaderFieldNames(reader);
-					while (await reader.ReadAsync())
+					while (await reader.ReadAsync(cancellationToken))
 					{
 						var newItem = LoadItemInCollection<T>(reader, itemType, fieldNames);
 						result.Add(newItem);
@@ -919,7 +929,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T">The type of the entity.</typeparam>
 		/// <param name="item">The entity whose related item should be loaded.</param>
 		/// <param name="property">The property containing the related item.</param>
-		public async Task LoadItemAsync<T>(T item, Expression<Func<T, object>> property) where T : class
+		public async Task LoadItemAsync<T>(T item, Expression<Func<T, object>> property, CancellationToken cancellationToken = default) where T : class
 		{
 			if (item == null)
 			{
@@ -943,10 +953,10 @@ namespace Watsonia.Data
 				var loadAsyncMethod = typeof(Database).GetMethods()
 					.Single(m => m.Name == nameof(LoadAsync)
 						&& m.IsGenericMethod
-						&& m.GetParameters().Length == 1
+						&& m.GetParameters().Length == 2
 						&& m.GetParameters()[0].ParameterType == typeof(object))
 					.MakeGenericMethod(relatedType);
-				var task = (Task)loadAsyncMethod.Invoke(this, new object[] { id });
+				var task = (Task)loadAsyncMethod.Invoke(this, new object[] { id, cancellationToken });
 				await task.ConfigureAwait(false);
 				related = task.GetType().GetProperty("Result").GetValue(task);
 			}
@@ -963,7 +973,7 @@ namespace Watsonia.Data
 		/// <typeparam name="T">The type of the entity.</typeparam>
 		/// <param name="item">The entity whose related collection should be loaded.</param>
 		/// <param name="property">The property containing the related collection.</param>
-		public async Task LoadCollectionAsync<T>(T item, Expression<Func<T, object>> property) where T : class
+		public async Task LoadCollectionAsync<T>(T item, Expression<Func<T, object>> property, CancellationToken cancellationToken = default) where T : class
 		{
 			if (item == null)
 			{
@@ -982,7 +992,7 @@ namespace Watsonia.Data
 			var foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(elementType, typeof(T));
 			var select = Select.From(tableName).Where(foreignKeyColumnName, SqlOperator.Equals, proxy.__PrimaryKeyValue);
 
-			var collection = await LoadCollectionAsyncInternal(select, elementType).ConfigureAwait(false);
+			var collection = await LoadCollectionAsyncInternal(select, elementType, cancellationToken).ConfigureAwait(false);
 
 			proxy.StateTracker.IsLoading = true;
 			proxy.StateTracker.SetCollection(propertyInfo.Name, collection);
@@ -991,15 +1001,15 @@ namespace Watsonia.Data
 			proxy.StateTracker.AddLoadedCollection(propertyInfo.Name);
 		}
 
-		private async Task<IList> LoadCollectionAsyncInternal(SelectStatement select, Type itemType)
+		private async Task<IList> LoadCollectionAsyncInternal(SelectStatement select, Type itemType, CancellationToken cancellationToken)
 		{
 			var loadCollectionAsyncMethod = typeof(Database).GetMethods()
 				.Single(m => m.Name == nameof(LoadCollectionAsync)
 					&& m.IsGenericMethod
-					&& m.GetParameters().Length == 1
+					&& m.GetParameters().Length == 2
 					&& m.GetParameters()[0].ParameterType == typeof(SelectStatement))
 				.MakeGenericMethod(itemType);
-			var task = (Task)loadCollectionAsyncMethod.Invoke(this, new object[] { select });
+			var task = (Task)loadCollectionAsyncMethod.Invoke(this, new object[] { select, cancellationToken });
 			await task.ConfigureAwait(false);
 			return (IList)task.GetType().GetProperty("Result").GetValue(task);
 		}
@@ -1025,7 +1035,7 @@ namespace Watsonia.Data
 			throw new ArgumentException("The expression must be a property accessor", nameof(property));
 		}
 
-		private async Task LoadIncludePathsAsync<T>(SelectStatement select, IList<T> result)
+		private async Task LoadIncludePathsAsync<T>(SelectStatement select, IList<T> result, CancellationToken cancellationToken)
 		{
 			var parentType = typeof(T);
 			if (typeof(IDynamicProxy).IsAssignableFrom(parentType))
@@ -1046,18 +1056,18 @@ namespace Watsonia.Data
 
 			foreach (var path in select.IncludePaths.Except(pathsToRemove))
 			{
-				await LoadIncludePathAsync(select, result, parentType, path).ConfigureAwait(false);
+				await LoadIncludePathAsync(select, result, parentType, path, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
-		private async Task LoadIncludePathAsync<T>(SelectStatement parentQuery, IList<T> parentCollection, Type parentType, string path)
+		private async Task LoadIncludePathAsync<T>(SelectStatement parentQuery, IList<T> parentCollection, Type parentType, string path, CancellationToken cancellationToken)
 		{
 			var firstProperty = path.Contains(".") ? path.Substring(0, path.IndexOf(".")) : path;
 			var pathProperty = parentType.GetProperty(firstProperty);
-			await LoadCompoundChildItemsAsync(parentQuery, parentCollection, path, parentType, pathProperty).ConfigureAwait(false);
+			await LoadCompoundChildItemsAsync(parentQuery, parentCollection, path, parentType, pathProperty, cancellationToken).ConfigureAwait(false);
 		}
 
-		private async Task LoadCompoundChildItemsAsync<T>(SelectStatement parentQuery, IList<T> parentCollection, string path, Type parentType, PropertyInfo pathProperty)
+		private async Task LoadCompoundChildItemsAsync<T>(SelectStatement parentQuery, IList<T> parentCollection, string path, Type parentType, PropertyInfo pathProperty, CancellationToken cancellationToken)
 		{
 			var pathParts = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
 			var paths = pathParts.Select(p => new IncludePath(p)).ToArray();
@@ -1092,13 +1102,13 @@ namespace Watsonia.Data
 			}
 
 			// Load the first child items
-			paths[0].ChildCollection = await LoadCollectionAsyncInternal(childQuery, itemType).ConfigureAwait(false);
+			paths[0].ChildCollection = await LoadCollectionAsyncInternal(childQuery, itemType, cancellationToken).ConfigureAwait(false);
 
 			// For compound paths, load the other child items
 			propertyParentType = itemType;
 			for (var i = 1; i < pathParts.Length; i++)
 			{
-				paths[i].ChildCollection = await LoadChildCollectionAsync(childQuery, propertyParentType, paths[i].Property).ConfigureAwait(false);
+				paths[i].ChildCollection = await LoadChildCollectionAsync(childQuery, propertyParentType, paths[i].Property, cancellationToken).ConfigureAwait(false);
 				propertyParentType = paths[i].Property.PropertyType;
 			}
 
@@ -1106,7 +1116,7 @@ namespace Watsonia.Data
 			SetChildItems(parentCollection, parentType, paths, 0);
 		}
 
-		private async Task<IEnumerable> LoadChildCollectionAsync(SelectStatement childQuery, Type propertyParentType, PropertyInfo pathProperty)
+		private async Task<IEnumerable> LoadChildCollectionAsync(SelectStatement childQuery, Type propertyParentType, PropertyInfo pathProperty, CancellationToken cancellationToken)
 		{
 			childQuery.SourceFields.Clear();
 
@@ -1142,7 +1152,7 @@ namespace Watsonia.Data
 				throw new InvalidOperationException();
 			}
 
-			return await LoadCollectionAsyncInternal(childQuery, itemType).ConfigureAwait(false);
+			return await LoadCollectionAsyncInternal(childQuery, itemType, cancellationToken).ConfigureAwait(false);
 		}
 
 	}
