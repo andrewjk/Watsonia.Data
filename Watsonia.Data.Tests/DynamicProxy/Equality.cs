@@ -20,7 +20,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 			((IDynamicProxy)b).__PrimaryKeyValue = 5;
 	
 			Assert.AreEqual(true, a.Equals(b), "Using Equals failed");
-			Assert.AreNotEqual("", a.GetHashCode(), "GetHashCode failed");
+			Assert.AreNotEqual(0, a.GetHashCode(), "GetHashCode failed");
 
 			// We can't add operator overloads at run-time but we can test whether adding them in a base class will work
 			Assert.AreEqual(true, a == b, "Using == failed");

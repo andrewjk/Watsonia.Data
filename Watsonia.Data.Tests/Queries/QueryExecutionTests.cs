@@ -796,10 +796,9 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(InvalidOperationException))]
 		public void SingleFails()
 		{
-			var single = _db.Customers.Single();
+			Assert.ThrowsExactly<InvalidOperationException>(() => _db.Customers.Single());
 		}
 
 		[TestMethod]
@@ -819,10 +818,9 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(InvalidOperationException))]
 		public void SingleOrDefaultFails()
 		{
-			var single = _db.Customers.SingleOrDefault();
+			Assert.ThrowsExactly<InvalidOperationException>(() => _db.Customers.SingleOrDefault());
 		}
 
 		[TestMethod]

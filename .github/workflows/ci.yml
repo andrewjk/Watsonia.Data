@@ -50,3 +50,22 @@ jobs:
         run: dotnet build Watsonia.Data.sln -c Release --no-restore
       - name: Test
         run: dotnet test Watsonia.Data.sln -c Release --no-build
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore
+        run: dotnet restore Watsonia.Data.sln
+      - name: Check for vulnerable packages
+        shell: bash
+        run: |
+          output=$(dotnet list Watsonia.Data.sln package --vulnerable --include-transitive)
+          echo "$output"
+          if echo "$output" | grep -q "has the following vulnerable packages"; then
+            echo "::error::Vulnerable NuGet packages found"
+            exit 1
+          fi

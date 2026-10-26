@@ -90,7 +90,7 @@ namespace Watsonia.Data.Tests.Database
 			Assert.AreEqual(2, withChildren.Children.Count);
 
 			// Lazy loading is still disabled for non-included relationships
-			var exception = Assert.ThrowsException<InvalidOperationException>(
+			var exception = Assert.ThrowsExactly<InvalidOperationException>(
 				() => withChildren.Children[0].SubChildren.Count);
 			StringAssert.Contains(exception.Message, "Lazy loading is disabled");
 		}

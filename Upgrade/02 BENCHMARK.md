@@ -115,3 +115,41 @@ Improvements: **1.7× / 3.5× / 19× / 15×** (post-IDs / posts / players-per-te
 - The first execution of each distinct query shape still pays translate+compile (≈0.5ms).
 - Remaining allocation hotspot is entity materialization/projection (≈2.6MB for 500 posts, dominated by 500 proxies/value bags) — the domain of the source-generated-proxy work.
 - `ResearchBenchmarks` (translate/compile/full phase split) is part of the benchmark project for future diagnostics.
+
+---
+
+# Latest-dependency run — Dapper 2.1.89 (October 2026)
+
+The benchmark project's dependencies were brought up to their current versions before this run: **Dapper 2.0.78 → 2.1.89** (the only benchmark-relevant change), with EF Core 10.0.14, Microsoft.Data.Sqlite 10.0.14, Microsoft.Data.SqlClient 7.1.1 and BenchmarkDotNet 0.15.8 already current. The same run also follows the `Microsoft.Extensions.*` 8.0.0 → 10.0.14 security update (not used by the benchmark) and MSTest 2.x → 4.5.1 (test-only).
+
+- BenchmarkDotNet 0.15.8, Apple M2 (8 cores), macOS 27.0.1, .NET SDK 10.0.102 / runtime 10.0.2 arm64, DefaultJob
+- 31 benchmarks, ~10 minutes; SQLite fixture with 500 posts / 5 sports / 50 teams / 500 players
+- Data correctness re-verified with `dotnet run -c Release --project Watsonia.Data.TestPerformance -- verify` (all frameworks identical)
+
+## Time (mean, µs) and ratio vs raw ADO.NET
+
+| Scenario | ADO.NET | Dapper | EF Core | Watsonia SQL | Watsonia LINQ |
+|---|---|---|---|---|---|
+| Post IDs | 341.1 | 365.6 (1.07×) | 393.7 (1.15×) | 355.3 (1.04×) | 357.7 (1.05×) |
+| Posts | 860.0 | 913.9 (1.06×) | 1,141.3 (1.33×) | 1,091.7 (1.27×) | 1,071.3 (1.25×) |
+| Player by ID | 7.62 | 8.98 (1.18×) | 48.55 (6.37×) | 9.03 (1.19×) | 9.01 (1.18×) |
+| Players / team | 23.79 | 26.80 (1.13×) | 62.93 (2.65×) | 29.48 (1.24×) | 34.77 (1.46×) |
+| Teams / sport | 86.51 | 132.84 (1.54×) | 383.38 (4.43×) | 148.79 (1.72×) | 177.01 (2.05×) |
+
+## Allocations (per operation)
+
+| Scenario | ADO.NET | Dapper | EF Core | Watsonia SQL | Watsonia LINQ |
+|---|---|---|---|---|---|
+| Post IDs | 9.26 KB | 33.55 KB | 162.48 KB | 29.28 KB | 23.00 KB |
+| Posts | 2.01 MB | 2.06 MB | 2.43 MB | 2.52 MB | 2.54 MB |
+| Player by ID | 1.69 KB | 2.32 KB | 66.66 KB | 4.66 KB | 4.66 KB |
+| Players / team | 3.54 KB | 5.35 KB | 67.23 KB | 15.04 KB | 23.47 KB |
+| Teams / sport | 21.84 KB | 46.49 KB | 171.37 KB | 131.04 KB | 201.44 KB |
+
+## Observations
+
+1. **Dapper 2.1.89 is within noise of 2.0.78** on every scenario (e.g. 353.7 → 365.6 µs Post IDs, 889.6 → 913.9 µs Posts, 132.8 → 132.8 µs Teams/sport), so the previous comparison remains valid.
+2. Watsonia's ordering is unchanged: fluent SQL is at ADO.NET/Dapper parity; LINQ is fastest on single entities (18% over ADO.NET, ~5.4× faster than EF Core) but pays its include/materialization cost on relation loads (2.05× ADO.NET for teams/sport).
+3. There are no new outliers or correctness warnings; the benchmark's cross-framework `verify` check passes.
+4. EF Core remains the slowest for single-entity loads (6.37× ADO.NET, 67 KB per call), but competitive on sets.
+5. Top-level packages are now all on their latest versions. Transitive pins that come from upstream providers were intentionally **not** forced (for example SqlClient's `Microsoft.Extensions.*` 8.x and Microsoft.Data.Sqlite's SQLitePCLRaw 2.x) because lifting them independently is unsupported by those providers; they contain no current advisories.

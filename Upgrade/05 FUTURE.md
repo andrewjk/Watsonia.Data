@@ -6,7 +6,7 @@ Status: **backlog** — nothing here is committed to a release.
 
 Related documents:
 - `03 MODERNIZATION.md` — what changed and why
-- `04 GENERATED PROXIES DESIGN.md` — detailed design for the source-generator work
+- `04 GENERATED PROXIES.md` — detailed design for the source-generator work
 - `02 BENCHMARK.md` — baseline measurements
 
 ---
@@ -131,7 +131,7 @@ Remaining discussions:
 
 ## 3. Source generators and NativeAOT
 
-Follow `04 GENERATED PROXIES DESIGN.md`:
+Follow `04 GENERATED PROXIES.md`:
 
 - shape-only Roslyn generator with `[WatsoniaEntity]` opt-in; shape at compile time, naming/policy at runtime
 - `[ModuleInitializer]` proxy registry and removal of per-entity `CreateType()` startup cost
@@ -195,7 +195,7 @@ Add round-trip tests for enums, `Guid`, `DateTimeOffset`, `TimeSpan`, `byte[]`, 
 
 ## 7. Packaging, docs and release hygiene
 
-- **Security:** `Watsonia.Data.Extensions` still references `Microsoft.Extensions.*` 8.0.0; `Microsoft.Extensions.Caching.Memory` 8.0.0 has a high-severity advisory (`GHSA-qj66-m88j-hmgj`). Bump the whole Microsoft.Extensions set to a patched line (10.x where available) and keep netstandard2.0 compatibility.
+- **Dependency currency:** top-level packages are current (`Microsoft.Extensions.*` 10.0.14 — the `GHSA-qj66-m88j-hmgj` advisory is cleared — MSTest 4.5.1, Dapper 2.1.89, EF Core/SqlClient/SQLite/BenchmarkDotNet latest). Keep them current, but do not force upstream transitive pins (SqlClient's `Microsoft.Extensions.*` 8.x, SQLitePCLRaw 2.x) without provider testing. Add a dependency-audit gate to CI (`dotnet list package --vulnerable --include-transitive` or NuGetAudit warnings-as-errors).
 - Consider central package management (`Directory.Packages.props`) to avoid version drift.
 - Refresh `README.md` and `01 SUMMARY.md`: they still describe Remotion.Linq-era query styles and "very beta" status. Document the IQToolkit-derived engine, async, fluent/LINQ parity, AOT/source-generator direction and the migration story.
 - Add XML API docs/samples for the new fluent helpers (`WhereExists`, `WhereIn`, `ColumnSubquery`, `First/Last/Reverse`, scalar `Any/None/Contains`).

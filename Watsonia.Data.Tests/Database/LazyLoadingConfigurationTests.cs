@@ -79,7 +79,7 @@ namespace Watsonia.Data.Tests.Database
 			var parent = db.LoadCollection<LoadingParent>(
 				Select.From("LoadingParent").Where("Name", SqlOperator.Equals, "LA1"))[0];
 
-			var exception = Assert.ThrowsException<InvalidOperationException>(() => parent.Children.Count);
+			var exception = Assert.ThrowsExactly<InvalidOperationException>(() => parent.Children.Count);
 			StringAssert.Contains(exception.Message, "Lazy loading is disabled");
 			StringAssert.Contains(exception.Message, "Children");
 		}
@@ -95,7 +95,7 @@ namespace Watsonia.Data.Tests.Database
 			var order = db.LoadCollection<Order>(
 				Select.From("Orders").Where("CustomerID", SqlOperator.Equals, "ALFKI"))[0];
 
-			var exception = Assert.ThrowsException<InvalidOperationException>(() => order.Customer);
+			var exception = Assert.ThrowsExactly<InvalidOperationException>(() => order.Customer);
 			StringAssert.Contains(exception.Message, "Lazy loading is disabled");
 			StringAssert.Contains(exception.Message, "Customer");
 		}
@@ -155,7 +155,7 @@ namespace Watsonia.Data.Tests.Database
 			using var cancellation = new CancellationTokenSource();
 			cancellation.Cancel();
 
-			await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+			await Assert.ThrowsExactlyAsync<OperationCanceledException>(
 				() => db.LoadCollectionAsync<LoadingParent>(
 					Select.From("LoadingParent").Where("Name", SqlOperator.Equals, "LA1"),
 					cancellation.Token));
@@ -227,13 +227,13 @@ namespace Watsonia.Data.Tests.Database
 			var parent = db.LoadCollection<LoadingParent>(
 				Select.From("LoadingParent").Where("Name", SqlOperator.Equals, "LA1"))[0];
 
-			await Assert.ThrowsExceptionAsync<ArgumentNullException>(
+			await Assert.ThrowsExactlyAsync<ArgumentNullException>(
 				() => db.LoadCollectionAsync<LoadingParent>(null, p => p.Children));
-			await Assert.ThrowsExceptionAsync<ArgumentNullException>(
+			await Assert.ThrowsExactlyAsync<ArgumentNullException>(
 				() => db.LoadCollectionAsync(parent, null));
-			await Assert.ThrowsExceptionAsync<ArgumentException>(
+			await Assert.ThrowsExactlyAsync<ArgumentException>(
 				() => db.LoadCollectionAsync(parent, p => p.Name));
-			await Assert.ThrowsExceptionAsync<ArgumentException>(
+			await Assert.ThrowsExactlyAsync<ArgumentException>(
 				() => db.LoadItemAsync(parent, p => p.Children));
 		}
 

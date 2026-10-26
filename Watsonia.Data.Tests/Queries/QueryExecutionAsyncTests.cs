@@ -821,10 +821,9 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(InvalidOperationException))]
 		public async Task SingleFailsAsync()
 		{
-			var single = await _db.Customers.SingleAsync();
+			await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => _db.Customers.SingleAsync());
 		}
 
 		[TestMethod]
@@ -844,10 +843,9 @@ namespace Watsonia.Data.Tests.Queries
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(InvalidOperationException))]
 		public async Task SingleOrDefaultFailsAsync()
 		{
-			var single = await _db.Customers.SingleOrDefaultAsync();
+			await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => _db.Customers.SingleOrDefaultAsync());
 		}
 
 		[TestMethod]

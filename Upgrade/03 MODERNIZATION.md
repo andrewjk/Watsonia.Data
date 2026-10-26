@@ -2,7 +2,7 @@
 
 Yes — several, and they're structural rather than cosmetic. Framed against what's actually in this repo:
 
-*Status: items 2–4 are complete, item 1 is designed but not implemented, item 5 has started (HybridCache, pooling and first-class instrumentation hooks remain), and item 6 is complete apart from migration tooling. The remaining backlog is tracked in `04 FUTURE.md`. Each item below has a "Done so far" paragraph recording what changed.*
+*Status: items 2–4 are complete, item 1 is designed but not implemented, item 5 has started (HybridCache, pooling and first-class instrumentation hooks remain), and item 6 is complete apart from migration tooling. The remaining backlog is tracked in `05 FUTURE.md`. Each item below has a "Done so far" paragraph recording what changed.*
 
 ## The fork in the road
 
@@ -20,7 +20,7 @@ The single biggest change. `DynamicProxyFactory.cs` (2,400 lines of IL emission)
 
 This is where the ecosystem went: Dapper.AOT, Mapperly, EF Core compiled models.
 
-**Done so far:** Not implemented. The abandoned `origin/generator` branch (a design-time console tool that baked resolved schema values — `__TableName`, column mappings — into generated proxies from a JSON config) was merged experimentally, confirmed unable to express the code-based `DatabaseConfiguration` customizations, and reverted. The analysis is in `04 GENERATED PROXIES DESIGN.md`, including the key design decision: **split shape from naming** — generate structural shape at compile time (the non-virtual `IsRelatedItem`/`IsRelatedCollection` rules are replicable from a semantic model) while all naming/policy keeps resolving through the runtime configuration. The planned increment is a shape-only Roslyn generator with `[WatsoniaEntity]` opt-in and a `[ModuleInitializer]`-registered proxy registry, with the Reflection.Emit path as fallback for uncovered types.
+**Done so far:** Not implemented. The abandoned `origin/generator` branch (a design-time console tool that baked resolved schema values — `__TableName`, column mappings — into generated proxies from a JSON config) was merged experimentally, confirmed unable to express the code-based `DatabaseConfiguration` customizations, and reverted. The analysis is in `04 GENERATED PROXIES.md`, including the key design decision: **split shape from naming** — generate structural shape at compile time (the non-virtual `IsRelatedItem`/`IsRelatedCollection` rules are replicable from a semantic model) while all naming/policy keeps resolving through the runtime configuration. The planned increment is a shape-only Roslyn generator with `[WatsoniaEntity]` opt-in and a `[ModuleInitializer]`-registered proxy registry, with the Reflection.Emit path as fallback for uncovered types.
 
 ### 2. Get off Remotion.Linq (a dead dependency)
 Last release 2.2.0 in **2018**; EF Core abandoned it in 3.0 and wrote its own pipeline; effectively nothing maintains it. This is the riskiest dependency in the library. Options, in increasing effort:

@@ -159,11 +159,11 @@ namespace Watsonia.Data.Tests.Extensions
 		public void AddWatsoniaDataValidatesOptions()
 		{
 			var services = new ServiceCollection();
-			Assert.ThrowsException<InvalidOperationException>(
+			Assert.ThrowsExactly<InvalidOperationException>(
 				() => services.AddWatsoniaData(options => options.ConnectionString = ConnectionString));
 
 			var services2 = new ServiceCollection();
-			Assert.ThrowsException<InvalidOperationException>(
+			Assert.ThrowsExactly<InvalidOperationException>(
 				() => services2.AddWatsoniaData(options =>
 				{
 					options.ConnectionString = ConnectionString;
