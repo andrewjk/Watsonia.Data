@@ -97,6 +97,14 @@ namespace Watsonia.Data.SQLite
 					parameterValue = dateValue.ToString("yyyy-MM-dd");
 				}
 			}
+			else if (parameterValue.GetType() == typeof(decimal) ||
+					 parameterValue.GetType() == typeof(decimal?))
+			{
+				// Microsoft.Data.Sqlite binds decimals as text, so numeric comparisons between
+				// parameters (and against the REAL values SQLite stores for DECIMAL columns)
+				// would be lexicographic. Using a double matches how the values are stored.
+				parameterValue = Convert.ToDouble(parameterValue);
+			}
 			parameter.Value = parameterValue;
 			return parameter;
 		}
