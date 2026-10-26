@@ -1,7 +1,4 @@
-﻿using Remotion.Linq;
-using Remotion.Linq.Clauses.Expressions;
-using Remotion.Linq.Parsing;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +10,13 @@ using System.Threading.Tasks;
 namespace Watsonia.QueryBuilder
 {
 	/// <summary>
-	/// Converts Expressions (such as those in Re-Linq's QueryModels) into StatementParts.
+	/// Converts expressions into StatementParts.
 	/// </summary>
-	internal class StatementPartCreator : RelinqExpressionVisitor
+	internal class StatementPartCreator : ExpressionVisitor
 	{
-		private QueryModel QueryModel { get; set; }
+		private Type SourceType { get; set; }
+
+		private string SourceAlias { get; set; }
 
 		private DatabaseMapper Configuration { get; set; }
 
@@ -25,17 +24,27 @@ namespace Watsonia.QueryBuilder
 
 		private Stack<StatementPart> Stack { get; set; }
 
-		private StatementPartCreator(QueryModel queryModel, DatabaseMapper mapper, bool aliasTables)
+		private StatementPartCreator(Type sourceType, string sourceAlias, DatabaseMapper mapper, bool aliasTables)
 		{
-			this.QueryModel = queryModel;
+			this.SourceType = sourceType;
+			this.SourceAlias = sourceAlias;
 			this.Configuration = mapper;
 			this.AliasTables = aliasTables;
 			this.Stack = new Stack<StatementPart>();
 		}
 
-		public static StatementPart Visit(QueryModel queryModel, Expression expression, DatabaseMapper mapper, bool aliasTables)
+		public static StatementPart Visit(Expression expression, DatabaseMapper mapper, bool aliasTables, Type sourceType, string sourceAlias = null)
 		{
-			var visitor = new StatementPartCreator(queryModel, mapper, aliasTables);
+			// Remove compiler-generated array-to-span conversions (new in .NET 10)
+			expression = SpanConversionStripper.Strip(expression);
+
+			// Evaluate local (client-side) subtrees such as captured variables so that only the
+			// query source itself remains in the expression
+			var fnCanBeEvaluated = new Func<Expression, bool>(
+				node => !(node is ParameterExpression parameter) || parameter.Type != sourceType);
+			expression = PartialEvaluator.Eval(expression, fnCanBeEvaluated);
+
+			var visitor = new StatementPartCreator(sourceType, sourceAlias, mapper, aliasTables);
 			visitor.Visit(expression);
 			return visitor.Stack.Pop();
 		}
@@ -346,7 +355,7 @@ namespace Watsonia.QueryBuilder
 			return expression;
 		}
 
-		protected override Expression VisitMember(MemberExpression expression)
+		protected override Expression VisitMemberAccess(MemberExpression expression)
 		{
 			if (expression.Member.DeclaringType == typeof(string))
 			{
@@ -451,23 +460,11 @@ namespace Watsonia.QueryBuilder
 			else if (expression.Member.MemberType == MemberTypes.Property)
 			{
 				string tableName;
-				if (this.AliasTables)
+				if (this.AliasTables && this.ReferencesSource(expression.Expression))
 				{
-					if (expression.Expression is UnaryExpression unaryExpression)
-					{
-						var source = (QuerySourceReferenceExpression)unaryExpression.Operand;
-						tableName = source.ReferencedQuerySource.ItemName.Replace("<generated>", "g");
-					}
-					else if (expression.Expression is MemberExpression memberExpression)
-					{
-						var source = (QuerySourceReferenceExpression)memberExpression.Expression;
-						tableName = source.ReferencedQuerySource.ItemName.Replace("<generated>", "g");
-					}
-					else
-					{
-						var source = (QuerySourceReferenceExpression)expression.Expression;
-						tableName = source.ReferencedQuerySource.ItemName.Replace("<generated>", "g");
-					}
+					tableName = !string.IsNullOrEmpty(this.SourceAlias)
+						? this.SourceAlias
+						: this.Configuration.GetTableName(this.SourceType);
 				}
 				else
 				{
@@ -476,10 +473,9 @@ namespace Watsonia.QueryBuilder
 					var propertyType = expression.Expression.Type;
 
 					// HACK: Replace interfaces with actual tables
-					//	There has to be a way of intercepting the QueryModel creation??
 					if (propertyType.IsInterface)
 					{
-						propertyType = this.QueryModel.MainFromClause.ItemType;
+						propertyType = this.SourceType;
 					}
 
 					tableName = this.Configuration.GetTableName(propertyType);
@@ -555,13 +551,6 @@ namespace Watsonia.QueryBuilder
 			// instance collection.Contains(item). The condition is rendered as an IN clause
 			var collectionExpression = expression.Method.IsStatic ? expression.Arguments[0] : expression.Object;
 			var itemExpression = expression.Method.IsStatic ? expression.Arguments[1] : expression.Arguments[0];
-
-			// Remotion.Linq wraps expressions it can't partially evaluate (e.g. compiler-generated
-			// array-to-span conversions) in a PartialEvaluationExceptionExpression
-			while (collectionExpression is PartialEvaluationExceptionExpression partialEvalException)
-			{
-				collectionExpression = partialEvalException.EvaluatedExpression;
-			}
 
 			// Unwrap any conversions (e.g. compiler-generated array-to-span op_Implicit calls)
 			while (true)
@@ -1166,7 +1155,7 @@ namespace Watsonia.QueryBuilder
 			return true;
 		}
 
-		protected override Expression VisitNew(NewExpression expression)
+		protected override NewExpression VisitNew(NewExpression expression)
 		{
 			if (expression.Type == typeof(DateTime))
 			{
@@ -1266,225 +1255,29 @@ namespace Watsonia.QueryBuilder
 			}
 		}
 
-		protected override Expression VisitQuerySourceReference(QuerySourceReferenceExpression expression)
+		private bool ReferencesSource(Expression expression)
 		{
-			var tableName = expression.ReferencedQuerySource.ItemName.Replace("<generated>", "g");
-			var columnName = this.Configuration.GetPrimaryKeyColumnName(expression.Type);
-			var newColumn = new Column(tableName, columnName);
-			this.Stack.Push(newColumn);
-
-			return base.VisitQuerySourceReference(expression);
-		}
-
-		protected override Expression VisitSubQuery(SubQueryExpression expression)
-		{
-			if (expression.QueryModel.ResultOperators.Count > 0 &&
-				expression.QueryModel.ResultOperators[0] is Remotion.Linq.Clauses.ResultOperators.ContainsResultOperator contains)
+			while (expression is UnaryExpression unary)
 			{
-				// It's an Array.Contains, so we need to convert the subquery into a condition
-				var newCondition = new Condition();
-				newCondition.Operator = SqlOperator.IsIn;
-
-				Visit(contains.Item);
-				newCondition.Field = this.Stack.Pop();
-
-				if (TypeHelper.IsGenericType(expression.QueryModel.MainFromClause.FromExpression.Type, typeof(IQueryable<>)))
-				{
-					// Create the sub-select statement
-					var subselect = StatementCreator.Visit(expression.QueryModel, this.Configuration, true);
-					subselect.IsContains = false;
-					if (subselect.SourceFields.Count == 0)
-					{
-						var subselectField = expression.QueryModel.SelectClause.Selector;
-						Visit(subselectField);
-						subselect.SourceFields.Add((SourceExpression)this.Stack.Pop());
-					}
-					newCondition.Value = subselect;
-				}
-				else
-				{
-					// Just check in the array that was passed
-					Visit(expression.QueryModel.MainFromClause.FromExpression);
-					newCondition.Value = this.Stack.Pop();
-				}
-
-				this.Stack.Push(newCondition);
+				expression = unary.Operand;
 			}
 
-			return base.VisitSubQuery(expression);
-		}
-
-#if DEBUG
-
-		// NOTE: I got sick of re-adding these everytime I wanted to figure out what was going on, so
-		// I'm leaving them here in debug only
-
-		protected override Expression VisitBlock(BlockExpression node)
-		{
-			BreakpointHook();
-			return base.VisitBlock(node);
-		}
-
-		protected override CatchBlock VisitCatchBlock(CatchBlock node)
-		{
-			BreakpointHook();
-			return base.VisitCatchBlock(node);
-		}
-
-		protected override Expression VisitDebugInfo(DebugInfoExpression node)
-		{
-			BreakpointHook();
-			return base.VisitDebugInfo(node);
-		}
-
-		protected override Expression VisitDefault(DefaultExpression node)
-		{
-			BreakpointHook();
-			return base.VisitDefault(node);
-		}
-
-		protected override Expression VisitDynamic(DynamicExpression node)
-		{
-			BreakpointHook();
-			return base.VisitDynamic(node);
-		}
-
-		protected override ElementInit VisitElementInit(ElementInit node)
-		{
-			BreakpointHook();
-			return base.VisitElementInit(node);
-		}
-
-		protected override Expression VisitExtension(Expression node)
-		{
-			BreakpointHook();
-			return base.VisitExtension(node);
-		}
-
-		protected override Expression VisitGoto(GotoExpression node)
-		{
-			BreakpointHook();
-			return base.VisitGoto(node);
-		}
-
-		protected override Expression VisitIndex(IndexExpression node)
-		{
-			BreakpointHook();
-			return base.VisitIndex(node);
-		}
-
-		protected override Expression VisitInvocation(InvocationExpression node)
-		{
-			BreakpointHook();
-			return base.VisitInvocation(node);
-		}
-
-		protected override Expression VisitLabel(LabelExpression node)
-		{
-			BreakpointHook();
-			return base.VisitLabel(node);
-		}
-
-		protected override LabelTarget VisitLabelTarget(LabelTarget node)
-		{
-			BreakpointHook();
-			return base.VisitLabelTarget(node);
-		}
-
-		protected override Expression VisitLambda<T>(Expression<T> node)
-		{
-			BreakpointHook();
-			return base.VisitLambda(node);
-		}
-
-		protected override Expression VisitListInit(ListInitExpression node)
-		{
-			BreakpointHook();
-			return base.VisitListInit(node);
-		}
-
-		protected override Expression VisitLoop(LoopExpression node)
-		{
-			BreakpointHook();
-			return base.VisitLoop(node);
-		}
-
-		protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
-		{
-			BreakpointHook();
-			return base.VisitMemberAssignment(node);
-		}
-
-		protected override MemberBinding VisitMemberBinding(MemberBinding node)
-		{
-			BreakpointHook();
-			return base.VisitMemberBinding(node);
-		}
-
-		protected override Expression VisitMemberInit(MemberInitExpression node)
-		{
-			BreakpointHook();
-			return base.VisitMemberInit(node);
-		}
-
-		protected override MemberListBinding VisitMemberListBinding(MemberListBinding node)
-		{
-			BreakpointHook();
-			return base.VisitMemberListBinding(node);
-		}
-
-		protected override MemberMemberBinding VisitMemberMemberBinding(MemberMemberBinding node)
-		{
-			BreakpointHook();
-			return base.VisitMemberMemberBinding(node);
-		}
-
-		protected override Expression VisitNewArray(NewArrayExpression node)
-		{
-			BreakpointHook();
-			return base.VisitNewArray(node);
+			return expression is ParameterExpression parameter && parameter.Type == this.SourceType;
 		}
 
 		protected override Expression VisitParameter(ParameterExpression node)
 		{
-			BreakpointHook();
-			return base.VisitParameter(node);
-		}
+			if (node.Type == this.SourceType)
+			{
+				// A reference to the whole query source, e.g. in an entity comparison
+				var tableName = !string.IsNullOrEmpty(this.SourceAlias)
+					? this.SourceAlias
+					: this.Configuration.GetTableName(this.SourceType);
+				var columnName = this.Configuration.GetPrimaryKeyColumnName(node.Type);
+				this.Stack.Push(new Column(tableName, columnName));
+			}
 
-		protected override Expression VisitRuntimeVariables(RuntimeVariablesExpression node)
-		{
-			BreakpointHook();
-			return base.VisitRuntimeVariables(node);
+			return node;
 		}
-
-		protected override Expression VisitSwitch(SwitchExpression node)
-		{
-			BreakpointHook();
-			return base.VisitSwitch(node);
-		}
-
-		protected override SwitchCase VisitSwitchCase(SwitchCase node)
-		{
-			BreakpointHook();
-			return base.VisitSwitchCase(node);
-		}
-
-		protected override Expression VisitTry(TryExpression node)
-		{
-			BreakpointHook();
-			return base.VisitTry(node);
-		}
-
-		protected override Expression VisitTypeBinary(TypeBinaryExpression node)
-		{
-			BreakpointHook();
-			return base.VisitTypeBinary(node);
-		}
-
-		// When creating statement parts, put a breakpoint here if you would like to debug
-		protected void BreakpointHook()
-		{
-		}
-#endif
 	}
 }
