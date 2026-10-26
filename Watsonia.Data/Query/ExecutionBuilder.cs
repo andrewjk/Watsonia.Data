@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Text;
 using Watsonia.Data.Query.Expressions;
 using Watsonia.Data.Query.Translation;
+using TypeHelper = Watsonia.QueryBuilder.TypeHelper;
 
 namespace Watsonia.Data.Query
 {

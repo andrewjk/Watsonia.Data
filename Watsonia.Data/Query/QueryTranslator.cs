@@ -10,6 +10,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using Watsonia.Data.Query.Translation;
+using PartialEvaluator = Watsonia.QueryBuilder.PartialEvaluator;
 
 namespace Watsonia.Data.Query
 {

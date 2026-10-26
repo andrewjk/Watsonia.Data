@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using ExpressionVisitor = Watsonia.QueryBuilder.ExpressionVisitor;
 
 namespace Watsonia.Data.Query
 {

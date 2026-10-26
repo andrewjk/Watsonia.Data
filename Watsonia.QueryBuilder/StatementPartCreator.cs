@@ -552,25 +552,6 @@ namespace Watsonia.QueryBuilder
 			var collectionExpression = expression.Method.IsStatic ? expression.Arguments[0] : expression.Object;
 			var itemExpression = expression.Method.IsStatic ? expression.Arguments[1] : expression.Arguments[0];
 
-			// Unwrap any conversions (e.g. compiler-generated array-to-span op_Implicit calls)
-			while (true)
-			{
-				if (collectionExpression is UnaryExpression unary)
-				{
-					collectionExpression = unary.Operand;
-				}
-				else if (collectionExpression is MethodCallExpression conversion && conversion.Method.IsStatic
-					&& conversion.Arguments.Count == 1
-					&& (conversion.Method.Name == "op_Implicit" || conversion.Method.Name == "op_Explicit"))
-				{
-					collectionExpression = conversion.Arguments[0];
-				}
-				else
-				{
-					break;
-				}
-			}
-
 			// The item must map to a field (e.g. a column), otherwise this isn't an IN clause
 			Visit(itemExpression);
 			if (!(this.Stack.Pop() is Field field))

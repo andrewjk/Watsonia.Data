@@ -1,5 +1,6 @@
 using System;
 using System.Data.Common;
+using TypeHelper = Watsonia.QueryBuilder.TypeHelper;
 
 namespace Watsonia.Data.Query
 {

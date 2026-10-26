@@ -6,7 +6,7 @@ namespace Watsonia.QueryBuilder
 	/// <summary>
 	/// Creates statement parts from expressions.
 	/// </summary>
-	public static class StatementCreator
+	public static class ConditionCreator
 	{
 		/// <summary>
 		/// Visits the statement conditions.

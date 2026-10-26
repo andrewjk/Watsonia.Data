@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
+using TypeHelper = Watsonia.QueryBuilder.TypeHelper;
 
 namespace Watsonia.Data
 {

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Watsonia.Data.Query;
 using Watsonia.Data.Query.Expressions;
+using PartialEvaluator = Watsonia.QueryBuilder.PartialEvaluator;
 
 namespace Watsonia.Data.Query.Translation
 {

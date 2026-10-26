@@ -9,13 +9,14 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using ExpressionVisitor = Watsonia.QueryBuilder.ExpressionVisitor;
 
 namespace Watsonia.Data.Query.Expressions
 {
     /// <summary>
     /// An extended expression visitor including custom DbExpression nodes
     /// </summary>
-    internal abstract class DbExpressionVisitor : Watsonia.Data.Query.ExpressionVisitor
+    internal abstract class DbExpressionVisitor : ExpressionVisitor
     {
         protected override Expression Visit(Expression exp)
         {

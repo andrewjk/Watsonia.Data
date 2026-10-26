@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Watsonia.Data.EventArgs;
 using Watsonia.Data.Query;
 using Watsonia.QueryBuilder;
+using TypeHelper = Watsonia.QueryBuilder.TypeHelper;
 
 namespace Watsonia.Data
 {

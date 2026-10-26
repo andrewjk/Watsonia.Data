@@ -11,6 +11,8 @@ using System.Reflection;
 using System.Text;
 using Watsonia.Data.Query;
 using Watsonia.Data.Query.Expressions;
+using PartialEvaluator = Watsonia.QueryBuilder.PartialEvaluator;
+using TypeHelper = Watsonia.QueryBuilder.TypeHelper;
 
 namespace Watsonia.Data.Query.Translation
 {

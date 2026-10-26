@@ -62,7 +62,7 @@ namespace Watsonia.QueryBuilder
 			{
 				// TODO: Need to handle columns from multiple tables...
 				var aliasTables = !string.IsNullOrEmpty(this.Source.Alias);
-				foreach (var condition in StatementCreator.VisitStatementConditions(this.Conditions, mapper, aliasTables, this.Source.Alias))
+				foreach (var condition in ConditionCreator.VisitStatementConditions(this.Conditions, mapper, aliasTables, this.Source.Alias))
 				{
 					select.Conditions.Add(condition);
 				}

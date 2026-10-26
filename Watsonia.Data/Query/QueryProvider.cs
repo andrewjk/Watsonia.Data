@@ -10,6 +10,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using TypeHelper = Watsonia.QueryBuilder.TypeHelper;
 
 namespace Watsonia.Data.Query
 {
@@ -119,7 +120,7 @@ namespace Watsonia.Data.Query
 			}
 
 			// Remove compiler-generated array-to-span conversions (new in .NET 10)
-			expression = SpanConversionRemover.Remove(expression);
+			expression = Watsonia.QueryBuilder.SpanConversionStripper.Strip(expression);
 
 			// TODO: Move the stuff from mapping into DatabaseConfig
 			var mapping = new QueryMapping(this.Database);

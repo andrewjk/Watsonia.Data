@@ -10,13 +10,15 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.IO;
+using ExpressionVisitor = Watsonia.QueryBuilder.ExpressionVisitor;
+using TypeHelper = Watsonia.QueryBuilder.TypeHelper;
 
 namespace Watsonia.Data.Query.Expressions
 {
 	/// <summary>
 	/// Writes out an expression tree in a C#-ish syntax.
 	/// </summary>
-	internal class ExpressionWriter : Watsonia.Data.Query.ExpressionVisitor
+	internal class ExpressionWriter : ExpressionVisitor
 	{
 		TextWriter writer;
 		int indent = 2;

@@ -35,7 +35,7 @@ namespace Watsonia.QueryBuilder
 			var update = new UpdateStatement();
 			update.Target = new Table(mapper.GetTableName(this.Target));
 			update.SetValues.AddRange(this.SetValues.Select(sv => PropertyToSetValue(sv, mapper)));
-			foreach (var condition in StatementCreator.VisitStatementConditions(this.Conditions, mapper, false))
+			foreach (var condition in ConditionCreator.VisitStatementConditions(this.Conditions, mapper, false))
 			{
 				update.Conditions.Add(condition);
 			}
