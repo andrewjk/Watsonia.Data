@@ -363,9 +363,9 @@
     SELECT [c].[CustomerID], [c].[City], [c].[CompanyName], [c].[ContactName], [c].[Country], [c].[Phone]
     FROM [Customers] AS [c]
     WHERE [c].[CustomerID] IN (
-    SELECT [c2].[CustomerID]
-    FROM [Customers] AS [c2]
-    WHERE [c2].[City] = 'London'
+    SELECT [c].[CustomerID]
+    FROM [Customers] AS [c]
+    WHERE [c].[City] = 'London'
     )
   </baseline>
   <baseline key="TestCombineQueriesDeepNesting">

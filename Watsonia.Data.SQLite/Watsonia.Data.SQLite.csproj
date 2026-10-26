@@ -15,7 +15,7 @@
     <PackageReference Include="Microsoft.Data.SQLite" Version="5.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Watsonia.QueryBuilder\Watsonia.QueryBuilder.SQLite\Watsonia.QueryBuilder.SQLite.csproj" />
+    <ProjectReference Include="..\Watsonia.QueryBuilder.SQLite\Watsonia.QueryBuilder.SQLite.csproj" />
     <ProjectReference Include="..\Watsonia.Data\Watsonia.Data.csproj" />
   </ItemGroup>
 </Project>

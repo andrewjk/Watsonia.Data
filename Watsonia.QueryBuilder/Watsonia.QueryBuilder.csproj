@@ -2,6 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>Watsonia.QueryBuilder</PackageId>
+    <Authors>Watsonia Publishing</Authors>
+    <Product>Watsonia.QueryBuilder</Product>
+    <Copyright>© Watsonia Publishing</Copyright>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
