@@ -78,6 +78,22 @@ namespace Watsonia.QueryBuilder
 					return VisitBinaryCondition(expression);
 				}
 				case ExpressionType.Add:
+				{
+					if (expression.Type == typeof(string) ||
+						expression.Left.Type == typeof(string) ||
+						expression.Right.Type == typeof(string))
+					{
+						// string concatenation is rendered differently by different databases
+						var newFunction = new StringConcatenateFunction();
+						Visit(expression.Left);
+						newFunction.Arguments.Add(this.Stack.Pop());
+						Visit(expression.Right);
+						newFunction.Arguments.Add(this.Stack.Pop());
+						this.Stack.Push(newFunction);
+						return expression;
+					}
+					return VisitBinaryOperation(expression);
+				}
 				case ExpressionType.Subtract:
 				case ExpressionType.Multiply:
 				case ExpressionType.Divide:

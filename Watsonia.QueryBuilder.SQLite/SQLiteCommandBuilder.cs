@@ -32,6 +32,44 @@ namespace Watsonia.QueryBuilder.SQLite
 			this.CommandText.Append(" || '%'");
 		}
 
+		protected override void VisitStringConcatenateFunction(StringConcatenateFunction function)
+		{
+			// SQLite uses || for string concatenation; + coerces strings to numbers
+			for (var i = 0; i < function.Arguments.Count; i++)
+			{
+				if (i > 0)
+				{
+					this.CommandText.Append(" || ");
+				}
+				this.VisitField(function.Arguments[i]);
+			}
+		}
+
+		protected override void VisitAggregate(Aggregate aggregate)
+		{
+			// SQLite has no COUNT_BIG; COUNT already returns a 64-bit integer
+			if (aggregate.AggregateType != AggregateType.BigCount)
+			{
+				base.VisitAggregate(aggregate);
+				return;
+			}
+
+			this.CommandText.Append("COUNT(");
+			if (aggregate.IsDistinct)
+			{
+				this.CommandText.Append("DISTINCT ");
+			}
+			if (aggregate.Field != null)
+			{
+				this.VisitField(aggregate.Field);
+			}
+			else
+			{
+				this.CommandText.Append("*");
+			}
+			this.CommandText.Append(")");
+		}
+
 		protected override void VisitEndsWithCondition(Condition condition)
 		{
 			this.VisitField(condition.Field);

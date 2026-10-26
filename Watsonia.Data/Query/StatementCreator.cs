@@ -1126,6 +1126,19 @@ namespace Watsonia.Data.Query
 				case ExpressionType.LeftShift:
 				case ExpressionType.RightShift:
 				{
+					if ((b.NodeType == ExpressionType.Add || b.NodeType == ExpressionType.AddChecked) &&
+						(b.Type == typeof(string) || left.Type == typeof(string) || right.Type == typeof(string)))
+					{
+						// string concatenation is rendered differently by different databases
+						StringConcatenateFunction newFunction = new StringConcatenateFunction();
+						this.VisitValue(left);
+						newFunction.Arguments.Add(this.Stack.Pop());
+						this.VisitValue(right);
+						newFunction.Arguments.Add(this.Stack.Pop());
+						this.Stack.Push(newFunction);
+						break;
+					}
+
 					this.VisitValue(left);
 					var operationLeft = (SourceExpression)this.Stack.Pop();
 					var operationOperator = GetBinaryOperator(b);
