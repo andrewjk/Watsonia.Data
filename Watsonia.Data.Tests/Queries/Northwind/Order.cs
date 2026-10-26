@@ -14,6 +14,6 @@ namespace Watsonia.Data.Tests.Queries.Northwind
 
 		public virtual int OrderID { get; set; }
 
-		public List<OrderDetail> Details { get; set; }
+		public virtual IList<OrderDetail> Details { get; set; }
 	}
 }

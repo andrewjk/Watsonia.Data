@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Watsonia.Data;
 
 namespace Watsonia.Data.Tests.Queries.Northwind
 {
@@ -15,7 +16,7 @@ namespace Watsonia.Data.Tests.Queries.Northwind
 		{
 		}
 
-		public IQueryable<Customer> Customers
+		public DatabaseQuery<Customer> Customers
 		{
 			get
 			{
@@ -23,7 +24,7 @@ namespace Watsonia.Data.Tests.Queries.Northwind
 			}
 		}
 
-		public IQueryable<Order> Orders
+		public DatabaseQuery<Order> Orders
 		{
 			get
 			{
@@ -31,7 +32,7 @@ namespace Watsonia.Data.Tests.Queries.Northwind
 			}
 		}
 
-		public IQueryable<OrderDetail> OrderDetails
+		public DatabaseQuery<OrderDetail> OrderDetails
 		{
 			get
 			{

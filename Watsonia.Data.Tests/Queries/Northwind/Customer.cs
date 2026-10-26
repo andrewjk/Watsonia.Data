@@ -16,7 +16,7 @@ namespace Watsonia.Data.Tests.Queries.Northwind
 
 		public virtual string CustomerID { get; set; }
 
-		public List<Order> Orders { get; set; }
+		public virtual IList<Order> Orders { get; set; }
 
 		public virtual string Phone { get; set; }
 	}

@@ -29,6 +29,11 @@ namespace Watsonia.Data.Tests.Queries.Northwind
 			return type.Name + "ID";
 		}
 
+		public override string GetForeignKeyColumnName(Type tableType, Type foreignType)
+		{
+			return foreignType.Name + "ID";
+		}
+
 		public override Type GetPrimaryKeyColumnType(Type type)
 		{
 			if (type == typeof(Customer))
