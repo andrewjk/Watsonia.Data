@@ -1,0 +1,34 @@
+﻿{
+	"rules": [
+		{
+			"path": "..\\..\\..\\..\\Watsonia.Data.Reference",
+			"shouldMapType": [
+				{
+					"fileMatch": "(.+?\\Entities)\\(.+?).cs",
+					"result": "$1\\Proxies\\"
+				}
+			],
+			"entityFile": [
+				{
+					"fileMatch": "(.+?).cs",
+					"result": "$1Proxy"
+				}
+			],
+
+			"entityNamespace": [
+				{
+					"entityMatch": "(.+?)",
+					"result": "$1"
+				}
+			],
+			"entityName": [
+				{
+					"entityMatch": "(.+?)",
+					"result": "$1Proxy"
+				}
+			],
+			"isRelatedItem": [
+			]
+		}
+	]
+}

@@ -98,6 +98,18 @@ namespace Watsonia.Data.TestPerformance
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
 
+				// Use Generated for speed
+
+				var genTests = new WatsoniaLinqTests();
+				var genResults = RunTests(i, TestFramework.WatsoniaLinq, genTests);
+				testResults.Add(genResults);
+
+				Console.SetCursorPosition(0, Console.CursorTop);
+				Console.Write($"Run {i + 1}/{Config.RunCount}, test 5/5");
+
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
+
 				// Use SQL for speed
 				var wsqlTests = new WatsoniaSqlTests();
 				var wsqlResults = RunTests(i, TestFramework.WatsoniaSql, wsqlTests);
