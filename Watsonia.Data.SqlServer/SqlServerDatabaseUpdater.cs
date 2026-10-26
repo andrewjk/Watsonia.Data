@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Globalization;
 using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Text;
@@ -593,23 +594,23 @@ END
 			}
 			else if (column.ColumnType == typeof(decimal) || column.ColumnType == typeof(decimal?))
 			{
-				return column.DefaultValue != null ? column.DefaultValue.ToString() : "0";
+				return column.DefaultValue != null ? Convert.ToString(column.DefaultValue, CultureInfo.InvariantCulture) : "0";
 			}
 			else if (column.ColumnType == typeof(double) || column.ColumnType == typeof(double?))
 			{
-				return column.DefaultValue != null ? column.DefaultValue.ToString() : "0";
+				return column.DefaultValue != null ? Convert.ToString(column.DefaultValue, CultureInfo.InvariantCulture) : "0";
 			}
 			else if (column.ColumnType == typeof(int) || column.ColumnType == typeof(int?))
 			{
-				return column.DefaultValue != null ? column.DefaultValue.ToString() : "0";
+				return column.DefaultValue != null ? Convert.ToString(column.DefaultValue, CultureInfo.InvariantCulture) : "0";
 			}
 			else if (column.ColumnType == typeof(long) || column.ColumnType == typeof(long?))
 			{
-				return column.DefaultValue != null ? column.DefaultValue.ToString() : "0";
+				return column.DefaultValue != null ? Convert.ToString(column.DefaultValue, CultureInfo.InvariantCulture) : "0";
 			}
 			else if (column.ColumnType == typeof(byte) || column.ColumnType == typeof(byte?))
 			{
-				return column.DefaultValue != null ? column.DefaultValue.ToString() : "0";
+				return column.DefaultValue != null ? Convert.ToString(column.DefaultValue, CultureInfo.InvariantCulture) : "0";
 			}
 			else if (column.ColumnType == typeof(string))
 			{

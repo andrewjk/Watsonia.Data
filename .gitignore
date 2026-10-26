@@ -285,3 +285,6 @@ wpbackup.exe
 wpbackup.ini
 # BenchmarkDotNet
 BenchmarkDotNet.Artifacts/
+
+# Generated SQLite test databases
+**/Data/*.sqlite

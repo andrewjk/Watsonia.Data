@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
@@ -2168,11 +2169,11 @@ namespace Watsonia.Data.Tests.Queries
 				if (command.Parameters[i] is string ||
 					command.Parameters[i] is char)
 				{
-					actual = actual.Replace("@" + i, "'" + command.Parameters[i].ToString() + "'");
+					actual = actual.Replace("@" + i, "'" + Convert.ToString(command.Parameters[i], CultureInfo.InvariantCulture) + "'");
 				}
 				else
 				{
-					actual = actual.Replace("@" + i, command.Parameters[i].ToString());
+					actual = actual.Replace("@" + i, Convert.ToString(command.Parameters[i], CultureInfo.InvariantCulture));
 				}
 			}
 

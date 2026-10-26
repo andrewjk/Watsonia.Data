@@ -78,7 +78,7 @@ Where Not (t0.City Equals 'London' And t0.Country Equals 'UK')
 )</baseline>
   <baseline key="TestCompareDateTimesWithDifferentNullability">(Select t0.CustomerID, t0.OrderDate, t0.OrderID 
 From Orders As t0 
-Where (t0.OrderDate IsLessThan '1/1/2013 12:00:00 am' And t0.OrderDate IsLessThan '1/1/2013 12:00:00 am') 
+Where (t0.OrderDate IsLessThan '01/01/2013 00:00:00' And t0.OrderDate IsLessThan '01/01/2013 00:00:00') 
 )</baseline>
   <baseline key="TestCompareEntityEqual">(Select t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Phone 
 From Customers As t0 

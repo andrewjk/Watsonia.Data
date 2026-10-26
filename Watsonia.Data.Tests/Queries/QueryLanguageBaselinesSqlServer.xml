@@ -79,8 +79,8 @@ WHERE NOT ([t0].[City] = 'London'
  AND [t0].[Country] = 'UK')</baseline>
   <baseline key="TestCompareDateTimesWithDifferentNullability">SELECT [t0].[CustomerID], [t0].[OrderDate], [t0].[OrderID]
 FROM [Orders] AS [t0]
-WHERE ([t0].[OrderDate] &lt; 1/1/2013 12:00:00 am
- AND [t0].[OrderDate] &lt; 1/1/2013 12:00:00 am)</baseline>
+WHERE ([t0].[OrderDate] &lt; 01/01/2013 00:00:00
+ AND [t0].[OrderDate] &lt; 01/01/2013 00:00:00)</baseline>
   <baseline key="TestCompareEntityEqual">SELECT [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Phone]
 FROM [Customers] AS [t0]
 WHERE [t0].[CustomerID] = 'ALFKI'</baseline>

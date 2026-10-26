@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
@@ -2267,11 +2268,11 @@ namespace Watsonia.Data.Tests.Queries
 				if (command.Parameters[i].Value is string ||
 					command.Parameters[i].Value is char)
 				{
-					text = text.Replace("@" + i, "'" + command.Parameters[i].Value.ToString() + "'");
+					text = text.Replace("@" + i, "'" + Convert.ToString(command.Parameters[i].Value, CultureInfo.InvariantCulture) + "'");
 				}
 				else
 				{
-					text = text.Replace("@" + i, command.Parameters[i].Value.ToString());
+					text = text.Replace("@" + i, Convert.ToString(command.Parameters[i].Value, CultureInfo.InvariantCulture));
 				}
 			}
 
@@ -2290,11 +2291,11 @@ namespace Watsonia.Data.Tests.Queries
 				if (command.Parameters[i].Value is string ||
 					command.Parameters[i].Value is char)
 				{
-					actual = actual.Replace("@" + i, "'" + command.Parameters[i].Value.ToString() + "'");
+					actual = actual.Replace("@" + i, "'" + Convert.ToString(command.Parameters[i].Value, CultureInfo.InvariantCulture) + "'");
 				}
 				else
 				{
-					actual = actual.Replace("@" + i, command.Parameters[i].Value.ToString());
+					actual = actual.Replace("@" + i, Convert.ToString(command.Parameters[i].Value, CultureInfo.InvariantCulture));
 				}
 			}
 

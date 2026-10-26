@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -58,7 +59,7 @@ namespace Watsonia.QueryBuilder
 			else if (this.Value is string || this.Value is char || this.Value is DateTime)
 			{
 				b.Append("'");
-				b.Append(this.Value.ToString());
+				b.Append(FormatValue(this.Value));
 				b.Append("'");
 			}
 			else if (this.Value is IEnumerable enumerable)
@@ -73,11 +74,11 @@ namespace Watsonia.QueryBuilder
 					}
                     else if (o is string || o is char || o is DateTime)
                     {
-						values.Add("'" + o.ToString() + "'");
+						values.Add("'" + FormatValue(o) + "'");
                     }
                     else
                     {
-						values.Add(o.ToString());
+						values.Add(FormatValue(o));
 					}
 				}
 				b.Append(string.Join(", ", values));
@@ -85,7 +86,7 @@ namespace Watsonia.QueryBuilder
 			}
 			else
 			{
-				b.Append(this.Value.ToString());
+				b.Append(FormatValue(this.Value));
 			}
 			if (!string.IsNullOrEmpty(this.Alias))
 			{
@@ -93,6 +94,14 @@ namespace Watsonia.QueryBuilder
 				b.Append(this.Alias);
 			}
 			return b.ToString();
+		}
+
+		/// <summary>
+		/// Formats a value for display in a statement, independently of the current culture.
+		/// </summary>
+		private static string FormatValue(object value)
+		{
+			return Convert.ToString(value, CultureInfo.InvariantCulture);
 		}
 	}
 }
