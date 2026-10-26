@@ -2289,11 +2289,36 @@ namespace Watsonia.Data.Tests.Queries
 			return text;
 		}
 
+		private static XElement CreateBaselineElement(string key, string value)
+		{
+			value = value.Replace("\r\n", "\n").Replace("\r", "\n");
+
+			// Keep the file readable: trim the formatting we add on a previous save
+			// so that regenerating the baselines is idempotent
+			if (value.StartsWith("\n"))
+			{
+				value = value.Substring(1);
+			}
+			if (value.EndsWith("\n  "))
+			{
+				value = value.Substring(0, value.Length - 3);
+			}
+			var lines = value.Split('\n');
+			if (lines.Length > 0 && lines.All(line => line.Length == 0 || line.StartsWith("    ")))
+			{
+				lines = lines.Select(line => line.Substring(4)).ToArray();
+			}
+
+			return new XElement("baseline",
+				new XAttribute("key", key),
+				new XText("\n    " + string.Join("\n    ", lines) + "\n  "));
+		}
+
 		private static void SaveBaselines(string fileName, Dictionary<string, string> baselines)
 		{
 			var doc = new XDocument(new XElement("baselines",
 				baselines.OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv =>
-					new XElement("baseline", new XAttribute("key", kv.Key), kv.Value))));
+					CreateBaselineElement(kv.Key, kv.Value))));
 			doc.Save(fileName);
 		}
 
