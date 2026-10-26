@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Text;
 using Microsoft.Data.Sqlite;
 
@@ -11,7 +11,7 @@ namespace Watsonia.Data.TestPerformance
 	static class Config
 	{
 		private const string SqliteConnectionString = @"Data Source=Data/Performance.sqlite";
-		private const string SqlServerConnectionString = @"Data Source=[Server];Initial Catalog=PerformanceTests;Integrated Security=SSPI;Persist Security Info=False;Packet Size=4096";
+		private const string SqlServerConnectionString = @"Data Source=[Server];Initial Catalog=PerformanceTests;Integrated Security=SSPI;Persist Security Info=False;Packet Size=4096;TrustServerCertificate=True";
 
 		public const int RunCount = 5;
 		public const int MaxOperations = 50;

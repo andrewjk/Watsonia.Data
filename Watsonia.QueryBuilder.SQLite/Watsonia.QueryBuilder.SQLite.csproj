@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
     <PackageId>Watsonia.QueryBuilder.SQLite</PackageId>
     <Authors>Watsonia Publishing</Authors>
     <Product>Watsonia.QueryBuilder.SQLite</Product>

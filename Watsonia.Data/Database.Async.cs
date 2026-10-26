@@ -872,7 +872,7 @@ namespace Watsonia.Data
 
 		// NOTE: EnumerateCollectionAsync doesn't have a sync equivalent as it depends on the
 		// IAsyncEnumerable interface
-#if NET5_0
+#if NET5_0_OR_GREATER
 		/// <summary>
 		/// Loads a collection of items from the database using the supplied query.
 		/// </summary>

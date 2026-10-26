@@ -14,9 +14,6 @@ using Watsonia.QueryBuilder;
 namespace Watsonia.Data
 {
 	public sealed class DatabaseQuery<T> : QueryableBase<T>, IDatabaseQuery
-#if NET5_0
-		, IAsyncEnumerable<T>
-#endif
 	{
 		public List<string> IncludePaths { get; } = new List<string>();
 
@@ -56,15 +53,15 @@ namespace Watsonia.Data
 			return Include(FuncToString(property.Body) + "." + FuncToString(property2.Body) + "." + FuncToString(property3.Body));
 		}
 
-#if NET5_0
-		public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+#if NET5_0_OR_GREATER
+		// NOTE: Deliberately does NOT implement IAsyncEnumerable<T> on the queryable itself -
+		// that makes query expressions ambiguous with the async query pattern on .NET 10+
+		// (this is the same reason EF Core doesn't implement it on DbSet)
+		public IAsyncEnumerable<T> AsAsyncEnumerable(CancellationToken cancellationToken = default)
 		{
-			// TODO: ExecuteAsync needs to be able to return an IAsyncEnumerable somehow
-			// Maybe we can create something called ResultSequence and return that from LoadCollection??
 			var asyncProvider = (IAsyncQueryProvider)this.Provider;
 			return asyncProvider
-				.EnumerateAsync<IAsyncEnumerable<T>>(this.Expression, cancellationToken)
-				.GetAsyncEnumerator(cancellationToken);
+				.EnumerateAsync<IAsyncEnumerable<T>>(this.Expression, cancellationToken);
 		}
 #endif
 

@@ -1934,7 +1934,7 @@ namespace Watsonia.Data
 
 		#region ToList/Array
 
-#if NET5_0
+#if NET5_0_OR_GREATER
 		/// <summary>
 		///     Asynchronously creates a <see cref="List{T}" /> from an <see cref="IQueryable{T}" /> by enumerating it
 		///     asynchronously.
@@ -1992,7 +1992,7 @@ namespace Watsonia.Data
 
 		#region ToDictionary
 
-#if NET5_0
+#if NET5_0_OR_GREATER
 		/// <summary>
 		///     Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
 		///     asynchronously
@@ -2137,7 +2137,7 @@ namespace Watsonia.Data
 
 		#region ForEach
 
-#if NET5_0
+#if NET5_0_OR_GREATER
 		/// <summary>
 		///     Asynchronously enumerates the query results and performs the specified action on each element.
 		/// </summary>
@@ -2172,7 +2172,7 @@ namespace Watsonia.Data
 
 		#region AsAsyncEnumerable
 
-#if NET5_0
+#if NET5_0_OR_GREATER
 		/// <summary>
 		///     Returns an <see cref="IAsyncEnumerable{T}" /> which can be enumerated asynchronously.
 		/// </summary>
@@ -2190,9 +2190,9 @@ namespace Watsonia.Data
 		{
 			//Check.NotNull(source, nameof(source));
 
-			if (source is IAsyncEnumerable<TSource> asyncEnumerable)
+			if (source.Provider is IAsyncQueryProvider asyncProvider)
 			{
-				return asyncEnumerable;
+				return asyncProvider.EnumerateAsync<IAsyncEnumerable<TSource>>(source.Expression);
 			}
 
 			throw new InvalidOperationException(); // CoreStrings.IQueryableNotAsync(typeof(TSource)));

@@ -2,6 +2,7 @@
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Parsing;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -530,6 +531,10 @@ namespace Watsonia.QueryBuilder
 				{
 					handled = VisitEqualsMethodCall(expression);
 				}
+				else if (expression.Method.Name == "Contains")
+				{
+					handled = VisitContainsMethodCall(expression);
+				}
 				else if (!expression.Method.IsStatic && expression.Method.Name == "CompareTo" && expression.Method.ReturnType == typeof(int) && expression.Arguments.Count == 1)
 				{
 					handled = VisitCompareToMethodCall(expression);
@@ -541,6 +546,79 @@ namespace Watsonia.QueryBuilder
 			}
 
 			return handled ? expression : base.VisitMethodCall(expression);
+		}
+
+		private bool VisitContainsMethodCall(MethodCallExpression expression)
+		{
+			// Handles a local-collection Contains (e.g. ids.Contains(c.ID)) in whatever shape the compiler
+			// emits: Enumerable.Contains(collection, item), MemoryExtensions.Contains(span, item) or
+			// instance collection.Contains(item). The condition is rendered as an IN clause
+			var collectionExpression = expression.Method.IsStatic ? expression.Arguments[0] : expression.Object;
+			var itemExpression = expression.Method.IsStatic ? expression.Arguments[1] : expression.Arguments[0];
+
+			// Remotion.Linq wraps expressions it can't partially evaluate (e.g. compiler-generated
+			// array-to-span conversions) in a PartialEvaluationExceptionExpression
+			while (collectionExpression is PartialEvaluationExceptionExpression partialEvalException)
+			{
+				collectionExpression = partialEvalException.EvaluatedExpression;
+			}
+
+			// Unwrap any conversions (e.g. compiler-generated array-to-span op_Implicit calls)
+			while (true)
+			{
+				if (collectionExpression is UnaryExpression unary)
+				{
+					collectionExpression = unary.Operand;
+				}
+				else if (collectionExpression is MethodCallExpression conversion && conversion.Method.IsStatic
+					&& conversion.Arguments.Count == 1
+					&& (conversion.Method.Name == "op_Implicit" || conversion.Method.Name == "op_Explicit"))
+				{
+					collectionExpression = conversion.Arguments[0];
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			// The item must map to a field (e.g. a column), otherwise this isn't an IN clause
+			Visit(itemExpression);
+			if (!(this.Stack.Pop() is Field field))
+			{
+				return false;
+			}
+
+			// Evaluate the local collection
+			object collection;
+			try
+			{
+				if (collectionExpression is ConstantExpression constant)
+				{
+					collection = constant.Value;
+				}
+				else
+				{
+					collection = Expression.Lambda(collectionExpression).Compile().DynamicInvoke();
+				}
+			}
+			catch
+			{
+				return false;
+			}
+			if (!(collection is IEnumerable enumerable) || collection is string)
+			{
+				return false;
+			}
+
+			var condition = new Condition
+			{
+				Field = field,
+				Operator = SqlOperator.IsIn,
+				Value = new ConstantPart(enumerable)
+			};
+			this.Stack.Push(condition);
+			return true;
 		}
 
 		private bool VisitStringMethodCall(MethodCallExpression expression)

@@ -15,7 +15,7 @@ namespace Watsonia.Data
 
 		Task<T> ExecuteSingleAsync<T>(QueryModel queryModel, bool returnDefaultWhenEmpty);
 
-#if NET5_0
+#if NET5_0_OR_GREATER
 		IAsyncEnumerable<T> EnumerateCollectionAsync<T>(QueryModel queryModel);
 #endif
 	}

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -118,6 +118,9 @@ END
 						CreateTable(table, connection, doUpdate, script);
 					}
 				}
+#if NET7_0_OR_GREATER
+				FlushPendingBatch();
+#endif
 
 				// Second pass - fill table data
 				foreach (var table in schema.Tables.Where(t => t.Values.Count > 0))
@@ -125,6 +128,9 @@ END
 					var tableExists = existingTables.ContainsKey(table.Name.ToUpperInvariant());
 					UpdateTableData(table, connection, doUpdate, script, tableExists);
 				}
+#if NET7_0_OR_GREATER
+				FlushPendingBatch();
+#endif
 
 				// Third pass - create relationship constraints
 				var existingForeignKeys = LoadExistingForeignKeys(connection);
@@ -139,6 +145,9 @@ END
 						}
 					}
 				}
+#if NET7_0_OR_GREATER
+				FlushPendingBatch();
+#endif
 
 				// Fourth pass - create views
 				foreach (var view in schema.Views)
@@ -155,6 +164,9 @@ END
 						CreateView(view, connection, doUpdate, script);
 					}
 				}
+#if NET7_0_OR_GREATER
+				FlushPendingBatch();
+#endif
 
 				// Fifth pass - create procedures
 				foreach (var procedure in schema.Procedures)
@@ -171,6 +183,9 @@ END
 						CreateProcedure(procedure, connection, doUpdate, script);
 					}
 				}
+#if NET7_0_OR_GREATER
+				FlushPendingBatch();
+#endif
 
 				// Sixth pass - create functions
 				foreach (var function in schema.Functions)
@@ -187,6 +202,9 @@ END
 						CreateFunction(function, connection, doUpdate, script);
 					}
 				}
+#if NET7_0_OR_GREATER
+				FlushPendingBatch();
+#endif
 			}
 		}
 
@@ -1088,9 +1106,54 @@ END
 
 			if (doUpdate)
 			{
+#if NET7_0_OR_GREATER
+				QueueSql(command);
+#else
 				command.ExecuteNonQuery();
+#endif
 			}
 		}
+
+#if NET7_0_OR_GREATER
+		private DbBatch _pendingBatch;
+
+		private void QueueSql(DbCommand command)
+		{
+			if (_pendingBatch == null)
+			{
+				_pendingBatch = command.Connection.CreateBatch();
+			}
+
+			var batchCommand = _pendingBatch.CreateBatchCommand();
+			batchCommand.CommandText = command.CommandText;
+			for (var i = 0; i < command.Parameters.Count; i++)
+			{
+				var parameter = command.CreateParameter();
+				parameter.ParameterName = command.Parameters[i].ParameterName;
+				parameter.Value = command.Parameters[i].Value;
+				batchCommand.Parameters.Add(parameter);
+			}
+			_pendingBatch.BatchCommands.Add(batchCommand);
+		}
+
+		private void FlushPendingBatch()
+		{
+			if (_pendingBatch == null || _pendingBatch.BatchCommands.Count == 0)
+			{
+				return;
+			}
+
+			try
+			{
+				_pendingBatch.ExecuteNonQuery();
+			}
+			finally
+			{
+				_pendingBatch.Dispose();
+				_pendingBatch = null;
+			}
+		}
+#endif
 
 		private DbCommand CreateCommand(DbConnection connection)
 		{

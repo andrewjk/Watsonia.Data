@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-		<TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
 		<Authors>Watsonia Publishing</Authors>
     <Company>Watsonia Publishing</Company>
     <Copyright>© Watsonia Publishing</Copyright>

@@ -60,7 +60,7 @@ namespace Watsonia.Data
 		private static readonly MethodInfo _executeSingleAsyncMethod =
 			(typeof(QueryProvider).GetRuntimeMethod(nameof(ExecuteSingleAsync), new[] { typeof(QueryModel), typeof(bool) }));
 
-#if NET5_0
+#if NET5_0_OR_GREATER
 		private static readonly MethodInfo _enumerateCollectionAsyncMethod =
 			(typeof(QueryProvider).GetRuntimeMethod(nameof(EnumerateCollectionAsync), new[] { typeof(QueryModel) }));
 #endif
@@ -276,7 +276,7 @@ namespace Watsonia.Data
 			}
 		}
 
-#if NET5_0
+#if NET5_0_OR_GREATER
 		public TResult EnumerateAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
 		{
 			var queryModel = GenerateQueryModel(expression);
@@ -357,7 +357,7 @@ namespace Watsonia.Data
 			return await Executor.ExecuteSingleAsync<T>(queryModel, returnDefaultWhenEmpty);
 		}
 
-#if NET5_0
+#if NET5_0_OR_GREATER
 		public async IAsyncEnumerable<T> EnumerateCollectionAsync<T>(QueryModel queryModel)
 		{
 			//ArgumentUtility.CheckNotNull("queryModel", queryModel);

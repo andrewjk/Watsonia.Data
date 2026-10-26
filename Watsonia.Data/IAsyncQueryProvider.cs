@@ -31,7 +31,7 @@ namespace Watsonia.Data
         /// </summary>
         TResult ExecuteAsync<TResult>(/*[NotNull]*/ Expression expression, CancellationToken cancellationToken = default);
 
-#if NET5_0
+#if NET5_0_OR_GREATER
         /// <summary>
         ///     Executes the strongly-typed query represented by a specified expression tree asynchronously.
         /// </summary>

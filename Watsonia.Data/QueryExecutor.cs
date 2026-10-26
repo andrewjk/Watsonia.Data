@@ -89,7 +89,7 @@ namespace Watsonia.Data
 			return returnDefaultWhenEmpty ? sequence.SingleOrDefault() : sequence.Single();
 		}
 
-#if NET5_0
+#if NET5_0_OR_GREATER
 		public async IAsyncEnumerable<T2> EnumerateCollectionAsync<T2>(QueryModel queryModel)
 		{
 			var select = BuildSelectStatement(queryModel);
