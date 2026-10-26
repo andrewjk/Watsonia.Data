@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.SqlClient;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,10 +18,8 @@ namespace Watsonia.Data.TestPerformance.Tests
 		public List<IEntity> LoadedPlayersForTeam { get; } = new List<IEntity>();
 		public List<IEntity> LoadedTeamsForSport { get; } = new List<IEntity>();
 
-		public long GetAllPostIDs()
+		public void GetAllPostIDs()
 		{
-			var watch = new Stopwatch();
-			watch.Start();
 			using (var conn = Config.OpenConnection())
 			{
 				var query = "SELECT ID FROM Posts";
@@ -33,14 +30,10 @@ namespace Watsonia.Data.TestPerformance.Tests
 					this.LoadedPostIDs.Add(reader.GetInt64(0));
 				}
 			}
-			watch.Stop();
-			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetAllPosts()
+		public void GetAllPosts()
 		{
-			var watch = new Stopwatch();
-			watch.Start();
 			using (var conn = Config.OpenConnection())
 			{
 				var query = "SELECT ID, Text, DateCreated, DateModified FROM Posts";
@@ -57,14 +50,10 @@ namespace Watsonia.Data.TestPerformance.Tests
 					});
 				}
 			}
-			watch.Stop();
-			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetPlayerByID(long id)
+		public void GetPlayerByID(long id)
 		{
-			var watch = new Stopwatch();
-			watch.Start();
 			using (var conn = Config.OpenConnection())
 			{
 				var query = "SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE ID = @ID";
@@ -83,14 +72,10 @@ namespace Watsonia.Data.TestPerformance.Tests
 					});
 				}
 			}
-			watch.Stop();
-			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetPlayersForTeam(long teamID)
+		public void GetPlayersForTeam(long teamID)
 		{
-			var watch = new Stopwatch();
-			watch.Start();
 			using (var conn = Config.OpenConnection())
 			{
 				var query = "SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE TeamsID = @ID";
@@ -109,14 +94,10 @@ namespace Watsonia.Data.TestPerformance.Tests
 					});
 				}
 			}
-			watch.Stop();
-			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetTeamsForSport(long sportID)
+		public void GetTeamsForSport(long sportID)
 		{
-			var watch = new Stopwatch();
-			watch.Start();
 			using (var conn = Config.OpenConnection())
 			{
 				var query = "" +
@@ -139,8 +120,6 @@ namespace Watsonia.Data.TestPerformance.Tests
 					});
 				}
 			}
-			watch.Stop();
-			return watch.ElapsedMilliseconds;
 		}
 	}
 }

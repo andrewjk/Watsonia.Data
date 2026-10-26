@@ -15,10 +15,10 @@ namespace Watsonia.Data.TestPerformance.Tests
 		List<IEntity> LoadedPlayersForTeam { get; }
 		List<IEntity> LoadedTeamsForSport { get; }
 
-		long GetAllPostIDs();
-		long GetAllPosts();
-		long GetPlayerByID(long id);
-		long GetPlayersForTeam(long teamId);
-		long GetTeamsForSport(long sportId);
+		void GetAllPostIDs();
+		void GetAllPosts();
+		void GetPlayerByID(long id);
+		void GetPlayersForTeam(long teamId);
+		void GetTeamsForSport(long sportId);
 	}
 }

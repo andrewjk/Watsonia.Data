@@ -283,3 +283,5 @@ exclude.txt
 Update.bat
 wpbackup.exe
 wpbackup.ini
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/

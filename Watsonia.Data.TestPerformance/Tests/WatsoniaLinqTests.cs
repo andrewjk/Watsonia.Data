@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,63 +16,45 @@ namespace Watsonia.Data.TestPerformance.Tests
 		public List<IEntity> LoadedPlayersForTeam { get; } = new List<IEntity>();
 		public List<IEntity> LoadedTeamsForSport { get; } = new List<IEntity>();
 
-		public long GetAllPostIDs()
+		public void GetAllPostIDs()
 		{
-			var watch = new Stopwatch();
-			watch.Start();
 			var db = new WatsoniaDatabase("Linq");
 			var allPostIDs = from p in db.Query<Post>() select p.ID;
 			foreach (var id in allPostIDs)
 			{
 				this.LoadedPostIDs.Add(id);
 			}
-			watch.Stop();
-			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetAllPosts()
+		public void GetAllPosts()
 		{
-			var watch = new Stopwatch();
-			watch.Start();
 			var db = new WatsoniaDatabase("Linq");
 			var allPosts = db.Query<Post>();
 			foreach (var post in allPosts)
 			{
 				this.LoadedPosts.Add(post);
 			}
-			watch.Stop();
-			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetPlayerByID(long id)
+		public void GetPlayerByID(long id)
 		{
-			var watch = new Stopwatch();
-			watch.Start();
 			var db = new WatsoniaDatabase("Linq");
 			var player = db.Load<Player>(id);
 			this.LoadedPlayers.Add(player);
-			watch.Stop();
-			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetPlayersForTeam(long teamID)
+		public void GetPlayersForTeam(long teamID)
 		{
-			var watch = new Stopwatch();
-			watch.Start();
 			var db = new WatsoniaDatabase("Linq");
 			var playersForTeam = db.Query<Player>().Where(x => x.TeamsID == teamID);
 			foreach (var player in playersForTeam)
 			{
 				this.LoadedPlayersForTeam.Add(player);
 			}
-			watch.Stop();
-			return watch.ElapsedMilliseconds;
 		}
 
-		public long GetTeamsForSport(long sportID)
+		public void GetTeamsForSport(long sportID)
 		{
-			var watch = new Stopwatch();
-			watch.Start();
 			var db = new WatsoniaDatabase("Linq");
 			// TODO:
 			//var teamsForSport = db.Query<Player>().Where(p => p.Team.SportsID == sportID);
@@ -85,8 +66,6 @@ namespace Watsonia.Data.TestPerformance.Tests
 					this.LoadedTeamsForSport.Add(player);
 				}
 			}
-			watch.Stop();
-			return watch.ElapsedMilliseconds;
 		}
 	}
 }
