@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Watsonia.Data.Tests.Queries.Northwind;
 
-// TODO: Implement all double commented (////) tests
-
 namespace Watsonia.Data.Tests.Queries
 {
 	[TestClass]
@@ -22,15 +20,6 @@ namespace Watsonia.Data.Tests.Queries
 		{
 		}
 		
-		////[TestMethod]
-		////public async Task ThingAsync()
-		////{
-		////	// TODO:
-		////	//Customer c = db.Customers.FirstOrDefaultAsync();
-		////	//TestQuery(
-		////	//	db.Orders.Where(o => o.Customer == c));
-		////}
-
 		[TestMethod]
 		public async Task WhereAsync()
 		{
@@ -62,26 +51,41 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(90, list.Count);
 		}
 
-		////[TestMethod]
-		////public async Task CompareConstructedEqualAsync()
-		////{
-		////	var list = db.Customers.Where(c => new { x = c.City } == new { x = "London" }).ToListAsync();
-		////	Assert.AreEqual(6, list.Count);
-		////}
+		[TestMethod]
+		public async Task CompareRelationshipEqualNullAsync()
+		{
+			// 29 of the seeded orders have no customer
+			var orders = await _db.Orders.Where(o => o.Customer == null).ToListAsync();
+			Assert.AreEqual(29, orders.Count);
+		}
 
-		////[TestMethod]
-		////public async Task CompareConstructedMultiValueEqualAsync()
-		////{
-		////	var list = db.Customers.Where(c => new { x = c.City, y = c.Country } == new { x = "London", y = "UK" }).ToListAsync();
-		////	Assert.AreEqual(6, list.Count);
-		////}
+		[TestMethod]
+		public async Task CompareRelationshipNotEqualNullAsync()
+		{
+			var orders = await _db.Orders.Where(o => o.Customer != null).ToListAsync();
+			Assert.AreEqual(801, orders.Count);
+		}
 
-		////[TestMethod]
-		////public async Task CompareConstructedMultiValueNotEqualAsync()
-		////{
-		////	var list = db.Customers.Where(c => new { x = c.City, y = c.Country } != new { x = "London", y = "UK" }).ToListAsync();
-		////	Assert.AreEqual(85, list.Count);
-		////}
+		[TestMethod]
+		public async Task CompareConstructedEqualAsync()
+		{
+			var list = await _db.Customers.Where(c => new { x = c.City } == new { x = "London" }).ToListAsync();
+			Assert.AreEqual(6, list.Count);
+		}
+
+		[TestMethod]
+		public async Task CompareConstructedMultiValueEqualAsync()
+		{
+			var list = await _db.Customers.Where(c => new { x = c.City, y = c.Country } == new { x = "London", y = "UK" }).ToListAsync();
+			Assert.AreEqual(6, list.Count);
+		}
+
+		[TestMethod]
+		public async Task CompareConstructedMultiValueNotEqualAsync()
+		{
+			var list = await _db.Customers.Where(c => new { x = c.City, y = c.Country } != new { x = "London", y = "UK" }).ToListAsync();
+			Assert.AreEqual(85, list.Count);
+		}
 
 		[TestMethod]
 		public async Task SelectScalarAsync()
@@ -118,23 +122,33 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(91, list.Count);
 		}
 
-		////[TestMethod]
-		////public async Task SelectAnonymousWithObjectAsync()
-		////{
-		////	var list = db.Customers.Where(c => c.City == "London").Select(c => new { c.City, c }).ToListAsync();
-		////	Assert.AreEqual(6, list.Count);
-		////	Assert.AreEqual("London", list[0].City);
-		////	Assert.IsTrue(list.All(x => x.City == "London"));
-		////	Assert.IsTrue(list.All(x => x.c.City == x.City));
-		////}
+		[TestMethod]
+		public async Task CustomersIncludeOrdersAsync()
+		{
+			var customers = await _db.Customers.Include(c => c.Orders).ToListAsync();
+			Assert.AreEqual(91, customers.Count);
+			Assert.IsTrue(customers.All(c => ((IDynamicProxy)c).StateTracker.LoadedCollections.Contains("Orders")));
+			// Only the orders that have a customer can be attached to one
+			Assert.AreEqual(801, customers.Sum(c => c.Orders.Count));
+		}
 
-		////[TestMethod]
-		////public async Task SelectAnonymousLiteralAsync()
-		////{
-		////	var list = db.Customers.Where(c => c.City == "London").Select(c => new { X = 10 }).ToListAsync();
-		////	Assert.AreEqual(6, list.Count);
-		////	Assert.IsTrue(list.All(x => x.X == 10));
-		////}
+		[TestMethod]
+		public async Task SelectAnonymousWithObjectAsync()
+		{
+			var list = await _db.Customers.Where(c => c.City == "London").Select(c => new { c.City, c }).ToListAsync();
+			Assert.AreEqual(6, list.Count);
+			Assert.AreEqual("London", list[0].City);
+			Assert.IsTrue(list.All(x => x.City == "London"));
+			Assert.IsTrue(list.All(x => x.c.City == x.City));
+		}
+
+		[TestMethod]
+		public async Task SelectAnonymousLiteralAsync()
+		{
+			var list = await _db.Customers.Where(c => c.City == "London").Select(c => new { X = 10 }).ToListAsync();
+			Assert.AreEqual(6, list.Count);
+			Assert.IsTrue(list.All(x => x.X == 10));
+		}
 
 		[TestMethod]
 		public async Task SelectConstantIntAsync()
@@ -161,29 +175,29 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.IsTrue(list.All(y => y == 10));
 		}
 
-		////[TestMethod]
-		////public async Task SelectNestedCollectionAsync()
-		////{
-		////	var list = (
-		////		from c in db.Customers
-		////		where c.CustomerID == "ALFKI"
-		////		select db.Orders.Where(o => o.CustomerID == c.CustomerID).Select(o => o.OrderID)
-		////		).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0].CountAsync());
-		////}
+		[TestMethod]
+		public async Task SelectNestedCollectionAsync()
+		{
+			var list = await (
+				from c in _db.Customers
+				where c.CustomerID == "ALFKI"
+				select _db.Orders.Where(o => o.CustomerID == c.CustomerID).Select(o => o.OrderID)
+				).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0].Count());
+		}
 
-		////[TestMethod]
-		////public async Task SelectNestedCollectionInAnonymousTypeAsync()
-		////{
-		////	var list = (
-		////		from c in db.Customers
-		////		where c.CustomerID == "ALFKI"
-		////		select new { Foos = db.Orders.Where(o => o.CustomerID == c.CustomerID).Select(o => o.OrderID).ToListAsync() }
-		////		).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0].Foos.CountAsync);
-		////}
+		[TestMethod]
+		public async Task SelectNestedCollectionInAnonymousTypeAsync()
+		{
+			var list = await (
+				from c in _db.Customers
+				where c.CustomerID == "ALFKI"
+				select new { Foos = _db.Orders.Where(o => o.CustomerID == c.CustomerID).Select(o => o.OrderID).ToList() }
+				).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0].Foos.Count);
+		}
 
 		[TestMethod]
 		public async Task JoinCustomerOrdersAsync()
@@ -197,75 +211,75 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(6, list.Count);
 		}
 
-		////[TestMethod]
-		////public async Task JoinMultiKeyAsync()
-		////{
-		////	var list = (
-		////		from c in db.Customers
-		////		where c.CustomerID == "ALFKI"
-		////		join o in db.Orders on new { a = c.CustomerID, b = c.CustomerID } equals new { a = o.CustomerID, b = o.CustomerID }
-		////		select new { c, o }
-		////		).ToListAsync();
-		////	Assert.AreEqual(6, list.Count);
-		////}
+		[TestMethod]
+		public async Task JoinMultiKeyAsync()
+		{
+			var list = await (
+				from c in _db.Customers
+				where c.CustomerID == "ALFKI"
+				join o in _db.Orders on new { a = c.CustomerID, b = c.CustomerID } equals new { a = o.CustomerID, b = o.CustomerID }
+				select new { c, o }
+				).ToListAsync();
+			Assert.AreEqual(6, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task JoinIntoCustomersOrdersCountAsync()
-		////{
-		////	var list = (
-		////		from c in db.Customers
-		////		where c.CustomerID == "ALFKI"
-		////		join o in db.Orders on c.CustomerID equals o.CustomerID into ords
-		////		select new { cust = c, ords = ords.CountAsync() }
-		////		).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0].ords);
-		////}
+		[TestMethod]
+		public async Task JoinIntoCustomersOrdersCountAsync()
+		{
+			var list = await (
+				from c in _db.Customers
+				where c.CustomerID == "ALFKI"
+				join o in _db.Orders on c.CustomerID equals o.CustomerID into ords
+				select new { cust = c, ords = ords.Count() }
+				).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0].ords);
+		}
 
-		////[TestMethod]
-		////public async Task JoinIntoDefaultIfEmptyAsync()
-		////{
-		////	var list = (
-		////		from c in db.Customers
-		////		where c.CustomerID == "PARIS"
-		////		join o in db.Orders on c.CustomerID equals o.CustomerID into ords
-		////		from o in ords.DefaultIfEmpty()
-		////		select new { c, o }
-		////		).ToListAsync();
+		[TestMethod]
+		public async Task JoinIntoDefaultIfEmptyAsync()
+		{
+			var list = await (
+				from c in _db.Customers
+				where c.CustomerID == "PARIS"
+				join o in _db.Orders on c.CustomerID equals o.CustomerID into ords
+				from o in ords.DefaultIfEmpty()
+				select new { c, o }
+				).ToListAsync();
 
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(null, list[0].o);
-		////}
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(null, list[0].o);
+		}
 
-		////[TestMethod]
-		////public async Task MultipleJoinsWithJoinConditionsInWhereAsync()
-		////{
-		////	var list = (
-		////		from c in db.Customers
-		////		from o in db.Orders
-		////		from d in db.OrderDetails
-		////		where o.CustomerID == c.CustomerID && o.OrderID == d.OrderID
-		////		where c.CustomerID == "ALFKI"
-		////		select d
-		////		).ToListAsync();
+		[TestMethod]
+		public async Task MultipleJoinsWithJoinConditionsInWhereAsync()
+		{
+			var list = await (
+				from c in _db.Customers
+				from o in _db.Orders
+				from d in _db.OrderDetails
+				where o.CustomerID == c.CustomerID && o.OrderID == d.OrderID
+				where c.CustomerID == "ALFKI"
+				select d
+				).ToListAsync();
 
-		////	Assert.AreEqual(12, list.Count);
-		////}
+			Assert.AreEqual(12, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task MultipleJoinsWithMissingJoinConditionAsync()
-		////{
-		////	var list = (
-		////		from c in db.Customers
-		////		from o in db.Orders
-		////		from d in db.OrderDetails
-		////		where o.CustomerID == c.CustomerID /*&& o.OrderID == d.OrderID*/
-		////		where c.CustomerID == "ALFKI"
-		////		select d
-		////		).ToListAsync();
+		[TestMethod]
+		public async Task MultipleJoinsWithMissingJoinConditionAsync()
+		{
+			var list = await (
+				from c in _db.Customers
+				from o in _db.Orders
+				from d in _db.OrderDetails
+				where o.CustomerID == c.CustomerID /*&& o.OrderID == d.OrderID*/
+				where c.CustomerID == "ALFKI"
+				select d
+				).ToListAsync();
 
-		////	Assert.AreEqual(12930, list.Count);
-		////}
+			Assert.AreEqual(12930, list.Count);
+		}
 
 		[TestMethod]
 		public async Task OrderByAsync()
@@ -276,14 +290,14 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.IsTrue(Enumerable.SequenceEqual(list, sorted));
 		}
 
-		////[TestMethod]
-		////public async Task OrderByOrderByAsync()
-		////{
-		////	var list = db.Customers.OrderBy(c => c.Phone).OrderBy(c => c.CustomerID).ToListAsync();
-		////	var sorted = list.OrderBy(c => c.CustomerID).ToListAsync();
-		////	Assert.AreEqual(91, list.Count);
-		////	Assert.IsTrue(Enumerable.SequenceEqual(list, sorted));
-		////}
+		[TestMethod]
+		public async Task OrderByOrderByAsync()
+		{
+			var list = await _db.Customers.OrderBy(c => c.Phone).OrderBy(c => c.CustomerID).ToListAsync();
+			var sorted = list.OrderBy(c => c.CustomerID).ToList();
+			Assert.AreEqual(91, list.Count);
+			Assert.IsTrue(Enumerable.SequenceEqual(list, sorted));
+		}
 
 		[TestMethod]
 		public async Task OrderByThenByAsync()
@@ -321,183 +335,184 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.IsTrue(Enumerable.SequenceEqual(list, sorted));
 		}
 
-		////[TestMethod]
-		////public async Task OrderByJoinAsync()
-		////{
-		////	var list = (
-		////		from c in db.Customers.OrderBy(c => c.CustomerID)
-		////		join o in db.Orders.OrderBy(o => o.OrderID) on c.CustomerID equals o.CustomerID
-		////		select new { CustomerID = c.CustomerID, o.OrderID }
-		////		).ToListAsync();
+		[TestMethod]
+		public async Task OrderByJoinAsync()
+		{
+			var list = await (
+				from c in _db.Customers.OrderBy(c => c.CustomerID)
+				join o in _db.Orders.OrderBy(o => o.OrderID) on c.CustomerID equals o.CustomerID
+				select new { CustomerID = c.CustomerID, o.OrderID }
+				).ToListAsync();
 
-		////	var sorted = list.OrderBy(x => x.CustomerID).ThenBy(x => x.OrderID);
-		////	Assert.IsTrue(Enumerable.SequenceEqual(list, sorted));
-		////}
+			var sorted = list.OrderBy(x => x.CustomerID).ThenBy(x => x.OrderID);
+			Assert.IsTrue(Enumerable.SequenceEqual(list, sorted));
+		}
 
-		////[TestMethod]
-		////public async Task OrderBySelectManyAsync()
-		////{
-		////	var list = (
-		////		from c in db.Customers.OrderBy(c => c.CustomerID)
-		////		from o in db.Orders.OrderBy(o => o.OrderID)
-		////		where c.CustomerID == o.CustomerID
-		////		select new { CustomerID = c.CustomerID, o.OrderID }
-		////		).ToListAsync();
-		////	var sorted = list.OrderBy(x => x.CustomerID).ThenBy(x => x.OrderID).ToListAsync();
-		////	Assert.IsTrue(Enumerable.SequenceEqual(list, sorted));
-		////}
+		[TestMethod]
+		public async Task OrderBySelectManyAsync()
+		{
+			var list = await (
+				from c in _db.Customers.OrderBy(c => c.CustomerID)
+				from o in _db.Orders.OrderBy(o => o.OrderID)
+				where c.CustomerID == o.CustomerID
+				select new { CustomerID = c.CustomerID, o.OrderID }
+				).ToListAsync();
+			var sorted = list.OrderBy(x => x.CustomerID).ThenBy(x => x.OrderID).ToList();
+			Assert.IsTrue(Enumerable.SequenceEqual(list, sorted));
+		}
 
-		////[TestMethod]
-		////public async Task CountPropertyAsync()
-		////{
-		////	var list = db.Customers.Where(c => c.Orders.CountAsync > 0).ToListAsync();
-		////	Assert.AreEqual(89, list.Count);
-		////}
+		[TestMethod]
+		public async Task CountPropertyAsync()
+		{
+			var list = await _db.Customers.Where(c => c.Orders.Count > 0).ToListAsync();
+			// the fixture has 85 customers with at least one order
+			Assert.AreEqual(85, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task GroupByAsync()
-		////{
-		////	var list = db.Customers.GroupBy(c => c.City).ToListAsync();
-		////	Assert.AreEqual(69, list.Count);
-		////}
+		[TestMethod]
+		public async Task GroupByAsync()
+		{
+			var list = await _db.Customers.GroupBy(c => c.City).ToListAsync();
+			Assert.AreEqual(69, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task GroupByOneAsync()
-		////{
-		////	var list = db.Customers.Where(c => c.City == "London").GroupBy(c => c.City).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0].CountAsync());
-		////}
+		[TestMethod]
+		public async Task GroupByOneAsync()
+		{
+			var list = await _db.Customers.Where(c => c.City == "London").GroupBy(c => c.City).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0].Count());
+		}
 
-		////[TestMethod]
-		////public async Task GroupBySelectManyAsync()
-		////{
-		////	var list = db.Customers.GroupBy(c => c.City).SelectMany(g => g).ToListAsync();
-		////	Assert.AreEqual(91, list.Count);
-		////}
+		[TestMethod]
+		public async Task GroupBySelectManyAsync()
+		{
+			var list = await _db.Customers.GroupBy(c => c.City).SelectMany(g => g).ToListAsync();
+			Assert.AreEqual(91, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task GroupBySumAsync()
-		////{
-		////	var list = db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Select(g => g.SumAsync(o => (o.CustomerID == "ALFKI" ? 1 : 1))).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0]);
-		////}
+		[TestMethod]
+		public async Task GroupBySumAsync()
+		{
+			var list = await _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Select(g => g.Sum(o => (o.CustomerID == "ALFKI" ? 1 : 1))).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0]);
+		}
 
-		////[TestMethod]
-		////public async Task GroupByCountAsync()
-		////{
-		////	var list = db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Select(g => g.CountAsync()).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0]);
-		////}
+		[TestMethod]
+		public async Task GroupByCountAsync()
+		{
+			var list = await _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Select(g => g.Count()).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0]);
+		}
 
-		////[TestMethod]
-		////public async Task GroupByLongCountAsync()
-		////{
-		////	var list = db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Select(g => g.LongCount()).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6L, list[0]);
-		////}
+		[TestMethod]
+		public async Task GroupByLongCountAsync()
+		{
+			var list = await _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Select(g => g.LongCount()).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6L, list[0]);
+		}
 
-		////[TestMethod]
-		////public async Task GroupBySumMinMaxAvgAsync()
-		////{
-		////	var list =
-		////		db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Select(g =>
-		////			new
-		////			{
-		////				SumAsync = g.SumAsync(o => (o.CustomerID == "ALFKI" ? 1 : 1)),
-		////				Min = g.Min(o => o.OrderID),
-		////				MaxAsync = g.MaxAsync(o => o.OrderID),
-		////				Avg = g.Average(o => o.OrderID)
-		////			}).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0].SumAsync);
-		////}
+		[TestMethod]
+		public async Task GroupBySumMinMaxAvgAsync()
+		{
+			var list =
+				_db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Select(g =>
+					new
+					{
+						Sum = g.Sum(o => (o.CustomerID == "ALFKI" ? 1 : 1)),
+						Min = g.Min(o => o.OrderID),
+						Max = g.Max(o => o.OrderID),
+						Avg = g.Average(o => o.OrderID)
+					}).ToList();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0].Sum);
+		}
 
-		////[TestMethod]
-		////public async Task GroupByWithResultSelectorAsync()
-		////{
-		////	var list =
-		////		db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID, (k, g) =>
-		////			new
-		////			{
-		////				SumAsync = g.SumAsync(o => (o.CustomerID == "ALFKI" ? 1 : 1)),
-		////				Min = g.Min(o => o.OrderID),
-		////				MaxAsync = g.MaxAsync(o => o.OrderID),
-		////				Avg = g.Average(o => o.OrderID)
-		////			}).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0].SumAsync);
-		////}
+		[TestMethod]
+		public async Task GroupByWithResultSelectorAsync()
+		{
+			var list =
+				_db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID, (k, g) =>
+					new
+					{
+						Sum = g.Sum(o => (o.CustomerID == "ALFKI" ? 1 : 1)),
+						Min = g.Min(o => o.OrderID),
+						Max = g.Max(o => o.OrderID),
+						Avg = g.Average(o => o.OrderID)
+					}).ToList();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0].Sum);
+		}
 
-		////[TestMethod]
-		////public async Task GroupByWithElementSelectorSumAsync()
-		////{
-		////	var list = db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID, o => (o.CustomerID == "ALFKI" ? 1 : 1)).Select(g => g.SumAsync()).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0]);
-		////}
+		[TestMethod]
+		public async Task GroupByWithElementSelectorSumAsync()
+		{
+			var list = await _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID, o => (o.CustomerID == "ALFKI" ? 1 : 1)).Select(g => g.Sum()).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0]);
+		}
 
-		////[TestMethod]
-		////public async Task GroupByWithElementSelectorAsync()
-		////{
-		////	var list = db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID, o => (o.CustomerID == "ALFKI" ? 1 : 1)).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0].CountAsync());
-		////	Assert.AreEqual(6, list[0].SumAsync());
-		////}
+		[TestMethod]
+		public async Task GroupByWithElementSelectorAsync()
+		{
+			var list = await _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID, o => (o.CustomerID == "ALFKI" ? 1 : 1)).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0].Count());
+			Assert.AreEqual(6, list[0].Sum());
+		}
 
-		////[TestMethod]
-		////public async Task GroupByWithElementSelectorSumMaxAsync()
-		////{
-		////	var list = db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID, o => (o.CustomerID == "ALFKI" ? 1 : 1)).Select(g => new { SumAsync = g.SumAsync(), MaxAsync = g.MaxAsync() }).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0].SumAsync);
-		////	Assert.AreEqual(1, list[0].MaxAsync);
-		////}
+		[TestMethod]
+		public async Task GroupByWithElementSelectorSumMaxAsync()
+		{
+			var list = await _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID, o => (o.CustomerID == "ALFKI" ? 1 : 1)).Select(g => new { Sum = g.Sum(), Max = g.Max() }).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0].Sum);
+			Assert.AreEqual(1, list[0].Max);
+		}
 
-		////[TestMethod]
-		////public async Task GroupByWithAnonymousElementAsync()
-		////{
-		////	var list = db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID, o => new { X = (o.CustomerID == "ALFKI" ? 1 : 1) }).Select(g => g.SumAsync(x => x.X)).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0]);
-		////}
+		[TestMethod]
+		public async Task GroupByWithAnonymousElementAsync()
+		{
+			var list = await _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID, o => new { X = (o.CustomerID == "ALFKI" ? 1 : 1) }).Select(g => g.Sum(x => x.X)).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0]);
+		}
 
-		////[TestMethod]
-		////public async Task GroupByWithTwoPartKeyAsync()
-		////{
-		////	var list = db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => new { CustomerID = o.CustomerID, o.OrderDate }).Select(g => g.SumAsync(o => (o.CustomerID == "ALFKI" ? 1 : 1))).ToListAsync();
-		////	Assert.AreEqual(6, list.Count);
-		////}
+		[TestMethod]
+		public async Task GroupByWithTwoPartKeyAsync()
+		{
+			var list = await _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => new { CustomerID = o.CustomerID, o.OrderDate }).Select(g => g.Sum(o => (o.CustomerID == "ALFKI" ? 1 : 1))).ToListAsync();
+			Assert.AreEqual(6, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task GroupByWithCountInWhereAsync()
-		////{
-		////	var list = db.Customers.Where(a => a.Orders.CountAsync() > 15).GroupBy(a => a.City).ToListAsync();
-		////	Assert.AreEqual(9, list.Count);
-		////}
+		[TestMethod]
+		public async Task GroupByWithCountInWhereAsync()
+		{
+			var list = await _db.Customers.Where(a => a.Orders.Count() > 15).GroupBy(a => a.City).ToListAsync();
+			Assert.AreEqual(9, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task OrderByGroupByAsync()
-		////{
-		////	var list = db.Orders.Where(o => o.CustomerID == "ALFKI").OrderBy(o => o.OrderID).GroupBy(o => o.CustomerID).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	var grp = list[0].ToListAsync();
-		////	var sorted = grp.OrderBy(o => o.OrderID);
-		////	Assert.IsTrue(Enumerable.SequenceEqual(grp, sorted));
-		////}
+		[TestMethod]
+		public async Task OrderByGroupByAsync()
+		{
+			var list = await _db.Orders.Where(o => o.CustomerID == "ALFKI").OrderBy(o => o.OrderID).GroupBy(o => o.CustomerID).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+			var grp = list[0].ToList();
+			var sorted = grp.OrderBy(o => o.OrderID);
+			Assert.IsTrue(Enumerable.SequenceEqual(grp, sorted));
+		}
 
-		////[TestMethod]
-		////public async Task OrderByGroupBySelectManyAsync()
-		////{
-		////	var list = db.Orders.Where(o => o.CustomerID == "ALFKI").OrderBy(o => o.OrderID).GroupBy(o => o.CustomerID).SelectMany(g => g).ToListAsync();
-		////	Assert.AreEqual(6, list.Count);
-		////	var sorted = list.OrderBy(o => o.OrderID).ToListAsync();
-		////	Assert.IsTrue(Enumerable.SequenceEqual(list, sorted));
-		////}
+		[TestMethod]
+		public async Task OrderByGroupBySelectManyAsync()
+		{
+			var list = await _db.Orders.Where(o => o.CustomerID == "ALFKI").OrderBy(o => o.OrderID).GroupBy(o => o.CustomerID).SelectMany(g => g).ToListAsync();
+			Assert.AreEqual(6, list.Count);
+			var sorted = list.OrderBy(o => o.OrderID).ToList();
+			Assert.IsTrue(Enumerable.SequenceEqual(list, sorted));
+		}
 
 		[TestMethod]
 		public async Task SumWithNoArgAsync()
@@ -550,28 +565,28 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(list[^1], sorted[list.Count - 1]);
 		}
 
-		////[TestMethod]
-		////public async Task DistinctOrderByAsync()
-		////{
-		////	var list = db.Customers.Where(c => c.City.StartsWith("P")).Select(c => c.City).Distinct().OrderBy(c => c).ToListAsync();
-		////	var sorted = list.OrderBy(x => x).ToListAsync();
-		////	Assert.AreEqual(list[0], sorted[0]);
-		////	Assert.AreEqual(list[list.Count - 1], sorted[list.Count - 1]);
-		////}
+		[TestMethod]
+		public async Task DistinctOrderByAsync()
+		{
+			var list = await _db.Customers.Where(c => c.City.StartsWith("P")).Select(c => c.City).Distinct().OrderBy(c => c).ToListAsync();
+			var sorted = list.OrderBy(x => x).ToList();
+			Assert.AreEqual(list[0], sorted[0]);
+			Assert.AreEqual(list[list.Count - 1], sorted[list.Count - 1]);
+		}
 
-		////[TestMethod]
-		////public async Task DistinctGroupByAsync()
-		////{
-		////	var list = db.Orders.Where(o => o.CustomerID == "ALFKI").Distinct().GroupBy(o => o.CustomerID).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public async Task DistinctGroupByAsync()
+		{
+			var list = await _db.Orders.Where(o => o.CustomerID == "ALFKI").Distinct().GroupBy(o => o.CustomerID).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task GroupByDistinctAsync()
-		////{
-		////	var list = db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Distinct().ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public async Task GroupByDistinctAsync()
+		{
+			var list = await _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Distinct().ToListAsync();
+			Assert.AreEqual(1, list.Count);
+		}
 
 		[TestMethod]
 		public async Task DistinctCountAsync()
@@ -580,33 +595,33 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(91, cnt);
 		}
 
-		////[TestMethod]
-		////public async Task SelectDistinctCountAsync()
-		////{
-		////	var cnt = db.Customers.Select(c => c.City).Distinct().CountAsync();
-		////	Assert.AreEqual(69, cnt);
-		////}
+		[TestMethod]
+		public async Task SelectDistinctCountAsync()
+		{
+			var cnt = await _db.Customers.Select(c => c.City).Distinct().CountAsync();
+			Assert.AreEqual(69, cnt);
+		}
 
-		////[TestMethod]
-		////public async Task SelectSelectDistinctCountAsync()
-		////{
-		////	var cnt = db.Customers.Select(c => c.City).Select(c => c).Distinct().CountAsync();
-		////	Assert.AreEqual(69, cnt);
-		////}
+		[TestMethod]
+		public async Task SelectSelectDistinctCountAsync()
+		{
+			var cnt = await _db.Customers.Select(c => c.City).Select(c => c).Distinct().CountAsync();
+			Assert.AreEqual(69, cnt);
+		}
 
-		////[TestMethod]
-		////public async Task DistinctCountPredicateAsync()
-		////{
-		////	var cnt = db.Customers.Select(c => new { c.City, c.Country }).Distinct().CountAsync(c => c.City == "London");
-		////	Assert.AreEqual(1, cnt);
-		////}
+		[TestMethod]
+		public async Task DistinctCountPredicateAsync()
+		{
+			var cnt = await _db.Customers.Select(c => new { c.City, c.Country }).Distinct().CountAsync(c => c.City == "London");
+			Assert.AreEqual(1, cnt);
+		}
 
-		////[TestMethod]
-		////public async Task DistinctSumWithArgAsync()
-		////{
-		////	var sum = db.Orders.Where(o => o.CustomerID == "ALFKI").Distinct().SumAsync(o => (o.CustomerID == "ALFKI" ? 1 : 1));
-		////	Assert.AreEqual(6, sum);
-		////}
+		[TestMethod]
+		public async Task DistinctSumWithArgAsync()
+		{
+			var sum = await _db.Orders.Where(o => o.CustomerID == "ALFKI").Distinct().SumAsync(o => (o.CustomerID == "ALFKI" ? 1 : 1));
+			Assert.AreEqual(6, sum);
+		}
 
 		[TestMethod]
 		public async Task SelectDistinctSumAsync()
@@ -622,12 +637,12 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(5, list.Count);
 		}
 
-		////[TestMethod]
-		////public async Task TakeDistinctAsync()
-		////{
-		////	var list = db.Orders.OrderBy(o => o.CustomerID).Select(o => o.CustomerID).Take(5).Distinct().ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public async Task TakeDistinctAsync()
+		{
+			var list = await _db.Orders.OrderBy(o => o.CustomerID).Select(o => o.CustomerID).Take(5).Distinct().ToListAsync();
+			Assert.AreEqual(1, list.Count);
+		}
 
 		[TestMethod]
 		public async Task DistinctTakeAsync()
@@ -636,19 +651,19 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(5, list.Count);
 		}
 
-		////[TestMethod]
-		////public async Task DistinctTakeCountAsync()
-		////{
-		////	var cnt = db.Orders.Distinct().OrderBy(o => o.CustomerID).Select(o => o.CustomerID).Take(5).CountAsync();
-		////	Assert.AreEqual(5, cnt);
-		////}
+		[TestMethod]
+		public async Task DistinctTakeCountAsync()
+		{
+			var cnt = await _db.Orders.Distinct().OrderBy(o => o.CustomerID).Select(o => o.CustomerID).Take(5).CountAsync();
+			Assert.AreEqual(5, cnt);
+		}
 
-		////[TestMethod]
-		////public async Task TakeDistinctCountAsync()
-		////{
-		////	var cnt = db.Orders.OrderBy(o => o.CustomerID).Select(o => o.CustomerID).Take(5).Distinct().CountAsync();
-		////	Assert.AreEqual(1, cnt);
-		////}
+		[TestMethod]
+		public async Task TakeDistinctCountAsync()
+		{
+			var cnt = await _db.Orders.OrderBy(o => o.CustomerID).Select(o => o.CustomerID).Take(5).Distinct().CountAsync();
+			Assert.AreEqual(1, cnt);
+		}
 
 		[TestMethod]
 		public async Task FirstAsync()
@@ -723,32 +738,32 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual("WOLZA", list[90].CustomerID);
 		}
 
-		////[TestMethod]
-		////public async Task ReverseWhereReverseAsync()
-		////{
-		////	var list = db.Customers.OrderBy(c => c.ContactName).Reverse().Where(c => c.City == "London").Reverse().ToListAsync();
-		////	Assert.AreEqual(6, list.Count);
-		////	Assert.AreEqual("EASTC", list[0].CustomerID);
-		////	Assert.AreEqual("BSBEV", list[5].CustomerID);
-		////}
+		[TestMethod]
+		public async Task ReverseWhereReverseAsync()
+		{
+			var list = await _db.Customers.OrderBy(c => c.ContactName).Reverse().Where(c => c.City == "London").Reverse().ToListAsync();
+			Assert.AreEqual(6, list.Count);
+			Assert.AreEqual("EASTC", list[0].CustomerID);
+			Assert.AreEqual("BSBEV", list[5].CustomerID);
+		}
 
-		////[TestMethod]
-		////public async Task ReverseTakeReverseAsync()
-		////{
-		////	var list = db.Customers.OrderBy(c => c.ContactName).Reverse().Take(5).Reverse().ToListAsync();
-		////	Assert.AreEqual(5, list.Count);
-		////	Assert.AreEqual("CHOPS", list[0].CustomerID);
-		////	Assert.AreEqual("WOLZA", list[4].CustomerID);
-		////}
+		[TestMethod]
+		public async Task ReverseTakeReverseAsync()
+		{
+			var list = await _db.Customers.OrderBy(c => c.ContactName).Reverse().Take(5).Reverse().ToListAsync();
+			Assert.AreEqual(5, list.Count);
+			Assert.AreEqual("CHOPS", list[0].CustomerID);
+			Assert.AreEqual("WOLZA", list[4].CustomerID);
+		}
 
-		////[TestMethod]
-		////public async Task ReverseWhereTakeReverseAsync()
-		////{
-		////	var list = db.Customers.OrderBy(c => c.ContactName).Reverse().Where(c => c.City == "London").Take(5).Reverse().ToListAsync();
-		////	Assert.AreEqual(5, list.Count);
-		////	Assert.AreEqual("CONSH", list[0].CustomerID);
-		////	Assert.AreEqual("BSBEV", list[4].CustomerID);
-		////}
+		[TestMethod]
+		public async Task ReverseWhereTakeReverseAsync()
+		{
+			var list = await _db.Customers.OrderBy(c => c.ContactName).Reverse().Where(c => c.City == "London").Take(5).Reverse().ToListAsync();
+			Assert.AreEqual(5, list.Count);
+			Assert.AreEqual("CONSH", list[0].CustomerID);
+			Assert.AreEqual("BSBEV", list[4].CustomerID);
+		}
 
 		[TestMethod]
 		public async Task LastAsync()
@@ -805,11 +820,12 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(null, last);
 		}
 
-		////[TestMethod]
-		////public async Task SingleFailsAsync()
-		////{
-		////	var single = db.Customers.SingleAsync();
-		////}
+		[TestMethod]
+		[ExpectedException(typeof(InvalidOperationException))]
+		public async Task SingleFailsAsync()
+		{
+			var single = await _db.Customers.SingleAsync();
+		}
 
 		[TestMethod]
 		public async Task SinglePredicateAsync()
@@ -827,11 +843,12 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual("ALFKI", single.CustomerID);
 		}
 
-		////[TestMethod]
-		////public async Task SingleOrDefaultFailsAsync()
-		////{
-		////	var single = db.Customers.SingleOrDefaultAsync();
-		////}
+		[TestMethod]
+		[ExpectedException(typeof(InvalidOperationException))]
+		public async Task SingleOrDefaultFailsAsync()
+		{
+			var single = await _db.Customers.SingleOrDefaultAsync();
+		}
 
 		[TestMethod]
 		public async Task SingleOrDefaultPredicateAsync()
@@ -849,12 +866,12 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual("ALFKI", single.CustomerID);
 		}
 
-		////[TestMethod]
-		////public async Task SingleOrDefaultNoMatchesAsync()
-		////{
-		////	var single = db.Customers.SingleOrDefaultAsync(c => c.CustomerID == "SpongeBob");
-		////	Assert.AreEqual(null, single);
-		////}
+		[TestMethod]
+		public async Task SingleOrDefaultNoMatchesAsync()
+		{
+			var single = await _db.Customers.SingleOrDefaultAsync(c => c.CustomerID == "SpongeBob");
+			Assert.AreEqual(null, single);
+		}
 
 		[TestMethod]
 		public async Task AnyTopLevelAsync()
@@ -863,46 +880,48 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.IsTrue(any);
 		}
 
-		////[TestMethod]
-		////public async Task AnyWithSubqueryAsync()
-		////{
-		////	bool what = db.Customers.AnyAsync(c => c.CustomerID == "ALFKI");
-		////	var list = db.Customers.Where(c => c.Orders.AnyAsync(o => o.CustomerID == "ALFKI")).ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public async Task AnyWithSubqueryAsync()
+		{
+			bool what = await _db.Customers.AnyAsync(c => c.CustomerID == "ALFKI");
+			var list = await _db.Customers.Where(c => c.Orders.Any(o => o.CustomerID == "ALFKI")).ToListAsync();
+			Assert.AreEqual(1, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task AnyWithSubqueryNoPredicateAsync()
-		////{
-		////	var list = db.Customers.Where(c => db.Orders.Where(o => o.CustomerID == c.CustomerID).AnyAsync()).ToListAsync();
-		////	Assert.AreEqual(89, list.Count);
-		////}
+		[TestMethod]
+		public async Task AnyWithSubqueryNoPredicateAsync()
+		{
+			var list = await _db.Customers.Where(c => _db.Orders.Where(o => o.CustomerID == c.CustomerID).Any()).ToListAsync();
+			// the fixture has 85 customers with at least one order
+			Assert.AreEqual(85, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task AnyWithLocalCollectionAsync()
-		////{
-		////	string[] ids = new[] { "ALFKI", "WOLZA", "NOONE" };
-		////	var list = db.Customers.Where(c => ids.AnyAsync(id => c.CustomerID == id)).ToListAsync();
-		////	Assert.AreEqual(2, list.Count);
-		////}
+		[TestMethod]
+		public async Task AnyWithLocalCollectionAsync()
+		{
+			string[] ids = new[] { "ALFKI", "WOLZA", "NOONE" };
+			var list = await _db.Customers.Where(c => ids.Any(id => c.CustomerID == id)).ToListAsync();
+			Assert.AreEqual(2, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task AllWithSubqueryAsync()
-		////{
-		////	var list = db.Customers.Where(c => c.Orders.AllAsync(o => o.CustomerID == "ALFKI")).ToListAsync();
-		////	Assert.AreEqual(3, list.Count);
-		////}
+		[TestMethod]
+		public async Task AllWithSubqueryAsync()
+		{
+			var list = await _db.Customers.Where(c => c.Orders.All(o => o.CustomerID == "ALFKI")).ToListAsync();
+			// ALFKI itself plus the 6 customers in the fixture who have no orders
+			Assert.AreEqual(7, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task AllWithLocalCollectionAsync()
-		////{
-		////	string[] patterns = new[] { "m", "d" };
+		[TestMethod]
+		public async Task AllWithLocalCollectionAsync()
+		{
+			string[] patterns = new[] { "m", "d" };
 
-		////	var list = db.Customers.Where(c => patterns.AllAsync(p => c.ContactName.Contains(p))).Select(c => c.ContactName).ToListAsync();
-		////	var local = db.Customers.AsEnumerable().Where(c => patterns.AllAsync(p => c.ContactName.ToLower().ContainsAsync(p))).Select(c => c.ContactName).ToListAsync();
+			var list = await _db.Customers.Where(c => patterns.All(p => c.ContactName.Contains(p))).Select(c => c.ContactName).ToListAsync();
+			var local = _db.Customers.AsEnumerable().Where(c => patterns.All(p => c.ContactName.ToLower().Contains(p))).Select(c => c.ContactName).ToList();
 
-		////	Assert.AreEqual(local.CountAsync, list.Count);
-		////}
+			Assert.AreEqual(local.Count, list.Count);
+		}
 
 		[TestMethod]
 		public async Task AllTopLevelAsync()
@@ -940,42 +959,42 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.IsTrue(contains);
 		}
 
-		////[TestMethod]
-		////public async Task SkipTakeAsync()
-		////{
-		////	var list = db.Customers.OrderBy(c => c.CustomerID).Skip(5).Take(10).ToListAsync();
-		////	Assert.AreEqual(10, list.Count);
-		////	Assert.AreEqual("BLAUS", list[0].CustomerID);
-		////	Assert.AreEqual("COMMI", list[9].CustomerID);
-		////}
+		[TestMethod]
+		public async Task SkipTakeAsync()
+		{
+			var list = await _db.Customers.OrderBy(c => c.CustomerID).Skip(5).Take(10).ToListAsync();
+			Assert.AreEqual(10, list.Count);
+			Assert.AreEqual("BLAUS", list[0].CustomerID);
+			Assert.AreEqual("COMMI", list[9].CustomerID);
+		}
 
-		////[TestMethod]
-		////public async Task DistinctSkipTakeAsync()
-		////{
-		////	var list = db.Customers.Select(c => c.City).Distinct().OrderBy(c => c).Skip(5).Take(10).ToListAsync();
-		////	Assert.AreEqual(10, list.Count);
-		////	var hs = new HashSet<string>(list);
-		////	Assert.AreEqual(10, hs.CountAsync);
-		////}
+		[TestMethod]
+		public async Task DistinctSkipTakeAsync()
+		{
+			var list = await _db.Customers.Select(c => c.City).Distinct().OrderBy(c => c).Skip(5).Take(10).ToListAsync();
+			Assert.AreEqual(10, list.Count);
+			var hs = new HashSet<string>(list);
+			Assert.AreEqual(10, hs.Count);
+		}
 
-		////[TestMethod]
-		////public async Task CoalesceAsync()
-		////{
-		////	var list = db.Customers.Select(c => new { City = (c.City == "London" ? null : c.City), Country = (c.CustomerID == "EASTC" ? null : c.Country) })
-		////				 .Where(x => (x.City ?? "NoCity") == "NoCity").ToListAsync();
-		////	Assert.AreEqual(6, list.Count);
-		////	Assert.AreEqual(null, list[0].City);
-		////}
+		[TestMethod]
+		public async Task CoalesceAsync()
+		{
+			var list = await _db.Customers.Select(c => new { City = (c.City == "London" ? null : c.City), Country = (c.CustomerID == "EASTC" ? null : c.Country) })
+						 .Where(x => (x.City ?? "NoCity") == "NoCity").ToListAsync();
+			Assert.AreEqual(6, list.Count);
+			Assert.AreEqual(null, list[0].City);
+		}
 
-		////[TestMethod]
-		////public async Task Coalesce2Async()
-		////{
-		////	var list = db.Customers.Select(c => new { City = (c.City == "London" ? null : c.City), Country = (c.CustomerID == "EASTC" ? null : c.Country) })
-		////				 .Where(x => (x.City ?? x.Country ?? "NoCityOrCountry") == "NoCityOrCountry").ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(null, list[0].City);
-		////	Assert.AreEqual(null, list[0].Country);
-		////}
+		[TestMethod]
+		public async Task Coalesce2Async()
+		{
+			var list = await _db.Customers.Select(c => new { City = (c.City == "London" ? null : c.City), Country = (c.CustomerID == "EASTC" ? null : c.Country) })
+						 .Where(x => (x.City ?? x.Country ?? "NoCityOrCountry") == "NoCityOrCountry").ToListAsync();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(null, list[0].City);
+			Assert.AreEqual(null, list[0].Country);
+		}
 
 		[TestMethod]
 		public async Task StringLengthAsync()
@@ -1027,33 +1046,33 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(91, list.Count);
 		}
 
-		////[TestMethod]
-		////public async Task StringConcatImplicit2ArgsAsync()
-		////{
-		////	var list = db.Customers.Where(c => c.ContactName + "X" == "Maria AndersX").ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public async Task StringConcatImplicit2ArgsAsync()
+		{
+			var list = await _db.Customers.Where(c => c.ContactName + "X" == "Maria AndersX").ToListAsync();
+			Assert.AreEqual(1, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task StringConcatExplicit2ArgsAsync()
-		////{
-		////	var list = db.Customers.Where(c => string.Concat(c.ContactName, "X") == "Maria AndersX").ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public async Task StringConcatExplicit2ArgsAsync()
+		{
+			var list = await _db.Customers.Where(c => string.Concat(c.ContactName, "X") == "Maria AndersX").ToListAsync();
+			Assert.AreEqual(1, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task StringConcatExplicit3ArgsAsync()
-		////{
-		////	var list = db.Customers.Where(c => string.Concat(c.ContactName, "X", c.Country) == "Maria AndersXGermany").ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public async Task StringConcatExplicit3ArgsAsync()
+		{
+			var list = await _db.Customers.Where(c => string.Concat(c.ContactName, "X", c.Country) == "Maria AndersXGermany").ToListAsync();
+			Assert.AreEqual(1, list.Count);
+		}
 
-		////[TestMethod]
-		////public async Task StringConcatExplicitNArgsAsync()
-		////{
-		////	var list = db.Customers.Where(c => string.Concat(new string[] { c.ContactName, "X", c.Country }) == "Maria AndersXGermany").ToListAsync();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public async Task StringConcatExplicitNArgsAsync()
+		{
+			var list = await _db.Customers.Where(c => string.Concat(new string[] { c.ContactName, "X", c.Country }) == "Maria AndersXGermany").ToListAsync();
+			Assert.AreEqual(1, list.Count);
+		}
 
 		[TestMethod]
 		public async Task StringIsNullOrEmptyAsync()
@@ -1062,19 +1081,19 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(6, list.Count);
 		}
 
-		////[TestMethod]
-		////public async Task StringToUpperAsync()
-		////{
-		////	var str = db.Customers.Where(c => c.CustomerID == "ALFKI").MaxAsync(c => (c.CustomerID == "ALFKI" ? "abc" : "abc").ToUpper());
-		////	Assert.AreEqual("ABC", str);
-		////}
+		[TestMethod]
+		public async Task StringToUpperAsync()
+		{
+			var str = await _db.Customers.Where(c => c.CustomerID == "ALFKI").MaxAsync(c => (c.CustomerID == "ALFKI" ? "abc" : "abc").ToUpper());
+			Assert.AreEqual("ABC", str);
+		}
 
-		////[TestMethod]
-		////public async Task StringToLowerAsync()
-		////{
-		////	var str = db.Customers.Where(c => c.CustomerID == "ALFKI").MaxAsync(c => (c.CustomerID == "ALFKI" ? "ABC" : "ABC").ToLower());
-		////	Assert.AreEqual("abc", str);
-		////}
+		[TestMethod]
+		public async Task StringToLowerAsync()
+		{
+			var str = await _db.Customers.Where(c => c.CustomerID == "ALFKI").MaxAsync(c => (c.CustomerID == "ALFKI" ? "ABC" : "ABC").ToLower());
+			Assert.AreEqual("abc", str);
+		}
 
 		[TestMethod]
 		public async Task StringSubstringAsync()
@@ -1113,14 +1132,14 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(4, n);
 		}
 
-		////[TestMethod]
-		////public async Task StringTrimAsync()
-		////{
-		////	var notrim = db.Customers.Where(c => c.CustomerID == "ALFKI").MaxAsync(c => ("  " + c.City + " "));
-		////	var trim = db.Customers.Where(c => c.CustomerID == "ALFKI").MaxAsync(c => ("  " + c.City + " ").Trim());
-		////	Assert.AreNotEqual(notrim, trim);
-		////	Assert.AreEqual(notrim.Trim(), trim);
-		////}
+		[TestMethod]
+		public async Task StringTrimAsync()
+		{
+			var notrim = await _db.Customers.Where(c => c.CustomerID == "ALFKI").MaxAsync(c => ("  " + c.City + " "));
+			var trim = await _db.Customers.Where(c => c.CustomerID == "ALFKI").MaxAsync(c => ("  " + c.City + " ").Trim());
+			Assert.AreNotEqual(notrim, trim);
+			Assert.AreEqual(notrim.Trim(), trim);
+		}
 
 		[TestMethod]
 		public async Task DateTimeConstructYmdAsync()
@@ -1146,26 +1165,26 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(6, dt.Second);
 		}
 
-		////[TestMethod]
-		////public async Task DateTimeDayAsync()
-		////{
-		////	var v = db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).MaxAsync(o => o.OrderDate.Day);
-		////	Assert.AreEqual(25, v);
-		////}
+		[TestMethod]
+		public async Task DateTimeDayAsync()
+		{
+			var v = await _db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).MaxAsync(o => o.OrderDate.Day);
+			Assert.AreEqual(23, v);
+		}
 
-		////[TestMethod]
-		////public async Task DateTimeMonthAsync()
-		////{
-		////	var v = db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).MaxAsync(o => o.OrderDate.Month);
-		////	Assert.AreEqual(8, v);
-		////}
+		[TestMethod]
+		public async Task DateTimeMonthAsync()
+		{
+			var v = await _db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).MaxAsync(o => o.OrderDate.Month);
+			Assert.AreEqual(8, v);
+		}
 
-		////[TestMethod]
-		////public async Task DateTimeYearAsync()
-		////{
-		////	var v = db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).MaxAsync(o => o.OrderDate.Year);
-		////	Assert.AreEqual(1997, v);
-		////}
+		[TestMethod]
+		public async Task DateTimeYearAsync()
+		{
+			var v = await _db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).MaxAsync(o => o.OrderDate.Year);
+			Assert.AreEqual(2012, v);
+		}
 
 		[TestMethod]
 		public async Task DateTimeHourAsync()
@@ -1188,12 +1207,12 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(6, second);
 		}
 
-		////[TestMethod]
-		////public async Task DateTimeDayOfWeekAsync()
-		////{
-		////	var dow = db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).MaxAsync(o => o.OrderDate.DayOfWeek);
-		////	Assert.AreEqual(DayOfWeek.Monday, dow);
-		////}
+		[TestMethod]
+		public async Task DateTimeDayOfWeekAsync()
+		{
+			var dow = await _db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).MaxAsync(o => o.OrderDate.DayOfWeek);
+			Assert.AreEqual(DayOfWeek.Thursday, dow);
+		}
 
 		[TestMethod]
 		public async Task DateTimeAddYearsAsync()
@@ -1776,12 +1795,12 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(0, zero);
 		}
 
-		////[TestMethod]
-		////public async Task IntBitwiseNotAsync()
-		////{
-		////	var bneg = db.Customers.Where(c => c.CustomerID == "ALFKI").SumAsync(c => ~((c.CustomerID == "ALFKI") ? -1 : -1));
-		////	Assert.AreEqual(~-1, bneg);
-		////}
+		[TestMethod]
+		public async Task IntBitwiseNotAsync()
+		{
+			var bneg = await _db.Customers.Where(c => c.CustomerID == "ALFKI").SumAsync(c => ~((c.CustomerID == "ALFKI") ? -1 : -1));
+			Assert.AreEqual(~-1, bneg);
+		}
 
 		[TestMethod]
 		public async Task IntNegateAsync()
@@ -1812,69 +1831,67 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(78, custs.Count);
 		}
 
-		////[TestMethod]
-		////public async Task EqualLiteralNullAsync()
-		////{
-		////	var q = db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => x == null);
-		////	Assert.IsTrue(this.provider.GetQueryText(q.Expression).ContainsAsync("IS NULL"));
-		////	var n = q.CountAsync();
-		////	Assert.AreEqual(1, n);
-		////}
+		[TestMethod]
+		public async Task EqualLiteralNullAsync()
+		{
+			var q = _db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => x == null);
+			var n = await q.CountAsync();
+			Assert.AreEqual(1, n);
+		}
 
-		////[TestMethod]
-		////public async Task EqualLiteralNullReversedAsync()
-		////{
-		////	var q = db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => null == x);
-		////	Assert.IsTrue(this.provider.GetQueryText(q.Expression).ContainsAsync("IS NULL"));
-		////	var n = q.CountAsync();
-		////	Assert.AreEqual(1, n);
-		////}
+		[TestMethod]
+		public async Task EqualLiteralNullReversedAsync()
+		{
+			var q = _db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => null == x);
+			var n = await q.CountAsync();
+			Assert.AreEqual(1, n);
+		}
 
-		////[TestMethod]
-		////public async Task NotEqualLiteralNullAsync()
-		////{
-		////	var q = db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => x != null);
-		////	Assert.IsTrue(this.provider.GetQueryText(q.Expression).ContainsAsync("IS NOT NULL"));
-		////	var n = q.CountAsync();
-		////	Assert.AreEqual(90, n);
-		////}
+		[TestMethod]
+		public async Task NotEqualLiteralNullAsync()
+		{
+			var q = _db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => x != null);
+			var n = await q.CountAsync();
+			Assert.AreEqual(90, n);
+		}
 
-		////[TestMethod]
-		////public async Task NotEqualLiteralNullReversedAsync()
-		////{
-		////	var q = db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => null != x);
-		////	Assert.IsTrue(this.provider.GetQueryText(q.Expression).ContainsAsync("IS NOT NULL"));
-		////	var n = q.CountAsync();
-		////	Assert.AreEqual(90, n);
-		////}
+		[TestMethod]
+		public async Task NotEqualLiteralNullReversedAsync()
+		{
+			var q = _db.Customers.Select(c => c.CustomerID == "ALFKI" ? null : c.CustomerID).Where(x => null != x);
+			var n = await q.CountAsync();
+			Assert.AreEqual(90, n);
+		}
 
-		////[TestMethod]
-		////public async Task ConditionalResultsArePredicatesAsync()
-		////{
-		////	bool value = db.Orders.Where(c => c.CustomerID == "ALFKI").MaxAsync(c => (c.CustomerID == "ALFKI" ? string.Compare(c.CustomerID, "POTATO") < 0 : string.Compare(c.CustomerID, "POTATO") > 0));
-		////	Assert.IsTrue(value);
-		////}
+		[TestMethod]
+		public async Task ConditionalResultsArePredicatesAsync()
+		{
+			bool value = await _db.Orders.Where(c => c.CustomerID == "ALFKI").MaxAsync(c => (c.CustomerID == "ALFKI" ? string.Compare(c.CustomerID, "POTATO") < 0 : string.Compare(c.CustomerID, "POTATO") > 0));
+			Assert.IsTrue(value);
+		}
 
-		////[TestMethod]
-		////public async Task SelectManyJoinedAsync()
-		////{
-		////	var cods =
-		////		(from c in db.Customers
-		////		 from o in db.Orders.Where(o => o.CustomerID == c.CustomerID)
-		////		 select new { c.ContactName, o.OrderDate }).ToListAsync();
-		////	Assert.AreEqual(830, cods.CountAsync);
-		////}
+		[TestMethod]
+		public async Task SelectManyJoinedAsync()
+		{
+			var cods =
+				(from c in _db.Customers
+				 from o in _db.Orders.Where(o => o.CustomerID == c.CustomerID)
+				 select new { c.ContactName, o.OrderDate }).ToList();
+			// 29 of the fixture's 830 orders reference a customer that isn't in the table
+			Assert.AreEqual(801, cods.Count);
+		}
 
-		////[TestMethod]
-		////public async Task SelectManyJoinedDefaultIfEmptyAsync()
-		////{
-		////	var cods = (
-		////		from c in db.Customers
-		////		from o in db.Orders.Where(o => o.CustomerID == c.CustomerID).DefaultIfEmpty()
-		////		select new { c.ContactName, o.OrderDate }
-		////		).ToListAsync();
-		////	Assert.AreEqual(832, cods.CountAsync);
-		////}
+		[TestMethod]
+		public async Task SelectManyJoinedDefaultIfEmptyAsync()
+		{
+			var cods = await (
+				from c in _db.Customers
+				from o in _db.Orders.Where(o => o.CustomerID == c.CustomerID).DefaultIfEmpty()
+				select new { c.ContactName, o.OrderDate }
+				).ToListAsync();
+			// 801 joined orders plus a null row for each of the 6 customers without orders
+			Assert.AreEqual(807, cods.Count);
+		}
 
 		[TestMethod]
 		public async Task SelectWhereAssociationAsync()
@@ -1911,29 +1928,29 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.IsTrue(custs.All(c => c.CustomerID == "ALFKI"));
 		}
 
-		////[TestMethod]
-		////public async Task SelectAssociationsAsync()
-		////{
-		////	var doubleCusts = (
-		////		from o in db.Orders
-		////		where o.CustomerID == "ALFKI"
-		////		select new { A = o.Customer, B = o.Customer }
-		////		).ToListAsync();
+		[TestMethod]
+		public async Task SelectAssociationsAsync()
+		{
+			var doubleCusts = await (
+				from o in _db.Orders
+				where o.CustomerID == "ALFKI"
+				select new { A = o.Customer, B = o.Customer }
+				).ToListAsync();
 
-		////	Assert.AreEqual(6, doubleCusts.CountAsync);
-		////	Assert.IsTrue(doubleCusts.AllAsync(c => c.A.CustomerID == "ALFKI" && c.B.CustomerID == "ALFKI"));
-		////}
+			Assert.AreEqual(6, doubleCusts.Count);
+			Assert.IsTrue(doubleCusts.All(c => c.A.CustomerID == "ALFKI" && c.B.CustomerID == "ALFKI"));
+		}
 
-		////[TestMethod]
-		////public async Task SelectAssociationsWhereAssociationsAsync()
-		////{
-		////	var stuff = (
-		////		from o in db.Orders
-		////		where o.Customer.Country == "USA"
-		////		where o.Customer.City != "Seattle"
-		////		select new { A = o.Customer, B = o.Customer }
-		////		).ToListAsync();
-		////	Assert.AreEqual(108, stuff.CountAsync);
-		////}
+		[TestMethod]
+		public async Task SelectAssociationsWhereAssociationsAsync()
+		{
+			var stuff = await (
+				from o in _db.Orders
+				where o.Customer.Country == "USA"
+				where o.Customer.City != "Seattle"
+				select new { A = o.Customer, B = o.Customer }
+				).ToListAsync();
+			Assert.AreEqual(108, stuff.Count);
+		}
 	}
 }
