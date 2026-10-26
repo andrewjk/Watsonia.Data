@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore
+        run: dotnet restore Watsonia.Data.sln
+      - name: Build
+        run: dotnet build Watsonia.Data.sln -c Release --no-restore
+      - name: Test
+        run: dotnet test Watsonia.Data.sln -c Release --no-build
+
+  culture:
+    name: Test (de-DE)
+    runs-on: ubuntu-latest
+    env:
+      WATSONIA_TEST_CULTURE: de-DE
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore
+        run: dotnet restore Watsonia.Data.sln
+      - name: Build
+        run: dotnet build Watsonia.Data.sln -c Release --no-restore
+      - name: Test
+        run: dotnet test Watsonia.Data.sln -c Release --no-build
