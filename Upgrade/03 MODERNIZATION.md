@@ -2,7 +2,7 @@
 
 Yes — several, and they're structural rather than cosmetic. Framed against what's actually in this repo:
 
-*Status: items 2–4 are complete, item 1 is designed but not implemented, item 5 has started, item 6 is partially done. Each item below has a "Done so far" paragraph recording what changed.*
+*Status: items 2–4 are complete, item 1 is designed but not implemented, item 5 has started (HybridCache, pooling and first-class instrumentation hooks remain), and item 6 is complete apart from migration tooling. The remaining backlog is tracked in `04 FUTURE.md`. Each item below has a "Done so far" paragraph recording what changed.*
 
 ## The fork in the road
 
