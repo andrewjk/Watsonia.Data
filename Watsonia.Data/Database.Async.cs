@@ -910,6 +910,19 @@ namespace Watsonia.Data
 		public async IAsyncEnumerable<T> EnumerateCollectionAsync<T>(SelectStatement select, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
+
+			if (select.IncludePaths.Count > 0)
+			{
+				// Includes are loaded after the main result set, so the sequence has to be
+				// buffered rather than streamed
+				var included = await LoadCollectionAsync<T>(select, cancellationToken).ConfigureAwait(false);
+				foreach (var item in included)
+				{
+					yield return item;
+				}
+				yield break;
+			}
+
 			OnBeforeLoadCollection(select);
 
 			var result = new List<T>();

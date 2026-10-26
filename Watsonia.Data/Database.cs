@@ -245,7 +245,40 @@ namespace Watsonia.Data
 			var provider = new Query.QueryProvider(this);
 			Expression plan = provider.GetExecutionPlan(expression);
 			Expression[] blocks = QueryCommandGatherer.Gather(plan).Select(c => c.Expression).ToArray();
-			return (SelectStatement)global::Watsonia.Data.Query.StatementCreator.Compile(blocks[0]);
+			var select = (SelectStatement)global::Watsonia.Data.Query.StatementCreator.Compile(blocks[0]);
+
+			// The translation attaches Include() paths to the mapping entity used by the plan
+			var entity = MappingEntityFinder.Find(plan);
+			if (entity != null)
+			{
+				select.IncludePaths.AddRange(entity.IncludePaths);
+			}
+
+			return select;
+		}
+
+		/// <summary>
+		/// Finds the mapping entity constant in an execution plan.
+		/// </summary>
+		private sealed class MappingEntityFinder : System.Linq.Expressions.ExpressionVisitor
+		{
+			private Query.MappingEntity _entity;
+
+			public static Query.MappingEntity Find(Expression expression)
+			{
+				var finder = new MappingEntityFinder();
+				finder.Visit(expression);
+				return finder._entity;
+			}
+
+			protected override Expression VisitConstant(System.Linq.Expressions.ConstantExpression node)
+			{
+				if (_entity == null && node.Value is Query.MappingEntity entity)
+				{
+					_entity = entity;
+				}
+				return node;
+			}
 		}
 
 		private void LoadIncludePaths<T>(SelectStatement select, IList<T> result)
