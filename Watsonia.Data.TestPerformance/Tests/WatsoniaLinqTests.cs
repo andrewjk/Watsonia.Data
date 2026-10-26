@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,14 @@ namespace Watsonia.Data.TestPerformance.Tests
 {
 	public class WatsoniaLinqTests : IPerformanceTests
 	{
+		private static readonly ConcurrentDictionary<string, WatsoniaDatabase> Databases =
+			new ConcurrentDictionary<string, WatsoniaDatabase>();
+
+		private static WatsoniaDatabase GetDatabase(string databaseName)
+		{
+			return Databases.GetOrAdd(databaseName, n => new WatsoniaDatabase(n));
+		}
+
 		public List<long> LoadedPostIDs { get; } = new List<long>();
 		public List<IEntity> LoadedPosts { get; } = new List<IEntity>();
 		public List<IEntity> LoadedPlayers { get; } = new List<IEntity>();
@@ -18,7 +27,7 @@ namespace Watsonia.Data.TestPerformance.Tests
 
 		public void GetAllPostIDs()
 		{
-			var db = new WatsoniaDatabase("Linq");
+			var db = GetDatabase("Linq");
 			var allPostIDs = from p in db.Query<Post>() select p.ID;
 			foreach (var id in allPostIDs)
 			{
@@ -28,7 +37,7 @@ namespace Watsonia.Data.TestPerformance.Tests
 
 		public void GetAllPosts()
 		{
-			var db = new WatsoniaDatabase("Linq");
+			var db = GetDatabase("Linq");
 			var allPosts = db.Query<Post>();
 			foreach (var post in allPosts)
 			{
@@ -38,14 +47,14 @@ namespace Watsonia.Data.TestPerformance.Tests
 
 		public void GetPlayerByID(long id)
 		{
-			var db = new WatsoniaDatabase("Linq");
+			var db = GetDatabase("Linq");
 			var player = db.Load<Player>(id);
 			this.LoadedPlayers.Add(player);
 		}
 
 		public void GetPlayersForTeam(long teamID)
 		{
-			var db = new WatsoniaDatabase("Linq");
+			var db = GetDatabase("Linq");
 			var playersForTeam = db.Query<Player>().Where(x => x.TeamsID == teamID);
 			foreach (var player in playersForTeam)
 			{
@@ -55,7 +64,7 @@ namespace Watsonia.Data.TestPerformance.Tests
 
 		public void GetTeamsForSport(long sportID)
 		{
-			var db = new WatsoniaDatabase("Linq");
+			var db = GetDatabase("Linq");
 			// TODO:
 			//var teamsForSport = db.Query<Player>().Where(p => p.Team.SportsID == sportID);
 			var teamsForSport = db.Query<Team>().Include(x => x.Players).Where(x => x.SportsID == sportID);

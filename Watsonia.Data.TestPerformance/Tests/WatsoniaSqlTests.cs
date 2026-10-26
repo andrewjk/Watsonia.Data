@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using System.Linq;
@@ -11,6 +12,14 @@ namespace Watsonia.Data.TestPerformance.Tests
 {
 	public class WatsoniaSqlTests : IPerformanceTests
 	{
+		private static readonly ConcurrentDictionary<string, WatsoniaDatabase> Databases =
+			new ConcurrentDictionary<string, WatsoniaDatabase>();
+
+		private static WatsoniaDatabase GetDatabase(string databaseName)
+		{
+			return Databases.GetOrAdd(databaseName, n => new WatsoniaDatabase(n));
+		}
+
 		public List<long> LoadedPostIDs { get; } = new List<long>();
 		public List<IEntity> LoadedPosts { get; } = new List<IEntity>();
 		public List<IEntity> LoadedPlayers { get; } = new List<IEntity>();
@@ -19,7 +28,7 @@ namespace Watsonia.Data.TestPerformance.Tests
 
 		public void GetAllPostIDs()
 		{
-			var db = new WatsoniaDatabase("Sql");
+			var db = GetDatabase("Sql");
 			var allPostIDs = db.LoadCollection<long>("SELECT ID FROM Posts");
 			foreach (var id in allPostIDs)
 			{
@@ -29,7 +38,7 @@ namespace Watsonia.Data.TestPerformance.Tests
 
 		public void GetAllPosts()
 		{
-			var db = new WatsoniaDatabase("Sql");
+			var db = GetDatabase("Sql");
 			var allPosts = db.LoadCollection<Post>("SELECT ID, Text, DateCreated, DateModified FROM Posts");
 			foreach (var post in allPosts)
 			{
@@ -39,14 +48,14 @@ namespace Watsonia.Data.TestPerformance.Tests
 
 		public void GetPlayerByID(long id)
 		{
-			var db = new WatsoniaDatabase("Sql");
+			var db = GetDatabase("Sql");
 			var player = db.Load<Player>(id);
 			this.LoadedPlayers.Add(player);
 		}
 
 		public void GetPlayersForTeam(long teamID)
 		{
-			var db = new WatsoniaDatabase("Sql");
+			var db = GetDatabase("Sql");
 			var playersForTeam = db.LoadCollection<Player>("SELECT ID, FirstName, LastName, DateOfBirth, TeamsID FROM Players WHERE TeamsID = @0", teamID);
 			foreach (var player in playersForTeam)
 			{
@@ -56,7 +65,7 @@ namespace Watsonia.Data.TestPerformance.Tests
 
 		public void GetTeamsForSport(long sportID)
 		{
-			var db = new WatsoniaDatabase("Sql");
+			var db = GetDatabase("Sql");
 			var playersForSport = db.LoadCollection<Player>("" +
 				"SELECT p.ID, p.FirstName, p.LastName, p.DateOfBirth, p.TeamsID, t.ID as TeamsID, t.Name, t.SportsID " +
 				"FROM Teams t " +

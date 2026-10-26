@@ -83,3 +83,35 @@ dotnet run -c Release --project Watsonia.Data.TestPerformance -- verify         
 ```
 
 Reports (Markdown/CSV/HTML) are written to `BenchmarkDotNet.Artifacts/results/` (gitignored).
+
+---
+
+# Optimization round 1 — LINQ plan caching and include loading (October 2026)
+
+After the diagnostic benchmarks showed translation (≈205µs) and plan compilation (≈302µs) being paid on **every** LINQ execution, plus O(parents × children) work in include distribution, three changes were made:
+
+1. **Per-database compiled query plan cache** (`CompiledQueryKeyBuilder` + `Query.Provider.Execute`): plans are cached keyed by expression shape *and* captured parameter values (including a query's Include paths), bounded to 512 entries. Unsafe shapes (non-LINQ method calls, mutable collections) are not cached.
+2. **Include distribution rewritten as lookups** (`Database.SetChildItems`): children are grouped by foreign key/primary key once instead of scanning the child set per parent; collection instances come from cached compiled factories; `DynamicProxyStateTracker.SetCollection` caches parent-reference property discovery.
+3. **Benchmark tests reuse one Database per framework** instead of constructing one per operation (what real applications do, and required for the plan cache to be exercised).
+
+## Results (full DefaultJob, same machine, before → after)
+
+| Scenario | ADO.NET | Dapper | EF Core | Watsonia SQL | Watsonia LINQ (before) | Watsonia LINQ (after) |
+|---|---|---|---|---|---|---|
+| Post IDs | 331.3 µs | 353.7 | 386.8 | 351.8 | 620.7 µs | **360.6 µs** (1.09× ADO) |
+| Posts | 814.4 µs | 889.6 | 1,141.7 | 1,067.3 | 3,690.6 µs | **1,047.7 µs** (1.29×) |
+| Player by ID | 7.7 µs | 8.7 | 48.2 | 9.0 | 9.4 µs | **9.0 µs** (1.16×) |
+| Players / team | 23.8 µs | 26.8 | 61.8 | 28.9 | 671.4 µs | **35.2 µs** (1.48×) |
+| Teams / sport | 87.2 µs | 132.8 | 383.5 | 145.5 | 2,717.7 µs | **175.8 µs** (2.02×) |
+
+Allocations (Watsonia LINQ): Post IDs 60.0 → **23.0 KB**; Posts 2.64 → 2.60 MB; Player by ID 8.5 → **4.7 KB**; Players/team 186.0 → **23.5 KB**; Teams/sport 443.0 → **201.5 KB**.
+
+Improvements: **1.7× / 3.5× / 19× / 15×** (post-IDs / posts / players-per-team / teams-per-sport). Watsonia LINQ now beats EF Core on every scenario and is at or near parity with the fluent-SQL path and Dapper; the remaining 2× gap on teams/sport is include loading plus proxy/value-bag allocation.
+
+## Caveats and next steps
+
+- The plan cache is keyed by **shape + captured values**, so it helps repeated identical queries (static filters, list screens, paging) but not high-cardinality parameters. EF-style shape-only caching needs true parameterization of captured values into the plan (a follow-up).
+- Cached plans are per `Database` instance and bounded (512); the benchmarks' shared per-framework `Database` reflects typical application usage.
+- The first execution of each distinct query shape still pays translate+compile (≈0.5ms).
+- Remaining allocation hotspot is entity materialization/projection (≈2.6MB for 500 posts, dominated by 500 proxies/value bags) — the domain of the source-generated-proxy work.
+- `ResearchBenchmarks` (translate/compile/full phase split) is part of the benchmark project for future diagnostics.

@@ -554,6 +554,17 @@ namespace Watsonia.Data
 
 			proxy.__SetOriginalValues();
 			proxy.StateTracker.HasChanges = false;
+
+			// Keep the item cache in step with what was just saved
+			if (this.Configuration.ShouldCacheType(tableType))
+			{
+				var cacheKey = DynamicProxyFactory.GetDynamicTypeName(tableType, this);
+				var cache = this.Cache.GetOrAdd(
+					cacheKey,
+					this.Configuration.GetCacheExpiryLength(tableType),
+					this.Configuration.GetCacheMaxItems(tableType));
+				AddOrUpdateCache(proxy.__PrimaryKeyValue, cache, proxy);
+			}
 		}
 
 		private void InsertItem(IDynamicProxy proxy, string tableName, Type tableType, string primaryKeyColumnName, DbConnection connection, DbTransaction transaction)
@@ -753,6 +764,13 @@ namespace Watsonia.Data
 				{
 					connectionToUse.Dispose();
 				}
+			}
+
+			// Remove the deleted item from the cache
+			if (this.Configuration.ShouldCacheType(tableType))
+			{
+				var cacheKey = DynamicProxyFactory.GetDynamicTypeName(tableType, this);
+				this.Cache.RemoveItemByKey(cacheKey, proxy.__PrimaryKeyValue);
 			}
 
 			OnAfterDelete(proxy);

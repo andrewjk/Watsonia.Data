@@ -80,6 +80,25 @@ namespace Watsonia.Data.Query
 			////	return this.cache.Execute(expression);
 			////}
 
+			// Reuse a compiled plan when the query has the same shape and parameter values
+			if (lambda == null && CompiledQueryKeyBuilder.TryCreate(expression, out var cacheKey))
+			{
+				if (this.Database.CompiledQueryCache.TryGetValue(cacheKey, out var cachedQuery))
+				{
+					return cachedQuery();
+				}
+
+				var cachedPlan = GetExecutionPlan(expression);
+				var cachedExpression = Expression.Lambda<Func<object>>(Expression.Convert(cachedPlan, typeof(object)));
+				var compiled = cachedExpression.Compile();
+				if (this.Database.CompiledQueryCache.Count < Database.MaxCompiledQueries)
+				{
+					this.Database.CompiledQueryCache.TryAdd(cacheKey, compiled);
+				}
+
+				return compiled();
+			}
+
 			Expression plan = GetExecutionPlan(expression);
 
 			if (lambda != null)

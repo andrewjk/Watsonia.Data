@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -17,6 +18,9 @@ namespace Watsonia.Data
 	/// </summary>
 	public class DynamicProxyStateTracker
 	{
+		private static readonly ConcurrentDictionary<(Type ChildType, Type ParentType), System.Reflection.PropertyInfo[]> ParentReferenceProperties =
+			new ConcurrentDictionary<(Type ChildType, Type ParentType), System.Reflection.PropertyInfo[]>();
+
 		private int? _oldHashCode;
 
 		// PERF: Investigate creating a typed class to hold original values rather than having to use ChangeType
@@ -180,21 +184,22 @@ namespace Watsonia.Data
 			// Author property for each Book
 			if (collection.Count > 0)
 			{
-				// TODO: Less reflection!  Less casting!  Less looping!
 				// TODO: Need to only be setting the one property that points to this item when there
 				// are two properties that point to different items e.g. in LearningUserNotes
 				// Should come from ChildParentMapping?
-				foreach (var property in collection[0].GetType().GetProperties())
+				var parentReferenceProperties = ParentReferenceProperties.GetOrAdd(
+					(collection[0].GetType(), this.Item.GetType()),
+					key => key.ChildType.GetProperties()
+						.Where(p => p.PropertyType.IsAssignableFrom(key.ParentType) && p.PropertyType != typeof(object))
+						.ToArray());
+
+				foreach (var property in parentReferenceProperties)
 				{
-					if (property.PropertyType.IsAssignableFrom(this.Item.GetType()) &&
-						property.PropertyType != typeof(object))
+					foreach (IDynamicProxy item in collection)
 					{
-						foreach (IDynamicProxy item in collection)
-						{
-							item.StateTracker.IsLoading = true;
-							item.__SetValue(property.Name, this.Item);
-							item.StateTracker.IsLoading = false;
-						}
+						item.StateTracker.IsLoading = true;
+						item.__SetValue(property.Name, this.Item);
+						item.StateTracker.IsLoading = false;
 					}
 				}
 			}

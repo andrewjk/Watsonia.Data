@@ -52,6 +52,17 @@ namespace Watsonia.Data
 		public ICacheStore Cache { get; set; } = new DatabaseItemCache();
 
 		/// <summary>
+		/// Gets the cache of compiled LINQ query plans, keyed by query shape and parameter values.
+		/// </summary>
+		internal ConcurrentDictionary<string, Func<object>> CompiledQueryCache { get; } =
+			new ConcurrentDictionary<string, Func<object>>();
+
+		/// <summary>
+		/// The maximum number of compiled query plans to keep.
+		/// </summary>
+		internal const int MaxCompiledQueries = 512;
+
+		/// <summary>
 		/// Gets the configuration options used for mapping to and accessing the database.
 		/// </summary>
 		/// <value>
@@ -317,6 +328,7 @@ namespace Watsonia.Data
 			var childCollection = genericLoadCollectionMethod.Invoke(this, new object[] { childQuery });
 			paths[0].ChildCollection = (IEnumerable)childCollection;
 
+
 			// For compound paths, load the other child items
 			// E.g. SELECT Subject.*
 			//		FROM Book INNER JOIN Subject ON Book.SubjectID = Subject.ID
@@ -333,6 +345,7 @@ namespace Watsonia.Data
 			// Assign the child items to the appropriate parent items
 			// TODO: There's a lot of scope for optimization here!
 			SetChildItems(parentCollection, parentType, paths, 0);
+
 		}
 
 		private SelectStatement GetChildCollectionSubquery(SelectStatement parentQuery, Type parentType, Type itemType)
@@ -453,19 +466,27 @@ namespace Watsonia.Data
 			{
 				var itemType = TypeHelper.GetElementType(propertyToLoad.PropertyType);
 				var foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(itemType, parentType);
+
+				// Group the child items by their foreign key so each parent only has to do a lookup
+				var childrenByParent = new Dictionary<object, IList>();
+				foreach (IDynamicProxy child in childCollection)
+				{
+					var parentID = child.__GetValue(foreignKeyColumnName);
+					if (!childrenByParent.TryGetValue(parentID, out var children))
+					{
+						children = CreateCollectionInstance(propertyToLoad.PropertyType, itemType);
+						childrenByParent.Add(parentID, children);
+					}
+					children.Add(child);
+				}
+
 				foreach (IDynamicProxy parent in parentCollection)
 				{
-					var children = propertyToLoad.PropertyType.IsInterface ?
-						(IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(itemType)) :
-						(IList)Activator.CreateInstance(propertyToLoad.PropertyType);
-					foreach (IDynamicProxy child in childCollection)
+					if (!childrenByParent.TryGetValue(parent.__PrimaryKeyValue, out var children))
 					{
-						var parentID = child.__GetValue(foreignKeyColumnName);
-						if (parent.__PrimaryKeyValue.Equals(parentID))
-						{
-							children.Add(child);
-						}
+						children = CreateCollectionInstance(propertyToLoad.PropertyType, itemType);
 					}
+
 					parent.StateTracker.SetCollection(pathToLoad, children);
 					parent.__SetValue(propertyToLoad.Name, children);
 
@@ -474,30 +495,31 @@ namespace Watsonia.Data
 						SetChildItems(children, itemType, paths, pathIndex + 1);
 					}
 				}
-
 			}
 			else if (this.Configuration.IsRelatedItem(propertyToLoad))
 			{
 				var itemType = propertyToLoad.PropertyType;
 				var foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(propertyToLoad);
 
+				// Index the child items by primary key so each parent only has to do a lookup
+				var childrenByKey = new Dictionary<object, IDynamicProxy>();
+				foreach (IDynamicProxy child in childCollection)
+				{
+					childrenByKey[child.__PrimaryKeyValue] = child;
+				}
+
 				var parentProxyType = DynamicProxyFactory.GetDynamicProxyType(parentType, this);
 				var parentChildIDProperty = parentProxyType.GetProperty(foreignKeyColumnName);
 				foreach (IDynamicProxy parent in parentCollection)
 				{
 					var parentChildID = parentChildIDProperty.GetValue(parent);
-					foreach (var child in childCollection)
+					if (parentChildID != null && childrenByKey.TryGetValue(parentChildID, out var child))
 					{
-						if (((IDynamicProxy)child).__PrimaryKeyValue.Equals(parentChildID))
+						parent.__SetValue(propertyToLoad.Name, child);
+
+						if (pathIndex < paths.Length - 1)
 						{
-							parent.__SetValue(propertyToLoad.Name, child);
-
-							if (pathIndex < paths.Length - 1)
-							{
-								SetChildItems(new object[] { child }, itemType, paths, pathIndex + 1);
-							}
-
-							break;
+							SetChildItems(new object[] { child }, itemType, paths, pathIndex + 1);
 						}
 					}
 				}
@@ -506,6 +528,29 @@ namespace Watsonia.Data
 			{
 				throw new InvalidOperationException();
 			}
+		}
+
+		private static readonly ConcurrentDictionary<Type, Func<IList>> ListFactories = new ConcurrentDictionary<Type, Func<IList>>();
+
+		private static IList CreateCollectionInstance(Type propertyType, Type itemType)
+		{
+			var factory = ListFactories.GetOrAdd(propertyType, type =>
+			{
+				var listType = type.IsInterface ? typeof(List<>).MakeGenericType(itemType) : type;
+				if (listType.IsAbstract || listType.IsInterface)
+				{
+					throw new InvalidOperationException($"Cannot create a collection of type {type.FullName}");
+				}
+
+				var constructor = listType.GetConstructor(Type.EmptyTypes);
+				if (constructor == null)
+				{
+					throw new InvalidOperationException($"The collection type {type.FullName} has no parameterless constructor");
+				}
+
+				return Expression.Lambda<Func<IList>>(Expression.New(constructor)).Compile();
+			});
+			return factory();
 		}
 
 		private CollectionItemType GetCollectionItemType(Type itemType)

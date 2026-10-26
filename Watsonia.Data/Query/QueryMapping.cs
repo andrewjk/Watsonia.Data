@@ -498,7 +498,11 @@ namespace Watsonia.Data.Query
 
 		public object CloneEntity(MappingEntity entity, object instance)
 		{
+#if NET5_0_OR_GREATER
 			var clone = System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(entity.EntityType);
+#else
+			var clone = System.Runtime.Serialization.FormatterServices.GetUninitializedObject(entity.EntityType);
+#endif
 			foreach (var mi in this.GetMappedMembers(entity))
 			{
 				if (this.IsColumn(entity, mi))
