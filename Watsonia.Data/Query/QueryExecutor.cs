@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
+using Watsonia.Data.Query.Expressions;
+using Watsonia.Data.Query.Translation;
 using Watsonia.QueryBuilder;
 
 namespace Watsonia.Data.Query
@@ -18,7 +19,8 @@ namespace Watsonia.Data.Query
 
 		public IEnumerable<T> Execute<T>(QueryCommand command, Func<FieldReader, T> fnProjector, MappingEntity entity, object[] paramValues)
 		{
-			SelectStatement select = StatementCreator.Compile(command.Expression);
+			Expression expression = SubstituteNamedValues(command, paramValues);
+			SelectStatement select = StatementCreator.Compile(expression);
 			if (entity != null)
 			{
 				select.IncludePaths.AddRange(entity.IncludePaths);
@@ -46,6 +48,42 @@ namespace Watsonia.Data.Query
 				}
 			}
 			return results;
+		}
+
+		/// <summary>
+		/// Replaces the named values in a query command with the values supplied at execution time.
+		/// </summary>
+		private static Expression SubstituteNamedValues(QueryCommand command, object[] paramValues)
+		{
+			if (paramValues == null || paramValues.Length == 0)
+			{
+				return command.Expression;
+			}
+
+			var namedValues = NamedValueGatherer.Gather(command.Expression);
+			if (namedValues.Count == 0)
+			{
+				return command.Expression;
+			}
+
+			// The execution plan builds the parameter values and the named values from the
+			// same expression, so they are in the same order.
+			var replaceWith = new Expression[namedValues.Count];
+			for (var i = 0; i < namedValues.Count; i++)
+			{
+				replaceWith[i] = MakeConstant(paramValues[i], namedValues[i].Type);
+			}
+
+			return DbExpressionReplacer.ReplaceAll(command.Expression, namedValues.Cast<Expression>().ToArray(), replaceWith);
+		}
+
+		private static Expression MakeConstant(object value, Type type)
+		{
+			if (value == null && type.IsValueType && Nullable.GetUnderlyingType(type) == null)
+			{
+				type = typeof(Nullable<>).MakeGenericType(type);
+			}
+			return Expression.Constant(value, type);
 		}
 	}
 }
