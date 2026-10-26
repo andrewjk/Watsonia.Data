@@ -10,7 +10,7 @@ namespace Watsonia.Data
 	/// <summary>
 	/// A cache of items in the database, keyed by table name.
 	/// </summary>
-	public class DatabaseItemCache
+	public class DatabaseItemCache : ICacheStore
 	{
 		private ConcurrentDictionary<string, ItemCache> Cache { get; set; } = new ConcurrentDictionary<string, ItemCache>();
 
@@ -18,9 +18,9 @@ namespace Watsonia.Data
 		{
 		}
 
-		internal ItemCache GetOrAdd(string key, Func<string, ItemCache> valueFactory)
+		public IItemCache GetOrAdd(string cacheKey, int expiryLength, int maxItems)
 		{
-			return this.Cache.GetOrAdd(key, valueFactory);
+			return this.Cache.GetOrAdd(cacheKey, (string s) => new ItemCache(expiryLength, maxItems));
 		}
 
 		public bool ContainsItemWithKey(string cacheKey, object primaryKey)

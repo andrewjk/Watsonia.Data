@@ -10,7 +10,7 @@ namespace Watsonia.Data
 	/// <summary>
 	/// A cache of items in a table, keyed by ID.
 	/// </summary>
-	public class ItemCache
+	public class ItemCache : IItemCache
 	{
 		private readonly object _lock = new object();
 

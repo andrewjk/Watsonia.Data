@@ -490,9 +490,8 @@ namespace Watsonia.Data
 				var cacheKey = DynamicProxyFactory.GetDynamicTypeName(tableType, this);
 				var cache = this.Cache.GetOrAdd(
 					cacheKey,
-					(string s) => new ItemCache(
-						this.Configuration.GetCacheExpiryLength(tableType),
-						this.Configuration.GetCacheMaxItems(tableType)));
+					this.Configuration.GetCacheExpiryLength(tableType),
+					this.Configuration.GetCacheMaxItems(tableType));
 				cache.AddOrUpdate(
 					proxy.__PrimaryKeyValue,
 					proxy.__GetBagFromValues(),

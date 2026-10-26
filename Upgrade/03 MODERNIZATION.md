@@ -2,7 +2,7 @@
 
 Yes — several, and they're structural rather than cosmetic. Framed against what's actually in this repo:
 
-*Status: items 2–4 are complete, item 1 is designed but not implemented, items 5–6 are outstanding. Each item below has a "Done so far" paragraph recording what changed.*
+*Status: items 2–4 are complete, item 1 is designed but not implemented, item 5 has started, item 6 is partially done. Each item below has a "Done so far" paragraph recording what changed.*
 
 ## The fork in the road
 
@@ -50,7 +50,7 @@ A data-access library in 2026 is expected to plug into the Microsoft.Extensions 
 - **`HybridCache`** (.NET 9) or `IMemoryCache` to replace the hand-rolled `ItemCache`
 - `ObjectPool`/`ArrayPool` for connection and SQL-text reuse
 
-**Done so far:** Not started. There is no logging abstraction, `ActivitySource`/OpenTelemetry tracing, DI registration, options binding, or cache integration yet — the event-handler hooks and the hand-rolled `ItemCache` remain as-is. This is the largest untouched item and pairs naturally with the diagnostics and AOT/trimming work.
+**Done so far:** Started via a new **`Watsonia.Data.Extensions`** package. It provides `AddWatsoniaData(IServiceCollection, Action<DatabaseOptions>)` (options for provider, connection string, entity namespace, `LazyLoadingEnabled`, caching and a `Configure` escape hatch), and `DatabaseInstrumentation`, which wires `ILogger` and an `ActivitySource` ("Watsonia.Data", `db.command` spans tagged with `db.statement`) onto the database's existing events — deliberately, so the core `Watsonia.Data` package keeps **no** Microsoft.Extensions dependency. Caching was integrated by introducing core abstractions (`ICacheStore`/`IItemCache`) and a `MemoryCacheStore` implementation backed by `IMemoryCache`, replacing the hand-rolled item cache when registered. Outstanding: `HybridCache` (net8+-only; `IMemoryCache` is used for now), `ObjectPool` reuse, and moving logging/tracing from event-based adapters to first-class hooks in the core (the event path allocates per command).
 
 ### 6. Smaller-but-real items
 - **BenchmarkDotNet** to replace the hand-rolled stopwatch harness (no warmup/statistics discipline) — keep the cross-framework comparison, get credible numbers

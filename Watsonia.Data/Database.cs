@@ -49,7 +49,7 @@ namespace Watsonia.Data
 		/// <summary>
 		/// The cache.
 		/// </summary>
-		internal DatabaseItemCache Cache { get; } = new DatabaseItemCache();
+		public ICacheStore Cache { get; set; } = new DatabaseItemCache();
 
 		/// <summary>
 		/// Gets the configuration options used for mapping to and accessing the database.
@@ -641,15 +641,14 @@ namespace Watsonia.Data
 			////////destination.StateTracker.IsLoading = false;
 		}
 
-		private bool TryGetCacheAndProxy<T>(object id, out ItemCache cache, out T item) where T : class
+		private bool TryGetCacheAndProxy<T>(object id, out IItemCache cache, out T item) where T : class
 		{
 			var cacheKey = DynamicProxyFactory.GetDynamicTypeName(typeof(T), this);
 			cache = this.Configuration.ShouldCacheType(typeof(T))
 				? this.Cache.GetOrAdd(
 					cacheKey,
-					(string s) => new ItemCache(
-						this.Configuration.GetCacheExpiryLength(typeof(T)),
-						this.Configuration.GetCacheMaxItems(typeof(T))))
+					this.Configuration.GetCacheExpiryLength(typeof(T)),
+					this.Configuration.GetCacheMaxItems(typeof(T)))
 				: null;
 			if (cache != null && cache.ContainsKey(id))
 			{
@@ -665,7 +664,7 @@ namespace Watsonia.Data
 			return false;
 		}
 
-		private void AddOrUpdateCache(object id, ItemCache cache, IDynamicProxy proxy)
+		private void AddOrUpdateCache(object id, IItemCache cache, IDynamicProxy proxy)
 		{
 			if (cache != null)
 			{
