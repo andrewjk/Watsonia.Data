@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Watsonia.Data.Tests.Queries.Northwind;
 
-// TODO: Implement all double commented (////) tests
-
 namespace Watsonia.Data.Tests.Queries
 {
 	[TestClass]
@@ -161,17 +159,17 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.IsTrue(list.All(y => y == 10));
 		}
 
-		////[TestMethod]
-		////public void SelectNestedCollection()
-		////{
-		////	var list = (
-		////		from c in _db.Customers
-		////		where c.CustomerID == "ALFKI"
-		////		select _db.Orders.Where(o => o.CustomerID == c.CustomerID).Select(o => o.OrderID)
-		////		).ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0].Count());
-		////}
+		[TestMethod]
+		public void SelectNestedCollection()
+		{
+			var list = (
+				from c in _db.Customers
+				where c.CustomerID == "ALFKI"
+				select _db.Orders.Where(o => o.CustomerID == c.CustomerID).Select(o => o.OrderID)
+				).ToList();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0].Count());
+		}
 
 		[TestMethod]
 		public void SelectNestedCollectionInAnonymousType()
@@ -209,18 +207,18 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(6, list.Count);
 		}
 
-		////[TestMethod]
-		////public void JoinIntoCustomersOrdersCount()
-		////{
-		////	var list = (
-		////		from c in _db.Customers
-		////		where c.CustomerID == "ALFKI"
-		////		join o in _db.Orders on c.CustomerID equals o.CustomerID into ords
-		////		select new { cust = c, ords = ords.Count() }
-		////		).ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0].ords);
-		////}
+		[TestMethod]
+		public void JoinIntoCustomersOrdersCount()
+		{
+			var list = (
+				from c in _db.Customers
+				where c.CustomerID == "ALFKI"
+				join o in _db.Orders on c.CustomerID equals o.CustomerID into ords
+				select new { cust = c, ords = ords.Count() }
+				).ToList();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0].ords);
+		}
 
 		[TestMethod]
 		public void JoinIntoDefaultIfEmpty()
@@ -237,35 +235,35 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(null, list[0].o);
 		}
 
-		////[TestMethod]
-		////public void MultipleJoinsWithJoinConditionsInWhere()
-		////{
-		////	var list = (
-		////		from c in _db.Customers
-		////		from o in _db.Orders
-		////		from d in _db.OrderDetails
-		////		where o.CustomerID == c.CustomerID && o.OrderID == d.OrderID
-		////		where c.CustomerID == "ALFKI"
-		////		select d
-		////		).ToList();
+		[TestMethod]
+		public void MultipleJoinsWithJoinConditionsInWhere()
+		{
+			var list = (
+				from c in _db.Customers
+				from o in _db.Orders
+				from d in _db.OrderDetails
+				where o.CustomerID == c.CustomerID && o.OrderID == d.OrderID
+				where c.CustomerID == "ALFKI"
+				select d
+				).ToList();
 
-		////	Assert.AreEqual(12, list.Count);
-		////}
+			Assert.AreEqual(12, list.Count);
+		}
 
-		////[TestMethod]
-		////public void MultipleJoinsWithMissingJoinCondition()
-		////{
-		////	var list = (
-		////		from c in _db.Customers
-		////		from o in _db.Orders
-		////		from d in _db.OrderDetails
-		////		where o.CustomerID == c.CustomerID /*&& o.OrderID == d.OrderID*/
-		////		where c.CustomerID == "ALFKI"
-		////		select d
-		////		).ToList();
+		[TestMethod]
+		public void MultipleJoinsWithMissingJoinCondition()
+		{
+			var list = (
+				from c in _db.Customers
+				from o in _db.Orders
+				from d in _db.OrderDetails
+				where o.CustomerID == c.CustomerID /*&& o.OrderID == d.OrderID*/
+				where c.CustomerID == "ALFKI"
+				select d
+				).ToList();
 
-		////	Assert.AreEqual(12930, list.Count);
-		////}
+			Assert.AreEqual(12930, list.Count);
+		}
 
 		[TestMethod]
 		public void OrderBy()
@@ -347,27 +345,28 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.IsTrue(Enumerable.SequenceEqual(list, sorted));
 		}
 
-		////[TestMethod]
-		////public void CountProperty()
-		////{
-		////	var list = _db.Customers.Where(c => c.Orders.Count > 0).ToList();
-		////	Assert.AreEqual(89, list.Count);
-		////}
+		[TestMethod]
+		public void CountProperty()
+		{
+			var list = _db.Customers.Where(c => c.Orders.Count > 0).ToList();
+			// the fixture has 85 customers with at least one order
+			Assert.AreEqual(85, list.Count);
+		}
 
-		////[TestMethod]
-		////public void GroupBy()
-		////{
-		////	var list = _db.Customers.GroupBy(c => c.City).ToList();
-		////	Assert.AreEqual(69, list.Count);
-		////}
+		[TestMethod]
+		public void GroupBy()
+		{
+			var list = _db.Customers.GroupBy(c => c.City).ToList();
+			Assert.AreEqual(69, list.Count);
+		}
 
-		////[TestMethod]
-		////public void GroupByOne()
-		////{
-		////	var list = _db.Customers.Where(c => c.City == "London").GroupBy(c => c.City).ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0].Count());
-		////}
+		[TestMethod]
+		public void GroupByOne()
+		{
+			var list = _db.Customers.Where(c => c.City == "London").GroupBy(c => c.City).ToList();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0].Count());
+		}
 
 		[TestMethod]
 		public void GroupBySelectMany()
@@ -392,13 +391,13 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(6, list[0]);
 		}
 
-		////[TestMethod]
-		////public void GroupByLongCount()
-		////{
-		////	var list = _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Select(g => g.LongCount()).ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6L, list[0]);
-		////}
+		[TestMethod]
+		public void GroupByLongCount()
+		{
+			var list = _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Select(g => g.LongCount()).ToList();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6L, list[0]);
+		}
 
 		[TestMethod]
 		public void GroupBySumMinMaxAvg()
@@ -440,14 +439,14 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(6, list[0]);
 		}
 
-		////[TestMethod]
-		////public void GroupByWithElementSelector()
-		////{
-		////	var list = _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID, o => (o.CustomerID == "ALFKI" ? 1 : 1)).ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(6, list[0].Count());
-		////	Assert.AreEqual(6, list[0].Sum());
-		////}
+		[TestMethod]
+		public void GroupByWithElementSelector()
+		{
+			var list = _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID, o => (o.CustomerID == "ALFKI" ? 1 : 1)).ToList();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(6, list[0].Count());
+			Assert.AreEqual(6, list[0].Sum());
+		}
 
 		[TestMethod]
 		public void GroupByWithElementSelectorSumMax()
@@ -473,22 +472,22 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(6, list.Count);
 		}
 
-		////[TestMethod]
-		////public void GroupByWithCountInWhere()
-		////{
-		////	var list = _db.Customers.Where(a => a.Orders.Count() > 15).GroupBy(a => a.City).ToList();
-		////	Assert.AreEqual(9, list.Count);
-		////}
+		[TestMethod]
+		public void GroupByWithCountInWhere()
+		{
+			var list = _db.Customers.Where(a => a.Orders.Count() > 15).GroupBy(a => a.City).ToList();
+			Assert.AreEqual(9, list.Count);
+		}
 
-		////[TestMethod]
-		////public void OrderByGroupBy()
-		////{
-		////	var list = _db.Orders.Where(o => o.CustomerID == "ALFKI").OrderBy(o => o.OrderID).GroupBy(o => o.CustomerID).ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////	var grp = list[0].ToList();
-		////	var sorted = grp.OrderBy(o => o.OrderID);
-		////	Assert.IsTrue(Enumerable.SequenceEqual(grp, sorted));
-		////}
+		[TestMethod]
+		public void OrderByGroupBy()
+		{
+			var list = _db.Orders.Where(o => o.CustomerID == "ALFKI").OrderBy(o => o.OrderID).GroupBy(o => o.CustomerID).ToList();
+			Assert.AreEqual(1, list.Count);
+			var grp = list[0].ToList();
+			var sorted = grp.OrderBy(o => o.OrderID);
+			Assert.IsTrue(Enumerable.SequenceEqual(grp, sorted));
+		}
 
 		[TestMethod]
 		public void OrderByGroupBySelectMany()
@@ -559,19 +558,19 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(list[list.Count - 1], sorted[list.Count - 1]);
 		}
 
-		////[TestMethod]
-		////public void DistinctGroupBy()
-		////{
-		////	var list = _db.Orders.Where(o => o.CustomerID == "ALFKI").Distinct().GroupBy(o => o.CustomerID).ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public void DistinctGroupBy()
+		{
+			var list = _db.Orders.Where(o => o.CustomerID == "ALFKI").Distinct().GroupBy(o => o.CustomerID).ToList();
+			Assert.AreEqual(1, list.Count);
+		}
 
-		////[TestMethod]
-		////public void GroupByDistinct()
-		////{
-		////	var list = _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Distinct().ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public void GroupByDistinct()
+		{
+			var list = _db.Orders.Where(o => o.CustomerID == "ALFKI").GroupBy(o => o.CustomerID).Distinct().ToList();
+			Assert.AreEqual(1, list.Count);
+		}
 
 		[TestMethod]
 		public void DistinctCount()
@@ -805,11 +804,12 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(null, last);
 		}
 
-		////[TestMethod]
-		////public void SingleFails()
-		////{
-		////	var single = _db.Customers.Single();
-		////}
+		[TestMethod]
+		[ExpectedException(typeof(InvalidOperationException))]
+		public void SingleFails()
+		{
+			var single = _db.Customers.Single();
+		}
 
 		[TestMethod]
 		public void SinglePredicate()
@@ -827,11 +827,12 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual("ALFKI", single.CustomerID);
 		}
 
-		////[TestMethod]
-		////public void SingleOrDefaultFails()
-		////{
-		////	var single = _db.Customers.SingleOrDefault();
-		////}
+		[TestMethod]
+		[ExpectedException(typeof(InvalidOperationException))]
+		public void SingleOrDefaultFails()
+		{
+			var single = _db.Customers.SingleOrDefault();
+		}
 
 		[TestMethod]
 		public void SingleOrDefaultPredicate()
@@ -863,20 +864,21 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.IsTrue(any);
 		}
 
-		////[TestMethod]
-		////public void AnyWithSubquery()
-		////{
-		////	bool what = _db.Customers.Any(c => c.CustomerID == "ALFKI");
-		////	var list = _db.Customers.Where(c => c.Orders.Any(o => o.CustomerID == "ALFKI")).ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public void AnyWithSubquery()
+		{
+			bool what = _db.Customers.Any(c => c.CustomerID == "ALFKI");
+			var list = _db.Customers.Where(c => c.Orders.Any(o => o.CustomerID == "ALFKI")).ToList();
+			Assert.AreEqual(1, list.Count);
+		}
 
-		////[TestMethod]
-		////public void AnyWithSubqueryNoPredicate()
-		////{
-		////	var list = _db.Customers.Where(c => _db.Orders.Where(o => o.CustomerID == c.CustomerID).Any()).ToList();
-		////	Assert.AreEqual(89, list.Count);
-		////}
+		[TestMethod]
+		public void AnyWithSubqueryNoPredicate()
+		{
+			var list = _db.Customers.Where(c => _db.Orders.Where(o => o.CustomerID == c.CustomerID).Any()).ToList();
+			// the fixture has 85 customers with at least one order
+			Assert.AreEqual(85, list.Count);
+		}
 
 		[TestMethod]
 		public void AnyWithLocalCollection()
@@ -886,12 +888,13 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(2, list.Count);
 		}
 
-		////[TestMethod]
-		////public void AllWithSubquery()
-		////{
-		////	var list = _db.Customers.Where(c => c.Orders.All(o => o.CustomerID == "ALFKI")).ToList();
-		////	Assert.AreEqual(3, list.Count);
-		////}
+		[TestMethod]
+		public void AllWithSubquery()
+		{
+			var list = _db.Customers.Where(c => c.Orders.All(o => o.CustomerID == "ALFKI")).ToList();
+			// ALFKI itself plus the 6 customers in the fixture who have no orders
+			Assert.AreEqual(7, list.Count);
+		}
 
 		[TestMethod]
 		public void AllWithLocalCollection()
@@ -967,15 +970,15 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(null, list[0].City);
 		}
 
-		////[TestMethod]
-		////public void Coalesce2()
-		////{
-		////	var list = _db.Customers.Select(c => new { City = (c.City == "London" ? null : c.City), Country = (c.CustomerID == "EASTC" ? null : c.Country) })
-		////				 .Where(x => (x.City ?? x.Country ?? "NoCityOrCountry") == "NoCityOrCountry").ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////	Assert.AreEqual(null, list[0].City);
-		////	Assert.AreEqual(null, list[0].Country);
-		////}
+		[TestMethod]
+		public void Coalesce2()
+		{
+			var list = _db.Customers.Select(c => new { City = (c.City == "London" ? null : c.City), Country = (c.CustomerID == "EASTC" ? null : c.Country) })
+						 .Where(x => (x.City ?? x.Country ?? "NoCityOrCountry") == "NoCityOrCountry").ToList();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual(null, list[0].City);
+			Assert.AreEqual(null, list[0].Country);
+		}
 
 		[TestMethod]
 		public void StringLength()
@@ -1027,33 +1030,33 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(91, list.Count);
 		}
 
-		////[TestMethod]
-		////public void StringConcatImplicit2Args()
-		////{
-		////	var list = _db.Customers.Where(c => c.ContactName + "X" == "Maria AndersX").ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public void StringConcatImplicit2Args()
+		{
+			var list = _db.Customers.Where(c => c.ContactName + "X" == "Maria AndersX").ToList();
+			Assert.AreEqual(1, list.Count);
+		}
 
-		////[TestMethod]
-		////public void StringConcatExplicit2Args()
-		////{
-		////	var list = _db.Customers.Where(c => string.Concat(c.ContactName, "X") == "Maria AndersX").ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public void StringConcatExplicit2Args()
+		{
+			var list = _db.Customers.Where(c => string.Concat(c.ContactName, "X") == "Maria AndersX").ToList();
+			Assert.AreEqual(1, list.Count);
+		}
 
-		////[TestMethod]
-		////public void StringConcatExplicit3Args()
-		////{
-		////	var list = _db.Customers.Where(c => string.Concat(c.ContactName, "X", c.Country) == "Maria AndersXGermany").ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public void StringConcatExplicit3Args()
+		{
+			var list = _db.Customers.Where(c => string.Concat(c.ContactName, "X", c.Country) == "Maria AndersXGermany").ToList();
+			Assert.AreEqual(1, list.Count);
+		}
 
-		////[TestMethod]
-		////public void StringConcatExplicitNArgs()
-		////{
-		////	var list = _db.Customers.Where(c => string.Concat(new string[] { c.ContactName, "X", c.Country }) == "Maria AndersXGermany").ToList();
-		////	Assert.AreEqual(1, list.Count);
-		////}
+		[TestMethod]
+		public void StringConcatExplicitNArgs()
+		{
+			var list = _db.Customers.Where(c => string.Concat(new string[] { c.ContactName, "X", c.Country }) == "Maria AndersXGermany").ToList();
+			Assert.AreEqual(1, list.Count);
+		}
 
 		[TestMethod]
 		public void StringIsNullOrEmpty()
@@ -1113,14 +1116,14 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(4, n);
 		}
 
-		////[TestMethod]
-		////public void StringTrim()
-		////{
-		////	var notrim = _db.Customers.Where(c => c.CustomerID == "ALFKI").Max(c => ("  " + c.City + " "));
-		////	var trim = _db.Customers.Where(c => c.CustomerID == "ALFKI").Max(c => ("  " + c.City + " ").Trim());
-		////	Assert.AreNotEqual(notrim, trim);
-		////	Assert.AreEqual(notrim.Trim(), trim);
-		////}
+		[TestMethod]
+		public void StringTrim()
+		{
+			var notrim = _db.Customers.Where(c => c.CustomerID == "ALFKI").Max(c => ("  " + c.City + " "));
+			var trim = _db.Customers.Where(c => c.CustomerID == "ALFKI").Max(c => ("  " + c.City + " ").Trim());
+			Assert.AreNotEqual(notrim, trim);
+			Assert.AreEqual(notrim.Trim(), trim);
+		}
 
 		[TestMethod]
 		public void DateTimeConstructYmd()
@@ -1146,12 +1149,12 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(6, dt.Second);
 		}
 
-		////[TestMethod]
-		////public void DateTimeDay()
-		////{
-		////	var v = _db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).Max(o => o.OrderDate.Day);
-		////	Assert.AreEqual(25, v);
-		////}
+		[TestMethod]
+		public void DateTimeDay()
+		{
+			var v = _db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).Max(o => o.OrderDate.Day);
+			Assert.AreEqual(23, v);
+		}
 
 		[TestMethod]
 		public void DateTimeMonth()
@@ -1160,12 +1163,12 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(8, v);
 		}
 
-		////[TestMethod]
-		////public void DateTimeYear()
-		////{
-		////	var v = _db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).Max(o => o.OrderDate.Year);
-		////	Assert.AreEqual(1997, v);
-		////}
+		[TestMethod]
+		public void DateTimeYear()
+		{
+			var v = _db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).Max(o => o.OrderDate.Year);
+			Assert.AreEqual(2012, v);
+		}
 
 		[TestMethod]
 		public void DateTimeHour()
@@ -1188,12 +1191,12 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.AreEqual(6, second);
 		}
 
-		////[TestMethod]
-		////public void DateTimeDayOfWeek()
-		////{
-		////	var dow = _db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).Max(o => o.OrderDate.DayOfWeek);
-		////	Assert.AreEqual(DayOfWeek.Monday, dow);
-		////}
+		[TestMethod]
+		public void DateTimeDayOfWeek()
+		{
+			var dow = _db.Orders.Where(o => o.OrderDate == new DateTime(2012, 8, 23)).Take(1).Max(o => o.OrderDate.DayOfWeek);
+			Assert.AreEqual(DayOfWeek.Thursday, dow);
+		}
 
 		[TestMethod]
 		public void DateTimeAddYears()
@@ -1851,26 +1854,28 @@ namespace Watsonia.Data.Tests.Queries
 			Assert.IsTrue(value);
 		}
 
-		////[TestMethod]
-		////public void SelectManyJoined()
-		////{
-		////	var cods =
-		////		(from c in _db.Customers
-		////		 from o in _db.Orders.Where(o => o.CustomerID == c.CustomerID)
-		////		 select new { c.ContactName, o.OrderDate }).ToList();
-		////	Assert.AreEqual(830, cods.Count);
-		////}
+		[TestMethod]
+		public void SelectManyJoined()
+		{
+			var cods =
+				(from c in _db.Customers
+				 from o in _db.Orders.Where(o => o.CustomerID == c.CustomerID)
+				 select new { c.ContactName, o.OrderDate }).ToList();
+			// 29 of the fixture's 830 orders reference a customer that isn't in the table
+			Assert.AreEqual(801, cods.Count);
+		}
 
-		////[TestMethod]
-		////public void SelectManyJoinedDefaultIfEmpty()
-		////{
-		////	var cods = (
-		////		from c in _db.Customers
-		////		from o in _db.Orders.Where(o => o.CustomerID == c.CustomerID).DefaultIfEmpty()
-		////		select new { c.ContactName, o.OrderDate }
-		////		).ToList();
-		////	Assert.AreEqual(832, cods.Count);
-		////}
+		[TestMethod]
+		public void SelectManyJoinedDefaultIfEmpty()
+		{
+			var cods = (
+				from c in _db.Customers
+				from o in _db.Orders.Where(o => o.CustomerID == c.CustomerID).DefaultIfEmpty()
+				select new { c.ContactName, o.OrderDate }
+				).ToList();
+			// 801 joined orders plus a null row for each of the 6 customers without orders
+			Assert.AreEqual(807, cods.Count);
+		}
 
 		[TestMethod]
 		public void SelectWhereAssociation()

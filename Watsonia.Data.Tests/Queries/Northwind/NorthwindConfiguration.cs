@@ -34,8 +34,23 @@ namespace Watsonia.Data.Tests.Queries.Northwind
 			return foreignType.Name + "ID";
 		}
 
+		public override string GetColumnName(System.Reflection.PropertyInfo property)
+		{
+			// The Order Details test table uses a string surrogate key called Id,
+			// while the dynamic proxy names its generated primary key property OrderDetailID
+			if (property.Name == "OrderDetailID")
+			{
+				return "Id";
+			}
+			return base.GetColumnName(property);
+		}
+
 		public override Type GetPrimaryKeyColumnType(Type type)
 		{
+			if (typeof(OrderDetail).IsAssignableFrom(type))
+			{
+				return typeof(string);
+			}
 			if (type == typeof(Customer))
 			{
 				return typeof(string);

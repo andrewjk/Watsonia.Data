@@ -9,8 +9,6 @@ using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Watsonia.Data.Tests.Queries.Northwind;
 
-// TODO: Implement all double commented (////) tests
-
 namespace Watsonia.Data.Tests.Queries
 {
 	[TestClass]
@@ -106,21 +104,21 @@ namespace Watsonia.Data.Tests.Queries
 				_db.Customers.Select(c => new { c.City }));
 		}
 
-		////[TestMethod]
-		////public void SelectAnonymousTwo()
-		////{
-		////	TestQuery(
-		////		"TestSelectAnonymousTwo",
-		////		_db.Customers.Select(c => new { c.City, c.Phone }));
-		////}
+		[TestMethod]
+		public void SelectAnonymousTwo()
+		{
+			TestQuery(
+				"TestSelectAnonymousTwo",
+				_db.Customers.Select(c => new { c.City, c.Phone }));
+		}
 
-		////[TestMethod]
-		////public void SelectAnonymousThree()
-		////{
-		////	TestQuery(
-		////		"TestSelectAnonymousThree",
-		////		_db.Customers.Select(c => new { c.City, c.Phone, c.Country }));
-		////}
+		[TestMethod]
+		public void SelectAnonymousThree()
+		{
+			TestQuery(
+				"TestSelectAnonymousThree",
+				_db.Customers.Select(c => new { c.City, c.Phone, c.Country }));
+		}
 
 		[TestMethod]
 		public void SelectCustomerTable()
@@ -146,21 +144,21 @@ namespace Watsonia.Data.Tests.Queries
 				_db.Customers.Select(c => new { c.City, c }));
 		}
 
-		////[TestMethod]
-		////public void SelectAnonymousNested()
-		////{
-		////	TestQuery(
-		////		"TestSelectAnonymousNested",
-		////		_db.Customers.Select(c => new { c.City, Country = new { c.Country } }));
-		////}
+		[TestMethod]
+		public void SelectAnonymousNested()
+		{
+			TestQuery(
+				"TestSelectAnonymousNested",
+				_db.Customers.Select(c => new { c.City, Country = new { c.Country } }));
+		}
 
-		////[TestMethod]
-		////public void SelectAnonymousEmpty()
-		////{
-		////	TestQuery(
-		////		"TestSelectAnonymousEmpty",
-		////		_db.Customers.Select(c => new { }));
-		////}
+		[TestMethod]
+		public void SelectAnonymousEmpty()
+		{
+			TestQuery(
+				"TestSelectAnonymousEmpty",
+				_db.Customers.Select(c => new { }));
+		}
 
 		[TestMethod]
 		public void SelectAnonymousLiteral()
@@ -195,15 +193,15 @@ namespace Watsonia.Data.Tests.Queries
 				_db.Customers.Select(c => x));
 		}
 
-		////[TestMethod]
-		////public void SelectNestedCollection()
-		////{
-		////	TestQuery(
-		////		"TestSelectNestedCollection",
-		////		from c in _db.Customers
-		////		where c.City == "London"
-		////		select _db.Orders.Where(o => o.CustomerID == c.CustomerID && o.OrderDate.Year == 1997).Select(o => o.OrderID));
-		////}
+		[TestMethod]
+		public void SelectNestedCollection()
+		{
+			TestQuery(
+				"TestSelectNestedCollection",
+				from c in _db.Customers
+				where c.City == "London"
+				select _db.Orders.Where(o => o.CustomerID == c.CustomerID && o.OrderDate.Year == 1997).Select(o => o.OrderID));
+		}
 
 		[TestMethod]
 		public void SelectNestedCollectionInAnonymousType()
@@ -215,15 +213,15 @@ namespace Watsonia.Data.Tests.Queries
 				select new { Foos = _db.Orders.Where(o => o.CustomerID == c.CustomerID && o.OrderDate.Year == 1997).Select(o => o.OrderID) });
 		}
 
-		////[TestMethod]
-		////public void JoinCustomerOrders()
-		////{
-		////	TestQuery(
-		////		"TestJoinCustomerOrders",
-		////		from c in _db.Customers
-		////		join o in _db.Orders on c.CustomerID equals o.CustomerID
-		////		select new { c.ContactName, o.OrderID });
-		////}
+		[TestMethod]
+		public void JoinCustomerOrders()
+		{
+			TestQuery(
+				"TestJoinCustomerOrders",
+				from c in _db.Customers
+				join o in _db.Orders on c.CustomerID equals o.CustomerID
+				select new { c.ContactName, o.OrderID });
+		}
 
 		[TestMethod]
 		public void JoinMultiKey()
@@ -235,25 +233,25 @@ namespace Watsonia.Data.Tests.Queries
 				select new { c, o });
 		}
 
-		////[TestMethod]
-		////public void JoinIntoCustomersOrders()
-		////{
-		////	TestQuery(
-		////		"TestJoinIntoCustomersOrders",
-		////		from c in _db.Customers
-		////		join o in _db.Orders on c.CustomerID equals o.CustomerID into ords
-		////		select new { cust = c, ords = ords.ToList() });
-		////}
+		[TestMethod]
+		public void JoinIntoCustomersOrders()
+		{
+			TestQuery(
+				"TestJoinIntoCustomersOrders",
+				from c in _db.Customers
+				join o in _db.Orders on c.CustomerID equals o.CustomerID into ords
+				select new { cust = c, ords = ords.ToList() });
+		}
 
-		////[TestMethod]
-		////public void JoinIntoCustomersOrdersCount()
-		////{
-		////	TestQuery(
-		////		"TestJoinIntoCustomersOrdersCount",
-		////		from c in _db.Customers
-		////		join o in _db.Orders on c.CustomerID equals o.CustomerID into ords
-		////		select new { cust = c, ords = ords.Count() });
-		////}
+		[TestMethod]
+		public void JoinIntoCustomersOrdersCount()
+		{
+			TestQuery(
+				"TestJoinIntoCustomersOrdersCount",
+				from c in _db.Customers
+				join o in _db.Orders on c.CustomerID equals o.CustomerID into ords
+				select new { cust = c, ords = ords.Count() });
+		}
 
 		[TestMethod]
 		public void JoinIntoDefaultIfEmpty()
@@ -266,45 +264,45 @@ namespace Watsonia.Data.Tests.Queries
 				select new { c, o });
 		}
 
-		////[TestMethod]
-		////public void SelectManyCustomerOrders()
-		////{
-		////	TestQuery(
-		////		"TestSelectManyCustomerOrders",
-		////		from c in _db.Customers
-		////		from o in _db.Orders
-		////		where c.CustomerID == o.CustomerID
-		////		select new { c.ContactName, o.OrderID }
-		////		);
-		////}
+		[TestMethod]
+		public void SelectManyCustomerOrders()
+		{
+			TestQuery(
+				"TestSelectManyCustomerOrders",
+				from c in _db.Customers
+				from o in _db.Orders
+				where c.CustomerID == o.CustomerID
+				select new { c.ContactName, o.OrderID }
+				);
+		}
 
-		////[TestMethod]
-		////public void MultipleJoinsWithJoinConditionsInWhere()
-		////{
-		////	TestQuery(
-		////		"TestMultipleJoinsWithJoinConditionsInWhere",
-		////		from c in _db.Customers
-		////		from o in _db.Orders
-		////		from d in _db.OrderDetails
-		////		where o.CustomerID == c.CustomerID && o.OrderID == d.OrderID
-		////		where c.CustomerID == "ALFKI"
-		////		select d.ProductID
-		////		);
-		////}
+		[TestMethod]
+		public void MultipleJoinsWithJoinConditionsInWhere()
+		{
+			TestQuery(
+				"TestMultipleJoinsWithJoinConditionsInWhere",
+				from c in _db.Customers
+				from o in _db.Orders
+				from d in _db.OrderDetails
+				where o.CustomerID == c.CustomerID && o.OrderID == d.OrderID
+				where c.CustomerID == "ALFKI"
+				select d.ProductID
+				);
+		}
 
-		////[TestMethod]
-		////public void MultipleJoinsWithMissingJoinCondition()
-		////{
-		////	TestQuery(
-		////		"TestMultipleJoinsWithMissingJoinCondition",
-		////		from c in _db.Customers
-		////		from o in _db.Orders
-		////		from d in _db.OrderDetails
-		////		where o.CustomerID == c.CustomerID /*&& o.OrderID == d.OrderID*/
-		////		where c.CustomerID == "ALFKI"
-		////		select d.ProductID
-		////		);
-		////}
+		[TestMethod]
+		public void MultipleJoinsWithMissingJoinCondition()
+		{
+			TestQuery(
+				"TestMultipleJoinsWithMissingJoinCondition",
+				from c in _db.Customers
+				from o in _db.Orders
+				from d in _db.OrderDetails
+				where o.CustomerID == c.CustomerID /*&& o.OrderID == d.OrderID*/
+				where c.CustomerID == "ALFKI"
+				select d.ProductID
+				);
+		}
 
 		[TestMethod]
 		public void OrderBy()
@@ -392,14 +390,14 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void GroupBy()
-		////{
-		////	TestQuery(
-		////		"TestGroupBy",
-		////		_db.Customers.GroupBy(c => c.City)
-		////		);
-		////}
+		[TestMethod]
+		public void GroupBy()
+		{
+			TestQuery(
+				"TestGroupBy",
+				_db.Customers.GroupBy(c => c.City)
+				);
+		}
 
 		[TestMethod]
 		public void GroupBySelectMany()
@@ -428,13 +426,13 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void GroupByLongCount()
-		////{
-		////	TestQuery(
-		////		"TestGroupByLongCount",
-		////		_db.Orders.GroupBy(o => o.CustomerID).Select(g => g.LongCount()));
-		////}
+		[TestMethod]
+		public void GroupByLongCount()
+		{
+			TestQuery(
+				"TestGroupByLongCount",
+				_db.Orders.GroupBy(o => o.CustomerID).Select(g => g.LongCount()));
+		}
 
 		[TestMethod]
 		public void GroupBySumMinMaxAvg()
@@ -477,14 +475,14 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void GroupByWithElementSelector()
-		////{
-		////	TestQuery(
-		////		"TestGroupByWithElementSelector",
-		////		_db.Orders.GroupBy(o => o.CustomerID, o => o.OrderID)
-		////		);
-		////}
+		[TestMethod]
+		public void GroupByWithElementSelector()
+		{
+			TestQuery(
+				"TestGroupByWithElementSelector",
+				_db.Orders.GroupBy(o => o.CustomerID, o => o.OrderID)
+				);
+		}
 
 		[TestMethod]
 		public void GroupByWithElementSelectorSumMax()
@@ -513,14 +511,14 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void OrderByGroupBy()
-		////{
-		////	TestQuery(
-		////		"TestOrderByGroupBy",
-		////		_db.Orders.OrderBy(o => o.OrderID).GroupBy(o => o.CustomerID).Select(g => g.Sum(o => o.OrderID))
-		////		);
-		////}
+		[TestMethod]
+		public void OrderByGroupBy()
+		{
+			TestQuery(
+				"TestOrderByGroupBy",
+				_db.Orders.OrderBy(o => o.OrderID).GroupBy(o => o.CustomerID).Select(g => g.Sum(o => o.OrderID))
+				);
+		}
 
 		[TestMethod]
 		public void OrderByGroupBySelectMany()
@@ -603,24 +601,24 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void DistinctGroupBy()
-		////{
-		////	TestQuery(
-		////		"TestDistinctGroupBy",
-		////		_db.Orders.Distinct().GroupBy(o => o.CustomerID)
-		////		);
-		////}
+		[TestMethod]
+		public void DistinctGroupBy()
+		{
+			TestQuery(
+				"TestDistinctGroupBy",
+				_db.Orders.Distinct().GroupBy(o => o.CustomerID)
+				);
+		}
 
-		////[TestMethod]
-		////public void GroupByDistinct()
-		////{
-		////	TestQuery(
-		////		"TestGroupByDistinct",
-		////		_db.Orders.GroupBy(o => o.CustomerID).Distinct()
-		////		);
+		[TestMethod]
+		public void GroupByDistinct()
+		{
+			TestQuery(
+				"TestGroupByDistinct",
+				_db.Orders.GroupBy(o => o.CustomerID).Distinct()
+				);
 
-		////}
+		}
 
 		[TestMethod]
 		public void DistinctCount()
@@ -667,23 +665,23 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void SelectDistinctSum()
-		////{
-		////	TestQuery(
-		////		"TestSelectDistinctSum",
-		////		() => _db.Orders.Select(o => o.OrderID).Distinct().Sum()
-		////		);
-		////}
+		[TestMethod]
+		public void SelectDistinctSum()
+		{
+			TestQuery(
+				"TestSelectDistinctSum",
+				() => _db.Orders.Select(o => o.OrderID).Distinct().Sum()
+				);
+		}
 
-		////[TestMethod]
-		////public void Take()
-		////{
-		////	TestQuery(
-		////		"TestTake",
-		////		_db.Orders.Take(5)
-		////		);
-		////}
+		[TestMethod]
+		public void Take()
+		{
+			TestQuery(
+				"TestTake",
+				_db.Orders.Take(5)
+				);
+		}
 
 		[TestMethod]
 		public void TakeDistinct()
@@ -739,14 +737,14 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void DistinctSkip()
-		////{
-		////	TestQuery(
-		////		"TestDistinctSkip",
-		////		_db.Customers.Distinct().OrderBy(c => c.ContactName).Skip(5)
-		////		);
-		////}
+		[TestMethod]
+		public void DistinctSkip()
+		{
+			TestQuery(
+				"TestDistinctSkip",
+				_db.Customers.Distinct().OrderBy(c => c.ContactName).Skip(5)
+				);
+		}
 
 		[TestMethod]
 		public void SkipTake()
@@ -784,14 +782,14 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void TakeSkipDistinct()
-		////{
-		////	TestQuery(
-		////		"TestTakeSkipDistinct",
-		////		_db.Customers.OrderBy(c => c.ContactName).Take(10).Skip(5).Distinct()
-		////		);
-		////}
+		[TestMethod]
+		public void TakeSkipDistinct()
+		{
+			TestQuery(
+				"TestTakeSkipDistinct",
+				_db.Customers.OrderBy(c => c.ContactName).Take(10).Skip(5).Distinct()
+				);
+		}
 
 		[TestMethod]
 		public void First()
@@ -972,13 +970,13 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void SingleOrDefault()
-		////{
-		////	TestQuery(
-		////		"TestSingleOrDefault",
-		////		() => _db.Customers.SingleOrDefault());
-		////}
+		[TestMethod]
+		public void SingleOrDefault()
+		{
+			TestQuery(
+				"TestSingleOrDefault",
+				() => _db.Customers.SingleOrDefault());
+		}
 
 		[TestMethod]
 		public void SingleOrDefaultPredicate()
@@ -998,23 +996,23 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void AnyWithSubquery()
-		////{
-		////	TestQuery(
-		////		"TestAnyWithSubquery",
-		////		_db.Customers.Where(c => _db.Orders.Where(o => o.CustomerID == c.CustomerID).Any(o => o.OrderDate.Year == 1997))
-		////		);
-		////}
+		[TestMethod]
+		public void AnyWithSubquery()
+		{
+			TestQuery(
+				"TestAnyWithSubquery",
+				_db.Customers.Where(c => _db.Orders.Where(o => o.CustomerID == c.CustomerID).Any(o => o.OrderDate.Year == 1997))
+				);
+		}
 
-		////[TestMethod]
-		////public void AnyWithSubqueryNoPredicate()
-		////{
-		////	TestQuery(
-		////		"TestAnyWithSubqueryNoPredicate",
-		////		_db.Customers.Where(c => _db.Orders.Where(o => o.CustomerID == c.CustomerID).Any())
-		////		);
-		////}
+		[TestMethod]
+		public void AnyWithSubqueryNoPredicate()
+		{
+			TestQuery(
+				"TestAnyWithSubqueryNoPredicate",
+				_db.Customers.Where(c => _db.Orders.Where(o => o.CustomerID == c.CustomerID).Any())
+				);
+		}
 
 		[TestMethod]
 		public void AnyWithLocalCollection()
@@ -1035,14 +1033,14 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void AllWithSubquery()
-		////{
-		////	TestQuery(
-		////		"TestAllWithSubquery",
-		////		_db.Customers.Where(c => _db.Orders.Where(o => o.CustomerID == c.CustomerID).All(o => o.OrderDate.Year == 1997))
-		////		);
-		////}
+		[TestMethod]
+		public void AllWithSubquery()
+		{
+			TestQuery(
+				"TestAllWithSubquery",
+				_db.Customers.Where(c => _db.Orders.Where(o => o.CustomerID == c.CustomerID).All(o => o.OrderDate.Year == 1997))
+				);
+		}
 
 		[TestMethod]
 		public void AllWithLocalCollection()
@@ -1100,13 +1098,13 @@ namespace Watsonia.Data.Tests.Queries
 				_db.Customers.Where(c => (c.City ?? "Seattle") == "Seattle"));
 		}
 
-		////[TestMethod]
-		////public void Coalesce2()
-		////{
-		////	TestQuery(
-		////		"TestCoalesce2",
-		////		_db.Customers.Where(c => (c.City ?? c.Country ?? "Seattle") == "Seattle"));
-		////}
+		[TestMethod]
+		public void Coalesce2()
+		{
+			TestQuery(
+				"TestCoalesce2",
+				_db.Customers.Where(c => (c.City ?? c.Country ?? "Seattle") == "Seattle"));
+		}
 
 		[TestMethod]
 		public void StringLength()
@@ -1956,64 +1954,64 @@ namespace Watsonia.Data.Tests.Queries
 				_db.Orders.Where(o => (o.CustomerID == "ALFKI" ? o.OrderID < 10 : o.OrderID > 10)));
 		}
 
-		////[TestMethod]
-		////public void SelectManyJoined()
-		////{
-		////	TestQuery(
-		////		"TestSelectManyJoined",
-		////		from c in _db.Customers
-		////		from o in _db.Orders.Where(o => o.CustomerID == c.CustomerID)
-		////		select new { c.ContactName, o.OrderDate });
-		////}
+		[TestMethod]
+		public void SelectManyJoined()
+		{
+			TestQuery(
+				"TestSelectManyJoined",
+				from c in _db.Customers
+				from o in _db.Orders.Where(o => o.CustomerID == c.CustomerID)
+				select new { c.ContactName, o.OrderDate });
+		}
 
-		////[TestMethod]
-		////public void SelectManyJoinedDefaultIfEmpty()
-		////{
-		////	TestQuery(
-		////		"TestSelectManyJoinedDefaultIfEmpty",
-		////		from c in _db.Customers
-		////		from o in _db.Orders.Where(o => o.CustomerID == c.CustomerID).DefaultIfEmpty()
-		////		select new { c.ContactName, o.OrderDate });
-		////}
+		[TestMethod]
+		public void SelectManyJoinedDefaultIfEmpty()
+		{
+			TestQuery(
+				"TestSelectManyJoinedDefaultIfEmpty",
+				from c in _db.Customers
+				from o in _db.Orders.Where(o => o.CustomerID == c.CustomerID).DefaultIfEmpty()
+				select new { c.ContactName, o.OrderDate });
+		}
 
-		////[TestMethod]
-		////public void SelectWhereAssociation()
-		////{
-		////	TestQuery(
-		////		"TestSelectWhereAssociation",
-		////		from o in _db.Orders
-		////		where o.Customer.City == "Seattle"
-		////		select o);
-		////}
+		[TestMethod]
+		public void SelectWhereAssociation()
+		{
+			TestQuery(
+				"TestSelectWhereAssociation",
+				from o in _db.Orders
+				where o.Customer.City == "Seattle"
+				select o);
+		}
 
-		////[TestMethod]
-		////public void SelectWhereAssociations()
-		////{
-		////	TestQuery(
-		////		"TestSelectWhereAssociations",
-		////		from o in _db.Orders
-		////		where o.Customer.City == "Seattle" && o.Customer.Phone != "555 555 5555"
-		////		select o);
-		////}
+		[TestMethod]
+		public void SelectWhereAssociations()
+		{
+			TestQuery(
+				"TestSelectWhereAssociations",
+				from o in _db.Orders
+				where o.Customer.City == "Seattle" && o.Customer.Phone != "555 555 5555"
+				select o);
+		}
 
-		////[TestMethod]
-		////public void SelectWhereAssociationTwice()
-		////{
-		////	TestQuery(
-		////		"TestSelectWhereAssociationTwice",
-		////		from o in _db.Orders
-		////		where o.Customer.City == "Seattle" && o.Customer.Phone != "555 555 5555"
-		////		select o);
-		////}
+		[TestMethod]
+		public void SelectWhereAssociationTwice()
+		{
+			TestQuery(
+				"TestSelectWhereAssociationTwice",
+				from o in _db.Orders
+				where o.Customer.City == "Seattle" && o.Customer.Phone != "555 555 5555"
+				select o);
+		}
 
-		////[TestMethod]
-		////public void SelectAssociation()
-		////{
-		////	TestQuery(
-		////		"TestSelectAssociation",
-		////		from o in _db.Orders
-		////		select o.Customer);
-		////}
+		[TestMethod]
+		public void SelectAssociation()
+		{
+			TestQuery(
+				"TestSelectAssociation",
+				from o in _db.Orders
+				select o.Customer);
+		}
 
 		[TestMethod]
 		public void SelectAssociations()
@@ -2035,17 +2033,17 @@ namespace Watsonia.Data.Tests.Queries
 				select new { A = o.Customer, B = o.Customer });
 		}
 
-		////[TestMethod]
-		////public void SingletonAssociationWithMemberAccess()
-		////{
-		////	TestQuery(
-		////		"TestSingletonAssociationWithMemberAccess",
-		////		from o in _db.Orders
-		////		where o.Customer.City == "Seattle"
-		////		where o.Customer.Phone != "555 555 5555"
-		////		select new { A = o.Customer, B = o.Customer.City }
-		////		);
-		////}
+		[TestMethod]
+		public void SingletonAssociationWithMemberAccess()
+		{
+			TestQuery(
+				"TestSingletonAssociationWithMemberAccess",
+				from o in _db.Orders
+				where o.Customer.City == "Seattle"
+				where o.Customer.Phone != "555 555 5555"
+				select new { A = o.Customer, B = o.Customer.City }
+				);
+		}
 
 		[TestMethod]
 		public void CompareDateTimesWithDifferentNullability()
@@ -2084,34 +2082,34 @@ namespace Watsonia.Data.Tests.Queries
 				);
 		}
 
-		////[TestMethod]
-		////public void CombineQueriesDeepNesting()
-		////{
-		////	var custs = _db.Customers.Where(c => c.ContactName.StartsWith("xxx"));
-		////	var ords = _db.Orders.Where(o => custs.Any(c => c.CustomerID == o.CustomerID));
-		////	TestQuery(
-		////		"TestCombineQueriesDeepNesting",
-		////		_db.OrderDetails.Where(d => ords.Any(o => o.OrderID == d.OrderID))
-		////		);
-		////}
+		[TestMethod]
+		public void CombineQueriesDeepNesting()
+		{
+			var custs = _db.Customers.Where(c => c.ContactName.StartsWith("xxx"));
+			var ords = _db.Orders.Where(o => custs.Any(c => c.CustomerID == o.CustomerID));
+			TestQuery(
+				"TestCombineQueriesDeepNesting",
+				_db.OrderDetails.Where(d => ords.Any(o => o.OrderID == d.OrderID))
+				);
+		}
 
-		////[TestMethod]
-		////public void LetWithSubquery()
-		////{
-		////	TestQuery(
-		////		"TestLetWithSubquery",
-		////		from customer in _db.Customers
-		////		let orders =
-		////			from order in _db.Orders
-		////			where order.CustomerID == customer.CustomerID
-		////			select order
-		////		select new
-		////		{
-		////			Customer = customer,
-		////			OrdersCount = orders.Count(),
-		////		}
-		////		);
-		////}
+		[TestMethod]
+		public void LetWithSubquery()
+		{
+			TestQuery(
+				"TestLetWithSubquery",
+				from customer in _db.Customers
+				let orders =
+					from order in _db.Orders
+					where order.CustomerID == customer.CustomerID
+					select order
+				select new
+				{
+					Customer = customer,
+					OrdersCount = orders.Count(),
+				}
+				);
+		}
 
 		protected void TestQuery(string baseline, IQueryable query)
 		{
