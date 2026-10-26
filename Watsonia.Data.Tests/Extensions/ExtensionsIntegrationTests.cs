@@ -154,5 +154,112 @@ namespace Watsonia.Data.Tests.Extensions
 			{
 			}
 		}
+
+		[TestMethod]
+		public void AddWatsoniaDataValidatesOptions()
+		{
+			var services = new ServiceCollection();
+			Assert.ThrowsException<InvalidOperationException>(
+				() => services.AddWatsoniaData(options => options.ConnectionString = ConnectionString));
+
+			var services2 = new ServiceCollection();
+			Assert.ThrowsException<InvalidOperationException>(
+				() => services2.AddWatsoniaData(options =>
+				{
+					options.ConnectionString = ConnectionString;
+					options.DataAccessProvider = new SQLiteDataAccessProvider();
+				}));
+		}
+
+		[TestMethod]
+		public void AddWatsoniaDataTwiceRegistersOnce()
+		{
+			var services = new ServiceCollection();
+			services.AddMemoryCache();
+			services.AddWatsoniaData(options =>
+			{
+				options.ConnectionString = ConnectionString;
+				options.DataAccessProvider = new SQLiteDataAccessProvider();
+				options.EntityNamespace = EntityNamespace;
+			});
+			services.AddWatsoniaData(options =>
+			{
+				options.ConnectionString = ConnectionString;
+				options.DataAccessProvider = new SQLiteDataAccessProvider();
+				options.EntityNamespace = EntityNamespace;
+				options.LazyLoadingEnabled = false;
+			});
+
+			using var provider = services.BuildServiceProvider();
+			var first = provider.GetRequiredService<Watsonia.Data.Database>();
+			var second = provider.GetRequiredService<Watsonia.Data.Database>();
+
+			Assert.AreSame(first, second);
+			Assert.IsTrue(first.Configuration.LazyLoadingEnabled); // the first registration wins
+		}
+
+		[TestMethod]
+		public void CachingDisabledKeepsTheDefaultStore()
+		{
+			var services = new ServiceCollection();
+			services.AddMemoryCache();
+			services.AddWatsoniaData(options =>
+			{
+				options.ConnectionString = ConnectionString;
+				options.DataAccessProvider = new SQLiteDataAccessProvider();
+				options.EntityNamespace = EntityNamespace;
+				options.EnableCaching = false;
+			});
+
+			using var provider = services.BuildServiceProvider();
+			var database = provider.GetRequiredService<Watsonia.Data.Database>();
+			Assert.IsInstanceOfType(database.Cache, typeof(DatabaseItemCache));
+		}
+
+		[TestMethod]
+		public void MissingMemoryCacheKeepsTheDefaultStore()
+		{
+			var services = new ServiceCollection();
+			services.AddWatsoniaData(options =>
+			{
+				options.ConnectionString = ConnectionString;
+				options.DataAccessProvider = new SQLiteDataAccessProvider();
+				options.EntityNamespace = EntityNamespace;
+			});
+
+			using var provider = services.BuildServiceProvider();
+			var database = provider.GetRequiredService<Watsonia.Data.Database>();
+			Assert.IsInstanceOfType(database.Cache, typeof(DatabaseItemCache));
+		}
+
+		[TestMethod]
+		public void DisposingInstrumentationStopsTracing()
+		{
+			var activities = new List<Activity>();
+			using var listener = new ActivityListener
+			{
+				ShouldListenTo = source => source.Name == "Watsonia.Data",
+				Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
+				ActivityStopped = activity =>
+				{
+					lock (activities)
+					{
+						activities.Add(activity);
+					}
+				}
+			};
+			ActivitySource.AddActivityListener(listener);
+
+			var database = CreateDatabase();
+			var instrumentation = DatabaseInstrumentation.Attach(database);
+			database.LoadCollection<Database.Entities.LoadingParent>(Select.From("LoadingParent"));
+			var countWhileAttached = activities.Count;
+			Assert.IsTrue(countWhileAttached > 0);
+
+			instrumentation.Dispose();
+			database.LoadCollection<Database.Entities.LoadingParent>(Select.From("LoadingParent"));
+
+			Assert.AreEqual(countWhileAttached, activities.Count);
+		}
 	}
 }

@@ -40,6 +40,24 @@ namespace Watsonia.Data.Tests.Database
 			parent.Children.Add(_db.Create(new LoadingChild() { Value = 12, Description = "Twelve" }));
 			parent.Children[0].SubChildren.Add(_db.Create(new LoadingSubChild() { SubName = "LA-SC1" }));
 			_db.Save(parent);
+
+			var emptyParent = _db.Create<LoadingParent>();
+			emptyParent.Name = "LA2";
+			_db.Save(emptyParent);
+		}
+
+		private static async Task AssertCanceled(Func<Task> action)
+		{
+			try
+			{
+				await action();
+			}
+			catch (OperationCanceledException)
+			{
+				return;
+			}
+
+			Assert.Fail("Expected the operation to be canceled");
 		}
 
 		private static Watsonia.Data.Database CreateDatabase(bool lazyLoadingEnabled)
@@ -158,6 +176,127 @@ namespace Watsonia.Data.Tests.Database
 
 			Assert.AreEqual(1, rows.Count);
 			Assert.AreEqual("LA1", rows[0].Name);
+		}
+
+		[TestMethod]
+		public void LazyLoadingWithNullForeignKeyReturnsNull()
+		{
+			var db = CreateDatabase(false);
+			var item = db.Insert(new HasChanges { String = "LAZY" });
+			var id = ((IDynamicProxy)item).__PrimaryKeyValue;
+			try
+			{
+				var loaded = db.Load<HasChanges>(id);
+
+				Assert.IsNull(loaded.Related);
+				Assert.IsFalse(((IDynamicProxy)loaded).StateTracker.LoadedItems.Contains("Related"));
+			}
+			finally
+			{
+				db.Delete<HasChanges>(id);
+			}
+		}
+
+		[TestMethod]
+		public void LazyLoadingWithDefaultForeignKeyReturnsEmptyItem()
+		{
+			var db = CreateDatabase(false);
+			var item = db.Insert(new HasChanges { String = "LAZY" });
+			var id = ((IDynamicProxy)item).__PrimaryKeyValue;
+			try
+			{
+				var loaded = db.Load<HasChanges>(id);
+				((IDynamicProxy)loaded).__SetValue("RelatedID", -1L);
+
+				// A default foreign key value produces an empty item without touching the database
+				var related = loaded.Related;
+				Assert.IsNotNull(related);
+				Assert.IsTrue(((IDynamicProxy)related).StateTracker.IsNew);
+				Assert.IsTrue(((IDynamicProxy)loaded).StateTracker.LoadedItems.Contains("Related"));
+			}
+			finally
+			{
+				db.Delete<HasChanges>(id);
+			}
+		}
+
+		[TestMethod]
+		public async Task ExplicitLoadersValidateArguments()
+		{
+			var db = CreateDatabase(false);
+			var parent = db.LoadCollection<LoadingParent>(
+				Select.From("LoadingParent").Where("Name", SqlOperator.Equals, "LA1"))[0];
+
+			await Assert.ThrowsExceptionAsync<ArgumentNullException>(
+				() => db.LoadCollectionAsync<LoadingParent>(null, p => p.Children));
+			await Assert.ThrowsExceptionAsync<ArgumentNullException>(
+				() => db.LoadCollectionAsync(parent, null));
+			await Assert.ThrowsExceptionAsync<ArgumentException>(
+				() => db.LoadCollectionAsync(parent, p => p.Name));
+			await Assert.ThrowsExceptionAsync<ArgumentException>(
+				() => db.LoadItemAsync(parent, p => p.Children));
+		}
+
+		[TestMethod]
+		public async Task ExplicitLoadItemWithNullForeignKey()
+		{
+			var db = CreateDatabase(false);
+			var item = db.Insert(new HasChanges { String = "LAZY" });
+			var id = ((IDynamicProxy)item).__PrimaryKeyValue;
+			try
+			{
+				var loaded = db.Load<HasChanges>(id);
+
+				await db.LoadItemAsync(loaded, h => h.Related);
+
+				Assert.IsNull(loaded.Related);
+				Assert.IsTrue(((IDynamicProxy)loaded).StateTracker.LoadedItems.Contains("Related"));
+			}
+			finally
+			{
+				db.Delete<HasChanges>(id);
+			}
+		}
+
+		[TestMethod]
+		public async Task AsyncMutationsHonorCancellation()
+		{
+			var db = CreateDatabase(true);
+			var parent = db.LoadCollection<LoadingParent>(
+				Select.From("LoadingParent").Where("Name", SqlOperator.Equals, "LA2"))[0];
+			using var cancellation = new CancellationTokenSource();
+			cancellation.Cancel();
+
+			await AssertCanceled(() => db.SaveAsync(parent, cancellationToken: cancellation.Token));
+			await AssertCanceled(() => db.InsertAsync(new LoadingParent { Name = "CANCELLED" }, cancellation.Token));
+			await AssertCanceled(() => db.DeleteAsync<LoadingParent>(parent, cancellationToken: cancellation.Token));
+		}
+
+		[TestMethod]
+		public async Task CancellationMidStreamStopsEnumeration()
+		{
+			var db = CreateDatabase(true);
+			using var cancellation = new CancellationTokenSource();
+			var seen = 0;
+			OperationCanceledException caught = null;
+
+			try
+			{
+				await foreach (var parent in db.EnumerateCollectionAsync<LoadingParent>(
+					Select.From("LoadingParent").Where("Name", SqlOperator.StartsWith, "LA"),
+					cancellation.Token))
+				{
+					seen++;
+					cancellation.Cancel();
+				}
+			}
+			catch (OperationCanceledException exception)
+			{
+				caught = exception;
+			}
+
+			Assert.AreEqual(1, seen);
+			Assert.IsNotNull(caught);
 		}
 	}
 }

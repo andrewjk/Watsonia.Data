@@ -13,7 +13,10 @@ namespace Watsonia.Data.TestPerformance
 		{
 			if (args.Length > 0 && string.Equals(args[0], "verify", StringComparison.OrdinalIgnoreCase))
 			{
-				Verification.Run();
+				if (!Verification.Run())
+				{
+					Environment.ExitCode = 1;
+				}
 				return;
 			}
 
@@ -24,9 +27,9 @@ namespace Watsonia.Data.TestPerformance
 	/// <summary>
 	/// Runs each framework once and verifies they return identical data.
 	/// </summary>
-	internal static class Verification
+	public static class Verification
 	{
-		public static void Run()
+		public static bool Run()
 		{
 			Seeder.EnsureSeeded();
 
@@ -65,6 +68,7 @@ namespace Watsonia.Data.TestPerformance
 			Console.WriteLine(allMatch
 				? "All frameworks returned the same data."
 				: "Frameworks returned different data!");
+			return allMatch;
 		}
 
 		private static bool CompareLists(List<IEntity> a, List<IEntity> b)

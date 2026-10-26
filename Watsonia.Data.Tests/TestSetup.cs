@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+[assembly: DoNotParallelize]
+
 namespace Watsonia.Data.Tests
 {
 	[TestClass]

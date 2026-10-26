@@ -9,7 +9,7 @@
     <Copyright>© Watsonia Publishing</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.1.2" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.2" />
@@ -18,6 +18,7 @@
     <ProjectReference Include="..\Watsonia.Data.SQLite\Watsonia.Data.SQLite.csproj" />
     <ProjectReference Include="..\Watsonia.Data.SqlServer\Watsonia.Data.SqlServer.csproj" />
     <ProjectReference Include="..\Watsonia.Data\Watsonia.Data.csproj" />
+    <ProjectReference Include="..\Watsonia.Data.TestPerformance\Watsonia.Data.TestPerformance.csproj" />
     <ProjectReference Include="..\Watsonia.Data.Extensions\Watsonia.Data.Extensions.csproj" />
   </ItemGroup>
   <ItemGroup>
