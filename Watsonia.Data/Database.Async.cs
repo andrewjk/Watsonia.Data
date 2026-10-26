@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -174,7 +175,7 @@ namespace Watsonia.Data
 				if (result.Count > 0 && select.IncludePaths.Count > 0)
 				{
 					// HACK: Include paths are loaded synchronously for now, because I don't want to duplicate all of that code
-					LoadIncludePaths(select, result);
+					await LoadIncludePathsAsync(select, result).ConfigureAwait(false);
 				}
 			}
 
@@ -260,7 +261,7 @@ namespace Watsonia.Data
 				if (result.Count > 0 && select.IncludePaths.Count > 0)
 				{
 					// HACK: Include paths are loaded synchronously for now, because I don't want to duplicate all of that code
-					LoadIncludePaths(select, result);
+					await LoadIncludePathsAsync(select, result).ConfigureAwait(false);
 				}
 			}
 
@@ -910,5 +911,239 @@ namespace Watsonia.Data
 			OnAfterLoadCollection(result);
 		}
 #endif
+
+
+		/// <summary>
+		/// Loads a related item for an entity asynchronously.
+		/// </summary>
+		/// <typeparam name="T">The type of the entity.</typeparam>
+		/// <param name="item">The entity whose related item should be loaded.</param>
+		/// <param name="property">The property containing the related item.</param>
+		public async Task LoadItemAsync<T>(T item, Expression<Func<T, object>> property) where T : class
+		{
+			if (item == null)
+			{
+				throw new ArgumentNullException(nameof(item));
+			}
+
+			var propertyInfo = GetPropertyInfo(property);
+			if (!this.Configuration.IsRelatedItem(propertyInfo))
+			{
+				throw new ArgumentException($"The property '{propertyInfo.Name}' is not a related item", nameof(property));
+			}
+
+			var proxy = (IDynamicProxy)item;
+			var foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(propertyInfo);
+			var id = proxy.__GetValue(foreignKeyColumnName);
+			var relatedType = propertyInfo.PropertyType;
+
+			object related = null;
+			if (id != null && !id.Equals(this.Configuration.GetPrimaryKeyNewItemValue(relatedType)))
+			{
+				var loadAsyncMethod = typeof(Database).GetMethods()
+					.Single(m => m.Name == nameof(LoadAsync)
+						&& m.IsGenericMethod
+						&& m.GetParameters().Length == 1
+						&& m.GetParameters()[0].ParameterType == typeof(object))
+					.MakeGenericMethod(relatedType);
+				var task = (Task)loadAsyncMethod.Invoke(this, new object[] { id });
+				await task.ConfigureAwait(false);
+				related = task.GetType().GetProperty("Result").GetValue(task);
+			}
+
+			proxy.StateTracker.IsLoading = true;
+			proxy.__SetValue(propertyInfo.Name, related);
+			proxy.StateTracker.IsLoading = false;
+			proxy.StateTracker.AddLoadedItem(propertyInfo.Name);
+		}
+
+		/// <summary>
+		/// Loads a related collection for an entity asynchronously.
+		/// </summary>
+		/// <typeparam name="T">The type of the entity.</typeparam>
+		/// <param name="item">The entity whose related collection should be loaded.</param>
+		/// <param name="property">The property containing the related collection.</param>
+		public async Task LoadCollectionAsync<T>(T item, Expression<Func<T, object>> property) where T : class
+		{
+			if (item == null)
+			{
+				throw new ArgumentNullException(nameof(item));
+			}
+
+			var propertyInfo = GetPropertyInfo(property);
+			if (!this.Configuration.IsRelatedCollection(propertyInfo))
+			{
+				throw new ArgumentException($"The property '{propertyInfo.Name}' is not a related collection", nameof(property));
+			}
+
+			var proxy = (IDynamicProxy)item;
+			var elementType = TypeHelper.GetElementType(propertyInfo.PropertyType);
+			var tableName = this.Configuration.GetTableName(elementType);
+			var foreignKeyColumnName = this.Configuration.GetForeignKeyColumnName(elementType, typeof(T));
+			var select = Select.From(tableName).Where(foreignKeyColumnName, SqlOperator.Equals, proxy.__PrimaryKeyValue);
+
+			var collection = await LoadCollectionAsyncInternal(select, elementType).ConfigureAwait(false);
+
+			proxy.StateTracker.IsLoading = true;
+			proxy.StateTracker.SetCollection(propertyInfo.Name, collection);
+			proxy.__SetValue(propertyInfo.Name, collection);
+			proxy.StateTracker.IsLoading = false;
+			proxy.StateTracker.AddLoadedCollection(propertyInfo.Name);
+		}
+
+		private async Task<IList> LoadCollectionAsyncInternal(SelectStatement select, Type itemType)
+		{
+			var loadCollectionAsyncMethod = typeof(Database).GetMethods()
+				.Single(m => m.Name == nameof(LoadCollectionAsync)
+					&& m.IsGenericMethod
+					&& m.GetParameters().Length == 1
+					&& m.GetParameters()[0].ParameterType == typeof(SelectStatement))
+				.MakeGenericMethod(itemType);
+			var task = (Task)loadCollectionAsyncMethod.Invoke(this, new object[] { select });
+			await task.ConfigureAwait(false);
+			return (IList)task.GetType().GetProperty("Result").GetValue(task);
+		}
+
+		private static PropertyInfo GetPropertyInfo<T>(Expression<Func<T, object>> property)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			var body = property.Body;
+			while (body.NodeType == ExpressionType.Convert || body.NodeType == ExpressionType.ConvertChecked)
+			{
+				body = ((UnaryExpression)body).Operand;
+			}
+
+			if (body is MemberExpression member && member.Member is PropertyInfo propertyInfo)
+			{
+				return propertyInfo;
+			}
+
+			throw new ArgumentException("The expression must be a property accessor", nameof(property));
+		}
+
+		private async Task LoadIncludePathsAsync<T>(SelectStatement select, IList<T> result)
+		{
+			var parentType = typeof(T);
+			if (typeof(IDynamicProxy).IsAssignableFrom(parentType))
+			{
+				parentType = parentType.BaseType;
+			}
+
+			// We need to ensure that paths are not loaded twice if the user has specified any compound paths
+			var pathsToRemove = new List<string>();
+			foreach (var path in select.IncludePaths)
+			{
+				var pathParts = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+				for (var i = 0; i < pathParts.Length - 1; i++)
+				{
+					pathsToRemove.Add(string.Join(".", pathParts.Take(i + 1)));
+				}
+			}
+
+			foreach (var path in select.IncludePaths.Except(pathsToRemove))
+			{
+				await LoadIncludePathAsync(select, result, parentType, path).ConfigureAwait(false);
+			}
+		}
+
+		private async Task LoadIncludePathAsync<T>(SelectStatement parentQuery, IList<T> parentCollection, Type parentType, string path)
+		{
+			var firstProperty = path.Contains(".") ? path.Substring(0, path.IndexOf(".")) : path;
+			var pathProperty = parentType.GetProperty(firstProperty);
+			await LoadCompoundChildItemsAsync(parentQuery, parentCollection, path, parentType, pathProperty).ConfigureAwait(false);
+		}
+
+		private async Task LoadCompoundChildItemsAsync<T>(SelectStatement parentQuery, IList<T> parentCollection, string path, Type parentType, PropertyInfo pathProperty)
+		{
+			var pathParts = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+			var paths = pathParts.Select(p => new IncludePath(p)).ToArray();
+
+			// Get the chain of properties in this path
+			var propertyParentType = parentType;
+			for (var i = 0; i < pathParts.Length; i++)
+			{
+				paths[i].Property = propertyParentType.GetProperty(pathParts[i]);
+				propertyParentType = paths[i].Property.PropertyType;
+				if (this.Configuration.IsRelatedCollection(paths[i].Property))
+				{
+					propertyParentType = TypeHelper.GetElementType(propertyParentType);
+				}
+			}
+
+			Type itemType;
+			SelectStatement childQuery;
+			if (this.Configuration.IsRelatedCollection(pathProperty))
+			{
+				itemType = TypeHelper.GetElementType(pathProperty.PropertyType);
+				childQuery = GetChildCollectionSubquery(parentQuery, parentType, itemType);
+			}
+			else if (this.Configuration.IsRelatedItem(pathProperty))
+			{
+				itemType = pathProperty.PropertyType;
+				childQuery = GetChildItemSubquery(parentQuery, pathProperty, itemType);
+			}
+			else
+			{
+				throw new InvalidOperationException();
+			}
+
+			// Load the first child items
+			paths[0].ChildCollection = await LoadCollectionAsyncInternal(childQuery, itemType).ConfigureAwait(false);
+
+			// For compound paths, load the other child items
+			propertyParentType = itemType;
+			for (var i = 1; i < pathParts.Length; i++)
+			{
+				paths[i].ChildCollection = await LoadChildCollectionAsync(childQuery, propertyParentType, paths[i].Property).ConfigureAwait(false);
+				propertyParentType = paths[i].Property.PropertyType;
+			}
+
+			// Assign the child items to the appropriate parent items
+			SetChildItems(parentCollection, parentType, paths, 0);
+		}
+
+		private async Task<IEnumerable> LoadChildCollectionAsync(SelectStatement childQuery, Type propertyParentType, PropertyInfo pathProperty)
+		{
+			childQuery.SourceFields.Clear();
+
+			Type itemType;
+			if (this.Configuration.IsRelatedCollection(pathProperty))
+			{
+				itemType = TypeHelper.GetElementType(pathProperty.PropertyType);
+
+				var tableName = this.Configuration.GetTableName(itemType);
+				childQuery = childQuery.ColumnsFrom(tableName);
+				childQuery = childQuery.Join(
+					tableName,
+					this.Configuration.GetTableName(propertyParentType),
+					this.Configuration.GetPrimaryKeyColumnName(propertyParentType),
+					tableName,
+					this.Configuration.GetForeignKeyColumnName(itemType, propertyParentType));
+			}
+			else if (this.Configuration.IsRelatedItem(pathProperty))
+			{
+				itemType = pathProperty.PropertyType;
+
+				var tableName = this.Configuration.GetTableName(itemType);
+				childQuery = childQuery.ColumnsFrom(tableName);
+				childQuery = childQuery.Join(
+					tableName,
+					this.Configuration.GetTableName(propertyParentType),
+					this.Configuration.GetForeignKeyColumnName(propertyParentType, itemType),
+					tableName,
+					this.Configuration.GetPrimaryKeyColumnName(itemType));
+			}
+			else
+			{
+				throw new InvalidOperationException();
+			}
+
+			return await LoadCollectionAsyncInternal(childQuery, itemType).ConfigureAwait(false);
+		}
+
 	}
 }

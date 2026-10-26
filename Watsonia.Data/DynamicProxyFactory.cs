@@ -1044,8 +1044,10 @@ namespace Watsonia.Data
 			}
 
 			// TODO: Cannot change that LoadItem to take an object parameter, it just won't work
+			// String keys use the string overload; value type keys use the long overload
+			var loadItemIDType = primaryKeyColumnIsValueType ? typeof(long) : typeof(string);
 			var loadItemMethod = typeof(DynamicProxyStateTracker).GetMethod(
-				"LoadItem", new Type[] { typeof(long), typeof(string) }).MakeGenericMethod(property.PropertyType);
+				"LoadItem", new Type[] { loadItemIDType, typeof(string) }).MakeGenericMethod(property.PropertyType);
 
 			gen.DeclareLocal(property.PropertyType);
 			gen.DeclareLocal(primaryKeyColumnType);
@@ -1121,6 +1123,10 @@ namespace Watsonia.Data
 					"get_Value", Type.EmptyTypes);
 				gen.Emit(OpCodes.Ldloca_S, 1);
 				gen.Emit(OpCodes.Call, getNullableValueMethod);
+			}
+			else
+			{
+				gen.Emit(OpCodes.Ldloc_1);
 			}
 			gen.Emit(OpCodes.Ldstr, property.Name);
 			gen.Emit(OpCodes.Callvirt, loadItemMethod);

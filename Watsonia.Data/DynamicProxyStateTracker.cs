@@ -148,11 +148,18 @@ namespace Watsonia.Data
 			}
 			else
 			{
+				if (!this.Database.Configuration.LazyLoadingEnabled)
+				{
+					throw new InvalidOperationException(
+						$"The collection '{propertyName}' on {this.Item.GetType().BaseType.Name} has not been loaded. " +
+						"Lazy loading is disabled; load it explicitly (use Include() when querying or LoadCollectionAsync).");
+				}
+
 				var tableType = typeof(T);
 				var tableName = this.Database.Configuration.GetTableName(tableType);
 				var foreignKeyColumnName = this.Database.Configuration.GetForeignKeyColumnName(tableType, this.Item.GetType().BaseType);
 				var select = Select.From(tableName).Where(foreignKeyColumnName, SqlOperator.Equals, this.Item.__PrimaryKeyValue);
-				// HACK: Have to run this synchronously as this method is always called from a property getter
+				// Property getters cannot be asynchronous, so this always runs synchronously
 				var collection = this.Database.LoadCollection<T>(select);
 				SetCollection(propertyName, (IList)collection);
 				return collection;
@@ -216,8 +223,15 @@ namespace Watsonia.Data
 			}
 			else
 			{
-				// HACK: Have to run this synchronously until we have time to update the generated proxy code
-				return Task.Run(() => this.Database.LoadAsync<T>(id)).GetAwaiter().GetResult();
+				if (!this.Database.Configuration.LazyLoadingEnabled)
+				{
+					throw new InvalidOperationException(
+						$"The item '{propertyName}' on {this.Item.GetType().BaseType.Name} has not been loaded. " +
+						"Lazy loading is disabled; load it explicitly (use Include() when querying or LoadItemAsync).");
+				}
+
+				// Property getters cannot be asynchronous, so this always runs synchronously
+				return this.Database.Load<T>(id);
 			}
 		}
 
@@ -237,8 +251,15 @@ namespace Watsonia.Data
 			}
 			else
 			{
-				// HACK: Have to run this synchronously until we have time to update the generated proxy code
-				return Task.Run(() => this.Database.LoadAsync<T>(id)).GetAwaiter().GetResult();
+				if (!this.Database.Configuration.LazyLoadingEnabled)
+				{
+					throw new InvalidOperationException(
+						$"The item '{propertyName}' on {this.Item.GetType().BaseType.Name} has not been loaded. " +
+						"Lazy loading is disabled; load it explicitly (use Include() when querying or LoadItemAsync).");
+				}
+
+				// Property getters cannot be asynchronous, so this always runs synchronously
+				return this.Database.Load<T>(id);
 			}
 		}
 

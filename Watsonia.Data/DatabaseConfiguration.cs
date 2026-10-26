@@ -37,6 +37,20 @@ namespace Watsonia.Data
 		public virtual string ConnectionString { get; private set; }
 
 		/// <summary>
+		/// Gets or sets a value indicating whether related items and collections are loaded
+		/// automatically when their properties are accessed.
+		/// </summary>
+		/// <value>
+		///   <c>true</c> if lazy loading is enabled; otherwise, <c>false</c>.
+		/// </value>
+		/// <remarks>
+		/// Property getters cannot be asynchronous, so lazy loading always performs synchronous
+		/// database access. Asynchronous applications should disable lazy loading and load
+		/// related items explicitly (with Include or the LoadItemAsync/LoadCollectionAsync methods).
+		/// </remarks>
+		public virtual bool LazyLoadingEnabled { get; set; } = true;
+
+		/// <summary>
 		/// Gets the namespace in which entity classes are located.
 		/// </summary>
 		/// <value>
