@@ -10,7 +10,7 @@ namespace Watsonia.Data.Tests.Cache
 {
 	public class CacheDatabase : Watsonia.Data.Database
 	{
-		private const string ConnectionString = @"Data Source=Data\CacheTests.sqlite";
+		private const string ConnectionString = @"Data Source=Data/CacheTests.sqlite";
 
 		public CacheDatabase()
 			: base(new SQLiteDataAccessProvider(), CacheDatabase.ConnectionString, "Watsonia.Data.Tests.Cache.Entities")

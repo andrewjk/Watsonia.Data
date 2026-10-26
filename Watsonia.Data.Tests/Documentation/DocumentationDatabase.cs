@@ -10,7 +10,7 @@ namespace Watsonia.Data.Tests.Documentation
 {
 	public class DocumentationDatabase : Watsonia.Data.Database
 	{
-		private const string ConnectionString = @"Data Source=Data\DocumentationTests.sqlite";
+		private const string ConnectionString = @"Data Source=Data/DocumentationTests.sqlite";
 
 		public DocumentationDatabase()
 			: base(new SQLiteDataAccessProvider(), DocumentationDatabase.ConnectionString, "Watsonia.Data.Tests.Documentation.Entities")

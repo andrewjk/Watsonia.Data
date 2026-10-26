@@ -22,9 +22,9 @@ namespace Watsonia.Data.Tests.Database
 		[ClassInitialize]
 		public static void Initialize(TestContext _)
 		{
-			if (!File.Exists(@"Data\EntitiesTests.sqlite"))
+			if (!File.Exists(@"Data/EntitiesTests.sqlite"))
 			{
-				var file = File.Create(@"Data\EntitiesTests.sqlite");
+				var file = File.Create(@"Data/EntitiesTests.sqlite");
 				file.Dispose();
 			}
 

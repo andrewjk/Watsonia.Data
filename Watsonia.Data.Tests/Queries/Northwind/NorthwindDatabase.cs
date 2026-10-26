@@ -7,7 +7,7 @@ namespace Watsonia.Data.Tests.Queries.Northwind
 {
 	internal sealed class NorthwindDatabase : Watsonia.Data.Database
 	{
-		private const string ConnectionString = @"Data Source=Data\Northwind.sqlite";
+		private const string ConnectionString = @"Data Source=Data/Northwind.sqlite";
 		private const string EntityNamespace = "Watsonia.Data.Tests.Queries.Northwind";
 
 		public NorthwindDatabase()

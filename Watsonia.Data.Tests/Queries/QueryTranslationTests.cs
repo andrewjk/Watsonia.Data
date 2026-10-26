@@ -22,7 +22,7 @@ namespace Watsonia.Data.Tests.Queries
 		[ClassInitialize]
 		public static void Initialize(TestContext _)
 		{
-			var fileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryTranslationBaselines.xml";
+			var fileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"/Queries/QueryTranslationBaselines.xml";
 			if (!string.IsNullOrEmpty(fileName) && File.Exists(fileName))
 			{
 				var doc = XDocument.Load(fileName);

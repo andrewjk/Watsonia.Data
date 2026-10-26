@@ -17,9 +17,9 @@ namespace Watsonia.Data.Tests.Cache
 		[ClassInitialize]
 		public static void Initialize(TestContext _)
 		{
-			if (!File.Exists(@"Data\CacheTests.sqlite"))
+			if (!File.Exists(@"Data/CacheTests.sqlite"))
 			{
-				var file = File.Create(@"Data\CacheTests.sqlite");
+				var file = File.Create(@"Data/CacheTests.sqlite");
 				file.Dispose();
 			}
 

@@ -10,7 +10,7 @@ namespace Watsonia.Data.TestPerformance
 {
 	static class Config
 	{
-		private const string SqliteConnectionString = @"Data Source=Data\Performance.sqlite";
+		private const string SqliteConnectionString = @"Data Source=Data/Performance.sqlite";
 		private const string SqlServerConnectionString = @"Data Source=[Server];Initial Catalog=PerformanceTests;Integrated Security=SSPI;Persist Security Info=False;Packet Size=4096";
 
 		public const int RunCount = 5;

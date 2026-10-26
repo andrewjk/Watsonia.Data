@@ -21,9 +21,9 @@ namespace Watsonia.Data.Tests.Saving
 		[ClassInitialize]
 		public static void Initialize(TestContext _)
 		{
-			if (!File.Exists(@"Data\SavingTests.sqlite"))
+			if (!File.Exists(@"Data/SavingTests.sqlite"))
 			{
-				var file = File.Create(@"Data\SavingTests.sqlite");
+				var file = File.Create(@"Data/SavingTests.sqlite");
 				file.Dispose();
 			}
 

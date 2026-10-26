@@ -10,7 +10,7 @@ namespace Watsonia.Data.Tests.Saving
 {
 	public class SavingDatabase : Watsonia.Data.Database
 	{
-		private const string ConnectionString = @"Data Source=Data\Saving.sqlite";
+		private const string ConnectionString = @"Data Source=Data/Saving.sqlite";
 
 		public SavingDatabase()
 			: base(new SQLiteDataAccessProvider(), SavingDatabase.ConnectionString, "Watsonia.Data.Tests.Saving.Entities")

@@ -24,14 +24,14 @@ namespace Watsonia.Data.Tests.Queries
 		[ClassInitialize]
 		public static void Initialize(TestContext _)
 		{
-			var sqlServerFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryLanguageBaselinesSqlServer.xml";
+			var sqlServerFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"/Queries/QueryLanguageBaselinesSqlServer.xml";
 			if (!string.IsNullOrEmpty(sqlServerFileName) && File.Exists(sqlServerFileName))
 			{
 				var doc = XDocument.Load(sqlServerFileName);
 				_sqlServerBaselines = doc.Root.Elements("baseline").ToDictionary(e => (string)e.Attribute("key"), e => e.Value);
 			}
 
-			var sqliteFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Queries\QueryLanguageBaselinesSQLite.xml";
+			var sqliteFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"/Queries/QueryLanguageBaselinesSQLite.xml";
 			if (!string.IsNullOrEmpty(sqliteFileName) && File.Exists(sqliteFileName))
 			{
 				var doc = XDocument.Load(sqliteFileName);

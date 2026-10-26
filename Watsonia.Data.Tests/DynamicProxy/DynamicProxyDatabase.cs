@@ -10,7 +10,7 @@ namespace Watsonia.Data.Tests.DynamicProxy
 {
 	public class DynamicProxyDatabase : Watsonia.Data.Database
 	{
-		private const string ConnectionString = @"Data Source=Data\DynamicProxyTests.sqlite";
+		private const string ConnectionString = @"Data Source=Data/DynamicProxyTests.sqlite";
 
 		public DynamicProxyDatabase()
 			: base(new SQLiteDataAccessProvider(), DynamicProxyDatabase.ConnectionString, "Watsonia.Data.Tests.DynamicProxy.Entities")

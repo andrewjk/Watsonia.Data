@@ -22,9 +22,9 @@ namespace Watsonia.Data.Tests.Documentation
 		[ClassInitialize]
 		public static void Initialize(TestContext _)
 		{
-			if (!File.Exists(@"Data\DocumentationTests.sqlite"))
+			if (!File.Exists(@"Data/DocumentationTests.sqlite"))
 			{
-				var file = File.Create(@"Data\DocumentationTests.sqlite");
+				var file = File.Create(@"Data/DocumentationTests.sqlite");
 				file.Dispose();
 			}
 
