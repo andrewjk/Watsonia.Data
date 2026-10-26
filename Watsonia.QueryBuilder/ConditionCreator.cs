@@ -73,6 +73,12 @@ namespace Watsonia.QueryBuilder
 				return new Condition(column, SqlOperator.Equals, new ConstantPart(true));
 			}
 
+			if (part is ConditionalCase conditional)
+			{
+				// A conditional expression used as a predicate (e.g. cond ? a : b)
+				return new Condition(conditional, SqlOperator.Equals, new ConstantPart(true));
+			}
+
 			throw new InvalidOperationException("The condition could not be translated to a statement condition");
 		}
 	}

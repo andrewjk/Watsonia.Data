@@ -17,7 +17,7 @@ namespace Watsonia.QueryBuilder
 
 		public StatementPart Argument { get; set; }
 
-		internal DatePartFunction(DatePart datePart)
+		public DatePartFunction(DatePart datePart)
 		{
 			this.DatePart = datePart;
 		}

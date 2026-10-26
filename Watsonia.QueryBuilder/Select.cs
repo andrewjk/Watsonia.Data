@@ -176,6 +176,17 @@ namespace Watsonia.QueryBuilder
 		}
 
 		/// <summary>
+		/// Adds a COUNT aggregate to the select statement.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement Count(this SelectStatement select)
+		{
+			select.SourceFields.Add(new Aggregate(AggregateType.Count, new Column("*")));
+			return select;
+		}
+
+		/// <summary>
 		/// Adds a list of columns to COUNT to the select statement.
 		/// </summary>
 		/// <param name="select">The select statement.</param>
@@ -247,6 +258,21 @@ namespace Watsonia.QueryBuilder
 			else
 			{
 				select.SourceFields.Add(new Aggregate(AggregateType.Sum, new Column("*")));
+			}
+			return select;
+		}
+
+		/// <summary>
+		/// Adds a SUM (DISTINCT) aggregate to the select statement.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <param name="columns">The columns.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement SumDistinct(this SelectStatement select, params Column[] columns)
+		{
+			foreach (var column in columns)
+			{
+				select.SourceFields.Add(new Aggregate(AggregateType.Sum, column) { IsDistinct = true });
 			}
 			return select;
 		}
@@ -359,6 +385,17 @@ namespace Watsonia.QueryBuilder
 			{
 				select.SourceFields.Add(new Aggregate(AggregateType.Average, new Column("*")));
 			}
+			return select;
+		}
+
+		/// <summary>
+		/// Adds a COUNT_BIG aggregate to the select statement.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement LongCount(this SelectStatement select)
+		{
+			select.SourceFields.Add(new Aggregate(AggregateType.BigCount, new Column("*")));
 			return select;
 		}
 
@@ -664,6 +701,56 @@ namespace Watsonia.QueryBuilder
 		public static SelectStatement Include(this SelectStatement select, string path)
 		{
 			select.IncludePaths.Add(path);
+			return select;
+		}
+
+		/// <summary>
+		/// Adds an EXISTS condition for the supplied subquery.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <param name="subquery">The subquery.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement WhereExists(this SelectStatement select, SelectStatement subquery)
+		{
+			select.Conditions.Add(new Exists() { Select = subquery });
+			return select;
+		}
+
+		/// <summary>
+		/// Adds a NOT EXISTS condition for the supplied subquery.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <param name="subquery">The subquery.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement WhereNotExists(this SelectStatement select, SelectStatement subquery)
+		{
+			select.Conditions.Add(new Exists() { Select = subquery, Not = true });
+			return select;
+		}
+
+		/// <summary>
+		/// Adds an IN condition for the supplied column and subquery.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <param name="column">The column to check.</param>
+		/// <param name="subquery">The subquery that returns the values.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement WhereIn(this SelectStatement select, Column column, SelectStatement subquery)
+		{
+			select.Conditions.Add(new Condition(column, SqlOperator.IsIn, subquery));
+			return select;
+		}
+
+		/// <summary>
+		/// Adds a subquery that returns a single value as a column.
+		/// </summary>
+		/// <param name="select">The select statement.</param>
+		/// <param name="subquery">The subquery.</param>
+		/// <param name="alias">The column alias.</param>
+		/// <returns>The select statement.</returns>
+		public static SelectStatement ColumnSubquery(this SelectStatement select, SelectStatement subquery, string alias = null)
+		{
+			select.SourceFields.Add(new ScalarField(subquery) { Alias = alias });
 			return select;
 		}
 	}

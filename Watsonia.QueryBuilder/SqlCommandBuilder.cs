@@ -572,7 +572,17 @@ namespace Watsonia.QueryBuilder
 				{
 					this.CommandText.Append(", ");
 				}
-				this.VisitTable(select.SourceFieldsFrom[i]);
+				var table = select.SourceFieldsFrom[i];
+				if (!string.IsNullOrEmpty(table.Alias))
+				{
+					this.CommandText.Append("[");
+					this.CommandText.Append(table.Alias);
+					this.CommandText.Append("]");
+				}
+				else
+				{
+					this.VisitTable(table);
+				}
 				this.CommandText.Append(".*");
 			}
 			if (select.SourceFields.Count > 0)
