@@ -315,7 +315,6 @@ namespace Watsonia.Data.Query
 			var memberType = TypeHelper.GetMemberType(member);
 			if (memberType == null)
 			{
-				System.Console.Error.WriteLine($"RELNULL: entity={entity?.EntityType.Name} member={member?.Name} kind={member?.MemberType} declaring={member?.DeclaringType?.Name}");
 				return null;
 			}
 			return this.GetEntity(TypeHelper.GetElementType(memberType));
@@ -388,7 +387,7 @@ namespace Watsonia.Data.Query
 			}
 		}
 
-		private void GetAssociationKeys(MappingEntity entity, MemberInfo member, out List<MemberInfo> keyMembers, out List<MemberInfo> relatedKeyMembers)
+		internal void GetAssociationKeys(MappingEntity entity, MemberInfo member, out List<MemberInfo> keyMembers, out List<MemberInfo> relatedKeyMembers)
 		{
 			MappingEntity entity2 = GetRelatedEntity(entity, member);
 

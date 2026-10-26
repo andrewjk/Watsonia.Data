@@ -208,8 +208,10 @@ namespace Watsonia.Data.Query
 				ProjectionExpression projection = this.GetQueryExpression(relatedEntity);
 
 				// make where clause for joining back to 'root'
-				var declaredTypeMembers = this.Mapping.GetAssociationKeyMembers(entity, member).ToList();
-				var associatedMembers = this.Mapping.GetAssociationRelatedKeyMembers(entity, member).ToList();
+				// use the columns the two entities have in common so that both directions work:
+				// for a reference (Order.Customer) this side holds the foreign key, while for a
+				// collection (Customer.Orders) the related side holds it
+				this.Mapping.GetAssociationKeys(entity, member, out var declaredTypeMembers, out var associatedMembers);
 
 				Expression where = null;
 				for (int i = 0, n = associatedMembers.Count; i < n; i++)
