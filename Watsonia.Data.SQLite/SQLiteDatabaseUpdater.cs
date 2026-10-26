@@ -96,7 +96,8 @@ namespace Watsonia.Data.SQLite
 				// Second pass - fill table data
 				foreach (var table in schema.Tables.Where(t => t.Values.Count > 0))
 				{
-					UpdateTableData(table, connection, doUpdate, script);
+					var tableExists = existingTables.ContainsKey(table.Name.ToUpperInvariant());
+					UpdateTableData(table, connection, doUpdate, script, tableExists);
 				}
 
 				// Third pass - create relationship constraints
@@ -636,21 +637,24 @@ namespace Watsonia.Data.SQLite
 			return constraints;
 		}
 
-		private void UpdateTableData(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script)
+		private void UpdateTableData(MappedTable table, DbConnection connection, bool doUpdate, StringBuilder script, bool tableExists)
 		{
 			// TODO: This is a bit messy and could be tidied up a bit
 			var existingTableData = new List<int>();
 
-			// Load the existing table data
-			var selectExistingTableData = Select.From(table.Name).Columns(table.PrimaryKeyColumnName);
-			using (var existingTableDataCommand = _dataAccessProvider.BuildCommand(selectExistingTableData, _configuration))
+			// Load the existing table data (a table created in this update has no rows yet)
+			if (tableExists)
 			{
-				existingTableDataCommand.Connection = connection;
-				using (var reader = existingTableDataCommand.ExecuteReader())
+				var selectExistingTableData = Select.From(table.Name).Columns(table.PrimaryKeyColumnName);
+				using (var existingTableDataCommand = _dataAccessProvider.BuildCommand(selectExistingTableData, _configuration))
 				{
-					while (reader.Read())
+					existingTableDataCommand.Connection = connection;
+					using (var reader = existingTableDataCommand.ExecuteReader())
 					{
-						existingTableData.Add(reader.GetInt32(0));
+						while (reader.Read())
+						{
+							existingTableData.Add(reader.GetInt32(0));
+						}
 					}
 				}
 			}

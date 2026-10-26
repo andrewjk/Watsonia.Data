@@ -50,6 +50,26 @@ namespace Watsonia.Data.Tests.Database
 		}
 
 		[TestMethod]
+		public void UpdateScriptWorksOnAnEmptyDatabaseWithEnums()
+		{
+			// The full entity namespace includes enums (HasChangesDirection), whose seed data used to
+			// be read from a table that didn't exist yet when generating a script
+			var database = new Watsonia.Data.Database(new DatabaseConfiguration(
+				new SQLiteDataAccessProvider(),
+				CreateDatabaseFile(),
+				EntityNamespace));
+
+			var script = database.GetUpdateScript();
+
+			StringAssert.Contains(script, "CREATE TABLE");
+			StringAssert.Contains(script, "HasChangesDirection");
+			StringAssert.Contains(script, "INSERT");
+
+			database.UpdateDatabase();
+			Assert.IsFalse(database.GetUpdateScript().Contains("CREATE TABLE"));
+		}
+
+		[TestMethod]
 		public void SchemaUpgradeCreatesOnlyTheNewTables()
 		{
 			var connectionString = CreateDatabaseFile();
