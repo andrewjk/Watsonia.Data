@@ -43,6 +43,15 @@ namespace Watsonia.Data.Tests
 						}
 					}
 				}
+
+				// Several test classes share the entity test database. Create its schema here
+				// so that they do not depend on the order MSTest runs the test classes in.
+				var entitiesPath = Path.Combine(dataDirectory, "EntitiesTests.sqlite");
+				var entitiesDatabase = new Watsonia.Data.Database(new Watsonia.Data.DatabaseConfiguration(
+					new Watsonia.Data.SQLite.SQLiteDataAccessProvider(),
+					"Data Source=" + entitiesPath,
+					"Watsonia.Data.Tests.Database.Entities"));
+				entitiesDatabase.UpdateDatabase();
 			}
 
 			// Used by CI to run the suite under a non-English culture

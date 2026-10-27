@@ -18,12 +18,14 @@ namespace Watsonia.Data.Tests.Database
 			var directory = Path.Combine(Path.GetTempPath(), "watsonia-schema-" + Guid.NewGuid().ToString("N"));
 			Directory.CreateDirectory(directory);
 			TempDirectories.Add(directory);
-			return "Data Source=" + Path.Combine(directory, "Schema.sqlite");
+			return "Data Source=" + Path.Combine(directory, "Schema.sqlite") + ";Pooling=False";
 		}
 
 		[ClassCleanup]
 		public static void Cleanup()
 		{
+			// Release pooled native handles so the temp database files are not locked on Windows
+			Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
 			foreach (var directory in TempDirectories)
 			{
 				if (Directory.Exists(directory))
