@@ -16,6 +16,14 @@ Watsonia.Data is a simple object-relational mapper designed to be dropped into a
 
 Watsonia.Data is pre-1.0. The core query and persistence paths are covered by a cross-platform test suite; it is not intended to replace feature-complete ORMs such as Entity Framework. It targets **netstandard2.0** and **net10.0**.
 
+## Installation ##
+
+```bash
+dotnet add package Watsonia.Data
+dotnet add package Watsonia.Data.SQLite      # or: Watsonia.Data.SqlServer
+dotnet add package Watsonia.Data.Extensions   # optional: DI / logging / tracing / caching
+```
+
 ## Getting Started ##
 
 So you've added a reference to Watsonia.Data to your assembly?  And you have some entity classes you'd like to map to a database?  Great!  The first step is to ensure that the properties you want to map to database columns are virtual and settable.  For example, in the following entity class, the FirstName, LastName and Rating properties will be loaded from the database and FullName will be ignored:  
