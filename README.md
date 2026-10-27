@@ -404,6 +404,8 @@ using (DbTransaction transaction = connection.BeginTransaction())
 }
 ```
 
-## License ##
+## License
 
-Watsonia.Data is released under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+Watsonia.Data is released under the [MIT License](http://opensource.org/licenses/MIT).
+
+Third-party attributions and license texts (IQToolkit/MS-PL, Entity Framework Core/MIT, Northwind sample data, benchmark inspiration) are in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

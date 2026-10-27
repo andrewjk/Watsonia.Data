@@ -1,6 +1,6 @@
 ## Benchmark results
 
-The `Watsonia.Data.TestPerformance` project had no committed results (it writes `Data\Log *.txt` at runtime), so I got it running on this machine. It's adapted from [exceptionnotfound's Dapper vs EF vs ADO.NET benchmark](https://www.exceptionnotfound.net/dapper-vs-entity-framework-vs-ado-net-performance-benchmarking/): 5 runs × 5 frameworks × 5 query scenarios against a SQLite database (500 posts, 5 sports, 50 teams, 500 players), averaging milliseconds per operation. All frameworks were cross-checked to return **identical data** (no correctness warnings).
+The `Watsonia.Data.TestPerformance` project had no committed results (it writes `Data\Log *.txt` at runtime), so I got it running on this machine. The scenario and dataset shape are based on [exceptionnotfound's Dapper vs EF vs ADO.NET benchmark](https://www.exceptionnotfound.net/dapper-vs-entity-framework-vs-ado-net-performance-benchmarking/); the current BenchmarkDotNet implementation is a rewrite: 5 runs × 5 frameworks × 5 query scenarios against a SQLite database (500 posts, 5 sports, 50 teams, 500 players), averaging milliseconds per operation. All frameworks were cross-checked to return **identical data** (no correctness warnings).
 
 | Framework | Post IDs | Posts | Player by ID | Players / Team | Teams / Sport |
 |---|---|---|---|---|---|

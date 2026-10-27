@@ -3,6 +3,7 @@
   <PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
 		<PackageId>Watsonia.Data.SqlServer</PackageId>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Watsonia Publishing</Authors>
     <Company>Watsonia Publishing</Company>
     <Product>Watsonia.Data.SqlServer</Product>
@@ -18,5 +19,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="" Link="THIRD-PARTY-NOTICES.md" />
   </ItemGroup>
 </Project>

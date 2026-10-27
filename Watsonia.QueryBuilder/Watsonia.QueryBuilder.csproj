@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
     <PackageId>Watsonia.QueryBuilder</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Watsonia Publishing</Authors>
     <Product>Watsonia.QueryBuilder</Product>
     <Copyright>© Watsonia Publishing</Copyright>
@@ -14,5 +15,8 @@
 	
   <ItemGroup>
     <InternalsVisibleTo Include="Watsonia.Data" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="" Link="THIRD-PARTY-NOTICES.md" />
   </ItemGroup>
 </Project>
