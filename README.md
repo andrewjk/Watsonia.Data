@@ -11,10 +11,18 @@ Watsonia.Data is a simple object-relational mapper designed to be dropped into a
 - Automatic validation of entities that are decorated with System.ComponentModel.DataAnnotations.ValidationAttributes or that implement IValidatableObject
 - Hook most database operations with event handlers or method overrides
 - Support for database transactions
-- Built-in support for Microsoft SQL Server with support for other databases via a plugin architecture
-- Export proxy classes in an assembly to work in environments with no dynamic support
+- Built-in support for Microsoft SQL Server and SQLite, with other databases via a plugin architecture
+- Sync and async APIs, including cancellation and streaming async results
 
-Watsonia.Data is in a very, very beta stage and does just what I need it to for the moment.  If you need something more stable, powerful, flexible or fast you might want to compare it with other free ORMs such as Entity Framework, NHibernate, SubSonic, Dapper, PetaPoco and Massive.  
+Watsonia.Data is pre-1.0. The core query and persistence paths are covered by a cross-platform test suite; it is not intended to replace feature-complete ORMs such as Entity Framework. It targets **netstandard2.0** and **net10.0**.
+
+## Installation ##
+
+```bash
+dotnet add package Watsonia.Data
+dotnet add package Watsonia.Data.SQLite      # or: Watsonia.Data.SqlServer
+dotnet add package Watsonia.Data.Extensions   # optional: DI / logging / tracing / caching
+```
 
 ## Getting Started ##
 
@@ -54,8 +62,13 @@ public class Author
 Entities are loaded and saved via the Database class.  The quickest way to get up and running with this is by creating a new instance of Database and passing in the connection string and the namespace in which your entities reside:  
 
 ```C#
-var db = new Watsonia.Data.Database([ConnectionString], [EntityNamespace]);
+var db = new Watsonia.Data.Database(
+	new Watsonia.Data.SQLite.SQLiteDataAccessProvider(),
+	"Data Source=app.db",
+	"MyApp.Entities");
 ```
+
+Use `Watsonia.Data.SqlServer.SqlServerDataAccessProvider` for SQL Server.
 
 If you want to get a bit more fancy (e.g. if you want to determine which entities to map based on something other than namespace or you want to map entities to tables with different names) you can create a new instance of Database and pass in a DatabaseConfiguration parameter.  See the Database Mapping section below for more information.  
 
@@ -118,6 +131,8 @@ Or load a single entity with its primary key value:
 var author = db.Load<Author>([AuthorID]);
 ```
 
+Most load operations have async counterparts (`LoadAsync`, `LoadCollectionAsync`, `LoadValueAsync`, or `ToListAsync` on LINQ queries); the token-aware overloads accept a `CancellationToken`.
+
 ## Saving Entities ##
 
 After you've loaded your entities you can make changes to their properties and save them back to the database:
@@ -176,7 +191,7 @@ db.Execute(update3, "P");
 You can also delete entities in bulk using fluent SQL methods or SQL strings:
 
 ```C#
-var delete = Delete.From<Author>().Where(a => a.Rating < 80));
+var delete = Delete.From<Author>().Where(a => a.Rating < 80);
 db.Execute(delete);
 ```
 
@@ -196,17 +211,25 @@ Out of the box, Watsonia.Data uses these conventions when mapping entities to th
 
 - Each entity class is mapped to a database table with the same name as the class
 - Each entity property is mapped to a database column with the same as the property
-- The primary key column is a 64 bit integer named "ID"
+- The primary key column is a 64 bit integer named "ID" by default (override `GetPrimaryKeyColumnName`/`GetPrimaryKeyColumnType` for string or other key types)
 - Entities are mapped if they exist in the namespace passed into the Database class's constructor
 - Properties are mapped if they are readable, writeable, public and virtual
-- If a property is of an entity type it is considered to be a related item and will be lazily loaded but not saved with the entity
+- If a property is of an entity type it is considered to be a related item and will be lazily loaded and linked by its foreign key
 - If a property is of an enumerable entity type (i.e. IEnumerable<T> where T is an entity type) it is considered to be a related collection and will be lazily loaded AND saved with the entity
 
-Any of these conventions may be overridden by creating a new class that inherits from Watsonia.Data.Configuration and passing it into the constructor to Database, e.g.:
+Any of these conventions may be overridden by creating a new class that inherits from Watsonia.Data.DatabaseConfiguration and passing it into the constructor to Database, e.g.:
 
 ```C#
+using Watsonia.Data;
+using Watsonia.Data.SQLite;
+
 public class MyConfiguration : DatabaseConfiguration
 {
+	public MyConfiguration()
+		: base(new SQLiteDataAccessProvider(), "Data Source=app.db", "MyApp.Entities")
+	{
+	}
+
 	public override string GetTableName(Type type)
 	{
 		return type.Name + "s";
@@ -223,11 +246,38 @@ var db = new Watsonia.Data.Database(config);
 
 ## Lazy and Eager Loading ##
 
-TODO:
+Related items and collections are loaded on first access by default:
+
+```C#
+var author = db.Load<Author>([AuthorID]);
+var books = author.Books;        // lazily loaded
+var publisher = author.Publisher; // lazily loaded
+```
+
+Eager-load them with Include:
+
+```C#
+var authors = db.Query<Author>().Include(a => a.Books).ToList();
+```
+
+Async queries and loads are available too:
+
+```C#
+var authors = await db.Query<Author>()
+	.Where(a => a.LastName.StartsWith("P"))
+	.ToListAsync(cancellationToken);
+
+var books = await db.LoadCollectionAsync(author, a => a.Books, cancellationToken);
+var publisher = await db.LoadItemAsync(author, a => a.Publisher, cancellationToken);
+```
+
+Set `LazyLoadingEnabled = false` on the `DatabaseConfiguration` to prevent implicit lazy loading; accessing an unloaded related item then throws an exception that tells you to use Include or an explicit loader.
 
 ## Cascading Save and Delete Operations ##
 
-TODO:
+Related items and collections are saved with their parent by default. Opt out with `[Cascade(ShouldCascade = false)]` on the property (from `Watsonia.Data.DataAnnotations`). A related item that is not cascaded must be saved before the parent.
+
+Cascading delete is opt-in: mark the relationship with `[CascadeDelete]` if items removed from a loaded collection, or children of a deleted parent, should also be deleted.
 
 ## Updating the Database Schema ##
 
@@ -260,27 +310,13 @@ When updating the database:
 - Columns and tables are not deleted from the database when classes or properties are removed
 - Columns and tables are not renamed, instead a new column or table will be created
 
-TODO: Need examples here
-
-## Generating Assemblies ##
-
-You can export proxies in an assembly by calling the database's ExportProxies method:
-
-```C#
-db.ExportProxies("Proxies.dll");
-```
-
-In this way you can use the proxies in an environment that doesn't support dynamic type generation or just have a poke around the classes via reflection to see what they are doing.
+Schema updates are additive; there are no migration snapshots or script runners yet, so changing existing production schemas still needs a manual migration plan.
 
 ## How it Works ##
 
-Watsonia.Data creates a proxy object for each entity class when its corresponding database table is accessed.  The proxy object is an instance of a class that inherits from the entity class and overrides its virtual properties.  In this way we can intercept changes to property values to provide change notification and validation functionality.  
+Watsonia.Data creates a proxy object for each entity class when its corresponding database table is accessed.  The proxy object is an instance of a class that inherits from the entity class and overrides its virtual properties.  In this way we can intercept changes to property values to provide change notification and validation functionality.
 
-TODO: Very much need a diagram here
-
-Each proxy object class implements the interface Watsonia.Data.IDynamicProxy.  
-
-TODO: Other stuff it implements e.g. equality
+Each proxy object class implements the interface Watsonia.Data.IDynamicProxy, which exposes a `StateTracker` with the change-tracking, validation and lazy-loading state (including `IsNew`, `HasChanges`, `IsValid` and `ValidationErrors`). Proxy equality and hash codes are based on the entity type and primary key.
 
 ## Validation ##
 
@@ -335,7 +371,7 @@ public class Author
 
 public class Book
 {
-	[
+	[Required]
 	public virtual string Title
 	{
 		get;
@@ -344,18 +380,18 @@ public class Book
 }
 ```
 
-If we then add a book with no title to the author, attempting to save the author or checking IsValid will cause the author to have an error for the missing book title in its ValidationErrors collection.   
+If we then add a book with no title to the author, attempting to save the author will throw a `ValidationException`; the author proxy's `StateTracker.ValidationErrors` will contain the missing title error.
 
 ## Other Functionality ##
 
-IsNew, HasChanges etc
+Each proxy exposes its tracking state through `((IDynamicProxy)author).StateTracker`, including `IsNew`, `HasChanges`, `IsValid` and `ValidationErrors`.
 
 ## Transactions ##
 
 Sometimes you may want to run a bunch of operations against the database and undo your changes if any of the operations fail.  The following code will attempt to change each Author's rating and only commit the operation to the database if every save completes successfully:
 
 ```C#
-using (DbConnection connection = this.DB.OpenConnection())
+using (DbConnection connection = db.OpenConnection())
 using (DbTransaction transaction = connection.BeginTransaction())
 {
 	try
@@ -363,7 +399,7 @@ using (DbTransaction transaction = connection.BeginTransaction())
 		foreach (Author a in authors)
 		{
 			a.Rating = 50;
-			this.DB.Save(a, connection, transaction);
+			db.Save(a, connection, transaction);
 		}
 
 		transaction.Commit();
